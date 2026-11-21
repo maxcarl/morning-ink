@@ -436,30 +436,30 @@ Das MVP ist fertig, wenn:
 
 Das MVP besteht aus 23 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitung bereits täglich auf den Kindle, mit Quellen aus einer Seed-Konfiguration. Etappe 3 macht sie über die Oberfläche bedienbar.
 
-| # | Etappe | Aufgabe | Fertig, wenn | Braucht |
-| --- | --- | --- | --- | --- |
-| 1 | 0 Fundament | Solution mit `Domain`, `Application`, `Infrastructure`, `Web` und Testprojekten; Nullable, Analyzer, `.editorconfig`, Warnungen als Fehler | Build ohne Warnungen, Architekturtest prüft die Schichtgrenzen | – |
-| 2 | 0 Fundament | CI: Build, Tests, `dotnet format`, Docker-Image für amd64 und arm64 | Pull Request läuft grün, Image liegt in der Registry | 1 |
-| 3 | 0 Fundament | Dockerfile und Compose: Non-Root-Benutzer, Volume `/data`, Endpunkt `/health` | `docker compose up` startet, Healthcheck ist grün | 1 |
-| 4 | 0 Fundament | EF Core mit SQLite, Kernmodell mehrbenutzerfähig, automatische Migration mit vorherigem Backup | Neustart verliert keine Daten, jede Migration legt ein Backup an | 1 |
-| 5 | 0 Fundament | Verschlüsselte Zugangsdaten über Data Protection, Schlüssel in `/data` | Passwörter stehen nicht im Klartext in der Datenbank und sind nach Neustart lesbar | 4 |
-| 6 | 1 Inhalte holen | Sicherer HTTP-Client: nur http/https, Sperre für interne Adressen auch nach Weiterleitung und DNS, Größenlimit, Timeouts | Tests mit `127.0.0.1`, `192.168.x.x`, `file:` und Weiterleitung ins Heimnetz werden abgelehnt | 1 |
-| 7 | 1 Inhalte holen | RSS/Atom-Quelle hinter `ISource`: ETag-Caching, max. Alter, max. Artikel, XXE aus | Drei echte Feeds liefern Artikel, Tests mit gespeicherten Feeds laufen grün | 6 |
-| 8 | 1 Inhalte holen | Volltext und Bereinigung hinter `IProcessor`: SmartReader, HTML-Allowlist, Rückfall auf Feed-Text | Vergleichstests mit mindestens 10 gespeicherten Seiten laufen grün | 7 |
-| 9 | 1 Inhalte holen | Bilder: Graustufen, verkleinern, Pixel- und Größenlimit, Dateiname aus Hash | Icons fliegen raus, Ausgabe bleibt unter dem Größenlimit | 8 |
-| 10 | 1 Inhalte holen | Duplikate über normalisierte URLs und eine Liste gesehener Artikel | Ein zweiter Lauf direkt danach liefert keine neuen Artikel | 7 |
-| 11 | 2 Zeitung | EPUB-Renderer hinter `IRenderer`: Titelseite, Inhaltsverzeichnis, Rubriken, Metadaten | epubcheck meldet 0 Fehler, Kindle-Checkliste ist erfüllt | 8, 9 |
-| 12 | 2 Zeitung | Kindle-Zustellung hinter `IDelivery`: MailKit, Größenprüfung, Betreff ohne Zeilenumbrüche | Testmail und Ausgabe kommen auf dem Kindle an | 5, 11 |
-| 13 | 2 Zeitung | Ausgabe-Job: Quellen, Pipeline, Renderer, Zustellung; Ausfallvermerk, Sperre pro Profil, nie doppelt senden | Simulierter Ausfall einer Quelle: Ausgabe kommt trotzdem, mit Vermerk | 10, 12 |
-| 14 | 2 Zeitung | Scheduler mit Quartz.NET: Zeitplan und Zeitzone pro Profil, verpasste Ausgaben nachholen | Container um 6 Uhr aus, um 7 Uhr an: Die Ausgabe kommt nach | 13 |
-| 15 | 2 Zeitung | Aufräumjob, Grundversion: alte Ausgaben und gesehene Artikel nach Frist löschen | Ausgaben älter als die Frist sind weg, angeheftete bleiben | 4 |
-| 16 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 |
-| 17 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“ | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 16 |
-| 18 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 17 |
-| 19 | 3 Oberfläche | Seite Einstellungen: SMTP mit Testmail | Testmail kommt an, Passwort wird nie wieder angezeigt | 12, 16 |
-| 20 | 3 Oberfläche | Dashboard: nächste Ausgabe, letzte Ausgaben mit Status, „Jetzt senden“ | Fehler einer Ausgabe sind dort ohne Blick ins Log sichtbar | 13, 16 |
-| 21 | 3 Oberfläche | Einrichtungsassistent: Kindle-Adresse, SMTP, Testmail, Beispielquellen, erste Ausgabe | Vom leeren Container zur ersten Zeitung in unter 10 Minuten | 17–19 |
-| 22 | 4 Abnahme | README: Installation, Amazon-Freigabe, Hinweis auf privaten Gebrauch | Jemand ohne Vorwissen kommt allein bis zur ersten Zeitung | 21 |
-| 23 | 4 Abnahme | Probelauf über 7 Tage mit drei echten Feeds | Alle Abnahmekriterien für das MVP sind abgehakt | 1–22 |
+| # | Etappe | Aufgabe | Fertig, wenn | Braucht | Status |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 0 Fundament | Solution mit `Domain`, `Application`, `Infrastructure`, `Web` und Testprojekten; Nullable, Analyzer, `.editorconfig`, Warnungen als Fehler | Build ohne Warnungen, Architekturtest prüft die Schichtgrenzen | – | ✅ erledigt |
+| 2 | 0 Fundament | CI: Build, Tests, `dotnet format`, Docker-Image für amd64 und arm64 | Pull Request läuft grün, Image liegt in der Registry | 1 | 🔄 umgesetzt, CI auf GitHub noch nicht gelaufen |
+| 3 | 0 Fundament | Dockerfile und Compose: Non-Root-Benutzer, Volume `/data`, Endpunkt `/health` | `docker compose up` startet, Healthcheck ist grün | 1 | ✅ erledigt |
+| 4 | 0 Fundament | EF Core mit SQLite, Kernmodell mehrbenutzerfähig, automatische Migration mit vorherigem Backup | Neustart verliert keine Daten, jede Migration legt ein Backup an | 1 | – |
+| 5 | 0 Fundament | Verschlüsselte Zugangsdaten über Data Protection, Schlüssel in `/data` | Passwörter stehen nicht im Klartext in der Datenbank und sind nach Neustart lesbar | 4 | – |
+| 6 | 1 Inhalte holen | Sicherer HTTP-Client: nur http/https, Sperre für interne Adressen auch nach Weiterleitung und DNS, Größenlimit, Timeouts | Tests mit `127.0.0.1`, `192.168.x.x`, `file:` und Weiterleitung ins Heimnetz werden abgelehnt | 1 | – |
+| 7 | 1 Inhalte holen | RSS/Atom-Quelle hinter `ISource`: ETag-Caching, max. Alter, max. Artikel, XXE aus | Drei echte Feeds liefern Artikel, Tests mit gespeicherten Feeds laufen grün | 6 | – |
+| 8 | 1 Inhalte holen | Volltext und Bereinigung hinter `IProcessor`: SmartReader, HTML-Allowlist, Rückfall auf Feed-Text | Vergleichstests mit mindestens 10 gespeicherten Seiten laufen grün | 7 | – |
+| 9 | 1 Inhalte holen | Bilder: Graustufen, verkleinern, Pixel- und Größenlimit, Dateiname aus Hash | Icons fliegen raus, Ausgabe bleibt unter dem Größenlimit | 8 | – |
+| 10 | 1 Inhalte holen | Duplikate über normalisierte URLs und eine Liste gesehener Artikel | Ein zweiter Lauf direkt danach liefert keine neuen Artikel | 7 | – |
+| 11 | 2 Zeitung | EPUB-Renderer hinter `IRenderer`: Titelseite, Inhaltsverzeichnis, Rubriken, Metadaten | epubcheck meldet 0 Fehler, Kindle-Checkliste ist erfüllt | 8, 9 | – |
+| 12 | 2 Zeitung | Kindle-Zustellung hinter `IDelivery`: MailKit, Größenprüfung, Betreff ohne Zeilenumbrüche | Testmail und Ausgabe kommen auf dem Kindle an | 5, 11 | – |
+| 13 | 2 Zeitung | Ausgabe-Job: Quellen, Pipeline, Renderer, Zustellung; Ausfallvermerk, Sperre pro Profil, nie doppelt senden | Simulierter Ausfall einer Quelle: Ausgabe kommt trotzdem, mit Vermerk | 10, 12 | – |
+| 14 | 2 Zeitung | Scheduler mit Quartz.NET: Zeitplan und Zeitzone pro Profil, verpasste Ausgaben nachholen | Container um 6 Uhr aus, um 7 Uhr an: Die Ausgabe kommt nach | 13 | – |
+| 15 | 2 Zeitung | Aufräumjob, Grundversion: alte Ausgaben und gesehene Artikel nach Frist löschen | Ausgaben älter als die Frist sind weg, angeheftete bleiben | 4 | – |
+| 16 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 | – |
+| 17 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“ | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 16 | – |
+| 18 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 17 | – |
+| 19 | 3 Oberfläche | Seite Einstellungen: SMTP mit Testmail | Testmail kommt an, Passwort wird nie wieder angezeigt | 12, 16 | – |
+| 20 | 3 Oberfläche | Dashboard: nächste Ausgabe, letzte Ausgaben mit Status, „Jetzt senden“ | Fehler einer Ausgabe sind dort ohne Blick ins Log sichtbar | 13, 16 | – |
+| 21 | 3 Oberfläche | Einrichtungsassistent: Kindle-Adresse, SMTP, Testmail, Beispielquellen, erste Ausgabe | Vom leeren Container zur ersten Zeitung in unter 10 Minuten | 17–19 | – |
+| 22 | 4 Abnahme | README: Installation, Amazon-Freigabe, Hinweis auf privaten Gebrauch | Jemand ohne Vorwissen kommt allein bis zur ersten Zeitung | 21 | – |
+| 23 | 4 Abnahme | Probelauf über 7 Tage mit drei echten Feeds | Alle Abnahmekriterien für das MVP sind abgehakt | 1–22 | – |
 
 Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko steckt in 8 (Volltext) und 11 (EPUB für Kindle), deshalb lohnt es sich, dort früh echte Seiten und einen echten Kindle zu testen.
