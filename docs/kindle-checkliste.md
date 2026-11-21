@@ -2,7 +2,9 @@
 
 Manuelle Prüfung einer Ausgabe auf einem echten Kindle. epubcheck in der CI prüft die Form, diese Liste prüft, was Amazons Umwandlung und das Gerät daraus machen.
 
-Testdatei: eine Ausgabe per Send to Kindle (Mail oder https://www.amazon.de/sendtokindle) an das Gerät schicken.
+Testdatei: eine Ausgabe per Send to Kindle (Mail oder https://www.amazon.de/sendtokindle) an das Gerät schicken. Für den Weg per Mail: `tools/send-test-issue.cs` (Anleitung im Kopf der Datei).
+
+Stand 2026-11-21: alles außer dem Titel per Web-Upload geprüft; der Test per Mail ist auf später verschoben.
 
 | Punkt | Erwartung | Ergebnis |
 | --- | --- | --- |

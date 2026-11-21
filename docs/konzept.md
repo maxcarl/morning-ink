@@ -261,7 +261,7 @@ Die Zeitung geht per Send-to-Kindle-Mail raus. Weitere Wege machen das Tool auch
 
 **Kindle-Eigenheiten**
 
-- Amazon lehnt fehlerhafte EPUBs ab und schickt dann nur eine Fehlermail an den Absender. Deshalb prüft epubcheck jede Ausgabe vor dem Versand.
+- Amazon lehnt fehlerhafte EPUBs ab und schickt dann nur eine Fehlermail an den Absender. Deshalb prüft epubcheck in der CI jedes EPUB, das die Tests bauen, darunter eines aus echten Artikelseiten. Im Image läuft epubcheck nicht, weil es Java bräuchte (etwa 150 MB); echte Ablehnungen erkennt die IMAP-Überwachung.
 - Optional liest das Tool das Absender-Postfach per IMAP mit, erkennt solche Ablehnungen und zeigt sie im Dashboard.
 - Ein eindeutiger Titel pro Ausgabe sorgt dafür, dass der Kindle die Hefte sauber nach Datum sortiert.
 - Dateigröße unter dem Mail-Limit von Amazon halten, sonst Bilder automatisch stärker verkleinern.
@@ -451,7 +451,7 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 9 | 1 Inhalte holen | Bilder: Graustufen, verkleinern, Pixel- und Größenlimit, Dateiname aus Hash | Icons fliegen raus, Ausgabe bleibt unter dem Größenlimit | 8 | ✅ erledigt |
 | 10 | 1 Inhalte holen | Duplikate über normalisierte URLs und eine Liste gesehener Artikel | Ein zweiter Lauf direkt danach liefert keine neuen Artikel | 7 | ✅ erledigt |
 | 11 | 2 Zeitung | EPUB-Renderer hinter `IRenderer`: Titelseite, Inhaltsverzeichnis, Rubriken, Metadaten | epubcheck meldet 0 Fehler, Kindle-Checkliste ist erfüllt | 8, 9 | 🔄 epubcheck fehlerfrei, Kindle-Checkliste bis auf den Titel erfüllt; der wird mit Aufgabe 12 per Mail geprüft ([Checkliste](kindle-checkliste.md)) |
-| 12 | 2 Zeitung | Kindle-Zustellung hinter `IDelivery`: MailKit, Größenprüfung, Betreff ohne Zeilenumbrüche | Testmail und Ausgabe kommen auf dem Kindle an | 5, 11 | 🔄 umgesetzt, Test mit echtem SMTP und Kindle offen (`tools/send-test-issue.cs`) |
+| 12 | 2 Zeitung | Kindle-Zustellung hinter `IDelivery`: MailKit, Größenprüfung, Betreff ohne Zeilenumbrüche | Testmail und Ausgabe kommen auf dem Kindle an | 5, 11 | 🔄 umgesetzt; Test mit echtem SMTP und Kindle auf später verschoben (`tools/send-test-issue.cs`) |
 | 13 | 2 Zeitung | Ausgabe-Job: Quellen, Pipeline, Renderer, Zustellung; Ausfallvermerk, Sperre pro Profil, nie doppelt senden | Simulierter Ausfall einer Quelle: Ausgabe kommt trotzdem, mit Vermerk | 10, 12 | – |
 | 14 | 2 Zeitung | Scheduler mit Quartz.NET: Zeitplan und Zeitzone pro Profil, verpasste Ausgaben nachholen | Container um 6 Uhr aus, um 7 Uhr an: Die Ausgabe kommt nach | 13 | – |
 | 15 | 2 Zeitung | Aufräumjob, Grundversion: alte Ausgaben und gesehene Artikel nach Frist löschen | Ausgaben älter als die Frist sind weg, angeheftete bleiben | 4 | – |
