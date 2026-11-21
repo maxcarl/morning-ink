@@ -4,6 +4,7 @@
     <ProjectReference Include="..\MorningInk.Domain\MorningInk.Domain.csproj" />
     <ProjectReference Include="..\MorningInk.Application\MorningInk.Application.csproj" />
     <ProjectReference Include="..\MorningInk.Infrastructure\MorningInk.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

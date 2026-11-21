@@ -539,3 +539,5 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/rider,visualstudiocode,macos,windows,linux,visualstudio
+# local data directory (Storage:DataDirectory in Development)
+/src/MorningInk.Web/data/
