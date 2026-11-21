@@ -20,15 +20,17 @@ public sealed class TestHost : IDisposable
 
     /// <summary>Builds fresh services, as after a restart, and applies migrations.</summary>
     /// <param name="settings">Extra configuration on top of the data directory.</param>
-    public async Task<ServiceProvider> StartAsync(Dictionary<string, string?>? settings = null)
+    /// <param name="configure">Extra registrations, e.g. application services.</param>
+    public async Task<ServiceProvider> StartAsync(Dictionary<string, string?>? settings = null, Action<IServiceCollection>? configure = null)
     {
         var values = new Dictionary<string, string?>(settings ?? []) { ["Storage:DataDirectory"] = DataDirectory };
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
-        var services = new ServiceCollection()
+        var collection = new ServiceCollection()
             .AddLogging()
             .AddSingleton<TimeProvider>(new FixedTimeProvider(Now))
-            .AddInfrastructure(configuration)
-            .BuildServiceProvider();
+            .AddInfrastructure(configuration);
+        configure?.Invoke(collection);
+        var services = collection.BuildServiceProvider();
 
         await using var scope = services.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<DatabaseMigrator>().MigrateAsync(CancellationToken.None);

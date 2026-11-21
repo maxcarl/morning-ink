@@ -1,6 +1,7 @@
 using MorningInk.Application.Delivery;
 using MorningInk.Application.Processing;
 using MorningInk.Application.Rendering;
+using MorningInk.Application.Scheduling;
 using MorningInk.Application.Sources;
 using MorningInk.Domain;
 
@@ -59,7 +60,7 @@ public sealed class IssuePublisher(
 
         var profile = loaded.Profile;
         var renderer = renderers.First(r => r.FileExtension == Format);
-        var localTime = ToProfileTime(slot, profile.TimeZoneId);
+        var localTime = TimeZoneInfo.ConvertTime(slot, ProfileTimeZone.Find(profile.TimeZoneId));
         if (issue is null)
         {
             issue = new Issue
@@ -243,7 +244,7 @@ public sealed class IssuePublisher(
             issue.Status = IssueStatus.Failed;
             issue.Error = failure.Message;
             await store.SaveChangesAsync(cancellationToken);
-            return new PublishResult.DeliveryFailed(issue.Id, failure.Message, failure.Retryable);
+            return new PublishResult.DeliveryFailed(issue.Id, failure.Message, failure.Retryable, issue.Attempts.Count);
         }
 
         issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = true });
@@ -255,18 +256,5 @@ public sealed class IssuePublisher(
         await seen.MarkSeenAsync(profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);
         await store.SaveChangesAsync(cancellationToken);
         return new PublishResult.Delivered(issue.Id, issue.Entries.Count, problems);
-    }
-
-    // An unknown time zone falls back to UTC instead of failing the issue.
-    private static DateTimeOffset ToProfileTime(DateTimeOffset utc, string timeZoneId)
-    {
-        try
-        {
-            return TimeZoneInfo.ConvertTime(utc, TimeZoneInfo.FindSystemTimeZoneById(timeZoneId));
-        }
-        catch (Exception e) when (e is TimeZoneNotFoundException or InvalidTimeZoneException)
-        {
-            return utc;
-        }
     }
 }

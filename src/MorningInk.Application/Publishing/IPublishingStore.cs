@@ -8,6 +8,9 @@ public interface IPublishingStore
     /// <summary>Loads the profile with its sections and their sources, plus the owner's language; null if missing.</summary>
     Task<PublishingProfile?> LoadProfileAsync(Guid profileId, CancellationToken cancellationToken);
 
+    /// <summary>When every profile wants its issue, for the scheduler.</summary>
+    Task<IReadOnlyList<ProfileSchedule>> ListSchedulesAsync(CancellationToken cancellationToken);
+
     /// <summary>Finds the issue of a profile for a slot, with its entries.</summary>
     Task<Issue?> FindIssueAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken);
 
@@ -18,6 +21,9 @@ public interface IPublishingStore
 
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }
+
+/// <summary>A profile's daily delivery time in its time zone.</summary>
+public sealed record ProfileSchedule(Guid ProfileId, TimeOnly DeliveryTime, string TimeZoneId);
 
 /// <param name="Profile">The profile, with sections and sources loaded.</param>
 /// <param name="Language">Culture name of the owner, e.g. "de", for texts in the issue.</param>

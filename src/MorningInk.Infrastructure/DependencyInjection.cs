@@ -17,7 +17,9 @@ using MorningInk.Infrastructure.Http;
 using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Processing;
 using MorningInk.Infrastructure.Rendering;
+using MorningInk.Infrastructure.Scheduling;
 using MorningInk.Infrastructure.Sources;
+using Quartz;
 
 namespace MorningInk.Infrastructure;
 
@@ -29,7 +31,7 @@ public static class DependencyInjection
 
     private const string UserAgent = "MorningInk/0.1 (+https://github.com/maxcarl/morning-ink)";
 
-    /// <summary>Adds storage, Data Protection, the database, the safe HTTP client, sources, processors, renderers and delivery.</summary>
+    /// <summary>Adds storage, Data Protection, the database, the safe HTTP client, sources, processors, renderers, delivery and scheduling.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // TryAdd, so tests can register a fixed clock first.
@@ -42,6 +44,7 @@ public static class DependencyInjection
         AddProcessors(services, configuration);
         services.AddTransient<IRenderer, EpubRenderer>();
         AddDelivery(services, configuration);
+        AddScheduling(services, configuration);
         return services;
     }
 
@@ -108,6 +111,21 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(SmtpOptions.SectionName))
             .Validate(o => o.Port is > 0 and <= 65535 && o.MaxMessageBytes > 0 && o.Timeout > TimeSpan.Zero, "Smtp:Port, Smtp:MaxMessageBytes and Smtp:Timeout must be positive.");
         services.AddTransient<IDelivery, MailDelivery>();
+    }
+
+    private static void AddScheduling(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<Scheduling.SchedulingOptions>()
+            .Bind(configuration.GetSection(Scheduling.SchedulingOptions.SectionName))
+            .Validate(o => o.CatchUpWindow >= TimeSpan.Zero && o.FirstRetryDelay > TimeSpan.Zero && o.MaxDeliveryAttempts > 0, "Scheduling values must be positive.")
+            .ValidateOnStart();
+
+        services.AddQuartz(quartz => quartz.AddJobType<PublishIssueJob>());
+        services.AddQuartzHostedService(quartz => quartz.WaitForJobsToComplete = true);
+        services.AddSingleton<IssueScheduler>();
+
+        // After Quartz' own hosted service, so the scheduler is running when the profiles are planned.
+        services.AddHostedService<SchedulingStartup>();
     }
 
     private static void AddSafeHttp(IServiceCollection services, IConfiguration configuration)

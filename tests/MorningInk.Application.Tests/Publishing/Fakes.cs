@@ -18,6 +18,9 @@ internal sealed class FakeStore(Profile profile, string language = "de") : IPubl
     public Task<PublishingProfile?> LoadProfileAsync(Guid profileId, CancellationToken cancellationToken) =>
         Task.FromResult(profileId == profile.Id ? new PublishingProfile(profile, language) : null);
 
+    public Task<IReadOnlyList<ProfileSchedule>> ListSchedulesAsync(CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<ProfileSchedule>>([new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId)]);
+
     public Task<Issue?> FindIssueAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken) =>
         Task.FromResult(Issues.SingleOrDefault(i => i.ProfileId == profileId && i.ScheduledFor == scheduledFor));
 

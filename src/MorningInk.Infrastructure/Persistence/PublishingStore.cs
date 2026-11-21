@@ -24,6 +24,9 @@ internal sealed class PublishingStore(MorningInkDbContext db) : IPublishingStore
         return new PublishingProfile(profile, language ?? FallbackLanguage);
     }
 
+    public async Task<IReadOnlyList<ProfileSchedule>> ListSchedulesAsync(CancellationToken cancellationToken) =>
+        await db.Profiles.Select(p => new ProfileSchedule(p.Id, p.DeliveryTime, p.TimeZoneId)).ToListAsync(cancellationToken);
+
     public Task<Issue?> FindIssueAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken) =>
         db.Issues
             .Include(i => i.Entries)

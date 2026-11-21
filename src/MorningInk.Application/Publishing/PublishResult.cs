@@ -22,7 +22,8 @@ public abstract record PublishResult
     public sealed record NoNewArticles(Guid IssueId, IReadOnlyList<SourceProblem> UnavailableSources) : PublishResult;
 
     /// <param name="Retryable">Whether running again later can help; the next run sends the same file.</param>
-    public sealed record DeliveryFailed(Guid IssueId, string Message, bool Retryable) : PublishResult;
+    /// <param name="Attempts">Delivery attempts so far, including this one; the scheduler backs off with it.</param>
+    public sealed record DeliveryFailed(Guid IssueId, string Message, bool Retryable, int Attempts) : PublishResult;
 }
 
 /// <summary>A source that could not be used today, and why.</summary>

@@ -78,6 +78,7 @@ public sealed class IssuePublisherTests : IDisposable
         var retried = await PublishAsync();
 
         Assert.True(failed.Retryable);
+        Assert.Equal(1, failed.Attempts);
         Assert.IsType<PublishResult.Delivered>(retried);
         Assert.Single(_renderer.Rendered);
         Assert.Equal(2, _delivery.Requests.Count);

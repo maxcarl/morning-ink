@@ -1,0 +1,144 @@
+using Microsoft.Extensions.DependencyInjection;
+using MorningInk.Application.Publishing;
+using MorningInk.Domain;
+using MorningInk.Infrastructure.Persistence;
+using MorningInk.Infrastructure.Scheduling;
+using MorningInk.Infrastructure.Tests.Delivery;
+using MorningInk.Infrastructure.Tests.Http;
+using MorningInk.Infrastructure.Tests.Persistence;
+using Quartz;
+
+namespace MorningInk.Infrastructure.Tests.Scheduling;
+
+/// <summary>The test clock stands at 2026-11-21 7:00 in Berlin (6:00 UTC).</summary>
+public sealed class IssueSchedulerTests : IDisposable
+{
+    private readonly TestHost _host = new();
+    private readonly FakeSmtpServer _smtp = new();
+    private readonly LocalServer _feed = new(async context =>
+        await context.Response.OutputStream.WriteAsync(await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "TestData", "Feeds", "edge-cases.xml"))));
+
+    [Fact]
+    public async Task Container_off_at_six_and_on_at_seven_still_delivers_the_issue()
+    {
+        await using var services = await StartAsync();
+        await CreateProfileAsync(services, new TimeOnly(6, 0));
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+        await scheduler.Start();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        await WaitUntilAsync(() => _smtp.Messages.Count == 1);
+        await scheduler.Shutdown(waitForJobsToComplete: true);
+        Assert.Equal("Morning Ink 2026-11-21", Assert.Single(_smtp.Messages).Subject);
+    }
+
+    [Fact]
+    public async Task Slot_older_than_the_catch_up_window_is_skipped()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0)); // last slot: yesterday 18:00, 13 hours ago
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        Assert.IsAssignableFrom<ICronTrigger>(Assert.Single(await scheduler.GetTriggersOfJob(IssueScheduler.JobKeyFor(profileId))));
+    }
+
+    [Fact]
+    public async Task Daily_trigger_fires_at_the_profile_time_in_its_time_zone()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(6, 30));
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        var daily = (await scheduler.GetTriggersOfJob(IssueScheduler.JobKeyFor(profileId))).OfType<ICronTrigger>().Single();
+        Assert.Equal("Europe/Berlin", daily.TimeZone.Id);
+        var next = TimeZoneInfo.ConvertTime(daily.NextFireTimeUtc!.Value, daily.TimeZone); // ! is safe: a daily trigger always fires again
+        Assert.Equal((6, 30), (next.Hour, next.Minute));
+    }
+
+    [Fact]
+    public async Task Rescheduling_does_not_add_a_second_daily_trigger()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0));
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+        var issues = services.GetRequiredService<IssueScheduler>();
+
+        await issues.ScheduleAllAsync(scheduler, CancellationToken.None);
+        await issues.ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        Assert.Single(await scheduler.GetTriggersOfJob(IssueScheduler.JobKeyFor(profileId)));
+    }
+
+    [Fact]
+    public async Task Failed_delivery_is_retried_with_growing_delay_until_the_limit()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0));
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+        var issues = services.GetRequiredService<IssueScheduler>();
+        await issues.ScheduleAllAsync(scheduler, CancellationToken.None);
+        var slot = TestHost.Now.AddHours(-1);
+
+        await issues.ScheduleRetryAsync(scheduler, profileId, slot, attempts: 2, CancellationToken.None);
+        await issues.ScheduleRetryAsync(scheduler, profileId, slot, attempts: 5, CancellationToken.None);
+
+        var retry = await scheduler.GetTrigger(new TriggerKey($"retry-{profileId}-2"));
+        Assert.Equal(TestHost.Now.AddMinutes(15), retry?.StartTimeUtc);
+        Assert.Null(await scheduler.GetTrigger(new TriggerKey($"retry-{profileId}-5")));
+    }
+
+    [Theory]
+    [InlineData(1, 5)]
+    [InlineData(2, 15)]
+    [InlineData(3, 45)]
+    [InlineData(4, 135)]
+    public void Retry_delay_triples(int attempts, int minutes) =>
+        Assert.Equal(TimeSpan.FromMinutes(minutes), IssueScheduler.RetryDelay(attempts, TimeSpan.FromMinutes(5)));
+
+    public void Dispose()
+    {
+        _feed.Dispose();
+        _smtp.Dispose();
+        _host.Dispose();
+    }
+
+    // Like Web's AddApplication; Infrastructure tests cannot reference the Web project.
+    private Task<ServiceProvider> StartAsync() => _host.StartAsync(
+        new Dictionary<string, string?>
+        {
+            ["Http:AllowedHosts:0"] = $"127.0.0.1:{_feed.Port}",
+            ["Smtp:Host"] = "127.0.0.1",
+            ["Smtp:Port"] = _smtp.Port.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["Smtp:Security"] = "None",
+            ["Smtp:FromAddress"] = "morning-ink@example.com",
+        },
+        services => services.AddSingleton<ProfileLocks>().AddScoped<IssuePublisher>());
+
+    private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+        var user = new User { Name = "max", Language = "de" };
+        var source = new Source { UserId = user.Id, Name = "Test-Feed", Url = _feed.Url("/feed").ToString(), FetchFullText = false, MaxAge = TimeSpan.FromDays(3650) };
+        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max_abc@kindle.com", DeliveryTime = deliveryTime };
+        profile.Sections.Add(new Section { Name = "Nachrichten", Position = 1, Sources = { source } });
+        db.AddRange(user, source, profile);
+        await db.SaveChangesAsync();
+        return profile.Id;
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(20);
+        while (!condition())
+        {
+            Assert.True(DateTime.UtcNow < deadline, "Timed out waiting for the scheduled issue.");
+            await Task.Delay(100);
+        }
+    }
+}
