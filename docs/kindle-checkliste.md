@@ -12,7 +12,7 @@ Testdatei: eine Ausgabe per Send to Kindle (Mail oder https://www.amazon.de/send
 | Inhaltsverzeichnis | „Gehe zu“ zeigt Titelseite, Rubriken und darunter die Artikel | ✅ 2026-11-21 |
 | Navigation | Sprung aus dem Inhaltsverzeichnis und von der Titelseite landet beim richtigen Artikel | ✅ 2026-11-21 |
 | Umlaute | ä, ö, ü, ß und typografische Anführungszeichen erscheinen korrekt | ✅ 2026-11-21 |
-| Bilder | Graustufen, volle Breite, nicht abgeschnitten | |
+| Bilder | Graustufen, volle Breite, nicht abgeschnitten | ✅ 2026-11-21 |
 | Links | „Zum Original“ öffnet die Seite im Kindle-Browser | |
 | Hinweise | Ausfallvermerke stehen auf der Titelseite | |
 | Lesbarkeit | Schriftgröße und Schriftart lassen sich am Gerät ändern | |
