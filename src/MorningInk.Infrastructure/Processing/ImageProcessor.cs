@@ -21,6 +21,7 @@ internal sealed partial class ImageProcessor(
     SafeHttpClient http,
     IOptions<ImageOptions> imageOptions,
     IOptions<StorageOptions> storage,
+    TimeProvider time,
     ILogger<ImageProcessor> logger) : IProcessor
 {
     private const string ImageUrlPrefix = "images/";
@@ -81,7 +82,12 @@ internal sealed partial class ImageProcessor(
         var name = Convert.ToHexStringLower(SHA256.HashData(converted.Jpeg)) + ImageExtension;
         var directory = storage.Value.ImageDirectory;
         var path = Path.Combine(directory, name);
-        if (!File.Exists(path))
+        if (File.Exists(path))
+        {
+            // In use again: a fresh date keeps the cleanup, which deletes images by age, away from it.
+            File.SetLastWriteTimeUtc(path, time.GetUtcNow().UtcDateTime);
+        }
+        else
         {
             Directory.CreateDirectory(directory);
             var temporary = Path.Combine(directory, $"{Guid.NewGuid():N}.tmp");

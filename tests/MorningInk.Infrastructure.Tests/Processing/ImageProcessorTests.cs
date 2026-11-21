@@ -34,6 +34,19 @@ public sealed class ImageProcessorTests : IDisposable
     }
 
     [Fact]
+    public async Task Reusing_a_stored_image_keeps_it_from_the_cleanup()
+    {
+        using var server = ImageServer();
+        var first = await ProcessAsync(server, $"<img src=\"{server.Url("/photo.png")}\">");
+        var file = Path.Combine(_dataDirectory, new HtmlParser().ParseDocument(first).Images.Single().GetAttribute("src")!); // ! is safe: the processor always sets src
+        File.SetLastWriteTimeUtc(file, DateTime.UtcNow.AddDays(-30));
+
+        await ProcessAsync(server, $"<img src=\"{server.Url("/photo.png")}\">");
+
+        Assert.True(File.GetLastWriteTimeUtc(file) > DateTime.UtcNow.AddDays(-1));
+    }
+
+    [Fact]
     public async Task At_most_max_images_per_article_are_kept()
     {
         using var server = ImageServer();

@@ -12,6 +12,7 @@ using MorningInk.Application.Processing;
 using MorningInk.Application.Publishing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
+using MorningInk.Infrastructure.Cleanup;
 using MorningInk.Infrastructure.Delivery;
 using MorningInk.Infrastructure.Http;
 using MorningInk.Infrastructure.Persistence;
@@ -120,7 +121,13 @@ public static class DependencyInjection
             .Validate(o => o.CatchUpWindow >= TimeSpan.Zero && o.FirstRetryDelay > TimeSpan.Zero && o.MaxDeliveryAttempts > 0, "Scheduling values must be positive.")
             .ValidateOnStart();
 
-        services.AddQuartz(quartz => quartz.AddJobType<PublishIssueJob>());
+        services.AddOptions<RetentionOptions>()
+            .Bind(configuration.GetSection(RetentionOptions.SectionName))
+            .Validate(o => o.IssueDays > 0 && o.SeenArticleDays > 0 && o.ImageDays > 0 && o.KeepBackups > 0, "Retention values must be positive.")
+            .ValidateOnStart();
+        services.AddScoped<CleanupService>();
+
+        services.AddQuartz(quartz => quartz.AddJobType<PublishIssueJob>().AddJobType<CleanupJob>());
         services.AddQuartzHostedService(quartz => quartz.WaitForJobsToComplete = true);
         services.AddSingleton<IssueScheduler>();
 
