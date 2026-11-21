@@ -125,10 +125,23 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("CredentialId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ETag")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("MaxAge")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MaxArticles")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- External entity attack: must never read the local file. -->
+<!DOCTYPE rss [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
+<rss version="2.0">
+  <channel>
+    <title>XXE</title>
+    <item>
+      <title>&xxe;</title>
+      <link>https://example.com/xxe</link>
+    </item>
+  </channel>
+</rss>

@@ -119,7 +119,7 @@ public sealed class SafeHttpClientTests
         });
 
         var result = await CreateClient(allow: $"127.0.0.1:{server.Port},localhost:{server.Port}")
-            .GetAsync(server.Url("/feed"), Login, CancellationToken.None);
+            .GetAsync(server.Url("/feed"), Login, cancellationToken: CancellationToken.None);
 
         Assert.IsType<FetchResult.Success>(result);
         Assert.Equal(Login.ToString(), server.Requests[0].Authorization);
@@ -140,7 +140,7 @@ public sealed class SafeHttpClientTests
             return WriteAsync(context, "<rss/>");
         });
 
-        await CreateClient(allow: $"127.0.0.1:{server.Port}").GetAsync(server.Url("/feed"), Login, CancellationToken.None);
+        await CreateClient(allow: $"127.0.0.1:{server.Port}").GetAsync(server.Url("/feed"), Login, cancellationToken: CancellationToken.None);
 
         Assert.Equal(Login.ToString(), server.Requests[1].Authorization);
     }

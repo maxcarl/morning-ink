@@ -40,9 +40,4 @@ public sealed class TestHost : IDisposable
         SqliteConnection.ClearAllPools();
         Directory.Delete(DataDirectory, recursive: true);
     }
-
-    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => now;
-    }
 }

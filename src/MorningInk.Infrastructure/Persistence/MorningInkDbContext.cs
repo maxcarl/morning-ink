@@ -17,6 +17,7 @@ public sealed class MorningInkDbContext(
     private const int TimeZoneLength = 64;
     private const int RegionLength = 100;
     private const int EnumLength = 32;
+    private const int ETagLength = 512;
 
     /// <summary>Encrypts secrets; part of the model cache key, see <see cref="DataProtectionModelCacheKeyFactory"/>.</summary>
     internal IDataProtectionProvider DataProtection { get; } = dataProtection;
@@ -62,6 +63,7 @@ public sealed class MorningInkDbContext(
             source.Property(s => s.Name).HasMaxLength(NameLength);
             source.Property(s => s.Url).HasMaxLength(UrlLength);
             source.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
+            source.Property(s => s.ETag).HasMaxLength(ETagLength);
             source.HasOne<Credential>().WithMany().HasForeignKey(s => s.CredentialId).OnDelete(DeleteBehavior.SetNull);
         });
 

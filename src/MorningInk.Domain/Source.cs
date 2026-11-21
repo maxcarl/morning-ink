@@ -16,4 +16,16 @@ public class Source
 
     /// <summary>Login used to fetch the source; null for public sources.</summary>
     public Guid? CredentialId { get; set; }
+
+    /// <summary>Most articles taken per issue; the newest win.</summary>
+    public int MaxArticles { get; set; } = 20;
+
+    /// <summary>Articles published longer ago are left out. Articles without a date are kept.</summary>
+    public TimeSpan MaxAge { get; set; } = TimeSpan.FromDays(1);
+
+    /// <summary>Cache validator from the last fetch, so an unchanged source is not downloaded again.</summary>
+    public string? ETag { get; set; }
+
+    /// <summary>Cache validator from the last fetch, used when the server sends no ETag.</summary>
+    public DateTimeOffset? LastModified { get; set; }
 }

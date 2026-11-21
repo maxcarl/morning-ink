@@ -7,8 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using MorningInk.Application.Sources;
 using MorningInk.Infrastructure.Http;
 using MorningInk.Infrastructure.Persistence;
+using MorningInk.Infrastructure.Sources;
 
 namespace MorningInk.Infrastructure;
 
@@ -20,7 +22,7 @@ public static class DependencyInjection
 
     private const string UserAgent = "MorningInk/0.1 (+https://github.com/maxcarl/morning-ink)";
 
-    /// <summary>Adds storage, Data Protection, the database and the safe HTTP client.</summary>
+    /// <summary>Adds storage, Data Protection, the database, the safe HTTP client and the sources.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // TryAdd, so tests can register a fixed clock first.
@@ -29,6 +31,7 @@ public static class DependencyInjection
         AddStorage(services, configuration);
         AddPersistence(services);
         AddSafeHttp(services, configuration);
+        AddSources(services);
         return services;
     }
 
@@ -62,6 +65,12 @@ public static class DependencyInjection
                 .ReplaceService<IModelCacheKeyFactory, DataProtectionModelCacheKeyFactory>());
         services.AddScoped<DatabaseMigrator>();
         services.AddHealthChecks().AddDbContextCheck<MorningInkDbContext>();
+    }
+
+    // Every ISource is registered here; a new kind of source is one more line.
+    private static void AddSources(IServiceCollection services)
+    {
+        services.AddTransient<ISource, FeedSource>();
     }
 
     private static void AddSafeHttp(IServiceCollection services, IConfiguration configuration)

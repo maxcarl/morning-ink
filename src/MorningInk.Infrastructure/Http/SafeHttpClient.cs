@@ -26,10 +26,12 @@ public sealed class SafeHttpClient
     /// <summary>Fetches <paramref name="uri"/> with GET.</summary>
     /// <param name="uri">Untrusted address, e.g. from a feed or user input.</param>
     /// <param name="authorization">Sent only to the original host; dropped once a redirect leaves it.</param>
+    /// <param name="validators">From an earlier fetch; an unchanged resource then yields <see cref="FetchResult.NotModified"/>.</param>
     /// <param name="cancellationToken">Cancels the request; cancellation is passed on, not reported as a timeout.</param>
     public async Task<FetchResult> GetAsync(
         Uri uri,
         AuthenticationHeaderValue? authorization = null,
+        CacheValidators? validators = null,
         CancellationToken cancellationToken = default)
     {
         if (UrlPolicy.Check(uri) is { } invalid)
@@ -42,7 +44,7 @@ public sealed class SafeHttpClient
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         try
         {
-            return await FollowAsync(uri, authorization, linked.Token);
+            return await FollowAsync(uri, authorization, validators, linked.Token);
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
@@ -58,14 +60,24 @@ public sealed class SafeHttpClient
         }
     }
 
-    private async Task<FetchResult> FollowAsync(Uri uri, AuthenticationHeaderValue? authorization, CancellationToken cancellationToken)
+    private async Task<FetchResult> FollowAsync(
+        Uri uri,
+        AuthenticationHeaderValue? authorization,
+        CacheValidators? validators,
+        CancellationToken cancellationToken)
     {
         var current = uri;
         for (var redirects = 0; ; redirects++)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, current);
             request.Headers.Authorization = authorization;
+            AddValidators(request, validators);
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.NotModified)
+            {
+                return new FetchResult.NotModified();
+            }
 
             if (!IsRedirect(response.StatusCode) || response.Headers.Location is not { } location)
             {
@@ -119,7 +131,19 @@ public sealed class SafeHttpClient
             body.Write(buffer, 0, read);
         }
 
-        return new FetchResult.Success(body.ToArray(), response.Content.Headers.ContentType?.MediaType, finalUri);
+        var received = new CacheValidators(response.Headers.ETag?.ToString(), response.Content.Headers.LastModified);
+        return new FetchResult.Success(body.ToArray(), response.Content.Headers.ContentType?.MediaType, finalUri, received);
+    }
+
+    private static void AddValidators(HttpRequestMessage request, CacheValidators? validators)
+    {
+        // A malformed stored ETag is skipped rather than failing the fetch; the server then sends the full body.
+        if (validators?.ETag is { } etag && EntityTagHeaderValue.TryParse(etag, out var parsed))
+        {
+            request.Headers.IfNoneMatch.Add(parsed);
+        }
+
+        request.Headers.IfModifiedSince = validators?.LastModified;
     }
 
     private static bool IsRedirect(HttpStatusCode status) => status is

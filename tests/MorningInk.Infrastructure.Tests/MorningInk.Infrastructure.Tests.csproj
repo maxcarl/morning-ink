@@ -4,4 +4,8 @@
     <ProjectReference Include="..\..\src\MorningInk.Infrastructure\MorningInk.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="TestData\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

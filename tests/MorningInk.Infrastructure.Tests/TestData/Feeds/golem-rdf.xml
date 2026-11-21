@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="http://www.w3.org/2000/08/w3c-synd/style.css" type="text/css"?>
+<!-- generator="FeedCreator 1.6" -->
+<rdf:RDF
+    xmlns="http://purl.org/rss/1.0/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/"
+    xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel rdf:about="https://rss.golem.de/rss.php?feed=RSS1.0">
+        <title>Golem.de</title>
+        <description>IT-News fuer Profis</description>
+        <link>https://www.golem.de/</link>
+        <atom:link rel="self" href="https://rss.golem.de/rss.php?feed=RSS1.0" />
+        <image rdf:resource="https://www.golem.de/staticrl/images/Golem-Logo-black-small.png" />
+        <dc:date>2026-11-21T19:51:02+01:00</dc:date>
+        <items>
+            <rdf:Seq>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-it-jobs-in-administration-data-engineering-und-security-2611-215439.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-black-deal-bei-blau-iphone-18-pro-mit-100-gbyte-datenvolumen-fuer-1-euro-2611-215471.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anthropic-mathematiker-will-mit-claude-riemann-vermutung-geloest-haben-2611-215500.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/verivox-studie-internettarife-werden-nach-rabatt-fast-dreimal-so-teuer-2611-215503.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/ki-wettlauf-trump-droht-rechenzentren-im-ausland-mit-enormer-steuer-2611-215502.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/rockstar-games-gta-6-verkauft-32-5-millionen-stueck-und-bricht-alle-rekorde-2611-215499.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-tineco-switch-s7-stretch-nass-trockensauger-zum-neuen-bestpreis-bei-amazon-2611-215357.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/nvidia-unternehmenskultur-huang-soll-nvidia-mitarbeiter-gezielt-gedemuetigt-haben-2611-215501.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/kubernetes-integrationstests-wie-entwickler-versteckte-kubernetes-fehler-vor-dem-deployment-finden-2611-215227.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/bestehende-windkraftanlagen-lasermessung-verspricht-mehr-strom-aus-windkraft-2611-215481.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/gebrauchte-hardware-ki-workstation-des-armen-mannes-schlaegt-framework-desktop-2611-215421.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/tesla-assisted-driving-tesla-darf-in-italien-schon-autonom-fahren-2611-215496.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/abbau-db-systel-beschaeftigte-protestieren-mit-flood-the-office-fuer-homeoffice-2611-215498.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-schweizer-taschenmesser-mit-zange-bei-amazon-guenstiger-als-im-90-tage-schnitt-2611-215495.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/digital-networks-cyber-security-act-telekom-fordert-bundesregierung-zum-widerstand-gegen-eu-auf-2611-215494.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-microsoft-purview-sensible-unternehmensdaten-schuetzen-2611-215384.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-samsung-galaxy-a17-mit-128-gbyte-fuer-unter-180-euro-bei-amazon-2611-215497.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-elektronische-parkscheibe-am-black-friday-guenstig-bei-amazon-2611-215493.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/entlang-der-schiene-niedax-netz-33-beginnt-bau-von-glasfasernetz-sieben-monate-spaeter-2611-215492.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/jensen-huang-wie-die-new-york-times-den-spionageskandal-um-nvidia-aufdeckte-2611-215440.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/e-auto-vw-zeigt-id-polo-gti-mit-rennstreckenpotenzial-2611-215491.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/bluetooth-luecke-angreifer-konnten-vws-abhoeren-orten-und-manipulieren-2611-215483.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/kba-neue-webseite-bietet-interaktiven-ueberblick-zur-elektromobilitaet-2611-215490.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-mobiler-fotodrucker-von-canon-zum-black-friday-reduziert-bei-amazon-2611-215488.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/autonomes-fahren-mercedes-benz-bekommt-zulassung-fuer-selbstfahrassistenten-2611-215487.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-glasfaser-router-mit-wi-fi-7-von-fritz-zum-niedrigsten-preis-seit-monaten-2611-215489.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/rockstar-games-gta-6-leaker-droht-mit-veroeffentlichung-der-xbox-version-2611-215485.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-beliebte-mini-powerbank-mit-20-000-mah-am-black-friday-nur-rund-25-euro-bei-amazon-2611-215484.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/eudi-wallet-d-you-auf-der-suche-nach-der-killerapplikation-2611-215482.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-ankers-nano-usb-c-hub-mit-acht-anschluessen-fuer-nur-28-47-euro-auf-amazon-2611-215479.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/muse-metas-ki-agent-liest-benachrichtigungen-und-verwechselt-nutzer-2611-215480.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/breko-jahrestagung-dsl-mangels-ersatzteilen-bald-erheblich-teurer-2611-215478.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/browseragent-fuer-chrome-google-baut-tausende-fake-webseiten-fuer-sicherheitstests-2611-215476.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-mobiler-router-mit-wi-fi-7-am-black-friday-zum-tiefpreis-bei-amazon-2611-215477.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/vor-eu-uk-gipfel-ki-gestuetzter-cyberangriff-auf-eu-kommission-2611-215474.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-fire-tv-cube-auf-amazon-zum-jahrestiefstpreis-mit-111-euro-rabatt-2611-215475.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/speicherkrise-valve-geht-die-steam-machine-mit-2-tbyte-aus-2611-215472.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/marktstart-verschoben-zen6-fuer-desktops-wohl-erst-nach-computex-2027-2611-215469.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/anzeige-govee-led-strip-20-m-mit-app-zum-black-friday-nur-einen-euro-pro-meter-2611-215473.html"/>
+                <rdf:li rdf:resource="https://www.golem.de/news/weltraumrechenzentren-google-setzt-beim-satellitenstart-auf-blue-origin-2611-215470.html"/>
+            </rdf:Seq>
+        </items>
+    </channel>
+    <image rdf:about="https://www.golem.de/staticrl/images/Golem-Logo-black-small.png">
+        <title>Golem.de</title>
+        <link>https://www.golem.de/</link>
+        <url>https://www.golem.de/staticrl/images/Golem-Logo-black-small.png</url>
+    </image>
+    <item rdf:about="https://www.golem.de/news/anzeige-it-jobs-in-administration-data-engineering-und-security-2611-215439.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T15:00:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator> Golem Karrierewelt</dc:creator>
+        <title>Anzeige: IT-Jobs in Administration, Data Engineering und Security</title>
+        <link>https://www.golem.de/news/anzeige-it-jobs-in-administration-data-engineering-und-security-2611-215439.html</link>
+        <description>Ob IT-Security im Ministerium, Data Engineering im Rettungsdienst oder Systemadministration in Unternehmen - diese sechs Jobs bieten neue Perspektiven. (&lt;a href=&quot;https://www.golem.de/specials/golemakademie/&quot;&gt;Golem Karrierewelt&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/unternehmenssoftware/&quot;&gt;Unternehmenssoftware&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215439&amp;amp;page=1&amp;amp;ts=1795269602&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215439-609578-609576_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Ob IT-Security im Ministerium, Data Engineering im Rettungsdienst oder Systemadministration in Unternehmen - diese sechs Jobs bieten neue Perspektiven. (<a href="https://www.golem.de/specials/golemakademie/">Golem Karrierewelt</a>, <a href="https://www.golem.de/specials/unternehmenssoftware/">Unternehmenssoftware</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215439&amp;page=1&amp;ts=1795269602" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-black-deal-bei-blau-iphone-18-pro-mit-100-gbyte-datenvolumen-fuer-1-euro-2611-215471.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T13:40:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Simon Krebs</dc:creator>
+        <title>Anzeige: Black Deal bei Blau - iPhone 18 Pro mit 100 GByte Datenvolumen für 1 Euro</title>
+        <link>https://www.golem.de/news/anzeige-black-deal-bei-blau-iphone-18-pro-mit-100-gbyte-datenvolumen-fuer-1-euro-2611-215471.html</link>
+        <description>Auch bei Blau gibt es aktuell Black Deals. Das Apple iPhone 18 Pro wird mit 100 GByte Datenvolumen jetzt für nur 1 Euro Anzahlung angeboten. (&lt;a href=&quot;https://www.golem.de/specials/blau.de/&quot;&gt;Blau.de&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/apple/&quot;&gt;Apple&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215471&amp;amp;page=1&amp;amp;ts=1795264802&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215471-609743-609741_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Auch bei Blau gibt es aktuell Black Deals. Das Apple iPhone 18 Pro wird mit 100 GByte Datenvolumen jetzt für nur 1 Euro Anzahlung angeboten. (<a href="https://www.golem.de/specials/blau.de/">Blau.de</a>, <a href="https://www.golem.de/specials/apple/">Apple</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215471&amp;page=1&amp;ts=1795264802" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anthropic-mathematiker-will-mit-claude-riemann-vermutung-geloest-haben-2611-215500.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T12:06:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Nils Matthiesen</dc:creator>
+        <title>Anthropic: Mathematiker will mit Claude Riemann-Vermutung gelöst haben</title>
+        <link>https://www.golem.de/news/anthropic-mathematiker-will-mit-claude-riemann-vermutung-geloest-haben-2611-215500.html</link>
+        <description>Levent Alpöge will mit Claude die Riemann-Vermutung bewiesen haben. Die Prüfung des Lean-Codes läuft noch. (&lt;a href=&quot;https://www.golem.de/specials/claude/&quot;&gt;Claude&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/wissen/&quot;&gt;Wissen&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215500&amp;amp;page=1&amp;amp;ts=1795259162&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>16</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215500-609875-609873_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Levent Alpöge will mit Claude die Riemann-Vermutung bewiesen haben. Die Prüfung des Lean-Codes läuft noch. (<a href="https://www.golem.de/specials/claude/">Claude</a>, <a href="https://www.golem.de/specials/wissen/">Wissen</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215500&amp;page=1&amp;ts=1795259162" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/verivox-studie-internettarife-werden-nach-rabatt-fast-dreimal-so-teuer-2611-215503.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T11:44:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Nils Matthiesen</dc:creator>
+        <title>Verivox-Studie: Internettarife werden nach Rabatt fast dreimal so teuer</title>
+        <link>https://www.golem.de/news/verivox-studie-internettarife-werden-nach-rabatt-fast-dreimal-so-teuer-2611-215503.html</link>
+        <description>Verivox hat 679 Internettarife ausgewertet. Nach dem Einstiegsrabatt steigt die Grundgebühr im Schnitt von 18,67 auf 53,48 Euro. (&lt;a href=&quot;https://www.golem.de/specials/tarife/&quot;&gt;Tarife&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/telekom/&quot;&gt;Telekom&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215503&amp;amp;page=1&amp;amp;ts=1795257841&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>21</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215503-609887-609885_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Verivox hat 679 Internettarife ausgewertet. Nach dem Einstiegsrabatt steigt die Grundgebühr im Schnitt von 18,67 auf 53,48 Euro. (<a href="https://www.golem.de/specials/tarife/">Tarife</a>, <a href="https://www.golem.de/specials/telekom/">Telekom</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215503&amp;page=1&amp;ts=1795257841" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/ki-wettlauf-trump-droht-rechenzentren-im-ausland-mit-enormer-steuer-2611-215502.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T11:23:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Nils Matthiesen</dc:creator>
+        <title>KI-Wettlauf: Trump droht Rechenzentren im Ausland mit enormer Steuer</title>
+        <link>https://www.golem.de/news/ki-wettlauf-trump-droht-rechenzentren-im-ausland-mit-enormer-steuer-2611-215502.html</link>
+        <description>Trump will Konzerne zum Bau in den USA drängen. Der Ausbau stößt bei Wählern allerdings auf Widerstand. (&lt;a href=&quot;https://www.golem.de/specials/donaldtrump/&quot;&gt;Donald Trump&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/ki/&quot;&gt;KI&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215502&amp;amp;page=1&amp;amp;ts=1795256581&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>3</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215502-609883-609881_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Trump will Konzerne zum Bau in den USA drängen. Der Ausbau stößt bei Wählern allerdings auf Widerstand. (<a href="https://www.golem.de/specials/donaldtrump/">Donald Trump</a>, <a href="https://www.golem.de/specials/ki/">KI</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215502&amp;page=1&amp;ts=1795256581" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/rockstar-games-gta-6-verkauft-32-5-millionen-stueck-und-bricht-alle-rekorde-2611-215499.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T10:54:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Peter Steinlechner</dc:creator>
+        <title>Rockstar Games: GTA 6 verkauft 32,5 Millionen Stück und bricht alle Rekorde</title>
+        <link>https://www.golem.de/news/rockstar-games-gta-6-verkauft-32-5-millionen-stueck-und-bricht-alle-rekorde-2611-215499.html</link>
+        <description>Rockstar Games meldet für GTA 6 den größten Verkaufsstart der Unterhaltungsgeschichte: 3,79 Milliarden US-Dollar. (&lt;a href=&quot;https://www.golem.de/specials/gta-6/&quot;&gt;GTA 6&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/rockstar/&quot;&gt;Rockstar&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215499&amp;amp;page=1&amp;amp;ts=1795254841&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215499-609871-609869_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Rockstar Games meldet für GTA 6 den größten Verkaufsstart der Unterhaltungsgeschichte: 3,79 Milliarden US-Dollar. (<a href="https://www.golem.de/specials/gta-6/">GTA 6</a>, <a href="https://www.golem.de/specials/rockstar/">Rockstar</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215499&amp;page=1&amp;ts=1795254841" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-tineco-switch-s7-stretch-nass-trockensauger-zum-neuen-bestpreis-bei-amazon-2611-215357.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T10:40:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Boris Connemann</dc:creator>
+        <title>Anzeige: Tineco Switch S7 Stretch Nass-Trockensauger zum neuen Bestpreis bei Amazon</title>
+        <link>https://www.golem.de/news/anzeige-tineco-switch-s7-stretch-nass-trockensauger-zum-neuen-bestpreis-bei-amazon-2611-215357.html</link>
+        <description>Der Tineco Switch S7 Stretch saugt und wischt gleichzeitig, putzt sich mit 85 Grad selbst und ist zum Black Friday so günstig wie nie. (&lt;a href=&quot;https://www.golem.de/specials/technik-und-hardware/&quot;&gt;Technik/Hardware&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215357&amp;amp;page=1&amp;amp;ts=1795254002&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215357-609182-609180_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Der Tineco Switch S7 Stretch saugt und wischt gleichzeitig, putzt sich mit 85 Grad selbst und ist zum Black Friday so günstig wie nie. (<a href="https://www.golem.de/specials/technik-und-hardware/">Technik/Hardware</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215357&amp;page=1&amp;ts=1795254002" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/nvidia-unternehmenskultur-huang-soll-nvidia-mitarbeiter-gezielt-gedemuetigt-haben-2611-215501.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T10:30:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Nils Matthiesen</dc:creator>
+        <title>Nvidia-Unternehmenskultur: Huang soll Nvidia-Mitarbeiter gezielt gedemütigt haben</title>
+        <link>https://www.golem.de/news/nvidia-unternehmenskultur-huang-soll-nvidia-mitarbeiter-gezielt-gedemuetigt-haben-2611-215501.html</link>
+        <description>Die New York Times beschreibt jahrelange Tiraden des Ex-CEOs. Nvidia schweigt, Huangs Sprecher widerspricht. (&lt;a href=&quot;https://www.golem.de/specials/nvidia/&quot;&gt;Nvidia&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/wirtschaft/&quot;&gt;Wirtschaft&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215501&amp;amp;page=1&amp;amp;ts=1795253402&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>9</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215501-609879-609877_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Die New York Times beschreibt jahrelange Tiraden des Ex-CEOs. Nvidia schweigt, Huangs Sprecher widerspricht. (<a href="https://www.golem.de/specials/nvidia/">Nvidia</a>, <a href="https://www.golem.de/specials/wirtschaft/">Wirtschaft</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215501&amp;page=1&amp;ts=1795253402" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/kubernetes-integrationstests-wie-entwickler-versteckte-kubernetes-fehler-vor-dem-deployment-finden-2611-215227.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T10:00:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Fabian Deitelhoff</dc:creator>
+        <title>(g+) Kubernetes-Integrationstests: Wie Entwickler versteckte Kubernetes-Fehler vor dem Deployment finden</title>
+        <link>https://www.golem.de/news/kubernetes-integrationstests-wie-entwickler-versteckte-kubernetes-fehler-vor-dem-deployment-finden-2611-215227.html</link>
+        <description>Mocks können Fehler im Zusammenspiel von Anwendung und Datenbank übersehen. Mit kind und Testcontainers lässt sich eine Bestell-API unter realistischen Kubernetes-Bedingungen prüfen. Ein Ratgebertext von Fabian Deitelhoff (&lt;a href=&quot;https://www.golem.de/specials/softwareentwicklung/&quot;&gt;Softwareentwicklung&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/postgresql/&quot;&gt;PostgreSQL&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215227&amp;amp;page=1&amp;amp;ts=1795251601&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215227-608563-608561_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Mocks können Fehler im Zusammenspiel von Anwendung und Datenbank übersehen. Mit kind und Testcontainers lässt sich eine Bestell-API unter realistischen Kubernetes-Bedingungen prüfen. Ein Ratgebertext von Fabian Deitelhoff (<a href="https://www.golem.de/specials/softwareentwicklung/">Softwareentwicklung</a>, <a href="https://www.golem.de/specials/postgresql/">PostgreSQL</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215227&amp;page=1&amp;ts=1795251601" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/bestehende-windkraftanlagen-lasermessung-verspricht-mehr-strom-aus-windkraft-2611-215481.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T07:57:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Mario Petzold</dc:creator>
+        <title>Bestehende Windkraftanlagen: Lasermessung verspricht mehr Strom aus Windkraft</title>
+        <link>https://www.golem.de/news/bestehende-windkraftanlagen-lasermessung-verspricht-mehr-strom-aus-windkraft-2611-215481.html</link>
+        <description>Ein neues System soll die Verhältnisse für Windräder günstiger und schneller dokumentieren. Vorhandene Windparks könnten so optimiert werden. (&lt;a href=&quot;https://www.golem.de/specials/windkraft/&quot;&gt;Windkraft&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/lidar/&quot;&gt;Lidar&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215481&amp;amp;page=1&amp;amp;ts=1795244222&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>1</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215481-609787-609785_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Ein neues System soll die Verhältnisse für Windräder günstiger und schneller dokumentieren. Vorhandene Windparks könnten so optimiert werden. (<a href="https://www.golem.de/specials/windkraft/">Windkraft</a>, <a href="https://www.golem.de/specials/lidar/">Lidar</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215481&amp;page=1&amp;ts=1795244222" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/gebrauchte-hardware-ki-workstation-des-armen-mannes-schlaegt-framework-desktop-2611-215421.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-21T07:30:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Johannes Hiltscher</dc:creator>
+        <title>Gebrauchte Hardware: KI-Workstation des armen Mannes schlägt Framework Desktop</title>
+        <link>https://www.golem.de/news/gebrauchte-hardware-ki-workstation-des-armen-mannes-schlaegt-framework-desktop-2611-215421.html</link>
+        <description>Lokale KI wird immer interessanter, die Hardware aber teurer. Wir haben ein System gebaut, das ab 900 Euro Modelle bis 200 Milliarden Parameter stemmt. Von Johannes Hiltscher (&lt;a href=&quot;https://www.golem.de/specials/diy-ki/&quot;&gt;DIY-KI&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/amd/&quot;&gt;AMD&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215421&amp;amp;page=1&amp;amp;ts=1795242601&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>27</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215421-609677-609675_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Lokale KI wird immer interessanter, die Hardware aber teurer. Wir haben ein System gebaut, das ab 900 Euro Modelle bis 200 Milliarden Parameter stemmt. Von Johannes Hiltscher (<a href="https://www.golem.de/specials/diy-ki/">DIY-KI</a>, <a href="https://www.golem.de/specials/amd/">AMD</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215421&amp;page=1&amp;ts=1795242601" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/tesla-assisted-driving-tesla-darf-in-italien-schon-autonom-fahren-2611-215496.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T19:46:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Michael Linden</dc:creator>
+        <title>Tesla Assisted Driving: Tesla darf in Italien schon autonom fahren</title>
+        <link>https://www.golem.de/news/tesla-assisted-driving-tesla-darf-in-italien-schon-autonom-fahren-2611-215496.html</link>
+        <description>Italien lässt Teslas Fahrasssistenzsystem als erstes großes EU-Land zu. Damit wächst der Druck auf die EU vor der Abstimmung im Dezember. (&lt;a href=&quot;https://www.golem.de/specials/tesla/&quot;&gt;Tesla&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/elektroauto/&quot;&gt;Elektroauto&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215496&amp;amp;page=1&amp;amp;ts=1795200361&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>12</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215496-609858-609856_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Italien lässt Teslas Fahrasssistenzsystem als erstes großes EU-Land zu. Damit wächst der Druck auf die EU vor der Abstimmung im Dezember. (<a href="https://www.golem.de/specials/tesla/">Tesla</a>, <a href="https://www.golem.de/specials/elektroauto/">Elektroauto</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215496&amp;page=1&amp;ts=1795200361" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/abbau-db-systel-beschaeftigte-protestieren-mit-flood-the-office-fuer-homeoffice-2611-215498.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T19:21:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Achim Sawall</dc:creator>
+        <title>Abbau: DB-Systel-Beschäftigte protestieren mit Flood the Office für Homeoffice</title>
+        <link>https://www.golem.de/news/abbau-db-systel-beschaeftigte-protestieren-mit-flood-the-office-fuer-homeoffice-2611-215498.html</link>
+        <description>Die Deutsche Bahn will ihre Belegschaft zurück ins Büro holen, doch es fehlen Schreibtische. Bei einer Protestaktion wurde auf den Fluren gearbeitet. (&lt;a href=&quot;https://www.golem.de/specials/it-jobs/&quot;&gt;Arbeit&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/deutsche-bahn/&quot;&gt;Deutsche Bahn&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215498&amp;amp;page=1&amp;amp;ts=1795198861&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>10</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215498-609867-609865_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Die Deutsche Bahn will ihre Belegschaft zurück ins Büro holen, doch es fehlen Schreibtische. Bei einer Protestaktion wurde auf den Fluren gearbeitet. (<a href="https://www.golem.de/specials/it-jobs/">Arbeit</a>, <a href="https://www.golem.de/specials/deutsche-bahn/">Deutsche Bahn</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215498&amp;page=1&amp;ts=1795198861" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-schweizer-taschenmesser-mit-zange-bei-amazon-guenstiger-als-im-90-tage-schnitt-2611-215495.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T18:55:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Benjamin Gründken</dc:creator>
+        <title>Anzeige: Schweizer Taschenmesser mit Zange bei Amazon günstiger als im 90-Tage-Schnitt</title>
+        <link>https://www.golem.de/news/anzeige-schweizer-taschenmesser-mit-zange-bei-amazon-guenstiger-als-im-90-tage-schnitt-2611-215495.html</link>
+        <description>Zwei Schweizer Taschenmesser mit Zange sind bei Amazon zum besten Vergleichspreis zu haben. Zusätzlich gibt es spannende Black Friday Deals. (&lt;a href=&quot;https://www.golem.de/specials/victorinox/&quot;&gt;Victorinox&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/technik-und-hardware/&quot;&gt;Technik/Hardware&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215495&amp;amp;page=1&amp;amp;ts=1795197302&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215495-609862-609860_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Zwei Schweizer Taschenmesser mit Zange sind bei Amazon zum besten Vergleichspreis zu haben. Zusätzlich gibt es spannende Black Friday Deals. (<a href="https://www.golem.de/specials/victorinox/">Victorinox</a>, <a href="https://www.golem.de/specials/technik-und-hardware/">Technik/Hardware</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215495&amp;page=1&amp;ts=1795197302" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/digital-networks-cyber-security-act-telekom-fordert-bundesregierung-zum-widerstand-gegen-eu-auf-2611-215494.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T18:51:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Achim Sawall</dc:creator>
+        <title>Digital Networks / Cyber Security Act: Telekom fordert Bundesregierung zum Widerstand gegen EU auf</title>
+        <link>https://www.golem.de/news/digital-networks-cyber-security-act-telekom-fordert-bundesregierung-zum-widerstand-gegen-eu-auf-2611-215494.html</link>
+        <description>Die EU will Kupferleitungen abschalten und chinesische Technologieanbieter breitflächig ausschließen. Die Telekom hält das für rechtswidrig. (&lt;a href=&quot;https://www.golem.de/specials/telekom/&quot;&gt;Telekom&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/dsl/&quot;&gt;DSL&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215494&amp;amp;page=1&amp;amp;ts=1795197062&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>11</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215494-609849-609847_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Die EU will Kupferleitungen abschalten und chinesische Technologieanbieter breitflächig ausschließen. Die Telekom hält das für rechtswidrig. (<a href="https://www.golem.de/specials/telekom/">Telekom</a>, <a href="https://www.golem.de/specials/dsl/">DSL</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215494&amp;page=1&amp;ts=1795197062" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-microsoft-purview-sensible-unternehmensdaten-schuetzen-2611-215384.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T18:45:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator> Golem Karrierewelt</dc:creator>
+        <title>Anzeige: Microsoft Purview: Sensible Unternehmensdaten schützen</title>
+        <link>https://www.golem.de/news/anzeige-microsoft-purview-sensible-unternehmensdaten-schuetzen-2611-215384.html</link>
+        <description>Microsoft Purview unterstützt den Schutz sensibler Daten in Microsoft 365. Ein Workshop zeigt die Einrichtung von Sensitivity Labels, DLP-Richtlinien und Insider Risk Management. (&lt;a href=&quot;https://www.golem.de/specials/golemakademie/&quot;&gt;Golem Karrierewelt&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/serverapps/&quot;&gt;Server-Applikationen&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215384&amp;amp;page=1&amp;amp;ts=1795196702&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215384-609306-609304_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Microsoft Purview unterstützt den Schutz sensibler Daten in Microsoft 365. Ein Workshop zeigt die Einrichtung von Sensitivity Labels, DLP-Richtlinien und Insider Risk Management. (<a href="https://www.golem.de/specials/golemakademie/">Golem Karrierewelt</a>, <a href="https://www.golem.de/specials/serverapps/">Server-Applikationen</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215384&amp;page=1&amp;ts=1795196702" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-samsung-galaxy-a17-mit-128-gbyte-fuer-unter-180-euro-bei-amazon-2611-215497.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T18:41:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Erik Körner</dc:creator>
+        <title>Anzeige: Samsung Galaxy A17 mit 128 GByte für unter 180 Euro bei Amazon</title>
+        <link>https://www.golem.de/news/anzeige-samsung-galaxy-a17-mit-128-gbyte-fuer-unter-180-euro-bei-amazon-2611-215497.html</link>
+        <description>Im Rahmen der Black Friday Angebote verkauft Amazon das Samsung Galaxy A17 mit 128 GByte Speicher fast 50 Euro günstiger gegenüber dem Durchschnittspreis. (&lt;a href=&quot;https://www.golem.de/specials/black-friday/&quot;&gt;Black Friday&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/smartphone/&quot;&gt;Smartphone&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215497&amp;amp;page=1&amp;amp;ts=1795196462&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215497-609853-609851_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Im Rahmen der Black Friday Angebote verkauft Amazon das Samsung Galaxy A17 mit 128 GByte Speicher fast 50 Euro günstiger gegenüber dem Durchschnittspreis. (<a href="https://www.golem.de/specials/black-friday/">Black Friday</a>, <a href="https://www.golem.de/specials/smartphone/">Smartphone</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215497&amp;page=1&amp;ts=1795196462" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-elektronische-parkscheibe-am-black-friday-guenstig-bei-amazon-2611-215493.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T18:10:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Antje Lüth</dc:creator>
+        <title>Anzeige: Elektronische Parkscheibe am Black Friday günstig bei Amazon</title>
+        <link>https://www.golem.de/news/anzeige-elektronische-parkscheibe-am-black-friday-guenstig-bei-amazon-2611-215493.html</link>
+        <description>Eine elektronische Parkscheibe von Needit mit automatischer Parkzeiterfassung gibt es am Black Friday zum Sparpreis bei Amazon. (&lt;a href=&quot;https://www.golem.de/specials/technik-und-hardware/&quot;&gt;Technik/Hardware&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/black-friday/&quot;&gt;Black Friday&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215493&amp;amp;page=1&amp;amp;ts=1795194602&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215493-609840-609838_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Eine elektronische Parkscheibe von Needit mit automatischer Parkzeiterfassung gibt es am Black Friday zum Sparpreis bei Amazon. (<a href="https://www.golem.de/specials/technik-und-hardware/">Technik/Hardware</a>, <a href="https://www.golem.de/specials/black-friday/">Black Friday</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215493&amp;page=1&amp;ts=1795194602" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/entlang-der-schiene-niedax-netz-33-beginnt-bau-von-glasfasernetz-sieben-monate-spaeter-2611-215492.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T18:04:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Achim Sawall</dc:creator>
+        <title>Entlang der Schiene: Niedax/Netz 33 beginnt Bau von Glasfasernetz sieben Monate später</title>
+        <link>https://www.golem.de/news/entlang-der-schiene-niedax-netz-33-beginnt-bau-von-glasfasernetz-sieben-monate-spaeter-2611-215492.html</link>
+        <description>Schon im April feierte Niedax den Spatenstich für seine Glasfaser-Teststrecke entlang der Bahngleise. Nun wird der Baustart noch einmal angekündigt. (&lt;a href=&quot;https://www.golem.de/specials/deutsche-bahn/&quot;&gt;Deutsche Bahn&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/glasfaser/&quot;&gt;Glasfaser&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215492&amp;amp;page=1&amp;amp;ts=1795194241&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>1</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215492-609836-609834_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Schon im April feierte Niedax den Spatenstich für seine Glasfaser-Teststrecke entlang der Bahngleise. Nun wird der Baustart noch einmal angekündigt. (<a href="https://www.golem.de/specials/deutsche-bahn/">Deutsche Bahn</a>, <a href="https://www.golem.de/specials/glasfaser/">Glasfaser</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215492&amp;page=1&amp;ts=1795194241" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/jensen-huang-wie-die-new-york-times-den-spionageskandal-um-nvidia-aufdeckte-2611-215440.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T18:00:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Patrick Healy</dc:creator>
+        <title>(g+) Jensen Huang: Wie die New York Times den Spionageskandal um Nvidia aufdeckte</title>
+        <link>https://www.golem.de/news/jensen-huang-wie-die-new-york-times-den-spionageskandal-um-nvidia-aufdeckte-2611-215440.html</link>
+        <description>&quot;Über Geschichten wie diese stolpert man nur einmal&quot;: Das New-York-Times-Reporter-Team erzählt von der Recherche, die Jensen Huang zu Fall brachte. Von Patrick Healy (&lt;a href=&quot;https://www.golem.de/specials/jensenhuang/&quot;&gt;Jensen Huang&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/nvidia/&quot;&gt;Nvidia&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215440&amp;amp;page=1&amp;amp;ts=1795194002&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215440-609582-609580_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">"Über Geschichten wie diese stolpert man nur einmal": Das New-York-Times-Reporter-Team erzählt von der Recherche, die Jensen Huang zu Fall brachte. Von Patrick Healy (<a href="https://www.golem.de/specials/jensenhuang/">Jensen Huang</a>, <a href="https://www.golem.de/specials/nvidia/">Nvidia</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215440&amp;page=1&amp;ts=1795194002" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/e-auto-vw-zeigt-id-polo-gti-mit-rennstreckenpotenzial-2611-215491.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T17:47:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Michael Linden</dc:creator>
+        <title>E-Auto: VW zeigt ID. Polo GTI mit Rennstreckenpotenzial</title>
+        <link>https://www.golem.de/news/e-auto-vw-zeigt-id-polo-gti-mit-rennstreckenpotenzial-2611-215491.html</link>
+        <description>VW hat ein neues Konzeptfahrzeug vorgestellt, das einen Ausblick darauf gibt, wie weit das GTI-Leistungslabel im Elektrozeitalter noch getrieben werden könnte. (&lt;a href=&quot;https://www.golem.de/specials/volkswagen-id/&quot;&gt;Volkswagen ID.&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/auto/&quot;&gt;Auto&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215491&amp;amp;page=1&amp;amp;ts=1795193221&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215491-609845-609843_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">VW hat ein neues Konzeptfahrzeug vorgestellt, das einen Ausblick darauf gibt, wie weit das GTI-Leistungslabel im Elektrozeitalter noch getrieben werden könnte. (<a href="https://www.golem.de/specials/volkswagen-id/">Volkswagen ID.</a>, <a href="https://www.golem.de/specials/auto/">Auto</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215491&amp;page=1&amp;ts=1795193221" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/bluetooth-luecke-angreifer-konnten-vws-abhoeren-orten-und-manipulieren-2611-215483.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T17:33:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Michael Linden</dc:creator>
+        <title>Bluetooth-Lücke: Angreifer konnten VWs abhören, orten und manipulieren</title>
+        <link>https://www.golem.de/news/bluetooth-luecke-angreifer-konnten-vws-abhoeren-orten-und-manipulieren-2611-215483.html</link>
+        <description>Rund 16 Monate brauchte VW für ein Update gegen eine Bluetooth-Schwachstelle. Mehrere Hunderttausend Fahrzeuge sollen betroffen sein. (&lt;a href=&quot;https://www.golem.de/specials/volkswagen-id/&quot;&gt;Volkswagen ID.&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/bluetooth/&quot;&gt;Bluetooth&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215483&amp;amp;page=1&amp;amp;ts=1795192381&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>1</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215483-609791-609789_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Rund 16 Monate brauchte VW für ein Update gegen eine Bluetooth-Schwachstelle. Mehrere Hunderttausend Fahrzeuge sollen betroffen sein. (<a href="https://www.golem.de/specials/volkswagen-id/">Volkswagen ID.</a>, <a href="https://www.golem.de/specials/bluetooth/">Bluetooth</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215483&amp;page=1&amp;ts=1795192381" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/kba-neue-webseite-bietet-interaktiven-ueberblick-zur-elektromobilitaet-2611-215490.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T17:11:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Tobias Költzsch</dc:creator>
+        <title>KBA: Neue Webseite bietet interaktiven Überblick zur Elektromobilität</title>
+        <link>https://www.golem.de/news/kba-neue-webseite-bietet-interaktiven-ueberblick-zur-elektromobilitaet-2611-215490.html</link>
+        <description>Das KBA will Interessenten einen Einstieg in Daten und Analysen zur Elektromobilität anbieten. Dafür gibt es eine neue Webseite. (&lt;a href=&quot;https://www.golem.de/specials/elektromobilitaet/&quot;&gt;Elektromobilität&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/elektroauto/&quot;&gt;Elektroauto&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215490&amp;amp;page=1&amp;amp;ts=1795191061&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>1</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215490-609824-609822_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Das KBA will Interessenten einen Einstieg in Daten und Analysen zur Elektromobilität anbieten. Dafür gibt es eine neue Webseite. (<a href="https://www.golem.de/specials/elektromobilitaet/">Elektromobilität</a>, <a href="https://www.golem.de/specials/elektroauto/">Elektroauto</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215490&amp;page=1&amp;ts=1795191061" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-mobiler-fotodrucker-von-canon-zum-black-friday-reduziert-bei-amazon-2611-215488.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T17:05:05+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Antje Lüth</dc:creator>
+        <title>Anzeige: Mobiler Fotodrucker von Canon zum Black Friday reduziert bei Amazon</title>
+        <link>https://www.golem.de/news/anzeige-mobiler-fotodrucker-von-canon-zum-black-friday-reduziert-bei-amazon-2611-215488.html</link>
+        <description>Den mobilen Fotodrucker Canon Selphy CP1500 für hochwertige Fotoausdrucke unterwegs gibt es zum günstigen Black Friday Preis bei Amazon. (&lt;a href=&quot;https://www.golem.de/specials/canon/&quot;&gt;Canon&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/drucker/&quot;&gt;Drucker&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215488&amp;amp;page=1&amp;amp;ts=1795190705&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215488-609804-609802_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Den mobilen Fotodrucker Canon Selphy CP1500 für hochwertige Fotoausdrucke unterwegs gibt es zum günstigen Black Friday Preis bei Amazon. (<a href="https://www.golem.de/specials/canon/">Canon</a>, <a href="https://www.golem.de/specials/drucker/">Drucker</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215488&amp;page=1&amp;ts=1795190705" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/autonomes-fahren-mercedes-benz-bekommt-zulassung-fuer-selbstfahrassistenten-2611-215487.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T16:54:04+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Tobias Költzsch</dc:creator>
+        <title>Autonomes Fahren: Mercedes-Benz bekommt Zulassung für Selbstfahrassistenten</title>
+        <link>https://www.golem.de/news/autonomes-fahren-mercedes-benz-bekommt-zulassung-fuer-selbstfahrassistenten-2611-215487.html</link>
+        <description>Der neue Punkt-zu-Punkt-Fahrassistent von Mercedes-Benz hat die Zulassung des KBA erhalten. (&lt;a href=&quot;https://www.golem.de/specials/mercedes-benz/&quot;&gt;Mercedes Benz&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/elektroauto/&quot;&gt;Elektroauto&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215487&amp;amp;page=1&amp;amp;ts=1795190044&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>1</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215487-609814-609812_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Der neue Punkt-zu-Punkt-Fahrassistent von Mercedes-Benz hat die Zulassung des KBA erhalten. (<a href="https://www.golem.de/specials/mercedes-benz/">Mercedes Benz</a>, <a href="https://www.golem.de/specials/elektroauto/">Elektroauto</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215487&amp;page=1&amp;ts=1795190044" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-glasfaser-router-mit-wi-fi-7-von-fritz-zum-niedrigsten-preis-seit-monaten-2611-215489.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T16:46:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Erik Körner</dc:creator>
+        <title>Anzeige: Glasfaser-Router mit Wi-Fi 7 von Fritz! zum niedrigsten Preis seit Monaten</title>
+        <link>https://www.golem.de/news/anzeige-glasfaser-router-mit-wi-fi-7-von-fritz-zum-niedrigsten-preis-seit-monaten-2611-215489.html</link>
+        <description>Die FRITZ!Box 5690 verbindet sich direkt mit AON- und GPON-Glasfaseranschlüssen. Bei Amazon kostet sie zum Black Friday unter 247 Euro. (&lt;a href=&quot;https://www.golem.de/specials/black-friday/&quot;&gt;Black Friday&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/netzwerk/&quot;&gt;Netzwerk&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215489&amp;amp;page=1&amp;amp;ts=1795189562&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215489-609818-609816_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Die FRITZ!Box 5690 verbindet sich direkt mit AON- und GPON-Glasfaseranschlüssen. Bei Amazon kostet sie zum Black Friday unter 247 Euro. (<a href="https://www.golem.de/specials/black-friday/">Black Friday</a>, <a href="https://www.golem.de/specials/netzwerk/">Netzwerk</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215489&amp;page=1&amp;ts=1795189562" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/rockstar-games-gta-6-leaker-droht-mit-veroeffentlichung-der-xbox-version-2611-215485.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T16:23:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Peter Steinlechner</dc:creator>
+        <title>Rockstar Games: GTA-6-Leaker droht mit Veröffentlichung der Xbox-Version</title>
+        <link>https://www.golem.de/news/rockstar-games-gta-6-leaker-droht-mit-veroeffentlichung-der-xbox-version-2611-215485.html</link>
+        <description>Cyberleek behauptet, fast die gesamte Xbox-Version von GTA 6 veröffentlicht zu haben. Die letzte Datei soll spätestens am Montag folgen - möglicherweise auch früher. (&lt;a href=&quot;https://www.golem.de/specials/gta-6/&quot;&gt;GTA 6&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/rockstar/&quot;&gt;Rockstar&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215485&amp;amp;page=1&amp;amp;ts=1795188182&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>22</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215485-609800-609798_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Cyberleek behauptet, fast die gesamte Xbox-Version von GTA 6 veröffentlicht zu haben. Die letzte Datei soll spätestens am Montag folgen - möglicherweise auch früher. (<a href="https://www.golem.de/specials/gta-6/">GTA 6</a>, <a href="https://www.golem.de/specials/rockstar/">Rockstar</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215485&amp;page=1&amp;ts=1795188182" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-beliebte-mini-powerbank-mit-20-000-mah-am-black-friday-nur-rund-25-euro-bei-amazon-2611-215484.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T16:17:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Boris Connemann</dc:creator>
+        <title>Anzeige: Beliebte Mini-Powerbank mit 20.000 mAh am Black Friday nur rund 25 Euro bei Amazon</title>
+        <link>https://www.golem.de/news/anzeige-beliebte-mini-powerbank-mit-20-000-mah-am-black-friday-nur-rund-25-euro-bei-amazon-2611-215484.html</link>
+        <description>Die INIU Powerbank mit 20.000 mAh ist kompakt, lädt schnell mit abnehmbarem USB-C-Kabel und ist bei Amazon reduziert. (&lt;a href=&quot;https://www.golem.de/specials/technik-und-hardware/&quot;&gt;Technik/Hardware&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/iphone/&quot;&gt;iPhone&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215484&amp;amp;page=1&amp;amp;ts=1795187822&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215484-609795-609793_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Die INIU Powerbank mit 20.000 mAh ist kompakt, lädt schnell mit abnehmbarem USB-C-Kabel und ist bei Amazon reduziert. (<a href="https://www.golem.de/specials/technik-und-hardware/">Technik/Hardware</a>, <a href="https://www.golem.de/specials/iphone/">iPhone</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215484&amp;page=1&amp;ts=1795187822" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/eudi-wallet-d-you-auf-der-suche-nach-der-killerapplikation-2611-215482.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T16:06:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Friedhelm Greis</dc:creator>
+        <title>Eudi-Wallet D-You: Auf der Suche nach der Killerapplikation</title>
+        <link>https://www.golem.de/news/eudi-wallet-d-you-auf-der-suche-nach-der-killerapplikation-2611-215482.html</link>
+        <description>Digitalminister Wildberger hat erste Anwendungen für die digitale Brieftasche D-You vorgestellt. Am Starttermin in sechs Wochen hält er fest. Vorerst. Ein Bericht von Friedhelm Greis (&lt;a href=&quot;https://www.golem.de/specials/eudi-wallet/&quot;&gt;EUDI-Wallet&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/datenschutz/&quot;&gt;Datenschutz&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215482&amp;amp;page=1&amp;amp;ts=1795187162&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>2</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215482-609828-609826_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Digitalminister Wildberger hat erste Anwendungen für die digitale Brieftasche D-You vorgestellt. Am Starttermin in sechs Wochen hält er fest. Vorerst. Ein Bericht von Friedhelm Greis (<a href="https://www.golem.de/specials/eudi-wallet/">EUDI-Wallet</a>, <a href="https://www.golem.de/specials/datenschutz/">Datenschutz</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215482&amp;page=1&amp;ts=1795187162" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-ankers-nano-usb-c-hub-mit-acht-anschluessen-fuer-nur-28-47-euro-auf-amazon-2611-215479.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T15:40:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Ingo Pakalski</dc:creator>
+        <title>Anzeige: Ankers Nano-USB-C-Hub mit acht Anschlüssen für nur 28,47 Euro auf Amazon</title>
+        <link>https://www.golem.de/news/anzeige-ankers-nano-usb-c-hub-mit-acht-anschluessen-fuer-nur-28-47-euro-auf-amazon-2611-215479.html</link>
+        <description>Ein guter USB-Hub wertet ein Notebook erheblich auf. Ankers kompakten USB-C-Hub mit acht Anschlüssen gibt es zum Black Friday zum Amazon-Tiefstpreis. (&lt;a href=&quot;https://www.golem.de/specials/black-friday/&quot;&gt;Black Friday&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/amazon/&quot;&gt;Amazon&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215479&amp;amp;page=1&amp;amp;ts=1795185602&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>2</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215479-609779-609777_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Ein guter USB-Hub wertet ein Notebook erheblich auf. Ankers kompakten USB-C-Hub mit acht Anschlüssen gibt es zum Black Friday zum Amazon-Tiefstpreis. (<a href="https://www.golem.de/specials/black-friday/">Black Friday</a>, <a href="https://www.golem.de/specials/amazon/">Amazon</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215479&amp;page=1&amp;ts=1795185602" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/muse-metas-ki-agent-liest-benachrichtigungen-und-verwechselt-nutzer-2611-215480.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T15:33:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Tobias Költzsch</dc:creator>
+        <title>Muse: Metas KI-Agent liest Benachrichtigungen und verwechselt Nutzer</title>
+        <link>https://www.golem.de/news/muse-metas-ki-agent-liest-benachrichtigungen-und-verwechselt-nutzer-2611-215480.html</link>
+        <description>Metas KI-Agent Muse soll Unterhaltungen verschiedener Nutzer vermischt haben. Das Unternehmen spricht von Halluzinationen und Einzelfällen. (&lt;a href=&quot;https://www.golem.de/specials/meta/&quot;&gt;Meta&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/ki/&quot;&gt;KI&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215480&amp;amp;page=1&amp;amp;ts=1795185182&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>5</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215480-609774-609772_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Metas KI-Agent Muse soll Unterhaltungen verschiedener Nutzer vermischt haben. Das Unternehmen spricht von Halluzinationen und Einzelfällen. (<a href="https://www.golem.de/specials/meta/">Meta</a>, <a href="https://www.golem.de/specials/ki/">KI</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215480&amp;page=1&amp;ts=1795185182" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/breko-jahrestagung-dsl-mangels-ersatzteilen-bald-erheblich-teurer-2611-215478.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T15:14:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Achim Sawall</dc:creator>
+        <title>Breko-Jahrestagung: DSL mangels Ersatzteilen bald erheblich teurer</title>
+        <link>https://www.golem.de/news/breko-jahrestagung-dsl-mangels-ersatzteilen-bald-erheblich-teurer-2611-215478.html</link>
+        <description>Weil die Ersatzteile ausgehen, hält Breko-Präsident Westfal das Ende von DSL für unvermeidbar und warnt vor steigenden Preisen für Verweigerer. (&lt;a href=&quot;https://www.golem.de/specials/breko/&quot;&gt;Breko&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/dsl/&quot;&gt;DSL&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215478&amp;amp;page=1&amp;amp;ts=1795184041&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>97</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215478-609770-609768_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Weil die Ersatzteile ausgehen, hält Breko-Präsident Westfal das Ende von DSL für unvermeidbar und warnt vor steigenden Preisen für Verweigerer. (<a href="https://www.golem.de/specials/breko/">Breko</a>, <a href="https://www.golem.de/specials/dsl/">DSL</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215478&amp;page=1&amp;ts=1795184041" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/browseragent-fuer-chrome-google-baut-tausende-fake-webseiten-fuer-sicherheitstests-2611-215476.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T14:54:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Mike Faust</dc:creator>
+        <title>Browseragent für Chrome: Google baut Tausende Fake-Webseiten für Sicherheitstests</title>
+        <link>https://www.golem.de/news/browseragent-fuer-chrome-google-baut-tausende-fake-webseiten-fuer-sicherheitstests-2611-215476.html</link>
+        <description>In der abgeschotteten Testumgebung wird Googles Browseragent in Chrome gezielt mit manipulierten Inhalten konfrontiert. (&lt;a href=&quot;https://www.golem.de/specials/ki/&quot;&gt;KI&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/google/&quot;&gt;Google&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215476&amp;amp;page=1&amp;amp;ts=1795182841&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215476-609761-609759_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">In der abgeschotteten Testumgebung wird Googles Browseragent in Chrome gezielt mit manipulierten Inhalten konfrontiert. (<a href="https://www.golem.de/specials/ki/">KI</a>, <a href="https://www.golem.de/specials/google/">Google</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215476&amp;page=1&amp;ts=1795182841" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-mobiler-router-mit-wi-fi-7-am-black-friday-zum-tiefpreis-bei-amazon-2611-215477.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T14:41:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Antje Lüth</dc:creator>
+        <title>Anzeige: Mobiler Router mit Wi-Fi 7 am Black Friday zum Tiefpreis bei Amazon</title>
+        <link>https://www.golem.de/news/anzeige-mobiler-router-mit-wi-fi-7-am-black-friday-zum-tiefpreis-bei-amazon-2611-215477.html</link>
+        <description>Der mobile WLAN&amp;#8209;Router GL.iNet MUDI 7 mit Wi-Fi 7, 5G-Mobilfunk, VPN und eSIM ist in der Black Friday Woche bei Amazon reduziert. (&lt;a href=&quot;https://www.golem.de/specials/router/&quot;&gt;Router&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/black-friday/&quot;&gt;Black Friday&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215477&amp;amp;page=1&amp;amp;ts=1795182062&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215477-609765-609763_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Der mobile WLAN&#8209;Router GL.iNet MUDI 7 mit Wi-Fi 7, 5G-Mobilfunk, VPN und eSIM ist in der Black Friday Woche bei Amazon reduziert. (<a href="https://www.golem.de/specials/router/">Router</a>, <a href="https://www.golem.de/specials/black-friday/">Black Friday</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215477&amp;page=1&amp;ts=1795182062" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/vor-eu-uk-gipfel-ki-gestuetzter-cyberangriff-auf-eu-kommission-2611-215474.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T14:33:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Stefan Beiersmann</dc:creator>
+        <title>Vor EU-UK-Gipfel: KI-gestützter Cyberangriff auf EU-Kommission</title>
+        <link>https://www.golem.de/news/vor-eu-uk-gipfel-ki-gestuetzter-cyberangriff-auf-eu-kommission-2611-215474.html</link>
+        <description>Die EU-Kommission nimmt ihre Personalplattform vom Netz. Ob Daten abgeflossen sind, ist unklar. (&lt;a href=&quot;https://www.golem.de/specials/eu-kommission/&quot;&gt;EU-Kommission&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/ki/&quot;&gt;KI&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215474&amp;amp;page=1&amp;amp;ts=1795181582&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215474-609753-609751_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Die EU-Kommission nimmt ihre Personalplattform vom Netz. Ob Daten abgeflossen sind, ist unklar. (<a href="https://www.golem.de/specials/eu-kommission/">EU-Kommission</a>, <a href="https://www.golem.de/specials/ki/">KI</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215474&amp;page=1&amp;ts=1795181582" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-fire-tv-cube-auf-amazon-zum-jahrestiefstpreis-mit-111-euro-rabatt-2611-215475.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T14:20:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Ingo Pakalski</dc:creator>
+        <title>Anzeige: Fire TV Cube auf Amazon zum Jahrestiefstpreis mit 111 Euro Rabatt</title>
+        <link>https://www.golem.de/news/anzeige-fire-tv-cube-auf-amazon-zum-jahrestiefstpreis-mit-111-euro-rabatt-2611-215475.html</link>
+        <description>Der Fire TV Cube bietet deutlich mehr als ein üblicher Fire TV Stick. Für alle, die mehr von einem Streaminggerät erwarten, zum Sensationspreis. (&lt;a href=&quot;https://www.golem.de/specials/black-friday/&quot;&gt;Black Friday&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/amazon/&quot;&gt;Amazon&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215475&amp;amp;page=1&amp;amp;ts=1795180802&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>1</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215475-609757-609755_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Der Fire TV Cube bietet deutlich mehr als ein üblicher Fire TV Stick. Für alle, die mehr von einem Streaminggerät erwarten, zum Sensationspreis. (<a href="https://www.golem.de/specials/black-friday/">Black Friday</a>, <a href="https://www.golem.de/specials/amazon/">Amazon</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215475&amp;page=1&amp;ts=1795180802" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/speicherkrise-valve-geht-die-steam-machine-mit-2-tbyte-aus-2611-215472.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T14:14:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Peter Steinlechner</dc:creator>
+        <title>Speicherkrise: Valve geht die Steam Machine mit 2 TByte aus</title>
+        <link>https://www.golem.de/news/speicherkrise-valve-geht-die-steam-machine-mit-2-tbyte-aus-2611-215472.html</link>
+        <description>Wegen knapper Speicherbauteile schließt Valve die Warteliste für das größere Modell. Wer mit 512 GByte auskommt, kann direkt bestellen. (&lt;a href=&quot;https://www.golem.de/specials/steam-machine/&quot;&gt;Steam Machine&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/steam/&quot;&gt;Steam&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215472&amp;amp;page=1&amp;amp;ts=1795180441&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2601/204189-555382-555380_rc.jpg" width="0" height="0" vspace="3" hspace="8" align="left">Wegen knapper Speicherbauteile schließt Valve die Warteliste für das größere Modell. Wer mit 512 GByte auskommt, kann direkt bestellen. (<a href="https://www.golem.de/specials/steam-machine/">Steam Machine</a>, <a href="https://www.golem.de/specials/steam/">Steam</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215472&amp;page=1&amp;ts=1795180441" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/marktstart-verschoben-zen6-fuer-desktops-wohl-erst-nach-computex-2027-2611-215469.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T13:58:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Johannes Hiltscher</dc:creator>
+        <title>Marktstart verschoben?: Zen6 für Desktops wohl erst nach Computex 2027</title>
+        <link>https://www.golem.de/news/marktstart-verschoben-zen6-fuer-desktops-wohl-erst-nach-computex-2027-2611-215469.html</link>
+        <description>Auch bei AMDs Zen6 wird es wohl zuerst wieder Notebook-CPUs geben. Über die Gründe gibt es widersprüchliche Informationen. (&lt;a href=&quot;https://www.golem.de/specials/cpu/&quot;&gt;Prozessor&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/amd/&quot;&gt;AMD&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215469&amp;amp;page=1&amp;amp;ts=1795179481&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215469-609729-609727_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Auch bei AMDs Zen6 wird es wohl zuerst wieder Notebook-CPUs geben. Über die Gründe gibt es widersprüchliche Informationen. (<a href="https://www.golem.de/specials/cpu/">Prozessor</a>, <a href="https://www.golem.de/specials/amd/">AMD</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215469&amp;page=1&amp;ts=1795179481" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/anzeige-govee-led-strip-20-m-mit-app-zum-black-friday-nur-einen-euro-pro-meter-2611-215473.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T13:53:01+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Boris Connemann</dc:creator>
+        <title>Anzeige: Govee LED-Strip (20 m) mit App zum Black Friday nur einen Euro pro Meter</title>
+        <link>https://www.golem.de/news/anzeige-govee-led-strip-20-m-mit-app-zum-black-friday-nur-einen-euro-pro-meter-2611-215473.html</link>
+        <description>Der LED-Strip von Govee ist bei Amazon im Rahmen des Black Friday reduziert und zählt zu den meistgekauften RGBIC-Lichtlösungen. (&lt;a href=&quot;https://www.golem.de/specials/smarthome/&quot;&gt;Smart Home&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/led-lampe/&quot;&gt;LED&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215473&amp;amp;page=1&amp;amp;ts=1795179181&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments />
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215473-609748-609746_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Der LED-Strip von Govee ist bei Amazon im Rahmen des Black Friday reduziert und zählt zu den meistgekauften RGBIC-Lichtlösungen. (<a href="https://www.golem.de/specials/smarthome/">Smart Home</a>, <a href="https://www.golem.de/specials/led-lampe/">LED</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215473&amp;page=1&amp;ts=1795179181" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+    <item rdf:about="https://www.golem.de/news/weltraumrechenzentren-google-setzt-beim-satellitenstart-auf-blue-origin-2611-215470.html">
+        <dc:format>text/html</dc:format>
+        <dc:date>2026-11-20T13:45:02+01:00</dc:date>
+        <dc:source>https://www.golem.de</dc:source>
+        <dc:creator>Przemyslaw Szymanski</dc:creator>
+        <title>Weltraumrechenzentren: Google setzt beim Satellitenstart auf Blue Origin</title>
+        <link>https://www.golem.de/news/weltraumrechenzentren-google-setzt-beim-satellitenstart-auf-blue-origin-2611-215470.html</link>
+        <description>Das Project Suncatcher geht in die nächste Phase: Blue Origin soll 2029 mehrere Satelliten mit KI-Chips von Google in den Orbit befördern. (&lt;a href=&quot;https://www.golem.de/specials/google/&quot;&gt;Google&lt;/a&gt;, &lt;a href=&quot;https://www.golem.de/specials/ki/&quot;&gt;KI&lt;/a&gt;) &lt;img src=&quot;https://cpx.golem.de/cpx.php?class=17&amp;amp;aid=215470&amp;amp;page=1&amp;amp;ts=1795178702&quot; alt=&quot;&quot; width=&quot;1&quot; height=&quot;1&quot; /&gt;</description>
+        <slash:comments>3</slash:comments>
+        <content:encoded><![CDATA[<img src="https://www.golem.de/2611/215470-609738-609736_rc.jpg" width="416" height="234" vspace="3" hspace="8" align="left">Das Project Suncatcher geht in die nächste Phase: Blue Origin soll 2029 mehrere Satelliten mit KI-Chips von Google in den Orbit befördern. (<a href="https://www.golem.de/specials/google/">Google</a>, <a href="https://www.golem.de/specials/ki/">KI</a>) <img src="https://cpx.golem.de/cpx.php?class=17&amp;aid=215470&amp;page=1&amp;ts=1795178702" alt="" width="1" height="1" />]]></content:encoded>
+    </item>
+</rdf:RDF>
