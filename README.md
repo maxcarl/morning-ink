@@ -3,6 +3,8 @@
 **Your personal morning newspaper, delivered to your e-reader.**
 
 [![CI](https://github.com/maxcarl/morning-ink/actions/workflows/ci.yml/badge.svg)](https://github.com/maxcarl/morning-ink/actions/workflows/ci.yml)
+[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![Container](https://img.shields.io/badge/ghcr.io-amd64%20%7C%20arm64-2496ED?logo=docker&logoColor=white)](https://github.com/maxcarl/morning-ink/pkgs/container/morning-ink)
 
 A self-hosted service that turns your RSS feeds into a daily EPUB newspaper and sends it to your Kindle. One Docker container, web UI, optional AI.
 
