@@ -11,7 +11,7 @@ Testdatei: eine Ausgabe per Send to Kindle (Mail oder https://www.amazon.de/send
 | Cover | Bibliothek zeigt das Cover mit Titel, Datum und Schlagzeilen | ✅ 2026-11-21 |
 | Inhaltsverzeichnis | „Gehe zu“ zeigt Titelseite, Rubriken und darunter die Artikel | ✅ 2026-11-21 |
 | Navigation | Sprung aus dem Inhaltsverzeichnis und von der Titelseite landet beim richtigen Artikel | ✅ 2026-11-21 |
-| Umlaute | ä, ö, ü, ß und typografische Anführungszeichen erscheinen korrekt | |
+| Umlaute | ä, ö, ü, ß und typografische Anführungszeichen erscheinen korrekt | ✅ 2026-11-21 |
 | Bilder | Graustufen, volle Breite, nicht abgeschnitten | |
 | Links | „Zum Original“ öffnet die Seite im Kindle-Browser | |
 | Hinweise | Ausfallvermerke stehen auf der Titelseite | |
