@@ -63,11 +63,12 @@ Der Scheduler stößt jede Ausgabe an. Quellen, Pipeline-Schritte, Renderer und 
 | Objekt | Inhalt | Beziehungen |
 | --- | --- | --- |
 | Benutzer | Login, Sprache, Rolle | hat Profile |
-| Profil (Ausgabe) | Titel, Zeitplan, Empfänger, Region (PLZ oder Ort), Layout, Budget, Vorlauf, KI-Optionen | gehört einem Benutzer, hat Rubriken |
+| Profil (Ausgabe) | Titel, Zeitplan, Empfänger, Region (PLZ oder Ort), Interessen, Layout, Budget, Vorlauf, KI-Optionen | gehört einem Benutzer, hat Rubriken |
 | Rubrik | Name, Reihenfolge, Limit | gehört zu einem Profil, enthält Quellen und Themen |
 | Quelle | Typ, URL oder Ort (bei Lokales), Regeln, Filter, Abrufintervall, nur lokale KI | kann in mehreren Rubriken stecken, nutzt optional einen Zugang |
 | Zugang | Verfahren, verschlüsselte Zugangsdaten, Cookies, Status, Ablauf | gehört einem Benutzer, wird von mehreren Quellen genutzt |
 | Thema | Beschreibung, Stichwörter, Mindestrelevanz | für die KI-Recherche |
+| Interesse | Thema, Stichwörter, Gewicht | gehört zu einem Profil, beeinflusst die Priorität |
 | Artikel | URL, Titel, Volltext, Bilder, Zeit, Hash, KI-Ergebnisse | stammt aus einer Quelle oder einem Thema |
 | Heft | Datum, Nummer, Datei, Größe, Status, angeheftet | gehört zu einem Profil, enthält Artikel |
 | Zustellung | Weg, Zeitpunkt, Ergebnis, Fehler | gehört zu einem Heft |
@@ -147,9 +148,24 @@ Jeder Artikel läuft durch eine Pipeline. Die Schritte lassen sich pro Quelle an
 4. **Bilder:** Graustufen, verkleinern, optional Dithering für E-Ink. Maximal x Bilder pro Artikel, Bildunterschriften behalten, Icons verwerfen.
 5. **Duplikate erkennen:** über normalisierte URLs und ähnliche Titel. Dieselbe Meldung aus mehreren Quellen erscheint nur einmal, mit „auch bei: …“.
 6. **Filtern:** Stichwörter ein- oder ausschließen, Regex, Mindestlänge, Sprache, „keine Liveticker“.
-7. **Priorisieren:** nach Quelle, Aktualität, Punkten (HN, Reddit) oder KI-Relevanz. Limit pro Rubrik und pro Ausgabe.
+7. **Priorisieren:** nach Quelle, Aktualität, Punkten (HN, Reddit), Interessen (siehe unten) oder KI-Relevanz. Limit pro Rubrik und pro Ausgabe.
 8. **Übersetzen (optional):** per KI, DeepL oder LibreTranslate.
 9. **Lesezeit schätzen:** „4 Min.“ im Inhaltsverzeichnis.
+
+**Interessen**
+
+Allgemeine Themen, die dich besonders interessieren oder gar nicht, z. B. „Homelab“, „Lokalpolitik“, „Raumfahrt“ oder „Fußball“. Sie gelten für alle Quellen eines Profils und verändern, welche Artikel es in die Ausgabe schaffen, wenn das Limit einer Rubrik oder das Lesezeit-Budget nicht für alle reicht.
+
+| Einstellung | Bedeutung |
+| --- | --- |
+| Thema | Name, z. B. „Homelab“ |
+| Stichwörter | Begriffe, an denen das Thema erkannt wird, z. B. „Proxmox, NAS, Raspberry Pi, Selfhosting“ |
+| Gewicht | stark bevorzugen, bevorzugen, weniger, ausblenden |
+
+- **Ohne KI:** Treffer der Stichwörter in Titel und Anrisstext heben oder senken die Priorität eines Artikels. „Ausblenden“ wirkt wie ein Filter.
+- **Mit KI:** Die KI erkennt das Thema auch ohne die genauen Stichwörter („Proxmox-Update“ zählt zu „Homelab“) und bewertet die Relevanz. Stichwörter bleiben als Hinweis und als Rückfall, wenn die KI nicht erreichbar ist.
+- **Nachvollziehbar:** Artikel, die wegen eines Interesses nach oben gerückt sind, können einen kleinen Vermerk tragen („Homelab“).
+- **Lernt mit:** Die Feedback-Links „Mehr davon“ und „Weniger davon“ schlagen Änderungen am Gewicht vor, statt still etwas zu verändern.
 
 ## KI-Unterstützung
 
@@ -315,7 +331,7 @@ Die Einstellungen haben drei Ebenen: global, pro Ausgabe und pro Quelle. Die unt
 | Ebene | Einstellungen |
 | --- | --- |
 | Global | Zeitzone, Sprache, SMTP, Standard-Empfänger, Datenverzeichnis, Aufbewahrung (Ausgaben, gesehene Artikel), Benutzer, Benachrichtigungen |
-| Ausgabe (Profil) | Name und Titel der Zeitung, Zeitplan, Vorlauf, Empfänger, Region (PLZ oder Ort), Format, Layout-Vorlage, Rubriken mit Reihenfolge, Lesezeit-Budget, max. Artikel gesamt, max. Dateigröße, Mindestanzahl, KI-Funktionen an oder aus |
+| Ausgabe (Profil) | Name und Titel der Zeitung, Zeitplan, Vorlauf, Empfänger, Region (PLZ oder Ort), Format, Layout-Vorlage, Rubriken mit Reihenfolge, Lesezeit-Budget, Interessen mit Gewicht, max. Artikel gesamt, max. Dateigröße, Mindestanzahl, KI-Funktionen an oder aus |
 | Quelle | URL und Typ, Rubrik, max. Artikel, max. Alter, Volltext an oder aus, Website-Regeln, Bilder, Filter, Priorität, Abrufintervall, Zugang, nur lokale KI |
 | KI | Provider und Endpunkt, API-Key, Modell pro Aufgabe, Prompts, Tageslimit, Interessenprofil, Recherche-Themen, Suchdienst |
 | Layout | Vorlage, Schrift, Bildgröße, Graustufen und Dithering, QR-Codes, Titelseiten-Kacheln |
@@ -401,8 +417,8 @@ Das sind Ideen, die das Tool von einem Feed-Konverter zu einer echten persönlic
 Ein kleiner, täglich nutzbarer Kern kommt zuerst, alles andere baut darauf auf.
 
 1. **MVP:** RSS mit Volltext, Lokales mit Wetter für die eigene Region, EPUB, Kindle-Mail, Zeitplan, Quellen und Einstellungen im Frontend, SQLite, ein Container, Healthcheck, Schutz des Heimnetzes, verschlüsselte Zugangsdaten
-2. **Komfort:** Vorschau, Archiv, OPML-Import, Filter, Duplikate, mehrere Ausgaben, mehrere Benutzer (Familie und Freunde), OPDS und weitere Reader
-3. **KI:** Zusammenfassungen, Tagesüberblick, Themen-Cluster, Übersetzung
+2. **Komfort:** Vorschau, Archiv, OPML-Import, Filter, Interessen mit Stichwörtern, Duplikate, mehrere Ausgaben, mehrere Benutzer (Familie und Freunde), OPDS und weitere Reader
+3. **KI:** Zusammenfassungen, Tagesüberblick, Themen-Cluster, Übersetzung, Interessen per KI erkennen
 4. **Mehr Quellen:** Newsletter per IMAP, FreshRSS und Miniflux, Wallabag, YouTube, Kacheln für Kalender
 5. **Feedback und mehr:** Mehr/Weniger-Links, Interessenprofil, PDF-Layout, Audio
 
