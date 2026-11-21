@@ -441,7 +441,7 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | # | Etappe | Aufgabe | Fertig, wenn | Braucht | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 0 Fundament | Solution mit `Domain`, `Application`, `Infrastructure`, `Web` und Testprojekten; Nullable, Analyzer, `.editorconfig`, Warnungen als Fehler | Build ohne Warnungen, Architekturtest prüft die Schichtgrenzen | – | ✅ erledigt |
-| 2 | 0 Fundament | CI: Build, Tests, `dotnet format`, Docker-Image für amd64 und arm64 | Pull Request läuft grün, Image liegt in der Registry | 1 | 🔄 umgesetzt, CI auf GitHub noch nicht gelaufen |
+| 2 | 0 Fundament | CI: Build, Tests, `dotnet format`, Docker-Image für amd64 und arm64 | Pull Request läuft grün, Image liegt in der Registry | 1 | ✅ erledigt |
 | 3 | 0 Fundament | Dockerfile und Compose: Non-Root-Benutzer, Volume `/data`, Endpunkt `/health` | `docker compose up` startet, Healthcheck ist grün | 1 | ✅ erledigt |
 | 4 | 0 Fundament | EF Core mit SQLite, Kernmodell mehrbenutzerfähig, automatische Migration mit vorherigem Backup | Neustart verliert keine Daten, jede Migration legt ein Backup an | 1 | – |
 | 5 | 0 Fundament | Verschlüsselte Zugangsdaten über Data Protection, Schlüssel in `/data` | Passwörter stehen nicht im Klartext in der Datenbank und sind nach Neustart lesbar | 4 | – |
