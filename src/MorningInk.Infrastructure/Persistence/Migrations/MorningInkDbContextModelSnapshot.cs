@@ -17,6 +17,40 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.15");
 
+            modelBuilder.Entity("MorningInk.Domain.Credential", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Secret")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Credentials");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Profile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -88,6 +122,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("CredentialId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -107,6 +144,8 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CredentialId");
 
                     b.HasIndex("UserId");
 
@@ -157,6 +196,15 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("SectionSource");
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.Credential", b =>
+                {
+                    b.HasOne("MorningInk.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Profile", b =>
                 {
                     b.HasOne("MorningInk.Domain.User", null)
@@ -177,6 +225,11 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("MorningInk.Domain.Source", b =>
                 {
+                    b.HasOne("MorningInk.Domain.Credential", null)
+                        .WithMany()
+                        .HasForeignKey("CredentialId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("MorningInk.Domain.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")

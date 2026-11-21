@@ -1,0 +1,48 @@
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MorningInk.Infrastructure.Persistence;
+
+namespace MorningInk.Infrastructure.Tests.Persistence;
+
+/// <summary>A temporary data directory and the infrastructure services on top of it, started like the app starts.</summary>
+public sealed class TestHost : IDisposable
+{
+    public static readonly DateTimeOffset Now = new(2026, 11, 21, 6, 0, 0, TimeSpan.Zero);
+
+    public string DataDirectory { get; } = Directory.CreateTempSubdirectory("morning-ink-").FullName;
+
+    public string DatabasePath => Path.Combine(DataDirectory, "morning-ink.db");
+
+    public string BackupDirectory => Path.Combine(DataDirectory, "backups");
+
+    public string KeysDirectory => Path.Combine(DataDirectory, "keys");
+
+    /// <summary>Builds fresh services, as after a restart, and applies migrations.</summary>
+    public async Task<ServiceProvider> StartAsync()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataDirectory"] = DataDirectory })
+            .Build();
+        var services = new ServiceCollection()
+            .AddLogging()
+            .AddSingleton<TimeProvider>(new FixedTimeProvider(Now))
+            .AddInfrastructure(configuration)
+            .BuildServiceProvider();
+
+        await using var scope = services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<DatabaseMigrator>().MigrateAsync(CancellationToken.None);
+        return services;
+    }
+
+    public void Dispose()
+    {
+        SqliteConnection.ClearAllPools();
+        Directory.Delete(DataDirectory, recursive: true);
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
+}

@@ -1,23 +1,33 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using MorningInk.Domain;
 
 namespace MorningInk.Infrastructure.Persistence;
 
-public sealed class MorningInkDbContext(DbContextOptions<MorningInkDbContext> options) : DbContext(options)
+/// <summary>EF Core context for all Morning Ink data. Only parameterized queries, never concatenated SQL.</summary>
+public sealed class MorningInkDbContext(
+    DbContextOptions<MorningInkDbContext> options,
+    IDataProtectionProvider dataProtection) : DbContext(options)
 {
+    // Column limits; they also cap what untrusted input can store.
     private const int NameLength = 200;
     private const int UrlLength = 2048;
-    private const int EmailLength = 320;
+    private const int EmailLength = 320; // RFC 5321 maximum
     private const int LanguageLength = 16;
     private const int TimeZoneLength = 64;
     private const int RegionLength = 100;
     private const int EnumLength = 32;
+
+    /// <summary>Encrypts secrets; part of the model cache key, see <see cref="DataProtectionModelCacheKeyFactory"/>.</summary>
+    internal IDataProtectionProvider DataProtection { get; } = dataProtection;
 
     public DbSet<User> Users => Set<User>();
 
     public DbSet<Profile> Profiles => Set<Profile>();
 
     public DbSet<Source> Sources => Set<Source>();
+
+    public DbSet<Credential> Credentials => Set<Credential>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +36,7 @@ public sealed class MorningInkDbContext(DbContextOptions<MorningInkDbContext> op
             user.Property(u => u.Name).HasMaxLength(NameLength);
             user.HasIndex(u => u.Name).IsUnique();
             user.Property(u => u.Language).HasMaxLength(LanguageLength);
+            // Enums as text, so the database stays readable and reordering members is safe.
             user.Property(u => u.Role).HasConversion<string>().HasMaxLength(EnumLength);
         });
 
@@ -51,6 +62,17 @@ public sealed class MorningInkDbContext(DbContextOptions<MorningInkDbContext> op
             source.Property(s => s.Name).HasMaxLength(NameLength);
             source.Property(s => s.Url).HasMaxLength(UrlLength);
             source.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
+            source.HasOne<Credential>().WithMany().HasForeignKey(s => s.CredentialId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Credential>(credential =>
+        {
+            credential.HasOne<User>().WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
+            credential.Property(c => c.Name).HasMaxLength(NameLength);
+            credential.Property(c => c.Username).HasMaxLength(NameLength);
+            credential.Property(c => c.Method).HasConversion<string>().HasMaxLength(EnumLength);
+            // Encrypted at rest; the keys live in a separate directory, not in the database.
+            credential.Property(c => c.Secret).HasConversion(new ProtectedStringConverter(DataProtection));
         });
     }
 }

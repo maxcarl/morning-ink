@@ -1,27 +1,19 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Domain;
-using MorningInk.Infrastructure;
 using MorningInk.Infrastructure.Persistence;
 
 namespace MorningInk.Infrastructure.Tests.Persistence;
 
 public sealed class DatabaseTests : IDisposable
 {
-    private static readonly DateTimeOffset Now = new(2026, 11, 21, 6, 0, 0, TimeSpan.Zero);
-
-    private readonly string _dataDirectory = Directory.CreateTempSubdirectory("morning-ink-").FullName;
-
-    private string DatabasePath => Path.Combine(_dataDirectory, "morning-ink.db");
-
-    private string BackupDirectory => Path.Combine(_dataDirectory, "backups");
+    private readonly TestHost _host = new();
 
     [Fact]
     public async Task Data_survives_a_restart()
     {
-        await using (var services = await StartAsync())
+        await using (var services = await _host.StartAsync())
         {
             await using var scope = services.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
@@ -33,7 +25,7 @@ public sealed class DatabaseTests : IDisposable
             await db.SaveChangesAsync();
         }
 
-        await using (var services = await StartAsync())
+        await using (var services = await _host.StartAsync())
         {
             await using var scope = services.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
@@ -48,10 +40,10 @@ public sealed class DatabaseTests : IDisposable
     [Fact]
     public async Task First_start_creates_the_database_without_a_backup()
     {
-        await using var services = await StartAsync();
+        await using var services = await _host.StartAsync();
 
-        Assert.True(File.Exists(DatabasePath));
-        Assert.False(Directory.Exists(BackupDirectory));
+        Assert.True(File.Exists(_host.DatabasePath));
+        Assert.False(Directory.Exists(_host.BackupDirectory));
     }
 
     [Fact]
@@ -59,9 +51,9 @@ public sealed class DatabaseTests : IDisposable
     {
         await CreateExistingDatabaseAsync();
 
-        await using var services = await StartAsync();
+        await using var services = await _host.StartAsync();
 
-        var backup = Assert.Single(Directory.GetFiles(BackupDirectory));
+        var backup = Assert.Single(Directory.GetFiles(_host.BackupDirectory));
         Assert.Equal("morning-ink-20261121-060000.db", Path.GetFileName(backup));
         Assert.Equal("kept", await ReadMarkerAsync(backup));
     }
@@ -69,40 +61,20 @@ public sealed class DatabaseTests : IDisposable
     [Fact]
     public async Task Start_without_pending_migrations_creates_no_backup()
     {
-        await using (await StartAsync())
+        await using (await _host.StartAsync())
         {
         }
 
-        await using var services = await StartAsync();
+        await using var services = await _host.StartAsync();
 
-        Assert.False(Directory.Exists(BackupDirectory));
+        Assert.False(Directory.Exists(_host.BackupDirectory));
     }
 
-    public void Dispose()
-    {
-        SqliteConnection.ClearAllPools();
-        Directory.Delete(_dataDirectory, recursive: true);
-    }
-
-    private async Task<ServiceProvider> StartAsync()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataDirectory"] = _dataDirectory })
-            .Build();
-        var services = new ServiceCollection()
-            .AddLogging()
-            .AddSingleton<TimeProvider>(new FixedTimeProvider(Now))
-            .AddInfrastructure(configuration)
-            .BuildServiceProvider();
-
-        await using var scope = services.CreateAsyncScope();
-        await scope.ServiceProvider.GetRequiredService<DatabaseMigrator>().MigrateAsync(CancellationToken.None);
-        return services;
-    }
+    public void Dispose() => _host.Dispose();
 
     private async Task CreateExistingDatabaseAsync()
     {
-        await using var connection = new SqliteConnection($"Data Source={DatabasePath}");
+        await using var connection = new SqliteConnection($"Data Source={_host.DatabasePath}");
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = "CREATE TABLE Marker (Value TEXT); INSERT INTO Marker VALUES ('kept');";
@@ -118,8 +90,4 @@ public sealed class DatabaseTests : IDisposable
         return (string?)await command.ExecuteScalarAsync();
     }
 
-    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => now;
-    }
 }
