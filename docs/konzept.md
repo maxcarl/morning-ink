@@ -63,7 +63,7 @@ Der Scheduler stößt jede Ausgabe an. Quellen, Pipeline-Schritte, Renderer und 
 | Objekt | Inhalt | Beziehungen |
 | --- | --- | --- |
 | Benutzer | Login, Sprache, Rolle | hat Profile |
-| Profil (Ausgabe) | Titel, Zeitplan, Empfänger, Layout, Budget, Vorlauf, KI-Optionen | gehört einem Benutzer, hat Rubriken |
+| Profil (Ausgabe) | Titel, Zeitplan, Empfänger, Region (PLZ oder Ort), Layout, Budget, Vorlauf, KI-Optionen | gehört einem Benutzer, hat Rubriken |
 | Rubrik | Name, Reihenfolge, Limit | gehört zu einem Profil, enthält Quellen und Themen |
 | Quelle | Typ, URL, Regeln, Filter, Abrufintervall, nur lokale KI | kann in mehreren Rubriken stecken, nutzt optional einen Zugang |
 | Zugang | Verfahren, verschlüsselte Zugangsdaten, Cookies, Status, Ablauf | gehört einem Benutzer, wird von mehreren Quellen genutzt |
@@ -101,6 +101,7 @@ RSS ist nur der Anfang. Jede Quelle liefert am Ende „Artikel“ oder „Kachel
 | Quelltyp | Beispiele | Idee dahinter |
 | --- | --- | --- |
 | RSS / Atom / JSON Feed | Tagesschau, heise, Blogs | Basis, mit Feed-Autodiscovery aus einer normalen URL |
+| Lokales | Nachrichten und Wetter für die Region des Profils | Aus PLZ oder Ort werden Ort, Landkreis und Koordinaten; daraus entstehen die Rubrik „Lokales“ und die Wetter-Kachel |
 | Webseite ohne Feed | Lokalzeitung, Vereinsseite | Scraper mit CSS-Selektoren für Liste, Titel und Link |
 | E-Mail-Newsletter | Substack, Fach-Newsletter | Eigenes IMAP-Postfach wird abgeholt, Mails werden zu Artikeln |
 | RSS-Reader | FreshRSS, Miniflux | Kategorien übernehmen, nur Ungelesenes, danach als gelesen markieren |
@@ -314,7 +315,7 @@ Die Einstellungen haben drei Ebenen: global, pro Ausgabe und pro Quelle. Die unt
 | Ebene | Einstellungen |
 | --- | --- |
 | Global | Zeitzone, Sprache, SMTP, Standard-Empfänger, Datenverzeichnis, Aufbewahrung (Ausgaben, gesehene Artikel), Benutzer, Benachrichtigungen |
-| Ausgabe (Profil) | Name und Titel der Zeitung, Zeitplan, Vorlauf, Empfänger, Format, Layout-Vorlage, Rubriken mit Reihenfolge, Lesezeit-Budget, max. Artikel gesamt, max. Dateigröße, Mindestanzahl, KI-Funktionen an oder aus |
+| Ausgabe (Profil) | Name und Titel der Zeitung, Zeitplan, Vorlauf, Empfänger, Region (PLZ oder Ort), Format, Layout-Vorlage, Rubriken mit Reihenfolge, Lesezeit-Budget, max. Artikel gesamt, max. Dateigröße, Mindestanzahl, KI-Funktionen an oder aus |
 | Quelle | URL und Typ, Rubrik, max. Artikel, max. Alter, Volltext an oder aus, Website-Regeln, Bilder, Filter, Priorität, Abrufintervall, Zugang, nur lokale KI |
 | KI | Provider und Endpunkt, API-Key, Modell pro Aufgabe, Prompts, Tageslimit, Interessenprofil, Recherche-Themen, Suchdienst |
 | Layout | Vorlage, Schrift, Bildgröße, Graustufen und Dithering, QR-Codes, Titelseiten-Kacheln |
@@ -378,7 +379,6 @@ Das sind Ideen, die das Tool von einem Feed-Konverter zu einer echten persönlic
 **Inhalt**
 
 - Longread-Ausgabe am Wochenende mit längeren Artikeln aus der Woche
-- Lokale Nachrichten über Postleitzahl bzw. Region
 - Rätselseite mit Sudoku oder Kreuzworträtsel
 - „Was gestern fehlte“: Artikel, die das Limit gesprengt haben, rutschen in die nächste Ausgabe
 - Fortsetzungen: Updates zu einer Story von gestern markieren
@@ -400,10 +400,10 @@ Das sind Ideen, die das Tool von einem Feed-Konverter zu einer echten persönlic
 
 Ein kleiner, täglich nutzbarer Kern kommt zuerst, alles andere baut darauf auf.
 
-1. **MVP:** RSS mit Volltext, EPUB, Kindle-Mail, Zeitplan, Quellen und Einstellungen im Frontend, SQLite, ein Container, Healthcheck, Schutz des Heimnetzes, verschlüsselte Zugangsdaten
+1. **MVP:** RSS mit Volltext, Lokales mit Wetter für die eigene Region, EPUB, Kindle-Mail, Zeitplan, Quellen und Einstellungen im Frontend, SQLite, ein Container, Healthcheck, Schutz des Heimnetzes, verschlüsselte Zugangsdaten
 2. **Komfort:** Vorschau, Archiv, OPML-Import, Filter, Duplikate, mehrere Ausgaben, mehrere Benutzer (Familie und Freunde), OPDS und weitere Reader
 3. **KI:** Zusammenfassungen, Tagesüberblick, Themen-Cluster, Übersetzung
-4. **Mehr Quellen:** Newsletter per IMAP, FreshRSS und Miniflux, Wallabag, YouTube, Kacheln für Wetter und Kalender
+4. **Mehr Quellen:** Newsletter per IMAP, FreshRSS und Miniflux, Wallabag, YouTube, Kacheln für Kalender
 5. **Feedback und mehr:** Mehr/Weniger-Links, Interessenprofil, PDF-Layout, Audio
 
 **Abnahmekriterien für das MVP**
@@ -418,6 +418,7 @@ Das MVP ist fertig, wenn:
 - [ ] interne Adressen und andere Schemata als http/https als Quell-URL abgelehnt werden
 - [ ] ein Neustart des Containers weder Daten noch eine fällige Ausgabe verliert
 - [ ] das Image auf amd64 und arm64 läuft
+- [ ] die Titelseite das Wetter für die Region zeigt und die Rubrik „Lokales“ Nachrichten aus der Region enthält
 
 **Entschieden**
 
@@ -430,11 +431,12 @@ Das MVP ist fertig, wenn:
 **Offen**
 
 - [ ] Lizenz: AGPL-3.0 (wer es als Dienst anbietet, muss Änderungen offenlegen) oder MIT (maximal frei)?
+- [ ] Datenquelle für lokale Nachrichten: Nachrichtensuche nach Ortsname (z. B. Google News RSS, gibt den Ort an Google weiter), kuratierte Liste regionaler Feeds pro Landkreis (Lokalzeitung, Stadt, Polizei-Presseportal) oder beides?
 - [ ] GitHub, Docker Hub und Domain für „morning-ink“ prüfen und reservieren
 
 ## MVP-Aufgaben
 
-Das MVP besteht aus 23 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitung bereits täglich auf den Kindle, mit Quellen aus einer Seed-Konfiguration. Etappe 3 macht sie über die Oberfläche bedienbar.
+Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitung bereits täglich auf den Kindle, mit Quellen aus einer Seed-Konfiguration. Etappe 3 macht sie über die Oberfläche bedienbar.
 
 | # | Etappe | Aufgabe | Fertig, wenn | Braucht | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -453,13 +455,15 @@ Das MVP besteht aus 23 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 13 | 2 Zeitung | Ausgabe-Job: Quellen, Pipeline, Renderer, Zustellung; Ausfallvermerk, Sperre pro Profil, nie doppelt senden | Simulierter Ausfall einer Quelle: Ausgabe kommt trotzdem, mit Vermerk | 10, 12 | – |
 | 14 | 2 Zeitung | Scheduler mit Quartz.NET: Zeitplan und Zeitzone pro Profil, verpasste Ausgaben nachholen | Container um 6 Uhr aus, um 7 Uhr an: Die Ausgabe kommt nach | 13 | – |
 | 15 | 2 Zeitung | Aufräumjob, Grundversion: alte Ausgaben und gesehene Artikel nach Frist löschen | Ausgaben älter als die Frist sind weg, angeheftete bleiben | 4 | – |
-| 16 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 | – |
-| 17 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“ | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 16 | – |
-| 18 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 17 | – |
-| 19 | 3 Oberfläche | Seite Einstellungen: SMTP mit Testmail | Testmail kommt an, Passwort wird nie wieder angezeigt | 12, 16 | – |
-| 20 | 3 Oberfläche | Dashboard: nächste Ausgabe, letzte Ausgaben mit Status, „Jetzt senden“ | Fehler einer Ausgabe sind dort ohne Blick ins Log sichtbar | 13, 16 | – |
-| 21 | 3 Oberfläche | Einrichtungsassistent: Kindle-Adresse, SMTP, Testmail, Beispielquellen, erste Ausgabe | Vom leeren Container zur ersten Zeitung in unter 10 Minuten | 17–19 | – |
-| 22 | 4 Abnahme | README: Installation, Amazon-Freigabe, Hinweis auf privaten Gebrauch | Jemand ohne Vorwissen kommt allein bis zur ersten Zeitung | 21 | – |
-| 23 | 4 Abnahme | Probelauf über 7 Tage mit drei echten Feeds | Alle Abnahmekriterien für das MVP sind abgehakt | 1–22 | – |
+| 16 | 2 Zeitung | Region im Profil und Wetter-Kachel: PLZ oder Ort über Geocoding zu Ort, Landkreis und Koordinaten, Wetter von Open-Meteo auf der Titelseite | Titelseite zeigt das Wetter für die Region; ist der Wetterdienst nicht erreichbar, kommt die Ausgabe ohne Kachel | 4, 6, 11 | – |
+| 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis aus der Region des Profils, als eigene Rubrik | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | – |
+| 18 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 | – |
+| 19 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“ | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 18 | – |
+| 20 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Region, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 16, 19 | – |
+| 21 | 3 Oberfläche | Seite Einstellungen: SMTP mit Testmail | Testmail kommt an, Passwort wird nie wieder angezeigt | 12, 18 | – |
+| 22 | 3 Oberfläche | Dashboard: nächste Ausgabe, letzte Ausgaben mit Status, „Jetzt senden“ | Fehler einer Ausgabe sind dort ohne Blick ins Log sichtbar | 13, 18 | – |
+| 23 | 3 Oberfläche | Einrichtungsassistent: Kindle-Adresse, SMTP, Region, Testmail, Beispielquellen, erste Ausgabe | Vom leeren Container zur ersten Zeitung in unter 10 Minuten | 19–21 | – |
+| 24 | 4 Abnahme | README: Installation, Amazon-Freigabe, Hinweis auf privaten Gebrauch | Jemand ohne Vorwissen kommt allein bis zur ersten Zeitung | 23 | – |
+| 25 | 4 Abnahme | Probelauf über 7 Tage mit drei echten Feeds | Alle Abnahmekriterien für das MVP sind abgehakt | 1–24 | – |
 
 Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko steckt in 8 (Volltext) und 11 (EPUB für Kindle), deshalb lohnt es sich, dort früh echte Seiten und einen echten Kindle zu testen.
