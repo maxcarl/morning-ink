@@ -4,8 +4,10 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\MorningInk.Domain\MorningInk.Domain.csproj" />
     <ProjectReference Include="..\MorningInk.Application\MorningInk.Application.csproj" />
+    <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="SmartReader" />
     <InternalsVisibleTo Include="MorningInk.Infrastructure.Tests" />
   </ItemGroup>
 

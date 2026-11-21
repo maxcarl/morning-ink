@@ -17,6 +17,9 @@ public class Source
     /// <summary>Login used to fetch the source; null for public sources.</summary>
     public Guid? CredentialId { get; set; }
 
+    /// <summary>Whether to fetch each article's web page for the full text; off for feeds that already contain it.</summary>
+    public bool FetchFullText { get; set; } = true;
+
     /// <summary>Most articles taken per issue; the newest win.</summary>
     public int MaxArticles { get; set; } = 20;
 
