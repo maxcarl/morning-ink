@@ -16,5 +16,6 @@ public abstract record SourceResult
     public sealed record NotModified : SourceResult;
 
     /// <param name="Message">Explanation for the issue's failure note; never contains credentials.</param>
-    public sealed record Failure(string Message) : SourceResult;
+    /// <param name="BlockedHost">Set when the home-network protection blocked it: the allowlist entry an admin could add.</param>
+    public sealed record Failure(string Message, string? BlockedHost = null) : SourceResult;
 }

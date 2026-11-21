@@ -142,6 +142,30 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.AllowedHost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("AddedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("AddedBy")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Entry")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Entry")
+                        .IsUnique();
+
+                    b.ToTable("AllowedHosts");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Credential", b =>
                 {
                     b.Property<Guid>("Id")

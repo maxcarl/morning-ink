@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace MorningInk.Infrastructure.Http;
 
@@ -10,7 +9,7 @@ namespace MorningInk.Infrastructure.Http;
 /// addresses it has checked, so a DNS answer cannot change between the check and the connection (DNS rebinding).
 /// Because every redirect needs a new connection, redirect targets are checked here as well.
 /// </summary>
-internal sealed partial class SafeConnector(IOptions<SafeHttpOptions> options, ILogger<SafeConnector> logger)
+internal sealed partial class SafeConnector(HostAllowlist allowlist, ILogger<SafeConnector> logger)
 {
     private static readonly int[] DefaultPorts = [80, 443];
 
@@ -19,11 +18,11 @@ internal sealed partial class SafeConnector(IOptions<SafeHttpOptions> options, I
         // IPv6 literals arrive in brackets, e.g. "[::1]".
         var host = context.DnsEndPoint.Host.Trim('[', ']');
         var port = context.DnsEndPoint.Port;
-        var allowlisted = options.Value.IsAllowlisted(host, port);
+        var allowlisted = allowlist.IsAllowed(host, port);
 
         if (!allowlisted && !DefaultPorts.Contains(port))
         {
-            throw Blocked(host, $"port {port} is not allowed");
+            throw Blocked(host, port, $"port {port} is not allowed");
         }
 
         IPAddress[] addresses = IPAddress.TryParse(host, out var literal)
@@ -32,7 +31,7 @@ internal sealed partial class SafeConnector(IOptions<SafeHttpOptions> options, I
         var permitted = allowlisted ? addresses : addresses.Where(a => !BlockedNetworks.IsBlocked(a)).ToArray();
         if (permitted.Length == 0)
         {
-            throw Blocked(host, "it resolves only to internal addresses");
+            throw Blocked(host, port, "it resolves only to internal addresses");
         }
 
         SocketException? lastError = null;
@@ -60,10 +59,11 @@ internal sealed partial class SafeConnector(IOptions<SafeHttpOptions> options, I
         throw lastError!; // ! is safe: permitted is not empty, so the loop ran and failed at least once
     }
 
-    private BlockedAddressException Blocked(string host, string reason)
+    private BlockedAddressException Blocked(string host, int port, string reason)
     {
         LogBlocked(logger, host, reason);
-        return new BlockedAddressException($"Access to {host} is blocked: {reason}.");
+        var entry = DefaultPorts.Contains(port) ? host : $"{host}:{port}";
+        return new BlockedAddressException($"Access to {host} is blocked: {reason}.", entry);
     }
 
     // Logs only the host: the full URL may carry an API key in its query.

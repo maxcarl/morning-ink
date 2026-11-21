@@ -1,10 +1,13 @@
 using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
+using MorningInk.Domain;
 using MorningInk.Infrastructure.Identity;
+using MorningInk.Infrastructure.Persistence;
 
 namespace MorningInk.Web.Tests;
 
@@ -15,6 +18,10 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
     public const string AdminPassword = "correct horse battery staple";
 
     private readonly string _dataDirectory = Directory.CreateTempSubdirectory("morning-ink-web-").FullName;
+    private readonly Dictionary<string, string> _settings;
+
+    /// <param name="settings">Extra configuration, e.g. allowed hosts for a local test server.</param>
+    public TestApp(Dictionary<string, string>? settings = null) => _settings = settings ?? [];
 
     /// <summary>A client that keeps cookies and shows redirects instead of following them.</summary>
     public HttpClient Browser(string? language = null)
@@ -55,12 +62,47 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
         var foreign => foreign.AbsoluteUri,
     };
 
+    /// <summary>Creates a user who is not an admin and returns a client signed in as them.</summary>
+    public async Task<HttpClient> SignedInUserAsync(string name)
+    {
+        using (var scope = Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            var user = new User { Name = name };
+            db.DomainUsers.Add(user);
+            await db.SaveChangesAsync();
+            var created = await scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>().CreateAsync(new AppUser { Id = user.Id, UserName = name }, AdminPassword);
+            Assert.True(created.Succeeded);
+        }
+
+        var browser = Browser();
+        await SubmitAsync(browser, "/login", new() { ["Input.UserName"] = name, ["Input.Password"] = AdminPassword });
+        return browser;
+    }
+
     /// <summary>Loads a form page and posts it with its hidden fields (antiforgery token, form name) plus the given values.</summary>
     /// <param name="action">Where the form posts to, if not back to the page itself, e.g. "/logout".</param>
-    public static async Task<HttpResponseMessage> SubmitAsync(HttpClient browser, string url, Dictionary<string, string> values, string? action = null)
+    /// <param name="form">On pages with several forms: the form name (Blazor's "_handler"), and optionally text the form must contain.</param>
+    public static async Task<HttpResponseMessage> SubmitAsync(HttpClient browser, string url, Dictionary<string, string> values, string? action = null, (string Name, string? Containing)? form = null)
     {
         var page = await browser.GetStringAsync(url);
-        var fields = HiddenInput().Matches(page).ToDictionary(m => m.Groups["name"].Value, m => WebUtility.HtmlDecode(m.Groups["value"].Value));
+        return await SubmitAsync(browser, url, page, values, action, form);
+    }
+
+    /// <summary>Like the other overload, but on a page already loaded, e.g. the answer to the previous POST.</summary>
+    public static async Task<HttpResponseMessage> SubmitAsync(HttpClient browser, string url, string page, Dictionary<string, string> values, string? action = null, (string Name, string? Containing)? form = null)
+    {
+        if (form is { } wanted)
+        {
+            page = Forms().Matches(page).Select(m => m.Value).First(f =>
+                f.Contains($"name=\"_handler\" value=\"{wanted.Name}\"", StringComparison.Ordinal)
+                && (wanted.Containing is null || f.Contains(wanted.Containing, StringComparison.Ordinal)));
+        }
+
+        // Like a browser: hidden fields and the prefilled values of text fields go along.
+        var fields = HiddenInput().Matches(page).Concat(PrefilledInput().Matches(page))
+            .GroupBy(m => m.Groups["name"].Value)
+            .ToDictionary(g => g.Key, g => WebUtility.HtmlDecode(g.First().Groups["value"].Value));
         foreach (var (name, value) in values)
         {
             fields[name] = value;
@@ -72,6 +114,11 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("Storage:DataDirectory", _dataDirectory);
+        foreach (var (key, value) in _settings)
+        {
+            builder.UseSetting(key, value);
+        }
+
         builder.UseEnvironment("Testing");
     }
 
@@ -85,6 +132,12 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
             Directory.Delete(_dataDirectory, recursive: true);
         }
     }
+
+    [GeneratedRegex("""<input id="[^"]*" name="(?<name>[^"]+)" class="input" value="(?<value>[^"]*)""")]
+    private static partial Regex PrefilledInput();
+
+    [GeneratedRegex("<form[^>]*>.*?</form>", RegexOptions.Singleline)]
+    private static partial Regex Forms();
 
     [GeneratedRegex("""<input type="hidden" name="(?<name>[^"]+)" value="(?<value>[^"]*)""")]
     private static partial Regex HiddenInput();

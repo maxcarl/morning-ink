@@ -18,5 +18,6 @@ public abstract record FetchResult
 
     /// <param name="Error">What went wrong.</param>
     /// <param name="Message">Explanation safe to show to users; never contains credentials.</param>
-    public sealed record Failure(FetchError Error, string Message) : FetchResult;
+    /// <param name="BlockedHost">For <see cref="FetchError.BlockedAddress"/>: the allowlist entry that would permit it.</param>
+    public sealed record Failure(FetchError Error, string Message, string? BlockedHost = null) : FetchResult;
 }

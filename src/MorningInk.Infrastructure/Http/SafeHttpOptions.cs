@@ -24,8 +24,11 @@ public sealed class SafeHttpOptions
     public string[] AllowedHosts { get; set; } = [];
 
     /// <summary>Whether <paramref name="host"/> on <paramref name="port"/> is explicitly allowed.</summary>
-    public bool IsAllowlisted(string host, int port) => AllowedHosts.Any(entry =>
+    public bool IsAllowlisted(string host, int port) => AllowedHosts.Any(entry => Matches(entry, host, port));
+
+    /// <summary>Whether one allowlist entry ("host" or "host:port") covers <paramref name="host"/> on <paramref name="port"/>.</summary>
+    public static bool Matches(string entry, string host, int port) =>
         string.Equals(entry, host, StringComparison.OrdinalIgnoreCase)
         || string.Equals(entry, $"{host}:{port}", StringComparison.OrdinalIgnoreCase)
-        || string.Equals(entry, $"[{host}]:{port}", StringComparison.OrdinalIgnoreCase));
+        || string.Equals(entry, $"[{host}]:{port}", StringComparison.OrdinalIgnoreCase);
 }

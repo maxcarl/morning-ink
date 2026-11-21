@@ -1,0 +1,366 @@
+@page "/sources"
+@using MorningInk.Application.Sources
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Http
+@using MorningInk.Infrastructure.Sources
+@inject SourceCatalog Catalog
+@inject FeedDiscovery Discovery
+@inject HostAllowlist Allowlist
+@inject NavigationManager Navigation
+
+<PageTitle>@T["Sources_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <span class="kicker">@T["Sources_Kicker"]</span>
+    <h1>@T["Sources_Title"]</h1>
+    <p class="lede">@T["Sources_Count", _sources.Count]</p>
+
+    @if (_notice is not null)
+    {
+        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+    }
+    @if (_error is not null)
+    {
+        <div class="alert alert-error" role="alert"><p>@_error</p></div>
+    }
+    @if (_blockedHost is not null)
+    {
+        <div class="alert alert-error" role="alert">
+            <p>@T["Sources_Blocked", _blockedHost]</p>
+            @if (IsAdmin)
+            {
+                <p>@T["Sources_AllowHint"]</p>
+                <form method="post" @formname="allow" @onsubmit="AllowAsync">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="Host" value="@_blockedHost" />
+                    <input type="hidden" name="RetryUrl" value="@_lastUrl" />
+                    <button type="submit" class="button">@T["Sources_AllowHost", _blockedHost]</button>
+                </form>
+            }
+            else
+            {
+                <p>@T["Sources_AskAdmin"]</p>
+            }
+        </div>
+    }
+
+    <form method="post" @formname="discover" @onsubmit="DiscoverAsync" class="field">
+        <AntiforgeryToken />
+        <label class="label" for="url">@T["Sources_NewLabel"]</label>
+        <div class="inline-form">
+            <input id="url" name="Url" class="input" type="text" inputmode="url" value="@_lastUrl" placeholder="https://www.example.com" aria-describedby="url-hint" required />
+            <button type="submit" class="button">@T["Sources_Find"]</button>
+        </div>
+        <span id="url-hint" class="hint">@T["Sources_UrlHint"]</span>
+    </form>
+
+    <form method="post" @formname="local" @onsubmit="AddLocalAsync" class="field">
+        <AntiforgeryToken />
+        <label class="label" for="place">@T["Sources_LocalLabel"]</label>
+        <div class="inline-form">
+            <input id="place" name="Place" class="input" type="text" placeholder="52062" aria-describedby="place-hint" required />
+            <button type="submit" class="button button-secondary">@T["Sources_LocalAdd"]</button>
+        </div>
+        <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
+    </form>
+</header>
+
+<div class="with-sidebar">
+    <div>
+        @if (_found is not null)
+        {
+            <h2 class="department">@T["Sources_Found"]</h2>
+            @if (_found.Count == 0)
+            {
+                <p class="row muted">@T["Sources_NoneFound"]</p>
+            }
+            <ul class="rows">
+                @foreach (var feed in _found)
+                {
+                    <li class="row">
+                        <form method="post" @formname="add" @onsubmit="AddFeedAsync" class="row-main inline-form">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="FeedUrl" value="@feed.Url.AbsoluteUri" />
+                            <div class="row-main">
+                                <label class="visually-hidden" for="name-@feed.GetHashCode()">@T["Sources_Name"]</label>
+                                <input id="name-@feed.GetHashCode()" name="Name" class="input" value="@feed.Title" required />
+                                <span class="row-meta">@feed.Url.AbsoluteUri</span>
+                            </div>
+                            <label class="checkbox"><input type="checkbox" name="FullText" value="true" checked /> @T["Sources_FullText"]</label>
+                            <button type="submit" class="button">@T["Sources_Add"]</button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        }
+
+        @foreach (var group in _sources.GroupBy(s => s.Kind).OrderBy(g => g.Key))
+        {
+            <h2 class="department">@(group.Key == SourceKind.Local ? T["Sources_Local"] : T["Sources_Feeds"])</h2>
+            <ul class="rows">
+                @foreach (var source in group)
+                {
+                    <li class="row @(source.Id == _selectedId ? "row-selected" : null)">
+                        <div class="row-main">
+                            <div class="row-title">@source.Name</div>
+                            <div class="row-meta">@Describe(source)</div>
+                        </div>
+                        @if (source.FetchFullText)
+                        {
+                            <span class="tag">@T["Sources_FullTextFact"]</span>
+                        }
+                        <form method="post" @formname="row" @onsubmit="RowAsync" class="row-actions">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="SourceId" value="@source.Id" />
+                            <button type="submit" name="RowAction" value="test" class="button button-small">@T["Sources_Test"]</button>
+                            <button type="submit" name="RowAction" value="delete" class="button button-secondary button-small">@T["Sources_Delete"]</button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (_sources.Count == 0 && _found is null)
+        {
+            <p class="muted">@T["Sources_Empty"]</p>
+        }
+    </div>
+
+    <aside class="sidebar" aria-labelledby="preview-label">
+        <span id="preview-label" class="label muted">@T["Sources_Preview"]</span>
+        @if (_preview is null)
+        {
+            <p class="muted">@T["Sources_PreviewHint"]</p>
+        }
+        else
+        {
+            <h2>@_preview.Name</h2>
+            <p class="row-meta">@(_preview.Url ?? _preview.Place)</p>
+            <dl class="facts">
+                <div><dt>@T["Sources_Type"]</dt><dd>@KindName(_preview.Kind)</dd></div>
+                <div><dt>@T["Sources_Limits"]</dt><dd>@T["Sources_LimitsValue", _preview.MaxArticles, (int)_preview.MaxAge.TotalHours]</dd></div>
+                <div><dt>@T["Sources_FullTextFact"]</dt><dd>@(_preview.FetchFullText ? T["Sources_On"] : T["Sources_Off"])</dd></div>
+                <div>
+                    <dt>@T["Sources_Status"]</dt>
+                    <dd class="status @(_previewResult is SourceResult.Failure ? "status-error" : "status-ok")">@(_previewResult is SourceResult.Failure ? T["Sources_Failed"] : T["Sources_Works"])</dd>
+                </div>
+            </dl>
+            @switch (_previewResult)
+            {
+                case SourceResult.Success { Articles.Count: > 0 } success:
+                    <span class="label">@T["Sources_LatestArticles"]</span>
+                    <ul class="headline-list">
+                        @foreach (var article in success.Articles.Take(PreviewArticles))
+                        {
+                            <li>
+                                <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer">@article.Title</a>
+                                <div class="row-meta">@string.Join(" · ", new[] { article.Author, article.PublishedAt?.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture) }.Where(s => !string.IsNullOrEmpty(s)))</div>
+                            </li>
+                        }
+                    </ul>
+                    break;
+                case SourceResult.Failure failure:
+                    <p class="status status-error">@failure.Message</p>
+                    break;
+                default:
+                    <p class="muted">@T["Sources_NoArticles"]</p>
+                    break;
+            }
+        }
+    </aside>
+</div>
+
+@code {
+    private const int PreviewArticles = 5;
+
+    private List<Source> _sources = [];
+    private IReadOnlyList<FeedCandidate>? _found;
+    private Source? _preview;
+    private SourceResult? _previewResult;
+    private Guid? _selectedId;
+    private string? _notice;
+    private string? _error;
+    private string? _blockedHost;
+    private string? _lastUrl;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
+
+    [SupplyParameterFromQuery(Name = "notice")]
+    private string? Notice { get; set; }
+
+    [SupplyParameterFromForm(FormName = "discover")]
+    private string? Url { get; set; }
+
+    [SupplyParameterFromForm(FormName = "add")]
+    private string? FeedUrl { get; set; }
+
+    [SupplyParameterFromForm(FormName = "add")]
+    private string? Name { get; set; }
+
+    [SupplyParameterFromForm(FormName = "add")]
+    private bool FullText { get; set; }
+
+    [SupplyParameterFromForm(FormName = "local")]
+    private string? Place { get; set; }
+
+    [SupplyParameterFromForm(FormName = "row")]
+    private Guid? SourceId { get; set; }
+
+    [SupplyParameterFromForm(FormName = "row")]
+    private string? RowAction { get; set; }
+
+    [SupplyParameterFromForm(FormName = "allow")]
+    private string? Host { get; set; }
+
+    [SupplyParameterFromForm(FormName = "allow")]
+    private string? RetryUrl { get; set; }
+
+    private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: every page requires a signed-in user
+
+    private bool IsAdmin => HttpContext.User.IsInRole(nameof(UserRole.Admin));
+
+    private CancellationToken Aborted => HttpContext.RequestAborted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _notice = Notice switch
+        {
+            "added" => T["Sources_Added"].Value,
+            "deleted" => T["Sources_Deleted"].Value,
+            _ => null,
+        };
+        await LoadAsync();
+
+        // Static rendering builds the page anew for every POST, and Blazor dispatches a submit only to a form that is
+        // on the page: forms that exist only after a search come back from the posted fields.
+        if (FeedUrl is not null && Uri.TryCreate(FeedUrl, UriKind.Absolute, out var feed))
+        {
+            _found = [new FeedCandidate(feed, Name ?? feed.Host)];
+        }
+
+        if (Host is not null)
+        {
+            _blockedHost = Host;
+            _lastUrl = RetryUrl;
+        }
+    }
+
+    private async Task LoadAsync() => _sources = [.. await Catalog.ListAsync(UserId, Aborted)];
+
+    private Task DiscoverAsync() => DiscoverAsync(Url ?? string.Empty);
+
+    private async Task DiscoverAsync(string input)
+    {
+        _lastUrl = input;
+        switch (await Discovery.DiscoverAsync(input, Aborted))
+        {
+            case FeedDiscoveryResult.Found found:
+                _found = found.Feeds;
+                if (found.Feeds.Count > 0)
+                {
+                    // Preview the first feed right away, so the user sees what they are about to add.
+                    var first = found.Feeds[0];
+                    await PreviewAsync(new Source { UserId = UserId, Name = first.Title, Url = first.Url.AbsoluteUri });
+                }
+
+                break;
+            case FeedDiscoveryResult.Failure { BlockedHost: { } host }:
+                _blockedHost = host;
+                break;
+            case FeedDiscoveryResult.Failure failure:
+                _error = T["Sources_DiscoveryFailed", failure.Message];
+                break;
+        }
+    }
+
+    private async Task AddFeedAsync()
+    {
+        var result = await Catalog.AddFeedAsync(UserId, Name ?? string.Empty, FeedUrl ?? string.Empty, FullText, Aborted);
+        Finish(result);
+    }
+
+    private async Task AddLocalAsync()
+    {
+        var place = Place?.Trim() ?? string.Empty;
+        var result = await Catalog.AddLocalAsync(UserId, $"{T["Sources_Local"]} {place}", place, Aborted);
+        Finish(result);
+    }
+
+    private async Task RowAsync()
+    {
+        if (SourceId is not { } id)
+        {
+            return;
+        }
+
+        if (RowAction == "delete")
+        {
+            if (await Catalog.DeleteAsync(UserId, id, Aborted))
+            {
+                Navigation.NavigateTo("/sources?notice=deleted");
+            }
+
+            return;
+        }
+
+        _selectedId = id;
+        var source = _sources.SingleOrDefault(s => s.Id == id);
+        if (source is not null && await Catalog.TestAsync(UserId, id, Aborted) is { } result)
+        {
+            ShowPreview(source, result);
+        }
+    }
+
+    private async Task AllowAsync()
+    {
+        // Checked here, not only by hiding the button: a forged POST must not open the home network.
+        if (!IsAdmin)
+        {
+            _error = T["Error_AdminOnly"];
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(Host))
+        {
+            await Allowlist.AddAsync(Host, UserId, Aborted);
+            _notice = T["Sources_Allowed", Host];
+            _blockedHost = null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(RetryUrl))
+        {
+            await DiscoverAsync(RetryUrl);
+        }
+    }
+
+    private async Task PreviewAsync(Source draft) => ShowPreview(draft, await Catalog.PreviewAsync(draft, Aborted));
+
+    private void ShowPreview(Source source, SourceResult result)
+    {
+        _preview = source;
+        _previewResult = result;
+        if (result is SourceResult.Failure { BlockedHost: { } host })
+        {
+            _blockedHost = host;
+        }
+    }
+
+    // Post/redirect/get: a reload of the page must not add the source twice.
+    private void Finish(SourceSaveResult result)
+    {
+        if (result is SourceSaveResult.Invalid invalid)
+        {
+            _error = T[$"Error_{invalid.Reason}"];
+            return;
+        }
+
+        Navigation.NavigateTo("/sources?notice=added");
+    }
+
+    private string Describe(Source source) => source.Kind == SourceKind.Local
+        ? $"{KindName(source.Kind)} · {source.Place}"
+        : $"{KindName(source.Kind)} · {source.Url}";
+
+    private string KindName(SourceKind kind) => kind == SourceKind.Local ? T["Kind_Local"] : T["Kind_Rss"];
+}

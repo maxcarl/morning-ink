@@ -27,12 +27,61 @@
   <data name="Error_DuplicateUserName" xml:space="preserve"><value>Diesen Benutzernamen gibt es schon.</value></data>
   <data name="Error_Unknown" xml:space="preserve"><value>Das hat nicht geklappt. Bitte versuche es erneut.</value></data>
   <data name="Nav_Label" xml:space="preserve"><value>Hauptnavigation</value></data>
-  <data name="Nav_Home" xml:space="preserve"><value>Übersicht</value></data>
-  <data name="Logout" xml:space="preserve"><value>Abmelden</value></data>
+    <data name="Logout" xml:space="preserve"><value>Abmelden</value></data>
   <data name="Home_Title" xml:space="preserve"><value>Übersicht</value></data>
   <data name="Home_Welcome" xml:space="preserve"><value>Willkommen, {0}.</value></data>
   <data name="Home_Empty" xml:space="preserve"><value>Hier erscheinen bald die nächste Ausgabe und die letzten Zustellungen.</value></data>
   <data name="NotFound_Title" xml:space="preserve"><value>Seite nicht gefunden</value></data>
   <data name="NotFound_Text" xml:space="preserve"><value>Diese Seite gibt es nicht.</value></data>
   <data name="NotFound_Back" xml:space="preserve"><value>Zur Übersicht</value></data>
+  <data name="Nav_Home" xml:space="preserve"><value>Redaktion</value></data>
+  <data name="Nav_Sources" xml:space="preserve"><value>Quellen</value></data>
+  <data name="Home_Kicker" xml:space="preserve"><value>Redaktion</value></data>
+  <data name="Sources_Kicker" xml:space="preserve"><value>Korrespondentennetz</value></data>
+  <data name="Sources_Title" xml:space="preserve"><value>Quellen</value></data>
+  <data name="Sources_Count" xml:space="preserve"><value>{0} Quellen.</value></data>
+  <data name="Sources_Empty" xml:space="preserve"><value>Noch keine Quellen. Gib oben eine Website oder Feed-Adresse ein.</value></data>
+  <data name="Sources_NewLabel" xml:space="preserve"><value>Neue Quelle: Website oder Feed-Adresse</value></data>
+  <data name="Sources_Find" xml:space="preserve"><value>Feed suchen</value></data>
+  <data name="Sources_UrlHint" xml:space="preserve"><value>Nur http und https. Adressen im Heimnetz sind gesperrt, außer sie stehen auf der Freigabeliste.</value></data>
+  <data name="Sources_LocalLabel" xml:space="preserve"><value>Lokales: Postleitzahl oder Ort</value></data>
+  <data name="Sources_LocalHint" xml:space="preserve"><value>Eine lokale Quelle pro Ort, z. B. zu Hause und dort, wo deine Kinder wohnen.</value></data>
+  <data name="Sources_LocalAdd" xml:space="preserve"><value>Lokales hinzufügen</value></data>
+  <data name="Sources_Found" xml:space="preserve"><value>Gefundene Feeds</value></data>
+  <data name="Sources_NoneFound" xml:space="preserve"><value>Unter dieser Adresse wurde kein Feed gefunden.</value></data>
+  <data name="Sources_DiscoveryFailed" xml:space="preserve"><value>Diese Adresse ließ sich nicht lesen: {0}</value></data>
+  <data name="Sources_Add" xml:space="preserve"><value>Hinzufügen</value></data>
+  <data name="Sources_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Sources_FullText" xml:space="preserve"><value>Volltext holen</value></data>
+  <data name="Sources_Feeds" xml:space="preserve"><value>Feeds</value></data>
+  <data name="Sources_Local" xml:space="preserve"><value>Lokales</value></data>
+  <data name="Sources_Test" xml:space="preserve"><value>Jetzt testen</value></data>
+  <data name="Sources_Delete" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Sources_Preview" xml:space="preserve"><value>Vorschau</value></data>
+  <data name="Sources_PreviewHint" xml:space="preserve"><value>Teste eine Quelle oder suche einen Feed, um hier die neuesten Artikel zu sehen.</value></data>
+  <data name="Sources_LatestArticles" xml:space="preserve"><value>Neueste Artikel</value></data>
+  <data name="Sources_NoArticles" xml:space="preserve"><value>Die Quelle antwortet, hat aber gerade keine Artikel innerhalb ihrer Grenzen.</value></data>
+  <data name="Sources_Works" xml:space="preserve"><value>in Ordnung</value></data>
+  <data name="Sources_Failed" xml:space="preserve"><value>Fehler</value></data>
+  <data name="Sources_Status" xml:space="preserve"><value>Zustand</value></data>
+  <data name="Sources_Type" xml:space="preserve"><value>Art</value></data>
+  <data name="Sources_Limits" xml:space="preserve"><value>Höchstens</value></data>
+  <data name="Sources_LimitsValue" xml:space="preserve"><value>{0} Artikel, {1} Stunden</value></data>
+  <data name="Sources_FullTextFact" xml:space="preserve"><value>Volltext</value></data>
+  <data name="Sources_On" xml:space="preserve"><value>an</value></data>
+  <data name="Sources_Off" xml:space="preserve"><value>aus</value></data>
+  <data name="Sources_Place" xml:space="preserve"><value>Ort</value></data>
+  <data name="Kind_Rss" xml:space="preserve"><value>Feed</value></data>
+  <data name="Kind_Local" xml:space="preserve"><value>Lokales</value></data>
+  <data name="Sources_Blocked" xml:space="preserve"><value>{0} liegt im Heimnetz und ist gesperrt.</value></data>
+  <data name="Sources_AllowHost" xml:space="preserve"><value>{0} freigeben</value></data>
+  <data name="Sources_AllowHint" xml:space="preserve"><value>Gib nur eigene Dienste frei, z. B. FreshRSS.</value></data>
+  <data name="Sources_AskAdmin" xml:space="preserve"><value>Bitte einen Admin, ihn freizugeben.</value></data>
+  <data name="Sources_Allowed" xml:space="preserve"><value>{0} ist jetzt freigegeben.</value></data>
+  <data name="Sources_Added" xml:space="preserve"><value>Quelle hinzugefügt.</value></data>
+  <data name="Sources_Deleted" xml:space="preserve"><value>Quelle gelöscht.</value></data>
+  <data name="Error_InvalidUrl" xml:space="preserve"><value>Das ist keine gültige http- oder https-Adresse.</value></data>
+  <data name="Error_NameRequired" xml:space="preserve"><value>Bitte gib der Quelle einen Namen.</value></data>
+  <data name="Error_PlaceRequired" xml:space="preserve"><value>Bitte gib eine Postleitzahl oder einen Ort ein.</value></data>
+  <data name="Error_AdminOnly" xml:space="preserve"><value>Das dürfen nur Admins.</value></data>
 </root>

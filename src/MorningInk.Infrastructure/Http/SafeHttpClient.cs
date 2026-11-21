@@ -55,7 +55,7 @@ public sealed class SafeHttpClient
         }
         catch (HttpRequestException e) when (e.InnerException is BlockedAddressException blocked)
         {
-            return new FetchResult.Failure(FetchError.BlockedAddress, blocked.Message);
+            return new FetchResult.Failure(FetchError.BlockedAddress, blocked.Message, blocked.AllowlistEntry);
         }
         catch (HttpRequestException)
         {

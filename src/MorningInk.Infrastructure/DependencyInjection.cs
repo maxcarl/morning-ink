@@ -94,6 +94,8 @@ public static class DependencyInjection
     {
         services.AddTransient<ISource, FeedSource>();
         services.AddTransient<ISource, LocalNewsSource>();
+        services.AddTransient<FeedDiscovery>();
+        services.AddScoped<SourceCatalog>();
         services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));
         services.AddTransient<INewsSearch, GoogleNewsSearch>();
 
@@ -179,6 +181,8 @@ public static class DependencyInjection
             .Validate(o => o.MaxRedirects >= 0 && o.MaxResponseBytes > 0, "Http:MaxRedirects and Http:MaxResponseBytes must not be negative.")
             .Validate(o => o.Timeout > TimeSpan.Zero && o.ConnectTimeout > TimeSpan.Zero, "Http timeouts must be positive.")
             .ValidateOnStart();
+        services.AddSingleton<HostAllowlist>();
+        services.AddHostedService<HostAllowlistLoader>();
         services.AddSingleton<SafeConnector>();
 
         services.AddHttpClient<SafeHttpClient>(client =>

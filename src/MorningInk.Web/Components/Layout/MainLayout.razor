@@ -1,19 +1,27 @@
 @inherits LayoutComponentBase
+@using System.Globalization
+@inject TimeProvider Time
 
-<header class="shell-header">
-    <div class="shell-header-inner">
+@* Masthead like a newspaper: name, dateline, double rule, tabs. *@
+<header class="masthead">
+    <div class="masthead-top">
         <a class="brand" href="/">@T["Brand"]</a>
-        <nav class="nav" aria-label="@T["Nav_Label"]">
-            <NavLink href="/" Match="NavLinkMatch.All">@T["Nav_Home"]</NavLink>
-        </nav>
-        @* POST with antiforgery token: a link or GET could be triggered by another site. *@
-        <form method="post" action="/logout">
-            <AntiforgeryToken />
-            <button type="submit" class="button button-secondary">@T["Logout"]</button>
-        </form>
+        <div class="dateline">
+            <span>@Time.GetLocalNow().ToString("D", CultureInfo.CurrentCulture)</span>
+            <span aria-hidden="true">·</span>
+            @* POST with antiforgery token: a link or GET could be triggered by another site. *@
+            <form method="post" action="/logout">
+                <AntiforgeryToken />
+                <button type="submit" class="link-button">@T["Logout"]</button>
+            </form>
+        </div>
     </div>
+    <nav class="nav" aria-label="@T["Nav_Label"]">
+        <NavLink href="/" Match="NavLinkMatch.All">@T["Nav_Home"]</NavLink>
+        <NavLink href="/sources">@T["Nav_Sources"]</NavLink>
+    </nav>
 </header>
 
-<main class="shell-main">
+<main class="page">
     @Body
 </main>

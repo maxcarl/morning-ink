@@ -25,7 +25,7 @@ internal sealed class FeedSource(SafeHttpClient http, TimeProvider time) : ISour
         return fetched switch
         {
             FetchResult.NotModified => new SourceResult.NotModified(),
-            FetchResult.Failure failure => new SourceResult.Failure(failure.Message),
+            FetchResult.Failure failure => new SourceResult.Failure(failure.Message, failure.BlockedHost),
             FetchResult.Success success => Limit(FeedParser.Parse(success.Content, success.FinalUri), source, success.Validators),
             _ => throw new InvalidOperationException($"Unknown fetch result {fetched.GetType().Name}."),
         };
