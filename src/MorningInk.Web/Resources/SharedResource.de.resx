@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Brand" xml:space="preserve"><value>Morning Ink</value></data>
+  <data name="Login_Title" xml:space="preserve"><value>Anmelden</value></data>
+  <data name="Login_UserName" xml:space="preserve"><value>Benutzername</value></data>
+  <data name="Login_Password" xml:space="preserve"><value>Passwort</value></data>
+  <data name="Login_Submit" xml:space="preserve"><value>Anmelden</value></data>
+  <data name="Login_Failed" xml:space="preserve"><value>Benutzername oder Passwort stimmt nicht.</value></data>
+  <data name="Login_LockedOut" xml:space="preserve"><value>Zu viele Fehlversuche. Bitte in 15 Minuten erneut versuchen.</value></data>
+  <data name="Setup_Title" xml:space="preserve"><value>Morning Ink einrichten</value></data>
+  <data name="Setup_Intro" xml:space="preserve"><value>Lege das Administratorkonto an. Den Einrichtungscode findest du im Log des Containers, z. B. mit „docker compose logs“.</value></data>
+  <data name="Setup_Code" xml:space="preserve"><value>Einrichtungscode</value></data>
+  <data name="Setup_CodeHint" xml:space="preserve"><value>Sieht aus wie K7QM-3XPA-R9TD-W2HN.</value></data>
+  <data name="Setup_PasswordHint" xml:space="preserve"><value>Mindestens 12 Zeichen. Ein Satz aus mehreren Wörtern ist sicher und leicht zu merken.</value></data>
+  <data name="Setup_ConfirmPassword" xml:space="preserve"><value>Passwort wiederholen</value></data>
+  <data name="Setup_Submit" xml:space="preserve"><value>Konto anlegen</value></data>
+  <data name="Error_Required" xml:space="preserve"><value>Bitte ausfüllen.</value></data>
+  <data name="Error_InvalidSetupCode" xml:space="preserve"><value>Der Einrichtungscode stimmt nicht. Er steht im Log des Containers.</value></data>
+  <data name="Error_AlreadySetUp" xml:space="preserve"><value>Morning Ink ist bereits eingerichtet. Bitte melde dich an.</value></data>
+  <data name="Error_PasswordTooShort" xml:space="preserve"><value>Das Passwort braucht mindestens 12 Zeichen.</value></data>
+  <data name="Error_PasswordMismatch" xml:space="preserve"><value>Die Passwörter stimmen nicht überein.</value></data>
+  <data name="Error_InvalidUserName" xml:space="preserve"><value>Der Benutzername darf nur Buchstaben, Ziffern und - . _ @ + enthalten.</value></data>
+  <data name="Error_DuplicateUserName" xml:space="preserve"><value>Diesen Benutzernamen gibt es schon.</value></data>
+  <data name="Error_Unknown" xml:space="preserve"><value>Das hat nicht geklappt. Bitte versuche es erneut.</value></data>
+  <data name="Nav_Label" xml:space="preserve"><value>Hauptnavigation</value></data>
+  <data name="Nav_Home" xml:space="preserve"><value>Übersicht</value></data>
+  <data name="Logout" xml:space="preserve"><value>Abmelden</value></data>
+  <data name="Home_Title" xml:space="preserve"><value>Übersicht</value></data>
+  <data name="Home_Welcome" xml:space="preserve"><value>Willkommen, {0}.</value></data>
+  <data name="Home_Empty" xml:space="preserve"><value>Hier erscheinen bald die nächste Ausgabe und die letzten Zustellungen.</value></data>
+  <data name="NotFound_Title" xml:space="preserve"><value>Seite nicht gefunden</value></data>
+  <data name="NotFound_Text" xml:space="preserve"><value>Diese Seite gibt es nicht.</value></data>
+  <data name="NotFound_Back" xml:space="preserve"><value>Zur Übersicht</value></data>
+</root>

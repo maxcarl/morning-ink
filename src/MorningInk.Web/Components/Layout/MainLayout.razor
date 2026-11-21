@@ -1,0 +1,19 @@
+@inherits LayoutComponentBase
+
+<header class="shell-header">
+    <div class="shell-header-inner">
+        <a class="brand" href="/">@T["Brand"]</a>
+        <nav class="nav" aria-label="@T["Nav_Label"]">
+            <NavLink href="/" Match="NavLinkMatch.All">@T["Nav_Home"]</NavLink>
+        </nav>
+        @* POST with antiforgery token: a link or GET could be triggered by another site. *@
+        <form method="post" action="/logout">
+            <AntiforgeryToken />
+            <button type="submit" class="button button-secondary">@T["Logout"]</button>
+        </form>
+    </div>
+</header>
+
+<main class="shell-main">
+    @Body
+</main>

@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MorningInk.Domain;
+using MorningInk.Infrastructure.Identity;
 
 namespace MorningInk.Infrastructure.Persistence;
 
 /// <summary>EF Core context for all Morning Ink data. Only parameterized queries, never concatenated SQL.</summary>
 public sealed class MorningInkDbContext(
     DbContextOptions<MorningInkDbContext> options,
-    IDataProtectionProvider dataProtection) : DbContext(options)
+    IDataProtectionProvider dataProtection) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
 {
     // Column limits; they also cap what untrusted input can store.
     private const int NameLength = 200;
@@ -24,7 +27,8 @@ public sealed class MorningInkDbContext(
     /// <summary>Encrypts secrets; part of the model cache key, see <see cref="DataProtectionModelCacheKeyFactory"/>.</summary>
     internal IDataProtectionProvider DataProtection { get; } = dataProtection;
 
-    public DbSet<User> Users => Set<User>();
+    /// <summary>Morning Ink's users; Identity's own <c>Users</c> set holds their logins.</summary>
+    public DbSet<User> DomainUsers => Set<User>();
 
     public DbSet<Profile> Profiles => Set<Profile>();
 
@@ -41,10 +45,17 @@ public sealed class MorningInkDbContext(
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
         configurationBuilder.Properties<DateTimeOffset>().HaveConversion<DateTimeOffsetToBinaryConverter>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        modelBuilder.Entity<User>(user =>
+        // Identity's tables first; everything below is Morning Ink's own model.
+        base.OnModelCreating(builder);
+
+        // A login belongs to exactly one domain user and shares its id; deleting the user deletes the login.
+        builder.Entity<AppUser>().HasOne<User>().WithOne().HasForeignKey<AppUser>(a => a.Id).OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<User>(user =>
         {
+            user.ToTable("Users");
             user.Property(u => u.Name).HasMaxLength(NameLength);
             user.HasIndex(u => u.Name).IsUnique();
             user.Property(u => u.Language).HasMaxLength(LanguageLength);
@@ -52,7 +63,7 @@ public sealed class MorningInkDbContext(
             user.Property(u => u.Role).HasConversion<string>().HasMaxLength(EnumLength);
         });
 
-        modelBuilder.Entity<Profile>(profile =>
+        builder.Entity<Profile>(profile =>
         {
             profile.HasOne<User>().WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
             profile.Property(p => p.Title).HasMaxLength(NameLength);
@@ -68,13 +79,13 @@ public sealed class MorningInkDbContext(
             profile.HasMany(p => p.Sections).WithOne().HasForeignKey(s => s.ProfileId).OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Section>(section =>
+        builder.Entity<Section>(section =>
         {
             section.Property(s => s.Name).HasMaxLength(NameLength);
             section.HasMany(s => s.Sources).WithMany();
         });
 
-        modelBuilder.Entity<Source>(source =>
+        builder.Entity<Source>(source =>
         {
             source.HasOne<User>().WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
             source.Property(s => s.Name).HasMaxLength(NameLength);
@@ -91,7 +102,7 @@ public sealed class MorningInkDbContext(
             source.HasOne<Credential>().WithMany().HasForeignKey(s => s.CredentialId).OnDelete(DeleteBehavior.SetNull);
         });
 
-        modelBuilder.Entity<SeenArticle>(seen =>
+        builder.Entity<SeenArticle>(seen =>
         {
             seen.HasOne<User>().WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
             seen.Property(s => s.UrlHash).HasMaxLength(Sha256HexLength).IsFixedLength();
@@ -103,7 +114,7 @@ public sealed class MorningInkDbContext(
             seen.HasIndex(s => s.SeenAt);
         });
 
-        modelBuilder.Entity<Issue>(issue =>
+        builder.Entity<Issue>(issue =>
         {
             issue.HasOne<Profile>().WithMany().HasForeignKey(i => i.ProfileId).OnDelete(DeleteBehavior.Cascade);
             issue.Property(i => i.Status).HasConversion<string>().HasMaxLength(EnumLength);
@@ -115,14 +126,14 @@ public sealed class MorningInkDbContext(
             issue.HasMany(i => i.Attempts).WithOne().HasForeignKey(a => a.IssueId).OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<IssueEntry>(entry =>
+        builder.Entity<IssueEntry>(entry =>
         {
             entry.Property(e => e.Url).HasMaxLength(UrlLength);
             entry.Property(e => e.Title).HasMaxLength(UrlLength);
             entry.Property(e => e.SourceName).HasMaxLength(NameLength);
         });
 
-        modelBuilder.Entity<Credential>(credential =>
+        builder.Entity<Credential>(credential =>
         {
             credential.HasOne<User>().WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
             credential.Property(c => c.Name).HasMaxLength(NameLength);
@@ -134,7 +145,7 @@ public sealed class MorningInkDbContext(
 
         // Ids come from the domain (Guid v7), never from the database. Without this, EF takes a new child with an
         // Id already set, added to a loaded parent (an entry added to an issue), for an existing row and updates it.
-        foreach (var key in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.FindPrimaryKey()?.Properties ?? []))
+        foreach (var key in builder.Model.GetEntityTypes().SelectMany(e => e.FindPrimaryKey()?.Properties ?? []))
         {
             if (key.Name == "Id" && key.ClrType == typeof(Guid))
             {

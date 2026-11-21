@@ -1,0 +1,15 @@
+@using System.Globalization
+@* Static rendering only, without blazor.web.js: every form is a plain POST, which also works in the Kindle browser. *@
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="/" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <HeadOutlet />
+</head>
+<body>
+    <Routes />
+</body>
+</html>

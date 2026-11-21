@@ -1,0 +1,113 @@
+@page "/setup"
+@attribute [AllowAnonymous]
+@layout AuthLayout
+@inject AdminSetup AdminSetup
+@inject SignInManager<AppUser> SignInManager
+@inject NavigationManager Navigation
+
+<PageTitle>@T["Setup_Title"] – @T["Brand"]</PageTitle>
+
+<h1>@T["Setup_Title"]</h1>
+<p>@T["Setup_Intro"]</p>
+
+@if (_errors.Count > 0)
+{
+    <div class="alert alert-error" role="alert">
+        @foreach (var error in _errors)
+        {
+            <p>@error</p>
+        }
+    </div>
+}
+
+<EditForm Model="Input" FormName="setup" OnSubmit="CreateAdminAsync" method="post">
+    <div class="field">
+        <label for="code">@T["Setup_Code"]</label>
+        <InputText id="code" class="input code" @bind-Value="Input.Code" autocomplete="off" aria-describedby="code-hint" required />
+        <span id="code-hint" class="hint">@T["Setup_CodeHint"]</span>
+    </div>
+    <div class="field">
+        <label for="username">@T["Login_UserName"]</label>
+        <InputText id="username" class="input" @bind-Value="Input.UserName" autocomplete="username" required />
+    </div>
+    <div class="field">
+        <label for="password">@T["Login_Password"]</label>
+        <InputText id="password" type="password" class="input" @bind-Value="Input.Password" autocomplete="new-password" minlength="12" aria-describedby="password-hint" required />
+        <span id="password-hint" class="hint">@T["Setup_PasswordHint"]</span>
+    </div>
+    <div class="field">
+        <label for="confirm">@T["Setup_ConfirmPassword"]</label>
+        <InputText id="confirm" type="password" class="input" @bind-Value="Input.ConfirmPassword" autocomplete="new-password" required />
+    </div>
+    <button type="submit" class="button button-block">@T["Setup_Submit"]</button>
+</EditForm>
+
+@code {
+    private List<string> _errors = [];
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
+
+    [SupplyParameterFromForm]
+    private SetupInput Input { get; set; } = default!; // ! is safe: set in OnInitializedAsync before rendering
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set here, not as initializer: form binding assigns the property on POST.
+        Input ??= new();
+
+        // Once the first admin exists, this page is closed for good.
+        if (!await AdminSetup.IsNeededAsync(HttpContext.RequestAborted))
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async Task CreateAdminAsync()
+    {
+        _errors = [];
+        var input = Input;
+        if (string.IsNullOrWhiteSpace(input.UserName) || string.IsNullOrEmpty(input.Password) || string.IsNullOrWhiteSpace(input.Code))
+        {
+            _errors.Add(T["Error_Required"]);
+            return;
+        }
+
+        if (input.Password != input.ConfirmPassword)
+        {
+            _errors.Add(T["Error_PasswordMismatch"]);
+            return;
+        }
+
+        var (login, errors) = await AdminSetup.CreateAdminAsync(input.UserName, input.Password, input.Code, HttpContext.RequestAborted);
+        if (login is null)
+        {
+            _errors = errors.Select(ErrorText).Distinct().ToList();
+            return;
+        }
+
+        await SignInManager.SignInAsync(login, isPersistent: true);
+        Navigation.NavigateTo("/");
+    }
+
+    private string ErrorText(string code) => code switch
+    {
+        "InvalidSetupCode" => T["Error_InvalidSetupCode"],
+        "AlreadySetUp" => T["Error_AlreadySetUp"],
+        "PasswordTooShort" => T["Error_PasswordTooShort"],
+        "InvalidUserName" => T["Error_InvalidUserName"],
+        "DuplicateUserName" => T["Error_DuplicateUserName"],
+        _ => T["Error_Unknown"],
+    };
+
+    private sealed class SetupInput
+    {
+        public string Code { get; set; } = string.Empty;
+
+        public string UserName { get; set; } = string.Empty;
+
+        public string Password { get; set; } = string.Empty;
+
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

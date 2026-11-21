@@ -1,0 +1,77 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@layout AuthLayout
+@inject SignInManager<AppUser> SignInManager
+@inject AdminSetup AdminSetup
+@inject NavigationManager Navigation
+
+<PageTitle>@T["Login_Title"] – @T["Brand"]</PageTitle>
+
+<h1>@T["Login_Title"]</h1>
+
+@if (_error is not null)
+{
+    <div class="alert alert-error" role="alert"><p>@_error</p></div>
+}
+
+<EditForm Model="Input" FormName="login" OnSubmit="SignInAsync" method="post">
+    <div class="field">
+        <label for="username">@T["Login_UserName"]</label>
+        <InputText id="username" class="input" @bind-Value="Input.UserName" autocomplete="username" required />
+    </div>
+    <div class="field">
+        <label for="password">@T["Login_Password"]</label>
+        <InputText id="password" type="password" class="input" @bind-Value="Input.Password" autocomplete="current-password" required />
+    </div>
+    <button type="submit" class="button button-block">@T["Login_Submit"]</button>
+</EditForm>
+
+@code {
+    private string? _error;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
+
+    [SupplyParameterFromForm]
+    private LoginInput Input { get; set; } = default!; // ! is safe: set in OnInitializedAsync before rendering
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set here, not as initializer: form binding assigns the property on POST.
+        Input ??= new();
+
+        // An empty instance has no one to sign in yet.
+        if (HttpMethods.IsGet(HttpContext.Request.Method) && await AdminSetup.IsNeededAsync(HttpContext.RequestAborted))
+        {
+            Navigation.NavigateTo("/setup");
+        }
+    }
+
+    private async Task SignInAsync()
+    {
+        var input = Input;
+        var result = await SignInManager.PasswordSignInAsync(input.UserName.Trim(), input.Password, isPersistent: true, lockoutOnFailure: true);
+        if (result.Succeeded)
+        {
+            Navigation.NavigateTo(LocalReturnUrl(ReturnUrl));
+            return;
+        }
+
+        // The same text for unknown users and wrong passwords, so the form does not reveal which names exist.
+        _error = result.IsLockedOut ? T["Login_LockedOut"] : T["Login_Failed"];
+    }
+
+    // Only paths on this site: "//evil.example" or "/\evil.example" would leave it (open redirect).
+    private static string LocalReturnUrl(string? url) =>
+        url is { Length: > 0 } && url[0] == '/' && (url.Length == 1 || (url[1] != '/' && url[1] != '\\')) ? url : "/";
+
+    private sealed class LoginInput
+    {
+        public string UserName { get; set; } = string.Empty;
+
+        public string Password { get; set; } = string.Empty;
+    }
+}

@@ -44,7 +44,7 @@ public sealed class CleanupTests : IDisposable
         await using (var scope = services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-            var user = await db.Users.SingleAsync();
+            var user = await db.DomainUsers.SingleAsync();
             db.SeenArticles.AddRange(
                 new SeenArticle { UserId = user.Id, UrlHash = new string('a', 64), SeenAt = TestHost.Now.AddDays(-100) },
                 new SeenArticle { UserId = user.Id, UrlHash = new string('b', 64), SeenAt = TestHost.Now.AddDays(-10) });

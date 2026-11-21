@@ -20,7 +20,7 @@ internal sealed class PublishingStore(MorningInkDbContext db) : IPublishingStore
             return null;
         }
 
-        var language = await db.Users.Where(u => u.Id == profile.UserId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken);
+        var language = await db.DomainUsers.Where(u => u.Id == profile.UserId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken);
         return new PublishingProfile(profile, language ?? FallbackLanguage);
     }
 

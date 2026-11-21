@@ -9,7 +9,7 @@ public class User
     public required string Name { get; set; }
 
     /// <summary>UI language as a culture name, e.g. "de" or "en".</summary>
-    public string Language { get; set; } = "de";
+    public string Language { get; set; } = "en";
 
     public UserRole Role { get; set; } = UserRole.User;
 }

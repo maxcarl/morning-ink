@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ using MorningInk.Application.Weather;
 using MorningInk.Infrastructure.Cleanup;
 using MorningInk.Infrastructure.Delivery;
 using MorningInk.Infrastructure.Http;
+using MorningInk.Infrastructure.Identity;
 using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Processing;
 using MorningInk.Infrastructure.Rendering;
@@ -48,6 +50,7 @@ public static class DependencyInjection
         services.AddTransient<IRenderer, EpubRenderer>();
         AddDelivery(services, configuration);
         AddScheduling(services, configuration);
+        AddIdentity(services);
         return services;
     }
 
@@ -121,6 +124,31 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(SmtpOptions.SectionName))
             .Validate(o => o.Port is > 0 and <= 65535 && o.MaxMessageBytes > 0 && o.Timeout > TimeSpan.Zero, "Smtp:Port, Smtp:MaxMessageBytes and Smtp:Timeout must be positive.");
         services.AddTransient<IDelivery, MailDelivery>();
+    }
+
+    private static void AddIdentity(IServiceCollection services)
+    {
+        services.AddIdentityCore<AppUser>(identity =>
+            {
+                // Length over complexity rules, as NIST recommends; long passphrases are welcome.
+                identity.Password.RequiredLength = 12;
+                identity.Password.RequireDigit = false;
+                identity.Password.RequireLowercase = false;
+                identity.Password.RequireUppercase = false;
+                identity.Password.RequireNonAlphanumeric = false;
+                identity.Lockout.MaxFailedAccessAttempts = 5;
+                identity.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                identity.Lockout.AllowedForNewUsers = true;
+                identity.User.RequireUniqueEmail = false;
+            })
+            .AddEntityFrameworkStores<MorningInkDbContext>()
+            .AddSignInManager()
+            .AddClaimsPrincipalFactory<RoleClaimsFactory>();
+        services.AddAuthentication(IdentityConstants.ApplicationScheme).AddIdentityCookies();
+
+        services.AddSingleton<SetupCode>();
+        services.AddScoped<AdminSetup>();
+        services.AddHostedService<SetupCodeAnnouncer>();
     }
 
     private static void AddScheduling(IServiceCollection services, IConfiguration configuration)

@@ -1,0 +1,22 @@
+@page "/"
+
+<PageTitle>@T["Home_Title"] – @T["Brand"]</PageTitle>
+
+<h1>@T["Home_Title"]</h1>
+<p>@T["Home_Welcome", _name]</p>
+<p class="muted">@T["Home_Empty"]</p>
+
+@code {
+    private string _name = string.Empty;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState is not null)
+        {
+            _name = (await AuthenticationState).User.Identity?.Name ?? string.Empty;
+        }
+    }
+}

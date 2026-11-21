@@ -97,7 +97,7 @@ public sealed class SeenArticlesTests : IDisposable
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
         var user = new User { Name = name };
-        db.Users.Add(user);
+        db.DomainUsers.Add(user);
         await db.SaveChangesAsync();
         return user.Id;
     }
