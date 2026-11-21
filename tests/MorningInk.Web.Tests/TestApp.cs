@@ -83,14 +83,15 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
     /// <summary>Loads a form page and posts it with its hidden fields (antiforgery token, form name) plus the given values.</summary>
     /// <param name="action">Where the form posts to, if not back to the page itself, e.g. "/logout".</param>
     /// <param name="form">On pages with several forms: the form name (Blazor's "_handler"), and optionally text the form must contain.</param>
-    public static async Task<HttpResponseMessage> SubmitAsync(HttpClient browser, string url, Dictionary<string, string> values, string? action = null, (string Name, string? Containing)? form = null)
+    /// <param name="sourceIds">Ticked checkboxes named "SourceIds", sent as a repeated field like a browser does.</param>
+    public static async Task<HttpResponseMessage> SubmitAsync(HttpClient browser, string url, Dictionary<string, string> values, string? action = null, (string Name, string? Containing)? form = null, IEnumerable<Guid>? sourceIds = null)
     {
         var page = await browser.GetStringAsync(url);
-        return await SubmitAsync(browser, url, page, values, action, form);
+        return await SubmitAsync(browser, url, page, values, action, form, sourceIds);
     }
 
     /// <summary>Like the other overload, but on a page already loaded, e.g. the answer to the previous POST.</summary>
-    public static async Task<HttpResponseMessage> SubmitAsync(HttpClient browser, string url, string page, Dictionary<string, string> values, string? action = null, (string Name, string? Containing)? form = null)
+    public static async Task<HttpResponseMessage> SubmitAsync(HttpClient browser, string url, string page, Dictionary<string, string> values, string? action = null, (string Name, string? Containing)? form = null, IEnumerable<Guid>? sourceIds = null)
     {
         if (form is { } wanted)
         {
@@ -108,7 +109,8 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
             fields[name] = value;
         }
 
-        return await browser.PostAsync(action ?? url, new FormUrlEncodedContent(fields));
+        var body = fields.Concat((sourceIds ?? []).Select(id => KeyValuePair.Create("SourceIds", id.ToString())));
+        return await browser.PostAsync(action ?? url, new FormUrlEncodedContent(body));
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

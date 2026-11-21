@@ -84,4 +84,37 @@
   <data name="Error_NameRequired" xml:space="preserve"><value>Bitte gib der Quelle einen Namen.</value></data>
   <data name="Error_PlaceRequired" xml:space="preserve"><value>Bitte gib eine Postleitzahl oder einen Ort ein.</value></data>
   <data name="Error_AdminOnly" xml:space="preserve"><value>Das dürfen nur Admins.</value></data>
+  <data name="Nav_Profile" xml:space="preserve"><value>Ausgabe</value></data>
+  <data name="Profile_Kicker" xml:space="preserve"><value>Ausgabe</value></data>
+  <data name="Profile_Title" xml:space="preserve"><value>Deine Zeitung</value></data>
+  <data name="Profile_Lede" xml:space="preserve"><value>Jeden Tag um {0} ({1}), zugestellt an {2}.</value></data>
+  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>Jeden Tag um {0} ({1}). Trage einen Empfänger ein, damit sie zugestellt werden kann.</value></data>
+  <data name="Profile_Settings" xml:space="preserve"><value>Ausgabe</value></data>
+  <data name="Profile_NewspaperTitle" xml:space="preserve"><value>Titel der Zeitung</value></data>
+  <data name="Profile_Recipient" xml:space="preserve"><value>Empfänger</value></data>
+  <data name="Profile_RecipientHint" xml:space="preserve"><value>Deine Send-to-Kindle-Adresse, z. B. name_abc@kindle.com.</value></data>
+  <data name="Profile_DeliveryTime" xml:space="preserve"><value>Lieferzeit</value></data>
+  <data name="Profile_TimeZone" xml:space="preserve"><value>Zeitzone</value></data>
+  <data name="Profile_Region" xml:space="preserve"><value>Region (optional)</value></data>
+  <data name="Profile_RegionHint" xml:space="preserve"><value>Postleitzahl oder Ort für das Wetter auf der Titelseite.</value></data>
+  <data name="Profile_Save" xml:space="preserve"><value>Speichern</value></data>
+  <data name="Profile_Saved" xml:space="preserve"><value>Gespeichert. Die Änderungen gelten ab der nächsten Ausgabe.</value></data>
+  <data name="Profile_Sections" xml:space="preserve"><value>Rubriken</value></data>
+  <data name="Profile_SectionsHint" xml:space="preserve"><value>Die Ausgabe zeigt die Rubriken in dieser Reihenfolge. Jede Rubrik nimmt die neuesten Artikel ihrer Quellen.</value></data>
+  <data name="Profile_NoSections" xml:space="preserve"><value>Noch keine Rubriken. Lege eine an und hake dann die Quellen an, die hinein sollen.</value></data>
+  <data name="Profile_NoSources" xml:space="preserve"><value>Lege zuerst auf der Seite Quellen Quellen an.</value></data>
+  <data name="Profile_SectionName" xml:space="preserve"><value>Name der Rubrik</value></data>
+  <data name="Profile_MaxArticles" xml:space="preserve"><value>Höchstens (Artikel)</value></data>
+  <data name="Profile_MaxArticlesHint" xml:space="preserve"><value>Leer heißt ohne Grenze.</value></data>
+  <data name="Profile_SectionSources" xml:space="preserve"><value>Quellen</value></data>
+  <data name="Profile_MoveUp" xml:space="preserve"><value>Nach oben</value></data>
+  <data name="Profile_MoveDown" xml:space="preserve"><value>Nach unten</value></data>
+  <data name="Profile_DeleteSection" xml:space="preserve"><value>Rubrik löschen</value></data>
+  <data name="Profile_AddSection" xml:space="preserve"><value>Rubrik anlegen</value></data>
+  <data name="Profile_SectionInvalid" xml:space="preserve"><value>Bitte gib der Rubrik einen Namen und, falls gesetzt, eine Grenze zwischen 1 und 100.</value></data>
+  <data name="Profile_Error_Title" xml:space="preserve"><value>Bitte gib einen Titel ein (höchstens 200 Zeichen).</value></data>
+  <data name="Profile_Error_Recipient" xml:space="preserve"><value>Bitte gib genau eine E-Mail-Adresse ein, z. B. name_abc@kindle.com.</value></data>
+  <data name="Profile_Error_DeliveryTime" xml:space="preserve"><value>Bitte gib eine Uhrzeit wie 06:00 ein.</value></data>
+  <data name="Profile_Error_TimeZone" xml:space="preserve"><value>Bitte wähle eine Zeitzone aus der Liste.</value></data>
+  <data name="Profile_Error_Region" xml:space="preserve"><value>Die Region darf höchstens 100 Zeichen haben.</value></data>
 </root>

@@ -1,0 +1,243 @@
+@page "/profile"
+@using System.Globalization
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Profiles
+@using MorningInk.Infrastructure.Sources
+@inject ProfileEditor Editor
+@inject SourceCatalog Catalog
+
+<PageTitle>@T["Profile_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <span class="kicker">@T["Profile_Kicker"]</span>
+    <h1>@_profile.Title</h1>
+    <p class="lede">
+        @(string.IsNullOrEmpty(_profile.Recipient)
+            ? T["Profile_LedeNoRecipient", _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId]
+            : T["Profile_Lede", _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId, _profile.Recipient])
+    </p>
+    @if (_notice is not null)
+    {
+        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+    }
+    @if (_errors.Count > 0)
+    {
+        <div class="alert alert-error" role="alert">
+            @foreach (var error in _errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+</header>
+
+<div class="with-sidebar">
+    <section aria-labelledby="sections-heading">
+        <h2 id="sections-heading" class="department">@T["Profile_Sections"]</h2>
+        <p class="hint">@T["Profile_SectionsHint"]</p>
+        @if (_profile.Sections.Count == 0)
+        {
+            <p class="muted">@T["Profile_NoSections"]</p>
+        }
+        <ul class="rows">
+            @foreach (var item in _profile.Sections.OrderBy(s => s.Position))
+            {
+                <li class="row">
+                    <form method="post" @formname="section" @onsubmit="SectionAsync" class="row-main">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="SectionId" value="@item.Id" />
+                        <div class="inline-form field">
+                            <div class="row-main">
+                                <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
+                                <input id="name-@item.Id" name="SectionName" class="input" value="@item.Name" required />
+                            </div>
+                            <div>
+                                <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
+                                <input id="max-@item.Id" name="MaxArticles" class="input" value="@item.MaxArticles" inputmode="numeric" aria-describedby="max-hint-@item.Id" />
+                                <span id="max-hint-@item.Id" class="hint">@T["Profile_MaxArticlesHint"]</span>
+                            </div>
+                        </div>
+                        <fieldset class="field">
+                            <legend class="label">@T["Profile_SectionSources"]</legend>
+                            @if (_sources.Count == 0)
+                            {
+                                <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
+                            }
+                            @foreach (var source in _sources)
+                            {
+                                <label class="checkbox"><input type="checkbox" name="SourceIds" value="@source.Id" checked="@item.Sources.Any(s => s.Id == source.Id)" /> @source.Name</label>
+                            }
+                        </fieldset>
+                        <div class="row-actions">
+                            <button type="submit" name="SectionAction" value="save" class="button button-small">@T["Profile_Save"]</button>
+                            <button type="submit" name="SectionAction" value="up" class="button button-secondary button-small">@T["Profile_MoveUp"]</button>
+                            <button type="submit" name="SectionAction" value="down" class="button button-secondary button-small">@T["Profile_MoveDown"]</button>
+                            <button type="submit" name="SectionAction" value="delete" class="button button-secondary button-small">@T["Profile_DeleteSection"]</button>
+                        </div>
+                    </form>
+                </li>
+            }
+        </ul>
+        <form method="post" @formname="add-section" @onsubmit="AddSectionAsync" class="field">
+            <AntiforgeryToken />
+            <label class="label" for="new-section">@T["Profile_AddSection"]</label>
+            <div class="inline-form">
+                <input id="new-section" name="NewSection" class="input" value="" required />
+                <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="sidebar" aria-labelledby="settings-heading">
+        <h2 id="settings-heading" class="label muted">@T["Profile_Settings"]</h2>
+        <form method="post" @formname="settings" @onsubmit="SaveSettingsAsync">
+            <AntiforgeryToken />
+            <div class="field">
+                <label for="title">@T["Profile_NewspaperTitle"]</label>
+                <input id="title" name="Title" class="input" value="@_profile.Title" required />
+            </div>
+            <div class="field">
+                <label for="recipient">@T["Profile_Recipient"]</label>
+                <input id="recipient" name="Recipient" class="input" value="@_profile.Recipient" type="email" autocomplete="off" aria-describedby="recipient-hint" required />
+                <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
+            </div>
+            <div class="field">
+                <label for="time">@T["Profile_DeliveryTime"]</label>
+                <input id="time" name="DeliveryTime" class="input" value="@_profile.DeliveryTime.ToString("HH:mm", CultureInfo.InvariantCulture)" type="time" required />
+            </div>
+            <div class="field">
+                <label for="zone">@T["Profile_TimeZone"]</label>
+                <select id="zone" name="TimeZoneId" class="input">
+                    @foreach (var zone in TimeZones)
+                    {
+                        <option value="@zone" selected="@(zone == _profile.TimeZoneId)">@zone</option>
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label for="region">@T["Profile_Region"]</label>
+                <input id="region" name="Region" class="input" value="@_profile.Region" aria-describedby="region-hint" />
+                <span id="region-hint" class="hint">@T["Profile_RegionHint"]</span>
+            </div>
+            <button type="submit" class="button button-block">@T["Profile_Save"]</button>
+        </form>
+    </aside>
+</div>
+
+@code {
+    // IANA ids, which every platform .NET runs on understands since .NET 6.
+    private static readonly IReadOnlyList<string> TimeZones = TimeZoneInfo.GetSystemTimeZones()
+        .Select(z => TimeZoneInfo.TryConvertWindowsIdToIanaId(z.Id, out var iana) ? iana : z.Id)
+        .Where(id => id.Contains('/', StringComparison.Ordinal))
+        .Distinct()
+        .Order(StringComparer.Ordinal)
+        .ToList();
+
+    private Profile _profile = default!; // ! is safe: loaded in OnInitializedAsync before the first render
+    private IReadOnlyList<Source> _sources = [];
+    private List<string> _errors = [];
+    private string? _notice;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
+
+    [SupplyParameterFromForm(FormName = "settings")]
+    private string? Title { get; set; }
+
+    [SupplyParameterFromForm(FormName = "settings")]
+    private string? Recipient { get; set; }
+
+    [SupplyParameterFromForm(FormName = "settings")]
+    private string? DeliveryTime { get; set; }
+
+    [SupplyParameterFromForm(FormName = "settings")]
+    private string? TimeZoneId { get; set; }
+
+    [SupplyParameterFromForm(FormName = "settings")]
+    private string? Region { get; set; }
+
+    [SupplyParameterFromForm(FormName = "section")]
+    private Guid? SectionId { get; set; }
+
+    [SupplyParameterFromForm(FormName = "section")]
+    private string? SectionName { get; set; }
+
+    [SupplyParameterFromForm(FormName = "section")]
+    private string? MaxArticles { get; set; }
+
+    [SupplyParameterFromForm(FormName = "section")]
+    private string? SectionAction { get; set; }
+
+    [SupplyParameterFromForm(FormName = "add-section")]
+    private string? NewSection { get; set; }
+
+    private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: every page requires a signed-in user
+
+    private CancellationToken Aborted => HttpContext.RequestAborted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sources = await Catalog.ListAsync(UserId, Aborted);
+        _profile = await Editor.GetOrCreateAsync(UserId, Aborted);
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        var errors = await Editor.SaveSettingsAsync(
+            UserId,
+            new ProfileSettings(Title ?? string.Empty, Recipient ?? string.Empty, DeliveryTime ?? string.Empty, TimeZoneId ?? string.Empty, Region),
+            Aborted);
+        _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
+        _notice = _errors.Count == 0 ? T["Profile_Saved"].Value : null;
+    }
+
+    private async Task SectionAsync()
+    {
+        if (SectionId is not { } id)
+        {
+            return;
+        }
+
+        var done = SectionAction switch
+        {
+            "delete" => await Editor.DeleteSectionAsync(UserId, id, Aborted),
+            "up" => await Editor.MoveSectionAsync(UserId, id, up: true, Aborted),
+            "down" => await Editor.MoveSectionAsync(UserId, id, up: false, Aborted),
+            _ => await SaveSectionAsync(id),
+        };
+        _notice = done ? T["Profile_Saved"].Value : null;
+        if (!done && SectionAction is null or "save")
+        {
+            _errors = [T["Profile_SectionInvalid"]];
+        }
+    }
+
+    private Task<bool> SaveSectionAsync(Guid id)
+    {
+        int? limit = null;
+        if (!string.IsNullOrWhiteSpace(MaxArticles))
+        {
+            if (!int.TryParse(MaxArticles, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return Task.FromResult(false);
+            }
+
+            limit = parsed;
+        }
+
+        // Checkboxes arrive as a repeated field; ids that are not the user's own sources are dropped by the editor.
+        var sourceIds = HttpContext.Request.Form["SourceIds"]
+            .Select(value => Guid.TryParse(value, out var source) ? source : Guid.Empty)
+            .Where(source => source != Guid.Empty)
+            .ToList();
+        return Editor.SaveSectionAsync(UserId, id, SectionName ?? string.Empty, limit, sourceIds, Aborted);
+    }
+
+    private async Task AddSectionAsync()
+    {
+        if (!await Editor.AddSectionAsync(UserId, NewSection ?? string.Empty, Aborted))
+        {
+            _errors = [T["Profile_SectionInvalid"]];
+        }
+    }
+}

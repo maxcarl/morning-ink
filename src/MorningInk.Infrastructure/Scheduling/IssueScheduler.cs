@@ -44,7 +44,8 @@ public sealed partial class IssueScheduler(
     }
 
     /// <summary>Plans one profile, replacing its previous daily trigger.</summary>
-    public async Task ScheduleAsync(IScheduler scheduler, ProfileSchedule schedule, CancellationToken cancellationToken)
+    /// <param name="catchUp">Run a missed slot now; at start yes, after editing a profile no (saving settings must not send an issue).</param>
+    public async Task ScheduleAsync(IScheduler scheduler, ProfileSchedule schedule, CancellationToken cancellationToken, bool catchUp = true)
     {
         var zone = ProfileTimeZone.Find(schedule.TimeZoneId);
         var job = JobBuilder.Create<PublishIssueJob>()
@@ -69,7 +70,7 @@ public sealed partial class IssueScheduler(
 
         var now = time.GetUtcNow();
         var lastSlot = DeliverySlots.LastAtOrBefore(now, schedule.DeliveryTime, zone);
-        if (now - lastSlot <= options.Value.CatchUpWindow)
+        if (catchUp && now - lastSlot <= options.Value.CatchUpWindow)
         {
             // Harmless when the slot was already delivered: the publisher then does nothing.
             await scheduler.ScheduleJob(OneOff(job.Key, $"catch-up-{schedule.ProfileId}", lastSlot, now), ScheduleJobOptions.Replacing, cancellationToken);
