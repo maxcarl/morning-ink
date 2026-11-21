@@ -17,6 +17,9 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Smtp__FromAddress` | – | Sender. Add it to *Approved Personal Document E-mail List* in your Amazon account, or Amazon drops the mail. |
 | `Smtp__FromName` | `Morning Ink` | Sender name. |
 | `Smtp__MaxMessageBytes` | `52428800` | Largest email including encoding (50 MiB, Amazon's limit). |
+| `Scheduling__CatchUpWindow` | `12:00:00` | An issue missed while Morning Ink was off is sent at start if its time is at most this long ago. |
+| `Scheduling__FirstRetryDelay` | `00:05:00` | Wait before retrying a failed delivery; each further retry waits three times as long. |
+| `Scheduling__MaxDeliveryAttempts` | `5` | Delivery attempts per issue before giving up. |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
 | `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |
 | `Images__MaxPixels` | `40000000` | Larger images are rejected before decoding. |
