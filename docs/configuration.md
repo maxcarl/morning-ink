@@ -28,6 +28,8 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Weather__GeocodingUrl` | Nominatim (OpenStreetMap) | Turns postal codes and towns into places; asked only when a region changes. Can be a self-hosted Nominatim. |
 | `Weather__CountryCodes` | `de,at,ch` | Countries regions are looked up in. |
 | `Weather__ForecastUrl` | Open-Meteo | Weather forecast; coordinates are sent rounded to about a kilometre. Can be a self-hosted Open-Meteo. |
+| `NewsSearch__GoogleNewsUrl` | Google News RSS | News search for local news sources. The towns searched for go to Google. |
+| `NewsSearch__Language`, `NewsSearch__Country` | `de`, `DE` | Language and country edition of the news search. |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
 | `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |
 | `Images__MaxPixels` | `40000000` | Larger images are rejected before decoding. |
