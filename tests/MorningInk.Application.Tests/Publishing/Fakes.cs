@@ -4,6 +4,7 @@ using MorningInk.Application.Processing;
 using MorningInk.Application.Publishing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
+using MorningInk.Application.Weather;
 using MorningInk.Domain;
 
 namespace MorningInk.Application.Tests.Publishing;
@@ -103,6 +104,28 @@ internal sealed class FakeDelivery : IDelivery
         Requests.Add(request);
         return Task.FromResult(Results.Count > 0 ? Results.Dequeue() : new DeliveryResult.Delivered());
     }
+}
+
+internal sealed class FakeGeocoder : IGeocoder
+{
+    public List<string> Queries { get; } = [];
+
+    public Task<RegionLocation?> ResolveAsync(string region, CancellationToken cancellationToken)
+    {
+        Queries.Add(region);
+        return Task.FromResult<RegionLocation?>(region == "unknown" ? null : new RegionLocation(region, "Berlin", null, 52.53, 13.38));
+    }
+}
+
+/// <summary>Returns <see cref="Forecast"/>, or throws when <see cref="Fail"/> is set, like a service that is down.</summary>
+internal sealed class FakeWeather : IWeatherForecast
+{
+    public bool Fail { get; set; }
+
+    public WeatherForecast Forecast { get; } = new("Berlin", [new DayForecast(new DateOnly(2026, 11, 21), 3, 0.5, 6.7, 45)], []);
+
+    public Task<WeatherForecast?> ForecastAsync(RegionLocation location, string timeZoneId, CancellationToken cancellationToken) =>
+        Fail ? throw new HttpRequestException("down") : Task.FromResult<WeatherForecast?>(Forecast);
 }
 
 internal sealed class TempIssueFiles : IIssueFiles, IDisposable

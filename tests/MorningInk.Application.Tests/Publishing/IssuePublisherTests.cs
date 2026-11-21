@@ -20,6 +20,8 @@ public sealed class IssuePublisherTests : IDisposable
     private readonly FakeDelivery _delivery = new();
     private readonly TempIssueFiles _files = new();
     private readonly ProfileLocks _locks = new();
+    private readonly FakeGeocoder _geocoder = new();
+    private readonly FakeWeather _weather = new();
 
     public IssuePublisherTests()
     {
@@ -194,6 +196,64 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Weather_for_the_region_comes_with_the_issue()
+    {
+        _profile.Region = "10115";
+
+        await PublishAsync();
+
+        Assert.Same(_weather.Forecast, _renderer.Rendered.Single().Weather);
+        Assert.Equal("Berlin", _profile.Location?.Name);
+    }
+
+    [Fact]
+    public async Task Region_is_geocoded_once_and_again_only_when_it_changes()
+    {
+        _profile.Region = "10115";
+
+        await PublishAsync();
+        Answer(_tagesschau, Articles("https://tagesschau.de/day2"));
+        await PublishAsync(Slot.AddDays(1));
+        _profile.Region = "52062";
+        Answer(_tagesschau, Articles("https://tagesschau.de/day3"));
+        await PublishAsync(Slot.AddDays(2));
+
+        Assert.Equal(["10115", "52062"], _geocoder.Queries);
+    }
+
+    [Fact]
+    public async Task Issue_comes_without_weather_when_the_service_is_down()
+    {
+        _profile.Region = "10115";
+        _weather.Fail = true;
+
+        var result = await PublishAsync();
+
+        Assert.IsType<PublishResult.Delivered>(result);
+        Assert.Null(_renderer.Rendered.Single().Weather);
+    }
+
+    [Fact]
+    public async Task Without_a_region_there_is_no_weather_and_no_lookup()
+    {
+        await PublishAsync();
+
+        Assert.Empty(_geocoder.Queries);
+        Assert.Null(_renderer.Rendered.Single().Weather);
+    }
+
+    [Fact]
+    public async Task Unknown_region_leaves_the_weather_out()
+    {
+        _profile.Region = "unknown";
+
+        await PublishAsync();
+
+        Assert.Null(_profile.Location);
+        Assert.Null(_renderer.Rendered.Single().Weather);
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 
@@ -211,5 +271,5 @@ public sealed class IssuePublisherTests : IDisposable
         CreatePublisher().PublishAsync(_profile.Id, slot ?? Slot, CancellationToken.None);
 
     private IssuePublisher CreatePublisher() => new(
-        _store, [_sources], _seen, [new MarkingProcessor()], [_renderer], _delivery, _files, _locks, new FixedTimeProvider(Slot));
+        _store, [_sources], _seen, [new MarkingProcessor()], [_renderer], _delivery, _files, _locks, _geocoder, _weather, new FixedTimeProvider(Slot));
 }

@@ -12,6 +12,7 @@ using MorningInk.Application.Processing;
 using MorningInk.Application.Publishing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
+using MorningInk.Application.Weather;
 using MorningInk.Infrastructure.Cleanup;
 using MorningInk.Infrastructure.Delivery;
 using MorningInk.Infrastructure.Http;
@@ -20,6 +21,7 @@ using MorningInk.Infrastructure.Processing;
 using MorningInk.Infrastructure.Rendering;
 using MorningInk.Infrastructure.Scheduling;
 using MorningInk.Infrastructure.Sources;
+using MorningInk.Infrastructure.Weather;
 using Quartz;
 
 namespace MorningInk.Infrastructure;
@@ -41,7 +43,7 @@ public static class DependencyInjection
         AddStorage(services, configuration);
         AddPersistence(services);
         AddSafeHttp(services, configuration);
-        AddSources(services);
+        AddSources(services, configuration);
         AddProcessors(services, configuration);
         services.AddTransient<IRenderer, EpubRenderer>();
         AddDelivery(services, configuration);
@@ -85,9 +87,13 @@ public static class DependencyInjection
     }
 
     // Every ISource is registered here; a new kind of source is one more line.
-    private static void AddSources(IServiceCollection services)
+    private static void AddSources(IServiceCollection services, IConfiguration configuration)
     {
         services.AddTransient<ISource, FeedSource>();
+
+        services.AddOptions<WeatherOptions>().Bind(configuration.GetSection(WeatherOptions.SectionName));
+        services.AddTransient<IGeocoder, NominatimGeocoder>();
+        services.AddTransient<IWeatherForecast, OpenMeteoForecast>();
     }
 
     // Processors run in registration order. Everything that brings in content runs before sanitizing; after it

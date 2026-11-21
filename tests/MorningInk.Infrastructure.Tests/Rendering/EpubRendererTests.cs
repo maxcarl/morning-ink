@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
+using MorningInk.Application.Weather;
 using MorningInk.Infrastructure.Processing;
 using MorningInk.Infrastructure.Tests.Processing;
 using SkiaSharp;
@@ -117,6 +118,28 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task Title_page_shows_the_forecast_for_today_and_the_next_days()
+    {
+        using var epub = await RenderAsync();
+
+        var title = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "title.xhtml"))).Root!.Value;
+        Assert.Contains("Wetter für Berlin", title, StringComparison.Ordinal);
+        Assert.Contains("Regenschauer, 1–7 °C, Niederschlag 45 %", title, StringComparison.Ordinal);
+        Assert.Contains("Morgens: Bedeckt, 1 °C", title, StringComparison.Ordinal);
+        Assert.Contains("Abends: Teilweise bewölkt, 6 °C, 40 %", title, StringComparison.Ordinal);
+        Assert.Contains("Sonntag: Regen, 2–5 °C, 65 %", title, StringComparison.Ordinal);
+        Assert.Contains("Montag: Schnee, -1–4 °C, 28 %", title, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Title_page_has_no_weather_without_a_forecast()
+    {
+        using var epub = await RenderAsync(SampleIssue() with { Weather = null }, "no-weather.epub");
+
+        Assert.DoesNotContain("Wetter", ReadText(epub.Entries.Single(e => e.Name == "title.xhtml")), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Cover_is_a_portrait_jpeg()
     {
         using var epub = await RenderAsync();
@@ -168,7 +191,19 @@ public sealed class EpubRendererTests : IDisposable
                 new IssueSection("Politik", [new IssueArticle(politics, "tagesschau"), new IssueArticle(Article("<script>alert(1)</script> & Co", "<p>Text</p>"), "heise")]),
                 new IssueSection("Lokales", [new IssueArticle(Article("Nur Teaser", null, "<p>Kurzfassung</p>"), "Stadt")]),
             ],
-            UnavailableSources: ["heise"]);
+            UnavailableSources: ["heise"],
+            Weather: new WeatherForecast(
+                "Berlin",
+                [
+                    new DayForecast(new DateOnly(2026, 11, 21), 80, 0.5, 6.7, 45),
+                    new DayForecast(new DateOnly(2026, 11, 22), 61, 1.9, 5.2, 65),
+                    new DayForecast(new DateOnly(2026, 11, 23), 71, -0.7, 3.5, 28),
+                ],
+                [
+                    new DayPartForecast(DayPart.Morning, 3, 1.3, 0),
+                    new DayPartForecast(DayPart.Midday, 3, 6.4, 20),
+                    new DayPartForecast(DayPart.Evening, 2, 6.1, 40),
+                ]));
     }
 
     private Task<ZipArchive> RenderAsync() => RenderAsync(SampleIssue(), "sample-issue.epub");

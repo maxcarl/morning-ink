@@ -12,4 +12,24 @@
   <data name="ReadingTime" xml:space="preserve"><value>{0} min read</value></data>
   <data name="SourceUnavailable" xml:space="preserve"><value>{0} could not be reached today</value></data>
   <data name="ReadOriginal" xml:space="preserve"><value>Read the original</value></data>
+  <data name="WeatherFor" xml:space="preserve"><value>Weather for {0}</value></data>
+  <data name="TemperatureRange" xml:space="preserve"><value>{0}–{1} °C</value></data>
+  <data name="Temperature" xml:space="preserve"><value>{0} °C</value></data>
+  <data name="Precipitation" xml:space="preserve"><value>precipitation {0} %</value></data>
+  <data name="Morning" xml:space="preserve"><value>Morning</value></data>
+  <data name="Midday" xml:space="preserve"><value>Midday</value></data>
+  <data name="Evening" xml:space="preserve"><value>Evening</value></data>
+  <data name="WeatherClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="WeatherMostlyClear" xml:space="preserve"><value>Mostly clear</value></data>
+  <data name="WeatherPartlyCloudy" xml:space="preserve"><value>Partly cloudy</value></data>
+  <data name="WeatherOvercast" xml:space="preserve"><value>Overcast</value></data>
+  <data name="WeatherFog" xml:space="preserve"><value>Fog</value></data>
+  <data name="WeatherDrizzle" xml:space="preserve"><value>Drizzle</value></data>
+  <data name="WeatherRain" xml:space="preserve"><value>Rain</value></data>
+  <data name="WeatherFreezingRain" xml:space="preserve"><value>Freezing rain</value></data>
+  <data name="WeatherSnow" xml:space="preserve"><value>Snow</value></data>
+  <data name="WeatherRainShowers" xml:space="preserve"><value>Rain showers</value></data>
+  <data name="WeatherSnowShowers" xml:space="preserve"><value>Snow showers</value></data>
+  <data name="WeatherThunderstorm" xml:space="preserve"><value>Thunderstorm</value></data>
+  <data name="WeatherUnknown" xml:space="preserve"><value>Unknown</value></data>
 </root>

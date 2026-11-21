@@ -1,4 +1,5 @@
 using MorningInk.Application.Sources;
+using MorningInk.Application.Weather;
 
 namespace MorningInk.Application.Rendering;
 
@@ -10,6 +11,7 @@ namespace MorningInk.Application.Rendering;
 /// <param name="Language">Culture name for texts and metadata, e.g. "de".</param>
 /// <param name="Sections">Sections in order, each with its articles.</param>
 /// <param name="UnavailableSources">Names of sources that failed today; the title page mentions them.</param>
+/// <param name="Weather">Forecast for the profile's region; null leaves the weather out.</param>
 public sealed record IssueContent(
     Guid Id,
     string Title,
@@ -17,7 +19,8 @@ public sealed record IssueContent(
     DateTimeOffset PublishedAt,
     string Language,
     IReadOnlyList<IssueSection> Sections,
-    IReadOnlyList<string> UnavailableSources)
+    IReadOnlyList<string> UnavailableSources,
+    WeatherForecast? Weather = null)
 {
     /// <summary>
     /// Title of the book, e.g. "Morning Ink 2026-11-21": the ISO date makes it unique per day and sorts by date on

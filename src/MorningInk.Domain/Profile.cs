@@ -16,6 +16,9 @@ public class Profile
     /// <summary>Postal code or town for local news and weather; null leaves both out.</summary>
     public string? Region { get; set; }
 
+    /// <summary>Resolved <see cref="Region"/>; null until resolved, and stale once <see cref="RegionLocation.Query"/> no longer matches.</summary>
+    public RegionLocation? Location { get; set; }
+
     /// <summary>Local time the issue should arrive, in <see cref="TimeZoneId"/>.</summary>
     public TimeOnly DeliveryTime { get; set; } = new(6, 0);
 

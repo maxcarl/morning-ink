@@ -3,6 +3,7 @@ using MorningInk.Application.Processing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Scheduling;
 using MorningInk.Application.Sources;
+using MorningInk.Application.Weather;
 using MorningInk.Domain;
 
 namespace MorningInk.Application.Publishing;
@@ -21,6 +22,8 @@ public sealed class IssuePublisher(
     IDelivery delivery,
     IIssueFiles files,
     ProfileLocks locks,
+    IGeocoder geocoder,
+    IWeatherForecast weather,
     TimeProvider time)
 {
     // ponytail: EPUB for everyone; a format per profile comes with the PDF renderer.
@@ -150,7 +153,32 @@ public sealed class IssuePublisher(
 
         return sections.Count == 0
             ? null
-            : new IssueContent(issue.Id, profile.Title, issue.Number, localTime, loaded.Language, sections, problems.Select(p => p.SourceName).ToList());
+            : new IssueContent(issue.Id, profile.Title, issue.Number, localTime, loaded.Language, sections, problems.Select(p => p.SourceName).ToList(), await WeatherAsync(profile, cancellationToken));
+    }
+
+    // Weather is a bonus: whatever goes wrong here, the issue comes without it.
+    private async Task<WeatherForecast?> WeatherAsync(Profile profile, CancellationToken cancellationToken)
+    {
+        var region = profile.Region?.Trim();
+        if (string.IsNullOrEmpty(region))
+        {
+            return null;
+        }
+
+        try
+        {
+            // Geocoding only when the region changed; the result is saved with the profile.
+            if (profile.Location?.Query != region)
+            {
+                profile.Location = await geocoder.ResolveAsync(region, cancellationToken);
+            }
+
+            return profile.Location is null ? null : await weather.ForecastAsync(profile.Location, profile.TimeZoneId, cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            return null;
+        }
     }
 
     private async Task<IReadOnlyList<FetchedArticle>> FetchAsync(Source source, List<SourceProblem> problems, CancellationToken cancellationToken)

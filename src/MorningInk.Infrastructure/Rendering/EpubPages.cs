@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Xml.Linq;
 using MorningInk.Application.Rendering;
+using MorningInk.Application.Weather;
 
 namespace MorningInk.Infrastructure.Rendering;
 
@@ -21,6 +22,7 @@ internal static class EpubPages
         return Page(texts.TitlePage, texts,
             new XElement(Xhtml + "h1", issue.Title),
             new XElement(Xhtml + "p", new XAttribute("class", "dateline"), DateLine(issue, texts)),
+            issue.Weather is null ? null : WeatherSection(issue.Weather, texts),
             issue.UnavailableSources.Count == 0 ? null : new XElement(Xhtml + "section",
                 new XElement(Xhtml + "h2", texts.Notes),
                 new XElement(Xhtml + "ul", new XAttribute("class", "notes"), issue.UnavailableSources.Select(n => new XElement(Xhtml + "li", texts.SourceUnavailable(n))))),
@@ -29,6 +31,26 @@ internal static class EpubPages
                 new XElement(Xhtml + "ul", headlines.Select(a => new XElement(Xhtml + "li",
                     new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title))))));
     }
+
+    // Today in one line plus morning, midday and evening, then one line per following day.
+    private static XElement WeatherSection(WeatherForecast forecast, EpubTexts texts)
+    {
+        var today = forecast.Days[0];
+        var parts = forecast.Today.Select(p =>
+            $"{texts.DayPart(p.Part)}: {Join(texts.Weather(p.WeatherCode), texts.Temperature(p.Temperature), Percent(p.PrecipitationProbability))}");
+        return new XElement(Xhtml + "section", new XAttribute("class", "weather"),
+            new XElement(Xhtml + "h2", texts.WeatherFor(forecast.Place)),
+            new XElement(Xhtml + "p", Join(texts.Weather(today.WeatherCode), texts.TemperatureRange(today.MinTemperature, today.MaxTemperature), Precipitation(today.PrecipitationProbability, texts))),
+            forecast.Today.Count == 0 ? null : new XElement(Xhtml + "p", string.Join(" · ", parts)),
+            forecast.Days.Count < 2 ? null : new XElement(Xhtml + "ul", forecast.Days.Skip(1).Select(day => new XElement(Xhtml + "li",
+                $"{day.Date.ToString("dddd", texts.Culture)}: {Join(texts.Weather(day.WeatherCode), texts.TemperatureRange(day.MinTemperature, day.MaxTemperature), Percent(day.PrecipitationProbability))}"))));
+    }
+
+    private static string? Precipitation(int? percent, EpubTexts texts) => percent is > 0 ? texts.Precipitation(percent.Value) : null;
+
+    private static string? Percent(int? percent) => percent is > 0 ? $"{percent} %" : null;
+
+    private static string Join(params string?[] parts) => string.Join(", ", parts.Where(p => p is not null));
 
     public static XDocument SectionPage(IssueSection section, EpubTexts texts, Func<IssueArticle, string> hrefOf, Func<IssueArticle, int> minutesOf) =>
         Page(section.Name, texts,

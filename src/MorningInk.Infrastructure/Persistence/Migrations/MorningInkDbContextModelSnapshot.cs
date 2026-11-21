@@ -20,7 +20,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.Credential", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Method")
@@ -54,7 +53,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.DeliveryAttempt", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<long>("AttemptedAt")
@@ -79,7 +77,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.Issue", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<long>("CreatedAt")
@@ -126,7 +123,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.IssueEntry", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("IssueId")
@@ -157,7 +153,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.Profile", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<TimeOnly>("DeliveryTime")
@@ -195,7 +190,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.Section", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("MaxArticles")
@@ -222,7 +216,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.SeenArticle", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<long>("SeenAt")
@@ -250,7 +243,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.Source", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("CredentialId")
@@ -302,7 +294,6 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.User", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Language")
@@ -386,6 +377,41 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.OwnsOne("MorningInk.Domain.RegionLocation", "Location", b1 =>
+                        {
+                            b1.Property<Guid>("ProfileId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("District")
+                                .HasMaxLength(200)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<double>("Latitude")
+                                .HasColumnType("REAL");
+
+                            b1.Property<double>("Longitude")
+                                .HasColumnType("REAL");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Query")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("ProfileId");
+
+                            b1.ToTable("Profiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProfileId");
+                        });
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("MorningInk.Domain.Section", b =>

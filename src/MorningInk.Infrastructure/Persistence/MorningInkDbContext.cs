@@ -59,6 +59,12 @@ public sealed class MorningInkDbContext(
             profile.Property(p => p.Recipient).HasMaxLength(EmailLength);
             profile.Property(p => p.Region).HasMaxLength(RegionLength);
             profile.Property(p => p.TimeZoneId).HasMaxLength(TimeZoneLength);
+            profile.OwnsOne(p => p.Location, location =>
+            {
+                location.Property(l => l.Query).HasMaxLength(RegionLength);
+                location.Property(l => l.Name).HasMaxLength(NameLength);
+                location.Property(l => l.District).HasMaxLength(NameLength);
+            });
             profile.HasMany(p => p.Sections).WithOne().HasForeignKey(s => s.ProfileId).OnDelete(DeleteBehavior.Cascade);
         });
 

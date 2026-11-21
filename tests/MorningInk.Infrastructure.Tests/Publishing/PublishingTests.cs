@@ -7,6 +7,7 @@ using MorningInk.Application.Processing;
 using MorningInk.Application.Publishing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
+using MorningInk.Application.Weather;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Tests.Delivery;
@@ -137,6 +138,8 @@ public sealed class PublishingTests : IDisposable
             provider.GetRequiredService<IDelivery>(),
             provider.GetRequiredService<IIssueFiles>(),
             Locks,
+            provider.GetRequiredService<IGeocoder>(),
+            provider.GetRequiredService<IWeatherForecast>(),
             provider.GetRequiredService<TimeProvider>());
         return await publisher.PublishAsync(profileId, slot, CancellationToken.None);
     }
