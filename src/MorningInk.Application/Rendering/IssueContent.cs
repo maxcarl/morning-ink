@@ -23,7 +23,10 @@ public sealed record IssueContent(
     /// Title of the book, e.g. "Morning Ink 2026-11-21": the ISO date makes it unique per day and sorts by date on
     /// the Kindle. Used for the metadata and for the attachment name, which Send to Kindle may show instead.
     /// </summary>
-    public string BookTitle => $"{Title} {PublishedAt:yyyy-MM-dd}";
+    public string BookTitle => BookTitleFor(Title, PublishedAt);
+
+    /// <summary>The <see cref="BookTitle"/> of an issue with this title and time.</summary>
+    public static string BookTitleFor(string title, DateTimeOffset publishedAt) => $"{title} {publishedAt:yyyy-MM-dd}";
 }
 
 /// <summary>A section of an issue.</summary>

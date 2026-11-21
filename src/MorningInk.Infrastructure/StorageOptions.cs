@@ -9,6 +9,7 @@ public sealed class StorageOptions
     private const string BackupDirectoryName = "backups";
     private const string KeysDirectoryName = "keys";
     private const string ImageDirectoryName = "images";
+    private const string IssueDirectoryName = "issues";
 
     /// <summary>Directory for the database and everything else Morning Ink stores.</summary>
     public string DataDirectory { get; set; } = "/data";
@@ -27,4 +28,7 @@ public sealed class StorageOptions
 
     /// <summary>Converted article images, named by the SHA-256 of their content.</summary>
     public string ImageDirectory => Path.Combine(DataDirectoryPath, ImageDirectoryName);
+
+    /// <summary>Rendered issues, named by issue id.</summary>
+    public string IssueDirectory => Path.Combine(DataDirectoryPath, IssueDirectoryName);
 }

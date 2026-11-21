@@ -19,11 +19,11 @@ public sealed class TestHost : IDisposable
     public string KeysDirectory => Path.Combine(DataDirectory, "keys");
 
     /// <summary>Builds fresh services, as after a restart, and applies migrations.</summary>
-    public async Task<ServiceProvider> StartAsync()
+    /// <param name="settings">Extra configuration on top of the data directory.</param>
+    public async Task<ServiceProvider> StartAsync(Dictionary<string, string?>? settings = null)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["Storage:DataDirectory"] = DataDirectory })
-            .Build();
+        var values = new Dictionary<string, string?>(settings ?? []) { ["Storage:DataDirectory"] = DataDirectory };
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
         var services = new ServiceCollection()
             .AddLogging()
             .AddSingleton<TimeProvider>(new FixedTimeProvider(Now))

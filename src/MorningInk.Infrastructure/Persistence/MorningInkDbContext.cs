@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MorningInk.Domain;
 
 namespace MorningInk.Infrastructure.Persistence;
@@ -32,6 +33,13 @@ public sealed class MorningInkDbContext(
     public DbSet<Credential> Credentials => Set<Credential>();
 
     public DbSet<SeenArticle> SeenArticles => Set<SeenArticle>();
+
+    public DbSet<Issue> Issues => Set<Issue>();
+
+    // SQLite has no date type: as text, DateTimeOffset cannot be compared or sorted in queries. As a number
+    // (UTC ticks plus offset) it can, which slot lookups and the cleanup by age need.
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
+        configurationBuilder.Properties<DateTimeOffset>().HaveConversion<DateTimeOffsetToBinaryConverter>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -82,6 +90,25 @@ public sealed class MorningInkDbContext(
             seen.HasIndex(s => s.SeenAt);
         });
 
+        modelBuilder.Entity<Issue>(issue =>
+        {
+            issue.HasOne<Profile>().WithMany().HasForeignKey(i => i.ProfileId).OnDelete(DeleteBehavior.Cascade);
+            issue.Property(i => i.Status).HasConversion<string>().HasMaxLength(EnumLength);
+            issue.Property(i => i.FileName).HasMaxLength(NameLength);
+
+            // One issue per profile and slot: the guard against sending twice, even across processes.
+            issue.HasIndex(i => new { i.ProfileId, i.ScheduledFor }).IsUnique();
+            issue.HasMany(i => i.Entries).WithOne().HasForeignKey(e => e.IssueId).OnDelete(DeleteBehavior.Cascade);
+            issue.HasMany(i => i.Attempts).WithOne().HasForeignKey(a => a.IssueId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<IssueEntry>(entry =>
+        {
+            entry.Property(e => e.Url).HasMaxLength(UrlLength);
+            entry.Property(e => e.Title).HasMaxLength(UrlLength);
+            entry.Property(e => e.SourceName).HasMaxLength(NameLength);
+        });
+
         modelBuilder.Entity<Credential>(credential =>
         {
             credential.HasOne<User>().WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
@@ -91,5 +118,15 @@ public sealed class MorningInkDbContext(
             // Encrypted at rest; the keys live in a separate directory, not in the database.
             credential.Property(c => c.Secret).HasConversion(new ProtectedStringConverter(DataProtection));
         });
+
+        // Ids come from the domain (Guid v7), never from the database. Without this, EF takes a new child with an
+        // Id already set, added to a loaded parent (an entry added to an issue), for an existing row and updates it.
+        foreach (var key in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.FindPrimaryKey()?.Properties ?? []))
+        {
+            if (key.Name == "Id" && key.ClrType == typeof(Guid))
+            {
+                key.ValueGenerated = Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never;
+            }
+        }
     }
 }

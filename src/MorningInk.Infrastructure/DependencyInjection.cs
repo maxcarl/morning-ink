@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MorningInk.Application.Delivery;
 using MorningInk.Application.Processing;
+using MorningInk.Application.Publishing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
 using MorningInk.Infrastructure.Delivery;
@@ -74,6 +75,8 @@ public static class DependencyInjection
                 .ReplaceService<IModelCacheKeyFactory, DataProtectionModelCacheKeyFactory>());
         services.AddScoped<DatabaseMigrator>();
         services.AddScoped<ISeenArticles, SeenArticleStore>();
+        services.AddScoped<IPublishingStore, PublishingStore>();
+        services.AddSingleton<IIssueFiles, IssueFiles>();
         services.AddHealthChecks().AddDbContextCheck<MorningInkDbContext>();
     }
 

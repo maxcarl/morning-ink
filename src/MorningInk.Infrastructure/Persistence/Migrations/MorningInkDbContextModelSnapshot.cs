@@ -51,6 +51,109 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("Credentials");
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.DeliveryAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("AttemptedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("IssueId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IssueId");
+
+                    b.ToTable("DeliveryAttempt");
+                });
+
+            modelBuilder.Entity("MorningInk.Domain.Issue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("DeliveredAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Pinned")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ScheduledFor")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId", "ScheduledFor")
+                        .IsUnique();
+
+                    b.ToTable("Issues");
+                });
+
+            modelBuilder.Entity("MorningInk.Domain.IssueEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("IssueId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IssueId");
+
+                    b.ToTable("IssueEntry");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Profile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -122,8 +225,8 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("SeenAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SeenAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("UrlHash")
                         .IsRequired()
@@ -165,8 +268,8 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("LastModified")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("LastModified")
+                        .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("MaxAge")
                         .HasColumnType("TEXT");
@@ -249,6 +352,33 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.DeliveryAttempt", b =>
+                {
+                    b.HasOne("MorningInk.Domain.Issue", null)
+                        .WithMany("Attempts")
+                        .HasForeignKey("IssueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MorningInk.Domain.Issue", b =>
+                {
+                    b.HasOne("MorningInk.Domain.Profile", null)
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MorningInk.Domain.IssueEntry", b =>
+                {
+                    b.HasOne("MorningInk.Domain.Issue", null)
+                        .WithMany("Entries")
+                        .HasForeignKey("IssueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Profile", b =>
                 {
                     b.HasOne("MorningInk.Domain.User", null)
@@ -303,6 +433,13 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasForeignKey("SourcesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MorningInk.Domain.Issue", b =>
+                {
+                    b.Navigation("Attempts");
+
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("MorningInk.Domain.Profile", b =>
