@@ -63,9 +63,9 @@ Der Scheduler stößt jede Ausgabe an. Quellen, Pipeline-Schritte, Renderer und 
 | Objekt | Inhalt | Beziehungen |
 | --- | --- | --- |
 | Benutzer | Login, Sprache, Rolle | hat Profile |
-| Profil (Ausgabe) | Titel, Zeitplan, Empfänger, Region (PLZ oder Ort), Interessen, Layout, Budget, Vorlauf, KI-Optionen | gehört einem Benutzer, hat Rubriken |
+| Profil (Ausgabe) | Titel, Zeitplan, Empfänger, Land, Region (PLZ oder Ort), Interessen, Layout, Budget, Vorlauf, KI-Optionen | gehört einem Benutzer, hat Rubriken |
 | Rubrik | Name, Reihenfolge, Limit | gehört zu einem Profil, enthält Quellen und Themen |
-| Quelle | Typ, URL oder Ort (bei Lokales), Regeln, Filter, Abrufintervall, nur lokale KI | kann in mehreren Rubriken stecken, nutzt optional einen Zugang |
+| Quelle | Typ, URL oder Ort und Land (bei Lokales), Regeln, Filter, Abrufintervall, nur lokale KI | kann in mehreren Rubriken stecken, nutzt optional einen Zugang |
 | Zugang | Verfahren, verschlüsselte Zugangsdaten, Cookies, Status, Ablauf | gehört einem Benutzer, wird von mehreren Quellen genutzt |
 | Thema | Beschreibung, Stichwörter, Mindestrelevanz | für die KI-Recherche |
 | Interesse | Thema, Stichwörter, Gewicht | gehört zu einem Profil, beeinflusst die Priorität |
@@ -443,6 +443,7 @@ Das MVP ist fertig, wenn:
 - **Nicht-Ziele:** bestätigt.
 - **KI:** Ollama ohne GPU, siehe Modell-Empfehlung.
 - **Frontend:** Blazor, standardmäßig statisch gerendert.
+- **Länder:** Profil und jede lokale Quelle haben ein Land. Postleitzahlen werden nur dort gesucht, Ortsnamen und Nachrichten kommen in der Sprache und Ausgabe dieses Landes (z. B. Deutschland `de`/`DE`, USA `en`/`US`). Ohne Land wird weltweit gesucht.
 - **Lokale Nachrichten:** über eine Nachrichtensuche nach Ort und Landkreis hinter einer Schnittstelle. Zum Start Google News RSS (der Ortsname geht dabei an Google), später wahlweise ein selbst gehostetes SearXNG, dasselbe wie für die KI-Recherche.
 
 **Offen**
