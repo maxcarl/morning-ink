@@ -20,6 +20,11 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Scheduling__CatchUpWindow` | `12:00:00` | An issue missed while Morning Ink was off is sent at start if its time is at most this long ago. |
 | `Scheduling__FirstRetryDelay` | `00:05:00` | Wait before retrying a failed delivery; each further retry waits three times as long. |
 | `Scheduling__MaxDeliveryAttempts` | `5` | Delivery attempts per issue before giving up. |
+| `Retention__IssueDays` | `30` | Issues and their files are deleted after this many days, unless pinned. |
+| `Retention__SeenArticleDays` | `90` | Articles count as seen this long. Keep it longer than any source's maximum article age. |
+| `Retention__ImageDays` | `7` | Converted images are deleted after this many days; delivered issues keep theirs inside the EPUB. |
+| `Retention__KeepBackups` | `5` | Database backups kept. |
+| `Retention__CleanupTime` | `03:30` | Daily cleanup time, in UTC. |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
 | `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |
 | `Images__MaxPixels` | `40000000` | Larger images are rejected before decoding. |
