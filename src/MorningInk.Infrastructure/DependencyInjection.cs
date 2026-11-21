@@ -7,9 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using MorningInk.Application.Delivery;
 using MorningInk.Application.Processing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
+using MorningInk.Infrastructure.Delivery;
 using MorningInk.Infrastructure.Http;
 using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Processing;
@@ -26,7 +28,7 @@ public static class DependencyInjection
 
     private const string UserAgent = "MorningInk/0.1 (+https://github.com/maxcarl/morning-ink)";
 
-    /// <summary>Adds storage, Data Protection, the database, the safe HTTP client, sources, processors and renderers.</summary>
+    /// <summary>Adds storage, Data Protection, the database, the safe HTTP client, sources, processors, renderers and delivery.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // TryAdd, so tests can register a fixed clock first.
@@ -38,6 +40,7 @@ public static class DependencyInjection
         AddSources(services);
         AddProcessors(services, configuration);
         services.AddTransient<IRenderer, EpubRenderer>();
+        AddDelivery(services, configuration);
         return services;
     }
 
@@ -93,6 +96,15 @@ public static class DependencyInjection
         services.AddTransient<IProcessor, FullTextProcessor>();
         services.AddTransient<IProcessor, SanitizingProcessor>();
         services.AddTransient<IProcessor, ImageProcessor>();
+    }
+
+    // Not validated on start: mail can be set up later, and delivery reports a missing setup as a failure.
+    private static void AddDelivery(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<SmtpOptions>()
+            .Bind(configuration.GetSection(SmtpOptions.SectionName))
+            .Validate(o => o.Port is > 0 and <= 65535 && o.MaxMessageBytes > 0 && o.Timeout > TimeSpan.Zero, "Smtp:Port, Smtp:MaxMessageBytes and Smtp:Timeout must be positive.");
+        services.AddTransient<IDelivery, MailDelivery>();
     }
 
     private static void AddSafeHttp(IServiceCollection services, IConfiguration configuration)
