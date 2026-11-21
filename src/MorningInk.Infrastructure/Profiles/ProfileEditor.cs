@@ -12,7 +12,8 @@ namespace MorningInk.Infrastructure.Profiles;
 /// <summary>What the profile page saves; times and zones as typed, validated by <see cref="ProfileEditor"/>.</summary>
 /// <param name="DeliveryTime">"HH:mm", e.g. "06:00".</param>
 /// <param name="TimeZoneId">IANA id, e.g. "Europe/Berlin".</param>
-public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region);
+/// <param name="Country">ISO code, e.g. "DE"; empty searches worldwide.</param>
+public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region, string? Country = null);
 
 /// <summary>
 /// Edits a user's issue profile and its sections. Every method only reaches the given user's profile, and sections only
@@ -48,7 +49,7 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         return profile;
     }
 
-    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region.</summary>
+    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country.</summary>
     public async Task<IReadOnlyList<string>> SaveSettingsAsync(Guid userId, ProfileSettings settings, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
@@ -81,6 +82,11 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
             errors.Add("Region");
         }
 
+        if (!Countries.TryNormalize(settings.Country, out var country))
+        {
+            errors.Add("Country");
+        }
+
         if (errors.Count > 0)
         {
             return errors;
@@ -92,6 +98,7 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         profile.DeliveryTime = time;
         profile.TimeZoneId = settings.TimeZoneId;
         profile.Region = string.IsNullOrEmpty(region) ? null : region;
+        profile.Country = country;
         await db.SaveChangesAsync(cancellationToken);
         await RescheduleAsync(profile, cancellationToken);
         return [];

@@ -21,9 +21,9 @@ internal sealed class LocalNewsSource(IGeocoder geocoder, INewsSearch search, Ti
         }
 
         // Geocoding only when the place changed; the result is saved with the source.
-        if (source.Location?.Query != place)
+        if (source.Location?.Query != RegionLocation.KeyFor(place, source.Country))
         {
-            source.Location = await geocoder.ResolveAsync(place, cancellationToken);
+            source.Location = await geocoder.ResolveAsync(place, source.Country, cancellationToken);
         }
 
         if (source.Location is not { } location)
@@ -33,7 +33,7 @@ internal sealed class LocalNewsSource(IGeocoder geocoder, INewsSearch search, Ti
 
         // The district catches the villages around a town; cities without one only search for themselves.
         string[] terms = location.District is { } district && district != location.Name ? [location.Name, district] : [location.Name];
-        var result = await search.SearchAsync(new NewsQuery(terms, source.MaxAge), cancellationToken);
+        var result = await search.SearchAsync(new NewsQuery(terms, source.MaxAge, source.Country), cancellationToken);
         return result is SourceResult.Success success
             ? success with { Articles = SourceLimits.Apply(success.Articles, source, time.GetUtcNow()) }
             : result;

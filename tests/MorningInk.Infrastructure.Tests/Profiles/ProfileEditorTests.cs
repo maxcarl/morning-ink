@@ -32,11 +32,11 @@ public sealed class ProfileEditorTests : IDisposable
         var user = await CreateUserAsync(services, "max");
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
 
-        var errors = await EditAsync(services, e => e.SaveSettingsAsync(user, new ProfileSettings("Die Frühstücksausgabe", "max_abc@kindle.com", "07:15", "Europe/Berlin", "52062"), CancellationToken.None));
+        var errors = await EditAsync(services, e => e.SaveSettingsAsync(user, new ProfileSettings("Die Frühstücksausgabe", "max_abc@kindle.com", "07:15", "Europe/Berlin", "52062", "de"), CancellationToken.None));
 
         Assert.Empty(errors);
         var saved = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
-        Assert.Equal(("Die Frühstücksausgabe", "max_abc@kindle.com", new TimeOnly(7, 15), "52062"), (saved.Title, saved.Recipient, saved.DeliveryTime, saved.Region));
+        Assert.Equal(("Die Frühstücksausgabe", "max_abc@kindle.com", new TimeOnly(7, 15), "52062", "DE"), (saved.Title, saved.Recipient, saved.DeliveryTime, saved.Region, saved.Country));
         var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
         var daily = (await scheduler.GetTriggersOfJob(IssueScheduler.JobKeyFor(profile.Id))).OfType<ICronTrigger>().Single();
         var next = TimeZoneInfo.ConvertTime(daily.NextFireTimeUtc!.Value, daily.TimeZone); // ! is safe: a daily trigger always fires again
@@ -49,12 +49,13 @@ public sealed class ProfileEditorTests : IDisposable
     [InlineData("Morning Ink", "a@b.de\r\nBcc: x@y.de", "06:00", "Europe/Berlin", "Recipient")]
     [InlineData("Morning Ink", "max@kindle.com", "25:00", "Europe/Berlin", "DeliveryTime")]
     [InlineData("Morning Ink", "max@kindle.com", "06:00", "Mars/Base", "TimeZone")]
-    public async Task Invalid_settings_are_refused(string title, string recipient, string time, string zone, string field)
+    [InlineData("Morning Ink", "max@kindle.com", "06:00", "Europe/Berlin", "Country", "XX")]
+    public async Task Invalid_settings_are_refused(string title, string recipient, string time, string zone, string field, string? country = null)
     {
         await using var services = await _host.StartAsync();
         var user = await CreateUserAsync(services, "max");
 
-        var errors = await EditAsync(services, e => e.SaveSettingsAsync(user, new ProfileSettings(title, recipient, time, zone, null), CancellationToken.None));
+        var errors = await EditAsync(services, e => e.SaveSettingsAsync(user, new ProfileSettings(title, recipient, time, zone, null, country), CancellationToken.None));
 
         Assert.Contains(field, errors);
     }

@@ -217,8 +217,11 @@ public sealed class IssuePublisherTests : IDisposable
         _profile.Region = "52062";
         Answer(_tagesschau, Articles("https://tagesschau.de/day3"));
         await PublishAsync(Slot.AddDays(2));
+        _profile.Country = "DE"; // same postal code, now in a country: looked up again
+        Answer(_tagesschau, Articles("https://tagesschau.de/day4"));
+        await PublishAsync(Slot.AddDays(3));
 
-        Assert.Equal(["10115", "52062"], _geocoder.Queries);
+        Assert.Equal(["10115", "52062", "52062 (DE)"], _geocoder.Queries);
     }
 
     [Fact]

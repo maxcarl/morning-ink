@@ -14,6 +14,8 @@ internal sealed class GoogleNewsSearch(SafeHttpClient http, IOptions<NewsSearchO
     public async Task<SourceResult> SearchAsync(NewsQuery query, CancellationToken cancellationToken)
     {
         var settings = options.Value;
+        var country = query.Country ?? settings.Country;
+        var language = Countries.LanguageOf(query.Country) ?? settings.Language;
 
         // Quoted phrases joined with OR; "when:" is Google's own recency filter, in whole days.
         var days = Math.Max(1, (int)Math.Ceiling(query.MaxAge.TotalDays));
@@ -21,9 +23,9 @@ internal sealed class GoogleNewsSearch(SafeHttpClient http, IOptions<NewsSearchO
         (string, string)[] parameters =
         [
             ("q", string.Create(CultureInfo.InvariantCulture, $"{terms} when:{days}d")),
-            ("hl", settings.Language),
-            ("gl", settings.Country),
-            ("ceid", $"{settings.Country}:{settings.Language}"),
+            ("hl", language),
+            ("gl", country),
+            ("ceid", $"{country}:{language}"),
         ];
 
         var fetched = await http.GetAsync(Urls.WithQuery(settings.GoogleNewsUrl, parameters), cancellationToken: cancellationToken);

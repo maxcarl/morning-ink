@@ -17,6 +17,9 @@ public class Source
     /// <summary>For local news: postal code or town, e.g. "52062" or "Aachen".</summary>
     public string? Place { get; set; }
 
+    /// <summary>For local news: ISO country code of <see cref="Place"/>, e.g. "AT". Null searches worldwide.</summary>
+    public string? Country { get; set; }
+
     /// <summary>Resolved <see cref="Place"/>; resolved again once <see cref="RegionLocation.Query"/> no longer matches.</summary>
     public RegionLocation? Location { get; set; }
 

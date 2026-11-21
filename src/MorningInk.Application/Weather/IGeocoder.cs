@@ -6,5 +6,8 @@ namespace MorningInk.Application.Weather;
 public interface IGeocoder
 {
     /// <summary>Returns the place, or null if it is unknown or the service is unavailable.</summary>
-    Task<RegionLocation?> ResolveAsync(string region, CancellationToken cancellationToken);
+    /// <param name="region">Postal code or town, e.g. "10115" or "Wien".</param>
+    /// <param name="country">ISO country code to search in, e.g. "DE"; null searches worldwide, where postal codes are ambiguous.</param>
+    /// <param name="cancellationToken">Cancels the lookup.</param>
+    Task<RegionLocation?> ResolveAsync(string region, string? country, CancellationToken cancellationToken);
 }

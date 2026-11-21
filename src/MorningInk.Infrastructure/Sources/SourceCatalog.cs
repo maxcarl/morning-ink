@@ -39,7 +39,8 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Url = feed.AbsoluteUri, FetchFullText = fetchFullText }, cancellationToken);
     }
 
-    public Task<SourceSaveResult> AddLocalAsync(Guid userId, string name, string place, CancellationToken cancellationToken)
+    /// <param name="country">ISO code the place is in, e.g. "AT"; empty searches worldwide.</param>
+    public Task<SourceSaveResult> AddLocalAsync(Guid userId, string name, string place, string? country, CancellationToken cancellationToken)
     {
         place = place.Trim();
         if (place.Length is 0 or > MaxPlaceLength)
@@ -47,8 +48,13 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
             return Task.FromResult<SourceSaveResult>(new SourceSaveResult.Invalid("PlaceRequired"));
         }
 
+        if (!Countries.TryNormalize(country, out var code))
+        {
+            return Task.FromResult<SourceSaveResult>(new SourceSaveResult.Invalid("CountryInvalid"));
+        }
+
         // Local news are headlines without full text (see FullTextProcessor), so fewer of them.
-        return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Kind = SourceKind.Local, Place = place, FetchFullText = false, MaxArticles = LocalNewsMaxArticles }, cancellationToken);
+        return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Kind = SourceKind.Local, Place = place, Country = code, FetchFullText = false, MaxArticles = LocalNewsMaxArticles }, cancellationToken);
     }
 
     /// <summary>Deletes the source if it belongs to the user; false otherwise.</summary>

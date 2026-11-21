@@ -36,16 +36,19 @@ public sealed class WeatherTests : IDisposable
     [Fact]
     public async Task Postal_code_resolves_to_town_and_coordinates()
     {
-        var location = await Geocoder().ResolveAsync("10115", CancellationToken.None);
+        var location = await Geocoder().ResolveAsync("10115", "DE", CancellationToken.None);
 
-        Assert.Equal(new RegionLocation("10115", "Berlin", null, 52.5321914, 13.3845571), location);
-        Assert.Contains("postalcode=10115", _server.Requests.Single().Url, StringComparison.Ordinal);
+        Assert.Equal(new RegionLocation("10115 (DE)", "Berlin", null, 52.5321914, 13.3845571), location);
+        var url = _server.Requests.Single().Url;
+        Assert.Contains("postalcode=10115", url, StringComparison.Ordinal);
+        Assert.Contains("countrycodes=de", url, StringComparison.Ordinal);
+        Assert.Contains("accept-language=de", url, StringComparison.Ordinal);
     }
 
     [Fact]
     public async Task Town_resolves_with_its_district()
     {
-        var location = await Geocoder().ResolveAsync("Aachen", CancellationToken.None);
+        var location = await Geocoder().ResolveAsync("Aachen", "DE", CancellationToken.None);
 
         Assert.Equal("Aachen", location?.Name);
         Assert.Equal("Städteregion Aachen", location?.District);
@@ -56,7 +59,19 @@ public sealed class WeatherTests : IDisposable
     [InlineData("Xyzzyqwerty")]
     [InlineData("")]
     public async Task Unknown_region_resolves_to_nothing(string region) =>
-        Assert.Null(await Geocoder().ResolveAsync(region, CancellationToken.None));
+        Assert.Null(await Geocoder().ResolveAsync(region, "DE", CancellationToken.None));
+
+    [Fact]
+    public async Task The_same_postal_code_is_looked_up_in_the_chosen_country_or_worldwide()
+    {
+        await Geocoder().ResolveAsync("10115", "US", CancellationToken.None);
+        await Geocoder().ResolveAsync("10115", null, CancellationToken.None);
+
+        var (us, worldwide) = (_server.Requests[0].Url, _server.Requests[1].Url);
+        Assert.Contains("countrycodes=us", us, StringComparison.Ordinal);
+        Assert.Contains("accept-language=en", us, StringComparison.Ordinal);
+        Assert.DoesNotContain("countrycodes", worldwide, StringComparison.Ordinal);
+    }
 
     [Fact]
     public async Task Forecast_has_three_days_and_the_parts_of_today()
@@ -86,7 +101,7 @@ public sealed class WeatherTests : IDisposable
     [Fact]
     public async Task Unavailable_services_give_nothing()
     {
-        Assert.Null(await Geocoder(fail: true).ResolveAsync("10115", CancellationToken.None));
+        Assert.Null(await Geocoder(fail: true).ResolveAsync("10115", "DE", CancellationToken.None));
         Assert.Null(await Forecast(fail: true).ForecastAsync(Berlin, "Europe/Berlin", CancellationToken.None));
     }
 

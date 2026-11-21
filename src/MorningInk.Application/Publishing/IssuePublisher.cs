@@ -168,9 +168,9 @@ public sealed class IssuePublisher(
         try
         {
             // Geocoding only when the region changed; the result is saved with the profile.
-            if (profile.Location?.Query != region)
+            if (profile.Location?.Query != RegionLocation.KeyFor(region, profile.Country))
             {
-                profile.Location = await geocoder.ResolveAsync(region, cancellationToken);
+                profile.Location = await geocoder.ResolveAsync(region, profile.Country, cancellationToken);
             }
 
             return profile.Location is null ? null : await weather.ForecastAsync(profile.Location, profile.TimeZoneId, cancellationToken);

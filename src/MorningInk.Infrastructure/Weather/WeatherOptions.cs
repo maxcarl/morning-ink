@@ -8,10 +8,10 @@ public sealed class WeatherOptions
     /// <summary>Nominatim search endpoint (OpenStreetMap); asked only when a profile's region changes.</summary>
     public string GeocodingUrl { get; set; } = "https://nominatim.openstreetmap.org/search";
 
-    /// <summary>Countries regions are looked up in, as ISO codes separated by commas.</summary>
-    public string CountryCodes { get; set; } = "de,at,ch";
+    /// <summary>Countries regions are looked up in when a profile or source has none, as ISO codes separated by commas; empty searches worldwide.</summary>
+    public string CountryCodes { get; set; } = string.Empty;
 
-    /// <summary>Language of place names.</summary>
+    /// <summary>Language of place names when the country does not decide it.</summary>
     public string Language { get; set; } = "de";
 
     /// <summary>Open-Meteo forecast endpoint; free for non-commercial use, no key needed.</summary>

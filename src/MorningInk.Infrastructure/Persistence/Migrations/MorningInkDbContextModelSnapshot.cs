@@ -304,6 +304,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Country")
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
                     b.Property<TimeOnly>("DeliveryTime")
                         .HasColumnType("TEXT");
 
@@ -392,6 +396,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.Source", b =>
                 {
                     b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(2)
                         .HasColumnType("TEXT");
 
                     b.Property<Guid?>("CredentialId")

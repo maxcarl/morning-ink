@@ -16,6 +16,9 @@ public class Profile
     /// <summary>Postal code or town for local news and weather; null leaves both out.</summary>
     public string? Region { get; set; }
 
+    /// <summary>ISO country code, e.g. "DE": postal codes and local news are looked up there. Null searches worldwide.</summary>
+    public string? Country { get; set; }
+
     /// <summary>Resolved <see cref="Region"/>; null until resolved, and stale once <see cref="RegionLocation.Query"/> no longer matches.</summary>
     public RegionLocation? Location { get; set; }
 

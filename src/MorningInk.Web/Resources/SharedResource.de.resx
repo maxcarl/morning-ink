@@ -117,4 +117,9 @@
   <data name="Profile_Error_DeliveryTime" xml:space="preserve"><value>Bitte gib eine Uhrzeit wie 06:00 ein.</value></data>
   <data name="Profile_Error_TimeZone" xml:space="preserve"><value>Bitte wähle eine Zeitzone aus der Liste.</value></data>
   <data name="Profile_Error_Region" xml:space="preserve"><value>Die Region darf höchstens 100 Zeichen haben.</value></data>
+  <data name="Country" xml:space="preserve"><value>Land</value></data>
+  <data name="Country_Worldwide" xml:space="preserve"><value>Weltweit</value></data>
+  <data name="Profile_CountryHint" xml:space="preserve"><value>Postleitzahlen, Wetter und Lokales werden in diesem Land gesucht.</value></data>
+  <data name="Profile_Error_Country" xml:space="preserve"><value>Bitte wähle ein Land aus der Liste.</value></data>
+  <data name="Error_CountryInvalid" xml:space="preserve"><value>Bitte wähle ein Land aus der Liste.</value></data>
 </root>

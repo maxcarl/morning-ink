@@ -163,10 +163,12 @@ public sealed class SourceCatalogTests : IDisposable
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
 
-        await catalog.AddLocalAsync(user, "Lokales Aachen", "52062", CancellationToken.None);
+        await catalog.AddLocalAsync(user, "Lokales Aachen", "52062", "de", CancellationToken.None);
+        var invalid = await catalog.AddLocalAsync(user, "Lokales Mars", "1", "XX", CancellationToken.None);
 
         var source = Assert.Single(await catalog.ListAsync(user, CancellationToken.None));
-        Assert.Equal((SourceKind.Local, "52062", false), (source.Kind, source.Place, source.FetchFullText));
+        Assert.Equal((SourceKind.Local, "52062", "DE", false), (source.Kind, source.Place, source.Country, source.FetchFullText));
+        Assert.IsType<SourceSaveResult.Invalid>(invalid);
     }
 
     public void Dispose()

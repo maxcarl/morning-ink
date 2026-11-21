@@ -110,10 +110,10 @@ internal sealed class FakeGeocoder : IGeocoder
 {
     public List<string> Queries { get; } = [];
 
-    public Task<RegionLocation?> ResolveAsync(string region, CancellationToken cancellationToken)
+    public Task<RegionLocation?> ResolveAsync(string region, string? country, CancellationToken cancellationToken)
     {
-        Queries.Add(region);
-        return Task.FromResult<RegionLocation?>(region == "unknown" ? null : new RegionLocation(region, "Berlin", null, 52.53, 13.38));
+        Queries.Add(RegionLocation.KeyFor(region, country));
+        return Task.FromResult<RegionLocation?>(region == "unknown" ? null : new RegionLocation(RegionLocation.KeyFor(region, country), "Berlin", null, 52.53, 13.38));
     }
 }
 

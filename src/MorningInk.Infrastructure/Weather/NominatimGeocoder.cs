@@ -16,7 +16,7 @@ internal sealed partial class NominatimGeocoder(SafeHttpClient http, IOptions<We
     private const int MaxNameLength = 100;
     private const int MaxRegionLength = 100;
 
-    public async Task<RegionLocation?> ResolveAsync(string region, CancellationToken cancellationToken)
+    public async Task<RegionLocation?> ResolveAsync(string region, string? country, CancellationToken cancellationToken)
     {
         region = region.Trim();
         if (region.Length is 0 or > MaxRegionLength)
@@ -25,15 +25,21 @@ internal sealed partial class NominatimGeocoder(SafeHttpClient http, IOptions<We
         }
 
         var settings = options.Value;
-        (string, string)[] parameters =
+        var countries = country?.ToLowerInvariant() ?? settings.CountryCodes;
+        List<(string, string)> parameters =
         [
             PostalCode().IsMatch(region) ? ("postalcode", region) : ("q", region),
-            ("countrycodes", settings.CountryCodes),
-            ("accept-language", settings.Language),
+
+            // Place names in the country's language: they become search terms for its local news.
+            ("accept-language", Countries.LanguageOf(country) ?? settings.Language),
             ("format", "jsonv2"),
             ("addressdetails", "1"),
             ("limit", "1"),
         ];
+        if (countries.Length > 0)
+        {
+            parameters.Add(("countrycodes", countries));
+        }
 
         if (await http.GetAsync(Urls.WithQuery(settings.GeocodingUrl, parameters), cancellationToken: cancellationToken) is not FetchResult.Success response)
         {
@@ -44,7 +50,7 @@ internal sealed partial class NominatimGeocoder(SafeHttpClient http, IOptions<We
         try
         {
             var place = JsonSerializer.Deserialize<Place[]>(response.Content)?.FirstOrDefault();
-            return place is null ? null : ToLocation(region, place);
+            return place is null ? null : ToLocation(RegionLocation.KeyFor(region, country), place);
         }
         catch (JsonException)
         {
@@ -54,7 +60,7 @@ internal sealed partial class NominatimGeocoder(SafeHttpClient http, IOptions<We
     }
 
     // The answer is untrusted: coordinates must be real coordinates, names must be short.
-    private static RegionLocation? ToLocation(string region, Place place)
+    private static RegionLocation? ToLocation(string key, Place place)
     {
         var address = place.Address;
         var name = address?.City ?? address?.Town ?? address?.Village ?? address?.Municipality;
@@ -66,7 +72,7 @@ internal sealed partial class NominatimGeocoder(SafeHttpClient http, IOptions<We
         }
 
         var district = address?.County is { Length: <= MaxNameLength } county ? county : null;
-        return new RegionLocation(region, name, district, latitude, longitude);
+        return new RegionLocation(key, name, district, latitude, longitude);
     }
 
     [GeneratedRegex(@"^\d{4,5}$")]

@@ -9,4 +9,5 @@ public interface INewsSearch
 
 /// <param name="Terms">Phrases of which any must match, e.g. a town and its district.</param>
 /// <param name="MaxAge">How far back to search.</param>
-public sealed record NewsQuery(IReadOnlyList<string> Terms, TimeSpan MaxAge);
+/// <param name="Country">ISO country code whose news edition to search, e.g. "DE"; null uses the configured default.</param>
+public sealed record NewsQuery(IReadOnlyList<string> Terms, TimeSpan MaxAge, string? Country = null);

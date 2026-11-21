@@ -115,6 +115,11 @@
                 </select>
             </div>
             <div class="field">
+                <label for="country">@T["Country"]</label>
+                <CountrySelect Id="country" Selected="@_profile.Country" DescribedBy="country-hint" />
+                <span id="country-hint" class="hint">@T["Profile_CountryHint"]</span>
+            </div>
+            <div class="field">
                 <label for="region">@T["Profile_Region"]</label>
                 <input id="region" name="Region" class="input" value="@_profile.Region" aria-describedby="region-hint" />
                 <span id="region-hint" class="hint">@T["Profile_RegionHint"]</span>
@@ -156,6 +161,9 @@
     [SupplyParameterFromForm(FormName = "settings")]
     private string? Region { get; set; }
 
+    [SupplyParameterFromForm(FormName = "settings")]
+    private string? Country { get; set; }
+
     [SupplyParameterFromForm(FormName = "section")]
     private Guid? SectionId { get; set; }
 
@@ -185,7 +193,7 @@
     {
         var errors = await Editor.SaveSettingsAsync(
             UserId,
-            new ProfileSettings(Title ?? string.Empty, Recipient ?? string.Empty, DeliveryTime ?? string.Empty, TimeZoneId ?? string.Empty, Region),
+            new ProfileSettings(Title ?? string.Empty, Recipient ?? string.Empty, DeliveryTime ?? string.Empty, TimeZoneId ?? string.Empty, Region, Country),
             Aborted);
         _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
         _notice = _errors.Count == 0 ? T["Profile_Saved"].Value : null;

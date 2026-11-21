@@ -23,6 +23,7 @@ public sealed class MorningInkDbContext(
     private const int EnumLength = 32;
     private const int ETagLength = 512;
     private const int Sha256HexLength = 64;
+    private const int CountryCodeLength = 2;
 
     /// <summary>Encrypts secrets; part of the model cache key, see <see cref="DataProtectionModelCacheKeyFactory"/>.</summary>
     internal IDataProtectionProvider DataProtection { get; } = dataProtection;
@@ -72,6 +73,7 @@ public sealed class MorningInkDbContext(
             profile.Property(p => p.Recipient).HasMaxLength(EmailLength);
             profile.Property(p => p.Region).HasMaxLength(RegionLength);
             profile.Property(p => p.TimeZoneId).HasMaxLength(TimeZoneLength);
+            profile.Property(p => p.Country).HasMaxLength(CountryCodeLength);
             profile.OwnsOne(p => p.Location, location =>
             {
                 location.Property(l => l.Query).HasMaxLength(RegionLength);
@@ -95,6 +97,7 @@ public sealed class MorningInkDbContext(
             source.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
             source.Property(s => s.ETag).HasMaxLength(ETagLength);
             source.Property(s => s.Place).HasMaxLength(RegionLength);
+            source.Property(s => s.Country).HasMaxLength(CountryCodeLength);
             source.OwnsOne(s => s.Location, location =>
             {
                 location.Property(l => l.Query).HasMaxLength(RegionLength);

@@ -87,6 +87,16 @@ public sealed class LocalNewsSourceTests : IDisposable
         Assert.Contains("Xyzzyqwerty", Assert.IsType<SourceResult.Failure>(result).Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("AT", "hl=de&gl=AT&ceid=AT:de")]
+    [InlineData("US", "hl=en&gl=US&ceid=US:en")]
+    public async Task News_come_from_the_edition_of_the_places_country(string country, string edition)
+    {
+        await FetchAsync(Local("10115", country));
+
+        Assert.Contains(edition, Uri.UnescapeDataString(SearchRequests().Single()), StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Local_source_without_a_place_is_a_failure() =>
         Assert.IsType<SourceResult.Failure>(await FetchAsync(Local(null)));
@@ -97,7 +107,7 @@ public sealed class LocalNewsSourceTests : IDisposable
 
     public void Dispose() => _server.Dispose();
 
-    private Source Local(string? place) => new() { UserId = _userId, Name = $"Lokales {place}", Kind = SourceKind.Local, Place = place };
+    private Source Local(string? place, string? country = "DE") => new() { UserId = _userId, Name = $"Lokales {place}", Kind = SourceKind.Local, Place = place, Country = country };
 
     private List<string> SearchRequests() => _server.Requests.Select(r => r.Url).Where(u => u.Contains("/rss/search", StringComparison.Ordinal)).ToList();
 

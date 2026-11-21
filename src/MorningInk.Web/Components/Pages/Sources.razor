@@ -7,6 +7,7 @@
 @inject FeedDiscovery Discovery
 @inject HostAllowlist Allowlist
 @inject NavigationManager Navigation
+@inject MorningInk.Infrastructure.Profiles.ProfileEditor Profiles
 
 <PageTitle>@T["Sources_Title"] – @T["Brand"]</PageTitle>
 
@@ -59,6 +60,8 @@
         <label class="label" for="place">@T["Sources_LocalLabel"]</label>
         <div class="inline-form">
             <input id="place" name="Place" class="input" type="text" placeholder="52062" aria-describedby="place-hint" required />
+            <label class="visually-hidden" for="local-country">@T["Country"]</label>
+            <CountrySelect Id="local-country" Selected="@_defaultCountry" />
             <button type="submit" class="button button-secondary">@T["Sources_LocalAdd"]</button>
         </div>
         <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
@@ -182,6 +185,7 @@
     private string? _error;
     private string? _blockedHost;
     private string? _lastUrl;
+    private string? _defaultCountry;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
@@ -203,6 +207,9 @@
 
     [SupplyParameterFromForm(FormName = "local")]
     private string? Place { get; set; }
+
+    [SupplyParameterFromForm(FormName = "local")]
+    private string? Country { get; set; }
 
     [SupplyParameterFromForm(FormName = "row")]
     private Guid? SourceId { get; set; }
@@ -231,6 +238,9 @@
             _ => null,
         };
         await LoadAsync();
+
+        // A new local source starts in the profile's country.
+        _defaultCountry = (await Profiles.GetOrCreateAsync(UserId, Aborted)).Country;
 
         // Static rendering builds the page anew for every POST, and Blazor dispatches a submit only to a form that is
         // on the page: forms that exist only after a search come back from the posted fields.
@@ -283,7 +293,7 @@
     private async Task AddLocalAsync()
     {
         var place = Place?.Trim() ?? string.Empty;
-        var result = await Catalog.AddLocalAsync(UserId, $"{T["Sources_Local"]} {place}", place, Aborted);
+        var result = await Catalog.AddLocalAsync(UserId, $"{T["Sources_Local"]} {place}", place, Country, Aborted);
         Finish(result);
     }
 

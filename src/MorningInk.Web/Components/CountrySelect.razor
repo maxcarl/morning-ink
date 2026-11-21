@@ -1,0 +1,21 @@
+@using MorningInk.Infrastructure
+@* A select of all countries, names in the UI language; the empty choice searches worldwide. Posts as "Country". *@
+
+<select id="@Id" name="Country" class="input" aria-describedby="@DescribedBy">
+    <option value="" selected="@(Selected is null)">@T["Country_Worldwide"]</option>
+    @foreach (var (iso, name) in Countries.ForDisplay())
+    {
+        <option value="@iso" selected="@(iso == Selected)">@name</option>
+    }
+</select>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Selected { get; set; }
+
+    [Parameter]
+    public string? DescribedBy { get; set; }
+}
