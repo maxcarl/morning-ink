@@ -443,7 +443,7 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 1 | 0 Fundament | Solution mit `Domain`, `Application`, `Infrastructure`, `Web` und Testprojekten; Nullable, Analyzer, `.editorconfig`, Warnungen als Fehler | Build ohne Warnungen, Architekturtest prüft die Schichtgrenzen | – | ✅ erledigt |
 | 2 | 0 Fundament | CI: Build, Tests, `dotnet format`, Docker-Image für amd64 und arm64 | Pull Request läuft grün, Image liegt in der Registry | 1 | ✅ erledigt |
 | 3 | 0 Fundament | Dockerfile und Compose: Non-Root-Benutzer, Volume `/data`, Endpunkt `/health` | `docker compose up` startet, Healthcheck ist grün | 1 | ✅ erledigt |
-| 4 | 0 Fundament | EF Core mit SQLite, Kernmodell mehrbenutzerfähig, automatische Migration mit vorherigem Backup | Neustart verliert keine Daten, jede Migration legt ein Backup an | 1 | – |
+| 4 | 0 Fundament | EF Core mit SQLite, Kernmodell mehrbenutzerfähig, automatische Migration mit vorherigem Backup | Neustart verliert keine Daten, jede Migration legt ein Backup an | 1 | ✅ erledigt |
 | 5 | 0 Fundament | Verschlüsselte Zugangsdaten über Data Protection, Schlüssel in `/data` | Passwörter stehen nicht im Klartext in der Datenbank und sind nach Neustart lesbar | 4 | – |
 | 6 | 1 Inhalte holen | Sicherer HTTP-Client: nur http/https, Sperre für interne Adressen auch nach Weiterleitung und DNS, Größenlimit, Timeouts | Tests mit `127.0.0.1`, `192.168.x.x`, `file:` und Weiterleitung ins Heimnetz werden abgelehnt | 1 | – |
 | 7 | 1 Inhalte holen | RSS/Atom-Quelle hinter `ISource`: ETag-Caching, max. Alter, max. Artikel, XXE aus | Drei echte Feeds liefern Artikel, Tests mit gespeicherten Feeds laufen grün | 6 | – |
