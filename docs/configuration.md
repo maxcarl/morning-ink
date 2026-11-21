@@ -25,6 +25,9 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Retention__ImageDays` | `7` | Converted images are deleted after this many days; delivered issues keep theirs inside the EPUB. |
 | `Retention__KeepBackups` | `5` | Database backups kept. |
 | `Retention__CleanupTime` | `03:30` | Daily cleanup time, in UTC. |
+| `Weather__GeocodingUrl` | Nominatim (OpenStreetMap) | Turns postal codes and towns into places; asked only when a region changes. Can be a self-hosted Nominatim. |
+| `Weather__CountryCodes` | `de,at,ch` | Countries regions are looked up in. |
+| `Weather__ForecastUrl` | Open-Meteo | Weather forecast; coordinates are sent rounded to about a kilometre. Can be a self-hosted Open-Meteo. |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
 | `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |
 | `Images__MaxPixels` | `40000000` | Larger images are rejected before decoding. |

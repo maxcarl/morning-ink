@@ -65,7 +65,7 @@ Der Scheduler stößt jede Ausgabe an. Quellen, Pipeline-Schritte, Renderer und 
 | Benutzer | Login, Sprache, Rolle | hat Profile |
 | Profil (Ausgabe) | Titel, Zeitplan, Empfänger, Region (PLZ oder Ort), Layout, Budget, Vorlauf, KI-Optionen | gehört einem Benutzer, hat Rubriken |
 | Rubrik | Name, Reihenfolge, Limit | gehört zu einem Profil, enthält Quellen und Themen |
-| Quelle | Typ, URL, Regeln, Filter, Abrufintervall, nur lokale KI | kann in mehreren Rubriken stecken, nutzt optional einen Zugang |
+| Quelle | Typ, URL oder Ort (bei Lokales), Regeln, Filter, Abrufintervall, nur lokale KI | kann in mehreren Rubriken stecken, nutzt optional einen Zugang |
 | Zugang | Verfahren, verschlüsselte Zugangsdaten, Cookies, Status, Ablauf | gehört einem Benutzer, wird von mehreren Quellen genutzt |
 | Thema | Beschreibung, Stichwörter, Mindestrelevanz | für die KI-Recherche |
 | Artikel | URL, Titel, Volltext, Bilder, Zeit, Hash, KI-Ergebnisse | stammt aus einer Quelle oder einem Thema |
@@ -455,8 +455,8 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 13 | 2 Zeitung | Ausgabe-Job: Quellen, Pipeline, Renderer, Zustellung; Ausfallvermerk, Sperre pro Profil, nie doppelt senden | Simulierter Ausfall einer Quelle: Ausgabe kommt trotzdem, mit Vermerk | 10, 12 | ✅ erledigt |
 | 14 | 2 Zeitung | Scheduler mit Quartz.NET: Zeitplan und Zeitzone pro Profil, verpasste Ausgaben nachholen | Container um 6 Uhr aus, um 7 Uhr an: Die Ausgabe kommt nach | 13 | ✅ erledigt |
 | 15 | 2 Zeitung | Aufräumjob, Grundversion: alte Ausgaben und gesehene Artikel nach Frist löschen | Ausgaben älter als die Frist sind weg, angeheftete bleiben | 4 | ✅ erledigt |
-| 16 | 2 Zeitung | Region im Profil und Wetter-Kachel: PLZ oder Ort über Geocoding zu Ort, Landkreis und Koordinaten, Wetter von Open-Meteo auf der Titelseite | Titelseite zeigt das Wetter für die Region; ist der Wetterdienst nicht erreichbar, kommt die Ausgabe ohne Kachel | 4, 6, 11 | – |
-| 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis über eine Nachrichtensuche (`INewsSearch`, zuerst Google News RSS), als eigene Rubrik | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | – |
+| 16 | 2 Zeitung | Region im Profil und Wetter-Kachel: PLZ oder Ort über Geocoding zu Ort, Landkreis und Koordinaten, Wetter von Open-Meteo auf der Titelseite | Titelseite zeigt das Wetter für die Region; ist der Wetterdienst nicht erreichbar, kommt die Ausgabe ohne Kachel | 4, 6, 11 | ✅ erledigt |
+| 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis über eine Nachrichtensuche (`INewsSearch`, zuerst Google News RSS). Jede Quelle hat ihren eigenen Ort, so sind mehrere Orte möglich (z. B. zu Hause und bei den Kindern) | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | – |
 | 18 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 | – |
 | 19 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“; scheitert der Test an der Netzsperre, bietet sie Admins die Freigabe des Hosts an | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 18 | – |
 | 20 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Region, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 16, 19 | – |
