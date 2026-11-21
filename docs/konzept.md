@@ -448,7 +448,7 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 6 | 1 Inhalte holen | Sicherer HTTP-Client: nur http/https, Sperre für interne Adressen auch nach Weiterleitung und DNS, Größenlimit, Timeouts | Tests mit `127.0.0.1`, `192.168.x.x`, `file:` und Weiterleitung ins Heimnetz werden abgelehnt | 1 | ✅ erledigt |
 | 7 | 1 Inhalte holen | RSS/Atom-Quelle hinter `ISource`: ETag-Caching, max. Alter, max. Artikel, XXE aus | Drei echte Feeds liefern Artikel, Tests mit gespeicherten Feeds laufen grün | 6 | ✅ erledigt |
 | 8 | 1 Inhalte holen | Volltext und Bereinigung hinter `IProcessor`: SmartReader, HTML-Allowlist, Rückfall auf Feed-Text | Vergleichstests mit mindestens 10 gespeicherten Seiten laufen grün | 7 | ✅ erledigt |
-| 9 | 1 Inhalte holen | Bilder: Graustufen, verkleinern, Pixel- und Größenlimit, Dateiname aus Hash | Icons fliegen raus, Ausgabe bleibt unter dem Größenlimit | 8 | – |
+| 9 | 1 Inhalte holen | Bilder: Graustufen, verkleinern, Pixel- und Größenlimit, Dateiname aus Hash | Icons fliegen raus, Ausgabe bleibt unter dem Größenlimit | 8 | ✅ erledigt |
 | 10 | 1 Inhalte holen | Duplikate über normalisierte URLs und eine Liste gesehener Artikel | Ein zweiter Lauf direkt danach liefert keine neuen Artikel | 7 | – |
 | 11 | 2 Zeitung | EPUB-Renderer hinter `IRenderer`: Titelseite, Inhaltsverzeichnis, Rubriken, Metadaten | epubcheck meldet 0 Fehler, Kindle-Checkliste ist erfüllt | 8, 9 | – |
 | 12 | 2 Zeitung | Kindle-Zustellung hinter `IDelivery`: MailKit, Größenprüfung, Betreff ohne Zeilenumbrüche | Testmail und Ausgabe kommen auf dem Kindle an | 5, 11 | – |

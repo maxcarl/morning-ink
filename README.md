@@ -55,6 +55,13 @@ Settings come from `appsettings.json` or environment variables (`Section__Key`, 
 | `Http__MaxResponseBytes` | `10485760` | Largest response accepted (10 MiB). |
 | `Http__Timeout` | `00:00:30` | Time for a whole request, including redirects. |
 | `Http__ConnectTimeout` | `00:00:10` | Time to open one connection. |
+| `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
+| `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |
+| `Images__MaxPixels` | `40000000` | Larger images are rejected before decoding. |
+| `Images__MaxDownloadBytes` | `5242880` | Largest image downloaded (5 MiB). |
+| `Images__MaxEncodedBytes` | `204800` | Largest converted JPEG (200 KiB); quality and size go down until it fits. |
+| `Images__MaxPerArticle` | `10` | Images kept per article. |
+| `Images__Quality` | `75` | JPEG quality of the first attempt. |
 
 ## Development
 
