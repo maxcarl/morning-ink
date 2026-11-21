@@ -45,7 +45,7 @@ Prebuilt images for `amd64` and `arm64` are published to `ghcr.io/maxcarl/mornin
 
 ## Configuration
 
-Settings come from `appsettings.json` or environment variables (`Section__Key`, array entries as `Section__Key__0`).
+Settings come from `appsettings.json` or environment variables (`Section__Key`, array entries as `Section__Key__0`). Mail (SMTP) settings and home network exceptions will also be editable in the web UI; values set by environment variables take precedence and appear there read-only.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
