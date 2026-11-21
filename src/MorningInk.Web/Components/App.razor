@@ -1,7 +1,7 @@
 @using System.Globalization
 @* Static rendering only, without blazor.web.js: every form is a plain POST, which also works in the Kindle browser. *@
 <!DOCTYPE html>
-<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" data-theme="@Theme.Of(HttpContext)">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,3 +13,8 @@
     <Routes />
 </body>
 </html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!; // ! is safe: the root component always renders with an HTTP context
+}

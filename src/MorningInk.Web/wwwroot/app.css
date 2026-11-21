@@ -49,8 +49,26 @@
   color-scheme: light dark;
 }
 
+/* Dark: chosen explicitly, or "auto" (no choice) when the system prefers it. */
+:root[data-theme="dark"] {
+  --color-paper: #171513;
+  --color-surface: #1f1c19;
+  --color-highlight: #2b2722;
+  --color-ink: #efe9df;
+  --color-muted: #b9b1a5;
+  --color-border: #8f887d;
+  --color-rule: #3b3631;
+  --color-accent: #ff8f86;
+  --color-ok: #8fd19a;
+  --color-warn: #f0c060;
+  --color-error: #ff8f86;
+  --color-error-surface: #3a1816;
+  --color-ok-surface: #16301b;
+  color-scheme: dark;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --color-paper: #171513;
     --color-surface: #1f1c19;
     --color-highlight: #2b2722;
@@ -66,6 +84,8 @@
     --color-ok-surface: #16301b;
   }
 }
+
+:root[data-theme="light"] { color-scheme: light; }
 
 /* Base */
 *, *::before, *::after { box-sizing: border-box; }
@@ -93,6 +113,8 @@ a { color: inherit; text-underline-offset: 0.15em; }
 .lede { font-family: var(--font-serif); font-size: var(--text-lg); color: var(--color-muted); max-width: 42rem; }
 
 /* Masthead: name, dateline, double rule, tabs */
+.theme-switch { display: inline-flex; gap: var(--space-2); }
+.theme-switch .link-button[aria-pressed="true"] { text-decoration: none; font-weight: 700; color: var(--color-accent); }
 .masthead { max-width: var(--content-width); margin: 0 auto; padding: var(--space-6) var(--space-6) 0; }
 .masthead-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-2) var(--space-6); padding-bottom: var(--space-3); border-bottom: 4px double var(--color-ink); }
 .brand { font-family: var(--font-serif); font-size: 2.25rem; font-weight: 700; color: var(--color-ink); text-decoration: none; letter-spacing: -0.01em; }

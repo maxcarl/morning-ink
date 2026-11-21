@@ -64,6 +64,7 @@ public static class WebUi
         app.MapStaticAssets().AllowAnonymous();
         app.MapRazorComponents<App>();
         app.MapHealthChecks("/health").AllowAnonymous();
+        app.MapThemeSwitch();
         app.MapPost("/logout", async (HttpContext context, IAntiforgery antiforgery, SignInManager<AppUser> signIn) =>
         {
             // Without a valid token the request may come from another site: refuse it.

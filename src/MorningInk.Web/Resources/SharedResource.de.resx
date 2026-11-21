@@ -122,4 +122,8 @@
   <data name="Profile_CountryHint" xml:space="preserve"><value>Postleitzahlen, Wetter und Lokales werden in diesem Land gesucht.</value></data>
   <data name="Profile_Error_Country" xml:space="preserve"><value>Bitte wähle ein Land aus der Liste.</value></data>
   <data name="Error_CountryInvalid" xml:space="preserve"><value>Bitte wähle ein Land aus der Liste.</value></data>
+  <data name="Theme_Label" xml:space="preserve"><value>Farbschema</value></data>
+  <data name="Theme_auto" xml:space="preserve"><value>Automatisch</value></data>
+  <data name="Theme_light" xml:space="preserve"><value>Hell</value></data>
+  <data name="Theme_dark" xml:space="preserve"><value>Dunkel</value></data>
 </root>
