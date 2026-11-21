@@ -38,6 +38,7 @@ tests/
   MorningInk.Application.Tests/
   MorningInk.Infrastructure.Tests/   # Integrationstests, gespeicherte Beispielseiten unter TestData/
   MorningInk.Architecture.Tests/     # prüft die Schichtgrenzen
+  MorningInk.Web.Tests/              # startet die App im Speicher: Login, Einrichtung, keine Seite ohne Login
 docs/
   konzept.md
   adr/                        # Architektur-Entscheidungen

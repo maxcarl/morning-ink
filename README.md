@@ -41,7 +41,7 @@ cd morning-ink
 docker compose up -d
 ```
 
-The web UI will be available at <http://localhost:8080>. All data lives in the `/data` volume.
+Open <http://localhost:8080> and create the admin account with the setup code from `docker compose logs`. All data lives in the `/data` volume.
 
 Prebuilt images for `amd64` and `arm64` are published to `ghcr.io/maxcarl/morning-ink`.
 
