@@ -24,6 +24,8 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string ReadingTime(int minutes) => string.Format(Culture, Get(nameof(ReadingTime)), minutes);
 
+    public string SourceUnavailable(string source) => string.Format(Culture, Get(nameof(SourceUnavailable)), source);
+
     /// <summary>Texts for <paramref name="language"/>; unknown languages fall back to English.</summary>
     public static EpubTexts For(string language)
     {

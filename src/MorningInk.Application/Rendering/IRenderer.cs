@@ -13,5 +13,5 @@ public interface IRenderer
     /// <param name="issue">Content with sanitized article HTML, as the pipeline produced it.</param>
     /// <param name="output">Must be seekable, e.g. a file; ZIP-based formats need it.</param>
     /// <param name="cancellationToken">Cancels rendering.</param>
-    Task RenderAsync(Issue issue, Stream output, CancellationToken cancellationToken);
+    Task RenderAsync(IssueContent issue, Stream output, CancellationToken cancellationToken);
 }

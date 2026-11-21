@@ -10,5 +10,6 @@
   <data name="Headlines" xml:space="preserve"><value>Headlines</value></data>
   <data name="Notes" xml:space="preserve"><value>Notes</value></data>
   <data name="ReadingTime" xml:space="preserve"><value>{0} min read</value></data>
+  <data name="SourceUnavailable" xml:space="preserve"><value>{0} could not be reached today</value></data>
   <data name="ReadOriginal" xml:space="preserve"><value>Read the original</value></data>
 </root>

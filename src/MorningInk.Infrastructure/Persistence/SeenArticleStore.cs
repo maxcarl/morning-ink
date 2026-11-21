@@ -19,12 +19,12 @@ internal sealed class SeenArticleStore(MorningInkDbContext db, TimeProvider time
         return byHash.Where(entry => !seen.Contains(entry.Key)).Select(entry => entry.Value).ToList();
     }
 
-    public async Task MarkSeenAsync(Guid userId, IReadOnlyList<FetchedArticle> articles, CancellationToken cancellationToken)
+    public async Task MarkSeenAsync(Guid userId, IEnumerable<Uri> urls, CancellationToken cancellationToken)
     {
-        var byHash = Distinct(articles);
-        var seen = await SeenHashesAsync(userId, [.. byHash.Keys], cancellationToken);
+        var hashes = urls.Select(Hash).Distinct(StringComparer.Ordinal).ToList();
+        var seen = await SeenHashesAsync(userId, hashes, cancellationToken);
         var now = time.GetUtcNow();
-        db.SeenArticles.AddRange(byHash.Keys
+        db.SeenArticles.AddRange(hashes
             .Where(hash => !seen.Contains(hash))
             .Select(hash => new SeenArticle { UserId = userId, UrlHash = hash, SeenAt = now }));
         await db.SaveChangesAsync(cancellationToken);

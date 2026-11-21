@@ -15,15 +15,15 @@ internal static class EpubPages
     private const int WordsPerMinute = 200;
     private const int MaxHeadlines = 5;
 
-    public static XDocument TitlePage(Issue issue, EpubTexts texts, Func<IssueArticle, string> hrefOf)
+    public static XDocument TitlePage(IssueContent issue, EpubTexts texts, Func<IssueArticle, string> hrefOf)
     {
         var headlines = issue.Sections.SelectMany(s => s.Articles.Take(1)).Take(MaxHeadlines).ToList();
         return Page(texts.TitlePage, texts,
             new XElement(Xhtml + "h1", issue.Title),
             new XElement(Xhtml + "p", new XAttribute("class", "dateline"), DateLine(issue, texts)),
-            issue.Notes.Count == 0 ? null : new XElement(Xhtml + "section",
+            issue.UnavailableSources.Count == 0 ? null : new XElement(Xhtml + "section",
                 new XElement(Xhtml + "h2", texts.Notes),
-                new XElement(Xhtml + "ul", new XAttribute("class", "notes"), issue.Notes.Select(n => new XElement(Xhtml + "li", n)))),
+                new XElement(Xhtml + "ul", new XAttribute("class", "notes"), issue.UnavailableSources.Select(n => new XElement(Xhtml + "li", texts.SourceUnavailable(n))))),
             headlines.Count == 0 ? null : new XElement(Xhtml + "section",
                 new XElement(Xhtml + "h2", texts.Headlines),
                 new XElement(Xhtml + "ul", headlines.Select(a => new XElement(Xhtml + "li",
@@ -56,7 +56,7 @@ internal static class EpubPages
     }
 
     /// <summary>The EPUB 3 table of contents, also shown as a page for readers without their own TOC view.</summary>
-    public static XDocument Navigation(Issue issue, EpubTexts texts, string titleHref, Func<int, string> sectionHrefOf, Func<IssueArticle, string> hrefOf) =>
+    public static XDocument Navigation(IssueContent issue, EpubTexts texts, string titleHref, Func<int, string> sectionHrefOf, Func<IssueArticle, string> hrefOf) =>
         Page(texts.Contents, texts,
             new XElement(Xhtml + "nav", new XAttribute(Epub + "type", "toc"), new XAttribute("id", "toc"),
                 new XElement(Xhtml + "h1", texts.Contents),
@@ -67,7 +67,7 @@ internal static class EpubPages
                         new XElement(Xhtml + "ol", section.Articles.Select(a => new XElement(Xhtml + "li",
                             new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title)))))))));
 
-    public static string DateLine(Issue issue, EpubTexts texts) =>
+    public static string DateLine(IssueContent issue, EpubTexts texts) =>
         $"{issue.PublishedAt.ToString("D", texts.Culture)} · {texts.IssueNumber(issue.Number)}";
 
     public static int ReadingMinutes(IReadOnlyList<XNode> body)

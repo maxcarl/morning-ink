@@ -29,7 +29,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
 
     public string MediaType => "application/epub+zip";
 
-    public async Task RenderAsync(Issue issue, Stream output, CancellationToken cancellationToken)
+    public async Task RenderAsync(IssueContent issue, Stream output, CancellationToken cancellationToken)
     {
         // A ZIP written to a non-seekable stream gets data descriptors, which EPUB readers reject for "mimetype".
         if (!output.CanSeek)
@@ -39,7 +39,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
 
         var texts = EpubTexts.For(issue.Language);
         var imageDirectory = storage.Value.ImageDirectory;
-        var bookTitle = $"{issue.Title} {issue.PublishedAt:yyyy-MM-dd}"; // ISO date: unique per day and sorts by date on the Kindle
+        var bookTitle = issue.BookTitle;
 
         // Article file names by position, never from titles; by reference, like the bodies below.
         var hrefs = new Dictionary<IssueArticle, string>(ReferenceEqualityComparer.Instance);

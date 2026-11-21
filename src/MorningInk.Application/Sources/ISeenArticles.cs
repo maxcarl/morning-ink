@@ -12,6 +12,6 @@ public interface ISeenArticles
     /// </summary>
     Task<IReadOnlyList<FetchedArticle>> FilterNewAsync(Guid userId, IReadOnlyList<FetchedArticle> articles, CancellationToken cancellationToken);
 
-    /// <summary>Records the articles as received. Marking an article again is harmless.</summary>
-    Task MarkSeenAsync(Guid userId, IReadOnlyList<FetchedArticle> articles, CancellationToken cancellationToken);
+    /// <summary>Records the articles with these addresses as received. Marking an article again is harmless.</summary>
+    Task MarkSeenAsync(Guid userId, IEnumerable<Uri> urls, CancellationToken cancellationToken);
 }

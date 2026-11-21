@@ -28,7 +28,7 @@ internal static class EpubPackage
                     new XAttribute("full-path", $"{ContentFolder}/{PackageFile}"),
                     new XAttribute("media-type", "application/oebps-package+xml")))));
 
-    public static XDocument PackageDocument(Issue issue, string bookTitle, string coverId, IReadOnlyList<Item> items) =>
+    public static XDocument PackageDocument(IssueContent issue, string bookTitle, string coverId, IReadOnlyList<Item> items) =>
         new(new XElement(Opf + "package",
             new XAttribute("version", "3.0"),
             new XAttribute("unique-identifier", "uid"),
@@ -52,7 +52,7 @@ internal static class EpubPackage
                 items.Where(i => i.InSpine).Select(i => new XElement(Opf + "itemref", new XAttribute("idref", i.Id))))));
 
     /// <summary>NCX for readers and converters that predate EPUB 3 navigation, Kindle among them.</summary>
-    public static XDocument NcxDocument(Issue issue, string bookTitle, IReadOnlyList<TocEntry> toc)
+    public static XDocument NcxDocument(IssueContent issue, string bookTitle, IReadOnlyList<TocEntry> toc)
     {
         var order = 0;
         XElement Point(TocEntry entry)
@@ -78,5 +78,5 @@ internal static class EpubPackage
             new XElement(Ncx + "navMap", toc.Select(Point).ToList())));
     }
 
-    private static string Identifier(Issue issue) => $"urn:uuid:{issue.Id}";
+    private static string Identifier(IssueContent issue) => $"urn:uuid:{issue.Id}";
 }

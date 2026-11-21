@@ -82,8 +82,8 @@ public sealed class SeenArticlesTests : IDisposable
 
         await using var scope = services.CreateAsyncScope();
         var seen = scope.ServiceProvider.GetRequiredService<ISeenArticles>();
-        await seen.MarkSeenAsync(user, batch, CancellationToken.None);
-        await seen.MarkSeenAsync(user, batch, CancellationToken.None);
+        await seen.MarkSeenAsync(user, batch.Select(a => a.Url), CancellationToken.None);
+        await seen.MarkSeenAsync(user, batch.Select(a => a.Url), CancellationToken.None);
 
         Assert.Empty(await seen.FilterNewAsync(user, batch, CancellationToken.None));
     }
@@ -108,7 +108,7 @@ public sealed class SeenArticlesTests : IDisposable
         await using var scope = services.CreateAsyncScope();
         var seen = scope.ServiceProvider.GetRequiredService<ISeenArticles>();
         var fresh = await seen.FilterNewAsync(userId, articles, CancellationToken.None);
-        await seen.MarkSeenAsync(userId, fresh, CancellationToken.None);
+        await seen.MarkSeenAsync(userId, fresh.Select(a => a.Url), CancellationToken.None);
         return fresh;
     }
 }

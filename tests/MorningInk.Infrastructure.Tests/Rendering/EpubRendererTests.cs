@@ -146,7 +146,7 @@ public sealed class EpubRendererTests : IDisposable
 
     public void Dispose() => Directory.Delete(_dataDirectory, recursive: true);
 
-    private Issue SampleIssue()
+    private IssueContent SampleIssue()
     {
         var now = new DateTimeOffset(2026, 11, 21, 6, 0, 0, TimeSpan.FromHours(1));
         FetchedArticle Article(string title, string? content, string? summary = null) =>
@@ -157,7 +157,7 @@ public sealed class EpubRendererTests : IDisposable
             "<p>Die Wahlbeteiligung lag bei 78 Prozent, mehr dazu <a href=\"https://example.com/wahl\">hier</a> und <a href=\"https://bücher.de/a b\">da</a>.</p>"
             + $"<img src=\"images/{_imageName}\" alt=\"Wahllokal\">"
             + "<img src=\"images/../../keys/key.xml\"><img src=\"images/0000000000000000000000000000000000000000000000000000000000000000.jpg\">");
-        return new Issue(
+        return new IssueContent(
             Id: Guid.Parse("0193a1b2-0000-7000-8000-000000000042"),
             Title: "Morning Ink",
             Number: 42,
@@ -168,12 +168,12 @@ public sealed class EpubRendererTests : IDisposable
                 new IssueSection("Politik", [new IssueArticle(politics, "tagesschau"), new IssueArticle(Article("<script>alert(1)</script> & Co", "<p>Text</p>"), "heise")]),
                 new IssueSection("Lokales", [new IssueArticle(Article("Nur Teaser", null, "<p>Kurzfassung</p>"), "Stadt")]),
             ],
-            Notes: ["heise war heute nicht erreichbar"]);
+            UnavailableSources: ["heise"]);
     }
 
     private Task<ZipArchive> RenderAsync() => RenderAsync(SampleIssue(), "sample-issue.epub");
 
-    private async Task<ZipArchive> RenderAsync(Issue issue, string fileName)
+    private async Task<ZipArchive> RenderAsync(IssueContent issue, string fileName)
     {
         using var services = new ServiceCollection()
             .AddLogging()
