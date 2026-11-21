@@ -342,7 +342,7 @@ Nach dem Aufräumen wird die SQLite-Datenbank komprimiert (VACUUM). Das Dashboar
 
 - **Healthcheck:** Endpunkt `/health` für den Docker-Healthcheck, prüft Datenbank, Scheduler und Speicherplatz. Optional Metriken für Prometheus.
 - **Backups:** Sicherung per Klick und zeitgesteuert, bestehend aus Datenbank und Konfiguration als eine Datei. Wiederherstellung über das Frontend.
-- **Schutz des Heimnetzes:** Beim Abrufen von URLs sind private Adressen standardmäßig gesperrt (z. B. 192.168.x.x, 10.x.x.x, localhost, Router, NAS). Geprüft wird auch nach Weiterleitungen und DNS-Auflösung. Freigaben für eigene Dienste wie FreshRSS gibt es nur über eine explizite Liste.
+- **Schutz des Heimnetzes:** Beim Abrufen von URLs sind private Adressen standardmäßig gesperrt (z. B. 192.168.x.x, 10.x.x.x, localhost, Router, NAS). Geprüft wird auch nach Weiterleitungen und DNS-Auflösung. Freigaben für eigene Dienste wie FreshRSS gibt es nur über eine explizite Liste. Sie kommt aus der Konfiguration (`Http__AllowedHosts`) und aus der Oberfläche; dort dürfen nur Admins sie ändern.
 - **Verschlüsselte Zugangsdaten:** API-Keys, SMTP- und Login-Passwörter liegen verschlüsselt in der Datenbank (ASP.NET Data Protection). Im Frontend werden sie nie wieder im Klartext angezeigt.
 
 **Injection-Schutz:** Alles von außen gilt als nicht vertrauenswürdig: eingegebene URLs, Feeds, Webseiten, Newsletter-Mails, KI-Antworten und geteilte Links.
@@ -458,9 +458,9 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 16 | 2 Zeitung | Region im Profil und Wetter-Kachel: PLZ oder Ort über Geocoding zu Ort, Landkreis und Koordinaten, Wetter von Open-Meteo auf der Titelseite | Titelseite zeigt das Wetter für die Region; ist der Wetterdienst nicht erreichbar, kommt die Ausgabe ohne Kachel | 4, 6, 11 | – |
 | 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis aus der Region des Profils, als eigene Rubrik | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | – |
 | 18 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 | – |
-| 19 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“ | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 18 | – |
+| 19 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“; scheitert der Test an der Netzsperre, bietet sie Admins die Freigabe des Hosts an | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 18 | – |
 | 20 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Region, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 16, 19 | – |
-| 21 | 3 Oberfläche | Seite Einstellungen: SMTP mit Testmail | Testmail kommt an, Passwort wird nie wieder angezeigt | 12, 18 | – |
+| 21 | 3 Oberfläche | Seite Einstellungen: SMTP mit Testmail; Freigaben fürs Heimnetz (nur Admin, Einträge aus der Konfiguration schreibgeschützt) | Testmail kommt an, Passwort wird nie wieder angezeigt | 12, 18 | – |
 | 22 | 3 Oberfläche | Dashboard: nächste Ausgabe, letzte Ausgaben mit Status, „Jetzt senden“ | Fehler einer Ausgabe sind dort ohne Blick ins Log sichtbar | 13, 18 | – |
 | 23 | 3 Oberfläche | Einrichtungsassistent: Kindle-Adresse, SMTP, Region, Testmail, Beispielquellen, erste Ausgabe | Vom leeren Container zur ersten Zeitung in unter 10 Minuten | 19–21 | – |
 | 24 | 4 Abnahme | README: Installation, Amazon-Freigabe, Hinweis auf privaten Gebrauch | Jemand ohne Vorwissen kommt allein bis zur ersten Zeitung | 23 | – |
