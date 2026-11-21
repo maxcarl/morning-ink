@@ -427,11 +427,11 @@ Das MVP ist fertig, wenn:
 - **Nicht-Ziele:** bestätigt.
 - **KI:** Ollama ohne GPU, siehe Modell-Empfehlung.
 - **Frontend:** Blazor, standardmäßig statisch gerendert.
+- **Lokale Nachrichten:** über eine Nachrichtensuche nach Ort und Landkreis hinter einer Schnittstelle. Zum Start Google News RSS (der Ortsname geht dabei an Google), später wahlweise ein selbst gehostetes SearXNG, dasselbe wie für die KI-Recherche.
 
 **Offen**
 
 - [ ] Lizenz: AGPL-3.0 (wer es als Dienst anbietet, muss Änderungen offenlegen) oder MIT (maximal frei)?
-- [ ] Datenquelle für lokale Nachrichten: Nachrichtensuche nach Ortsname (z. B. Google News RSS, gibt den Ort an Google weiter), kuratierte Liste regionaler Feeds pro Landkreis (Lokalzeitung, Stadt, Polizei-Presseportal) oder beides?
 - [ ] GitHub, Docker Hub und Domain für „morning-ink“ prüfen und reservieren
 
 ## MVP-Aufgaben
@@ -456,7 +456,7 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 14 | 2 Zeitung | Scheduler mit Quartz.NET: Zeitplan und Zeitzone pro Profil, verpasste Ausgaben nachholen | Container um 6 Uhr aus, um 7 Uhr an: Die Ausgabe kommt nach | 13 | ✅ erledigt |
 | 15 | 2 Zeitung | Aufräumjob, Grundversion: alte Ausgaben und gesehene Artikel nach Frist löschen | Ausgaben älter als die Frist sind weg, angeheftete bleiben | 4 | ✅ erledigt |
 | 16 | 2 Zeitung | Region im Profil und Wetter-Kachel: PLZ oder Ort über Geocoding zu Ort, Landkreis und Koordinaten, Wetter von Open-Meteo auf der Titelseite | Titelseite zeigt das Wetter für die Region; ist der Wetterdienst nicht erreichbar, kommt die Ausgabe ohne Kachel | 4, 6, 11 | – |
-| 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis aus der Region des Profils, als eigene Rubrik | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | – |
+| 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis über eine Nachrichtensuche (`INewsSearch`, zuerst Google News RSS), als eigene Rubrik | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | – |
 | 18 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 | – |
 | 19 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“; scheitert der Test an der Netzsperre, bietet sie Admins die Freigabe des Hosts an | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 18 | – |
 | 20 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Region, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 16, 19 | – |
