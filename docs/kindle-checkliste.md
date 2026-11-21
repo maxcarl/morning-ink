@@ -14,5 +14,5 @@ Testdatei: eine Ausgabe per Send to Kindle (Mail oder https://www.amazon.de/send
 | Umlaute | ä, ö, ü, ß und typografische Anführungszeichen erscheinen korrekt | ✅ 2026-11-21 |
 | Bilder | Graustufen, volle Breite, nicht abgeschnitten | ✅ 2026-11-21 |
 | Links | „Zum Original“ öffnet die Seite im Kindle-Browser | ✅ 2026-11-21 |
-| Hinweise | Ausfallvermerke stehen auf der Titelseite | |
+| Hinweise | Ausfallvermerke stehen auf der Titelseite | ✅ 2026-11-21 |
 | Lesbarkeit | Schriftgröße und Schriftart lassen sich am Gerät ändern | |
