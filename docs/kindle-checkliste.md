@@ -7,7 +7,7 @@ Testdatei: eine Ausgabe per Send to Kindle (Mail oder https://www.amazon.de/send
 | Punkt | Erwartung | Ergebnis |
 | --- | --- | --- |
 | Zustellung | Kommt ohne Fehlermail von Amazon an | ✅ 2026-11-21 |
-| Titel | „Morning Ink JJJJ-MM-TT“, Ausgaben sortieren sich nach Datum | |
+| Titel | „Morning Ink JJJJ-MM-TT“, Ausgaben sortieren sich nach Datum | ⚠️ 2026-11-21: Upload per Web-Oberfläche zeigt den Dateinamen. Deshalb trägt der Mail-Anhang den Titel als Dateinamen (Aufgabe 12); dort erneut prüfen |
 | Cover | Bibliothek zeigt das Cover mit Titel, Datum und Schlagzeilen | ✅ 2026-11-21 |
 | Inhaltsverzeichnis | „Gehe zu“ zeigt Titelseite, Rubriken und darunter die Artikel | ✅ 2026-11-21 |
 | Navigation | Sprung aus dem Inhaltsverzeichnis und von der Titelseite landet beim richtigen Artikel | ✅ 2026-11-21 |
