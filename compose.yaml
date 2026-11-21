@@ -1,0 +1,12 @@
+services:
+  morning-ink:
+    build: .
+    image: ghcr.io/maxcarl/morning-ink:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - morning-ink-data:/data
+    restart: unless-stopped
+
+volumes:
+  morning-ink-data:
