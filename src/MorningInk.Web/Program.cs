@@ -1,12 +1,20 @@
 using MorningInk.Infrastructure;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddInfrastructure(builder.Configuration);
+namespace MorningInk.Web;
 
-var app = builder.Build();
-await app.MigrateDatabaseAsync();
+public static class Program
+{
+    public static async Task Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddInfrastructure(builder.Configuration);
 
-app.MapGet("/", () => "Hello World!");
-app.MapHealthChecks("/health");
+        var app = builder.Build();
+        await app.MigrateDatabaseAsync();
 
-await app.RunAsync();
+        app.MapGet("/", () => "Hello World!");
+        app.MapHealthChecks("/health");
+
+        await app.RunAsync();
+    }
+}
