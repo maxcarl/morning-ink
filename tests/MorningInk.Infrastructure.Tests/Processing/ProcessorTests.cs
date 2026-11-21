@@ -55,6 +55,16 @@ public sealed class ProcessorTests
     }
 
     [Fact]
+    public async Task Full_text_is_not_fetched_for_local_news()
+    {
+        using var server = new LocalServer(context => context.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes("<html/>")).AsTask());
+
+        await RunAsync(server, Article(server.Url("/article")), new Source { UserId = Guid.NewGuid(), Name = "Lokales", Kind = SourceKind.Local, Place = "52062" });
+
+        Assert.Empty(server.Requests);
+    }
+
+    [Fact]
     public async Task Output_is_sanitized_whatever_the_source_delivers()
     {
         using var server = new LocalServer(context =>

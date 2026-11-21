@@ -11,8 +11,14 @@ public class Source
 
     public SourceKind Kind { get; set; } = SourceKind.Rss;
 
-    /// <summary>Address of the source. Untrusted input: only fetched through the safe HTTP client.</summary>
-    public required string Url { get; set; }
+    /// <summary>Address of the source, e.g. the feed. Untrusted input: only fetched through the safe HTTP client. Null for local news.</summary>
+    public string? Url { get; set; }
+
+    /// <summary>For local news: postal code or town, e.g. "52062" or "Aachen".</summary>
+    public string? Place { get; set; }
+
+    /// <summary>Resolved <see cref="Place"/>; resolved again once <see cref="RegionLocation.Query"/> no longer matches.</summary>
+    public RegionLocation? Location { get; set; }
 
     /// <summary>Login used to fetch the source; null for public sources.</summary>
     public Guid? CredentialId { get; set; }

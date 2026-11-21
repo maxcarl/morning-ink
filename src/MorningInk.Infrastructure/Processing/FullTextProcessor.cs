@@ -11,7 +11,9 @@ internal sealed partial class FullTextProcessor(SafeHttpClient http, ILogger<Ful
 {
     public async Task<FetchedArticle> ProcessAsync(FetchedArticle article, Source source, CancellationToken cancellationToken)
     {
-        if (!source.FetchFullText)
+        // ponytail: Google News links only lead to Google, which reveals the article with JavaScript; with a news
+        // search that returns real article URLs (SearXNG) local news can get full text too.
+        if (!source.FetchFullText || source.Kind == SourceKind.Local)
         {
             return article;
         }

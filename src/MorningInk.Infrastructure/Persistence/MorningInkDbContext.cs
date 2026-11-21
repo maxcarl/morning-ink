@@ -81,6 +81,13 @@ public sealed class MorningInkDbContext(
             source.Property(s => s.Url).HasMaxLength(UrlLength);
             source.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
             source.Property(s => s.ETag).HasMaxLength(ETagLength);
+            source.Property(s => s.Place).HasMaxLength(RegionLength);
+            source.OwnsOne(s => s.Location, location =>
+            {
+                location.Property(l => l.Query).HasMaxLength(RegionLength);
+                location.Property(l => l.Name).HasMaxLength(NameLength);
+                location.Property(l => l.District).HasMaxLength(NameLength);
+            });
             source.HasOne<Credential>().WithMany().HasForeignKey(s => s.CredentialId).OnDelete(DeleteBehavior.SetNull);
         });
 

@@ -90,6 +90,9 @@ public static class DependencyInjection
     private static void AddSources(IServiceCollection services, IConfiguration configuration)
     {
         services.AddTransient<ISource, FeedSource>();
+        services.AddTransient<ISource, LocalNewsSource>();
+        services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));
+        services.AddTransient<INewsSearch, GoogleNewsSearch>();
 
         services.AddOptions<WeatherOptions>().Bind(configuration.GetSection(WeatherOptions.SectionName));
         services.AddTransient<IGeocoder, NominatimGeocoder>();

@@ -11,7 +11,7 @@ internal sealed class FeedSource(SafeHttpClient http, TimeProvider time) : ISour
 
     public async Task<SourceResult> FetchAsync(Source source, CancellationToken cancellationToken)
     {
-        if (!Uri.TryCreate(source.Url, UriKind.Absolute, out var url))
+        if (source.Url is null || !Uri.TryCreate(source.Url, UriKind.Absolute, out var url))
         {
             return new SourceResult.Failure("The feed address is not a valid URL.");
         }
@@ -26,24 +26,12 @@ internal sealed class FeedSource(SafeHttpClient http, TimeProvider time) : ISour
         {
             FetchResult.NotModified => new SourceResult.NotModified(),
             FetchResult.Failure failure => new SourceResult.Failure(failure.Message),
-            FetchResult.Success success => ApplyLimits(FeedParser.Parse(success.Content, success.FinalUri), source, success.Validators),
+            FetchResult.Success success => Limit(FeedParser.Parse(success.Content, success.FinalUri), source, success.Validators),
             _ => throw new InvalidOperationException($"Unknown fetch result {fetched.GetType().Name}."),
         };
     }
 
-    private SourceResult ApplyLimits(SourceResult parsed, Source source, CacheValidators validators)
-    {
-        if (parsed is not SourceResult.Success success)
-        {
-            return parsed;
-        }
-
-        var oldest = time.GetUtcNow() - source.MaxAge;
-        var articles = success.Articles
-            .Where(a => a.PublishedAt is null || a.PublishedAt >= oldest)
-            .OrderByDescending(a => a.PublishedAt ?? DateTimeOffset.MinValue)
-            .Take(source.MaxArticles)
-            .ToList();
-        return new SourceResult.Success(articles, validators.ETag, validators.LastModified);
-    }
+    private SourceResult Limit(SourceResult parsed, Source source, CacheValidators validators) => parsed is SourceResult.Success success
+        ? new SourceResult.Success(SourceLimits.Apply(success.Articles, source, time.GetUtcNow()), validators.ETag, validators.LastModified)
+        : parsed;
 }
