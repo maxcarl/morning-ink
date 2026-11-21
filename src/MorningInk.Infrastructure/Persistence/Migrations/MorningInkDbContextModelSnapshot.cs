@@ -116,6 +116,34 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("Section");
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.SeenArticle", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("SeenAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UrlHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .IsFixedLength();
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeenAt");
+
+                    b.HasIndex("UserId", "UrlHash")
+                        .IsUnique();
+
+                    b.ToTable("SeenArticles");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Source", b =>
                 {
                     b.Property<Guid>("Id")
@@ -235,6 +263,15 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.HasOne("MorningInk.Domain.Profile", null)
                         .WithMany("Sections")
                         .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MorningInk.Domain.SeenArticle", b =>
+                {
+                    b.HasOne("MorningInk.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

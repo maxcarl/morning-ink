@@ -67,6 +67,7 @@ public static class DependencyInjection
                 .UseSqlite(ConnectionStrings.ForFile(provider.GetRequiredService<IOptions<StorageOptions>>().Value.DatabasePath))
                 .ReplaceService<IModelCacheKeyFactory, DataProtectionModelCacheKeyFactory>());
         services.AddScoped<DatabaseMigrator>();
+        services.AddScoped<ISeenArticles, SeenArticleStore>();
         services.AddHealthChecks().AddDbContextCheck<MorningInkDbContext>();
     }
 

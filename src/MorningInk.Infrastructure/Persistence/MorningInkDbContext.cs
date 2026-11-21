@@ -18,6 +18,7 @@ public sealed class MorningInkDbContext(
     private const int RegionLength = 100;
     private const int EnumLength = 32;
     private const int ETagLength = 512;
+    private const int Sha256HexLength = 64;
 
     /// <summary>Encrypts secrets; part of the model cache key, see <see cref="DataProtectionModelCacheKeyFactory"/>.</summary>
     internal IDataProtectionProvider DataProtection { get; } = dataProtection;
@@ -29,6 +30,8 @@ public sealed class MorningInkDbContext(
     public DbSet<Source> Sources => Set<Source>();
 
     public DbSet<Credential> Credentials => Set<Credential>();
+
+    public DbSet<SeenArticle> SeenArticles => Set<SeenArticle>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +68,18 @@ public sealed class MorningInkDbContext(
             source.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
             source.Property(s => s.ETag).HasMaxLength(ETagLength);
             source.HasOne<Credential>().WithMany().HasForeignKey(s => s.CredentialId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<SeenArticle>(seen =>
+        {
+            seen.HasOne<User>().WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
+            seen.Property(s => s.UrlHash).HasMaxLength(Sha256HexLength).IsFixedLength();
+
+            // Lookups always go by user and hash; uniqueness keeps an article from being stored twice.
+            seen.HasIndex(s => new { s.UserId, s.UrlHash }).IsUnique();
+
+            // For the cleanup job, which deletes by age.
+            seen.HasIndex(s => s.SeenAt);
         });
 
         modelBuilder.Entity<Credential>(credential =>
