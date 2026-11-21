@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\MorningInk.Domain\MorningInk.Domain.csproj" />
+    <ProjectReference Include="..\MorningInk.Application\MorningInk.Application.csproj" />
+    <ProjectReference Include="..\MorningInk.Infrastructure\MorningInk.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

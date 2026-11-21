@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MorningInk.Domain\MorningInk.Domain.csproj" />
+    <ProjectReference Include="..\..\src\MorningInk.Application\MorningInk.Application.csproj" />
+    <ProjectReference Include="..\..\src\MorningInk.Infrastructure\MorningInk.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\MorningInk.Web\MorningInk.Web.csproj" />
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\MorningInk.Domain\MorningInk.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

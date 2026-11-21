@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MorningInk.Application/MorningInk.Application.csproj" />
+    <Project Path="src/MorningInk.Domain/MorningInk.Domain.csproj" />
+    <Project Path="src/MorningInk.Infrastructure/MorningInk.Infrastructure.csproj" />
+    <Project Path="src/MorningInk.Web/MorningInk.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MorningInk.Application.Tests/MorningInk.Application.Tests.csproj" />
+    <Project Path="tests/MorningInk.Architecture.Tests/MorningInk.Architecture.Tests.csproj" />
+    <Project Path="tests/MorningInk.Domain.Tests/MorningInk.Domain.Tests.csproj" />
+    <Project Path="tests/MorningInk.Infrastructure.Tests/MorningInk.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
