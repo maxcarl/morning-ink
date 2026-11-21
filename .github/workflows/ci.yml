@@ -30,7 +30,27 @@ jobs:
       - run: dotnet format --verify-no-changes --no-restore
       - run: dotnet build --no-restore -c Release
       - run: dotnet test --no-build -c Release
+        env:
+          # The EPUB tests copy every book they build here, for epubcheck below.
+          MORNINGINK_EPUB_OUTPUT: ${{ runner.temp }}/epub
       - run: .github/workflows/kept-images.test.sh
+
+      # Amazon rejects invalid EPUBs, so every book the tests build must pass epubcheck without errors.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: epubcheck
+        env:
+          EPUBCHECK_VERSION: 5.4.0
+        run: |
+          curl -sSL -o "$RUNNER_TEMP/epubcheck.zip" "https://github.com/w3c/epubcheck/releases/download/v$EPUBCHECK_VERSION/epubcheck-$EPUBCHECK_VERSION.zip"
+          unzip -q "$RUNNER_TEMP/epubcheck.zip" -d "$RUNNER_TEMP"
+          books=("$RUNNER_TEMP"/epub/*.epub)
+          [ -e "${books[0]}" ] || { echo "The tests built no EPUB to check."; exit 1; }
+          for book in "${books[@]}"; do
+            java -jar "$RUNNER_TEMP/epubcheck-$EPUBCHECK_VERSION/epubcheck.jar" "$book"
+          done
 
   image:
     needs: build
