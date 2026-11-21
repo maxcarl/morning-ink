@@ -43,6 +43,19 @@ The web UI will be available at <http://localhost:8080>. All data lives in the `
 
 Prebuilt images for `amd64` and `arm64` are published to `ghcr.io/maxcarl/morning-ink`.
 
+## Configuration
+
+Settings come from `appsettings.json` or environment variables (`Section__Key`, array entries as `Section__Key__0`).
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `Storage__DataDirectory` | `/data` | Database, backups and encryption keys. Back up the whole directory: without `keys/`, stored passwords cannot be decrypted. |
+| `Http__AllowedHosts__0`, `__1`, … | – | Internal hosts Morning Ink may reach, e.g. `freshrss.lan` or `192.168.1.20:8080`. Everything in your home network is blocked otherwise. |
+| `Http__MaxRedirects` | `5` | Redirects followed per request. |
+| `Http__MaxResponseBytes` | `10485760` | Largest response accepted (10 MiB). |
+| `Http__Timeout` | `00:00:30` | Time for a whole request, including redirects. |
+| `Http__ConnectTimeout` | `00:00:10` | Time to open one connection. |
+
 ## Development
 
 Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
