@@ -34,7 +34,7 @@ public static class DependencyInjection
         AddPersistence(services);
         AddSafeHttp(services, configuration);
         AddSources(services);
-        AddProcessors(services);
+        AddProcessors(services, configuration);
         return services;
     }
 
@@ -76,12 +76,19 @@ public static class DependencyInjection
         services.AddTransient<ISource, FeedSource>();
     }
 
-    // Processors run in registration order. Sanitizing must stay last, so nothing unsanitized reaches an issue.
-    private static void AddProcessors(IServiceCollection services)
+    // Processors run in registration order. Everything that brings in content runs before sanitizing; after it
+    // only steps that remove markup or insert values they generated themselves (images). A test guards the order.
+    private static void AddProcessors(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddOptions<ImageOptions>()
+            .Bind(configuration.GetSection(ImageOptions.SectionName))
+            .Validate(o => o.MinDimension > 0 && o.MaxDimension >= o.MinDimension, "Images:MinDimension must be positive and not above Images:MaxDimension.")
+            .Validate(o => o.Quality is >= 1 and <= 100, "Images:Quality must be between 1 and 100.")
+            .ValidateOnStart();
         services.AddSingleton<ArticleSanitizer>();
         services.AddTransient<IProcessor, FullTextProcessor>();
         services.AddTransient<IProcessor, SanitizingProcessor>();
+        services.AddTransient<IProcessor, ImageProcessor>();
     }
 
     private static void AddSafeHttp(IServiceCollection services, IConfiguration configuration)

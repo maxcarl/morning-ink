@@ -27,11 +27,13 @@ public sealed class SafeHttpClient
     /// <param name="uri">Untrusted address, e.g. from a feed or user input.</param>
     /// <param name="authorization">Sent only to the original host; dropped once a redirect leaves it.</param>
     /// <param name="validators">From an earlier fetch; an unchanged resource then yields <see cref="FetchResult.NotModified"/>.</param>
+    /// <param name="maxResponseBytes">Lower size limit for this request, e.g. for images; never above the configured one.</param>
     /// <param name="cancellationToken">Cancels the request; cancellation is passed on, not reported as a timeout.</param>
     public async Task<FetchResult> GetAsync(
         Uri uri,
         AuthenticationHeaderValue? authorization = null,
         CacheValidators? validators = null,
+        long? maxResponseBytes = null,
         CancellationToken cancellationToken = default)
     {
         if (UrlPolicy.Check(uri) is { } invalid)
@@ -44,7 +46,8 @@ public sealed class SafeHttpClient
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
         try
         {
-            return await FollowAsync(uri, authorization, validators, linked.Token);
+            var limit = Math.Min(maxResponseBytes ?? long.MaxValue, _options.MaxResponseBytes);
+            return await FollowAsync(uri, authorization, validators, limit, linked.Token);
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
@@ -64,6 +67,7 @@ public sealed class SafeHttpClient
         Uri uri,
         AuthenticationHeaderValue? authorization,
         CacheValidators? validators,
+        long maxBytes,
         CancellationToken cancellationToken)
     {
         var current = uri;
@@ -82,7 +86,7 @@ public sealed class SafeHttpClient
             if (!IsRedirect(response.StatusCode) || response.Headers.Location is not { } location)
             {
                 return response.IsSuccessStatusCode
-                    ? await ReadBodyAsync(response, current, cancellationToken)
+                    ? await ReadBodyAsync(response, current, maxBytes, cancellationToken)
                     : new FetchResult.Failure(FetchError.HttpError, $"{current.Host} answered with HTTP {(int)response.StatusCode}.");
             }
 
@@ -108,10 +112,10 @@ public sealed class SafeHttpClient
         }
     }
 
-    private async Task<FetchResult> ReadBodyAsync(HttpResponseMessage response, Uri finalUri, CancellationToken cancellationToken)
+    private static async Task<FetchResult> ReadBodyAsync(HttpResponseMessage response, Uri finalUri, long maxBytes, CancellationToken cancellationToken)
     {
-        var tooLarge = new FetchResult.Failure(FetchError.TooLarge, $"The response is larger than {_options.MaxResponseBytes} bytes.");
-        if (response.Content.Headers.ContentLength > _options.MaxResponseBytes)
+        var tooLarge = new FetchResult.Failure(FetchError.TooLarge, $"The response is larger than {maxBytes} bytes.");
+        if (response.Content.Headers.ContentLength > maxBytes)
         {
             return tooLarge;
         }
@@ -123,7 +127,7 @@ public sealed class SafeHttpClient
         int read;
         while ((read = await stream.ReadAsync(buffer, cancellationToken)) > 0)
         {
-            if (body.Length + read > _options.MaxResponseBytes)
+            if (body.Length + read > maxBytes)
             {
                 return tooLarge;
             }

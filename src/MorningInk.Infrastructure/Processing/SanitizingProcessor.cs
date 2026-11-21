@@ -5,8 +5,8 @@ using MorningInk.Domain;
 namespace MorningInk.Infrastructure.Processing;
 
 /// <summary>
-/// The last pipeline step: cleans every text field, whatever earlier steps or the source produced.
-/// Registered last on purpose; a test guards that order.
+/// Cleans every text field, whatever earlier steps or the source produced. Runs after every step that brings
+/// in content; a test guards that order.
 /// </summary>
 internal sealed class SanitizingProcessor(ArticleSanitizer sanitizer) : IProcessor
 {

@@ -7,6 +7,8 @@
     <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="SmartReader" />
     <InternalsVisibleTo Include="MorningInk.Infrastructure.Tests" />
   </ItemGroup>
