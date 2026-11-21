@@ -1,0 +1,137 @@
+using System.IO.Compression;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.Extensions.Options;
+using MorningInk.Application.Rendering;
+
+namespace MorningInk.Infrastructure.Rendering;
+
+/// <summary>
+/// Writes an issue as EPUB 3 with an NCX fallback: title page, table of contents, one page per section and
+/// per article, a generated cover and the converted images.
+/// </summary>
+internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
+{
+    private const string XhtmlType = "application/xhtml+xml";
+    private const string JpegType = "image/jpeg";
+    private const string CoverId = "cover-image";
+    private const string TitleHref = "title.xhtml";
+    private const string NavHref = "nav.xhtml";
+
+    private static readonly XmlWriterSettings WriterSettings = new()
+    {
+        Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+        Async = true,
+    };
+
+    public string FileExtension => ".epub";
+
+    public string MediaType => "application/epub+zip";
+
+    public async Task RenderAsync(Issue issue, Stream output, CancellationToken cancellationToken)
+    {
+        // A ZIP written to a non-seekable stream gets data descriptors, which EPUB readers reject for "mimetype".
+        if (!output.CanSeek)
+        {
+            throw new ArgumentException("EPUB output must be seekable, e.g. a file.", nameof(output));
+        }
+
+        var texts = EpubTexts.For(issue.Language);
+        var imageDirectory = storage.Value.ImageDirectory;
+        var bookTitle = $"{issue.Title} {issue.PublishedAt:yyyy-MM-dd}"; // ISO date: unique per day and sorts by date on the Kindle
+
+        // Article file names by position, never from titles; by reference, like the bodies below.
+        var hrefs = new Dictionary<IssueArticle, string>(ReferenceEqualityComparer.Instance);
+        for (var s = 0; s < issue.Sections.Count; s++)
+        {
+            for (var a = 0; a < issue.Sections[s].Articles.Count; a++)
+            {
+                hrefs[issue.Sections[s].Articles[a]] = $"article-{s + 1}-{a + 1}.xhtml";
+            }
+        }
+
+        string HrefOf(IssueArticle article) => hrefs[article];
+        static string SectionHrefOf(int index) => $"section-{index + 1}.xhtml";
+
+        // By reference: two equal articles in different sections are still two pages.
+        var bodies = issue.Sections.SelectMany(s => s.Articles).ToDictionary<IssueArticle, IssueArticle, ArticleBody.Result>(
+            a => a,
+            a => ArticleBody.ToXhtml(a.Article.Content ?? a.Article.Summary ?? string.Empty, name => File.Exists(Path.Combine(imageDirectory, name))),
+            ReferenceEqualityComparer.Instance);
+
+        using var zip = new ZipArchive(output, ZipArchiveMode.Create, leaveOpen: true);
+        var stamp = issue.PublishedAt;
+
+        // The mimetype entry must come first and stay uncompressed, so readers can identify the file.
+        await AddAsync(zip, "mimetype", Encoding.ASCII.GetBytes(MediaType), stamp, CompressionLevel.NoCompression, cancellationToken);
+        await AddAsync(zip, "META-INF/container.xml", EpubPackage.ContainerXml(), stamp, cancellationToken);
+
+        var items = new List<EpubPackage.Item>
+        {
+            new(CoverId, "cover.jpg", JpegType, Properties: "cover-image"),
+            new("css", EpubPages.StyleSheet, "text/css"),
+            new("ncx", EpubPackage.NcxFile, "application/x-dtbncx+xml"),
+            new("title", TitleHref, XhtmlType, InSpine: true),
+            new("nav", NavHref, XhtmlType, Properties: "nav", InSpine: true),
+        };
+
+        var headlines = issue.Sections.SelectMany(s => s.Articles.Take(1)).Select(a => a.Article.Title).ToList();
+        await AddContentAsync(zip, "cover.jpg", CoverGenerator.Create(issue.Title, EpubPages.DateLine(issue, texts), headlines), stamp, cancellationToken);
+        await AddContentAsync(zip, EpubPages.StyleSheet, Encoding.UTF8.GetBytes(EpubPages.Css), stamp, cancellationToken);
+        await AddContentAsync(zip, TitleHref, EpubPages.TitlePage(issue, texts, HrefOf), stamp, cancellationToken);
+        await AddContentAsync(zip, NavHref, EpubPages.Navigation(issue, texts, TitleHref, SectionHrefOf, HrefOf), stamp, cancellationToken);
+
+        var images = new HashSet<string>(StringComparer.Ordinal);
+        for (var s = 0; s < issue.Sections.Count; s++)
+        {
+            var section = issue.Sections[s];
+            items.Add(new($"s{s + 1}", SectionHrefOf(s), XhtmlType, InSpine: true));
+            await AddContentAsync(zip, SectionHrefOf(s), EpubPages.SectionPage(section, texts, HrefOf, a => EpubPages.ReadingMinutes(bodies[a].Nodes)), stamp, cancellationToken);
+
+            foreach (var article in section.Articles)
+            {
+                var body = bodies[article];
+                items.Add(new(Path.GetFileNameWithoutExtension(HrefOf(article)), HrefOf(article), XhtmlType, InSpine: true));
+                await AddContentAsync(zip, HrefOf(article), EpubPages.ArticlePage(article, body.Nodes, issue.PublishedAt, texts), stamp, cancellationToken);
+
+                foreach (var image in body.Images.Where(images.Add))
+                {
+                    items.Add(new($"img-{Path.GetFileNameWithoutExtension(image)}", $"images/{image}", JpegType));
+                    await AddContentAsync(zip, $"images/{image}", await File.ReadAllBytesAsync(Path.Combine(imageDirectory, image), cancellationToken), stamp, cancellationToken);
+                }
+            }
+        }
+
+        var toc = new List<EpubPackage.TocEntry> { new(texts.TitlePage, TitleHref, []) };
+        toc.AddRange(issue.Sections.Select((section, index) => new EpubPackage.TocEntry(
+            section.Name,
+            SectionHrefOf(index),
+            section.Articles.Select(a => new EpubPackage.TocEntry(a.Article.Title, HrefOf(a), [])).ToList())));
+        await AddContentAsync(zip, EpubPackage.NcxFile, EpubPackage.NcxDocument(issue, bookTitle, toc), stamp, cancellationToken);
+        await AddContentAsync(zip, EpubPackage.PackageFile, EpubPackage.PackageDocument(issue, bookTitle, CoverId, items), stamp, cancellationToken);
+    }
+
+    private static Task AddContentAsync(ZipArchive zip, string href, XDocument document, DateTimeOffset stamp, CancellationToken cancellationToken) =>
+        AddAsync(zip, $"{EpubPackage.ContentFolder}/{href}", document, stamp, cancellationToken);
+
+    private static Task AddContentAsync(ZipArchive zip, string href, byte[] content, DateTimeOffset stamp, CancellationToken cancellationToken) =>
+        AddAsync(zip, $"{EpubPackage.ContentFolder}/{href}", content, stamp, CompressionLevel.Optimal, cancellationToken);
+
+    private static async Task AddAsync(ZipArchive zip, string path, XDocument document, DateTimeOffset stamp, CancellationToken cancellationToken)
+    {
+        var entry = zip.CreateEntry(path, CompressionLevel.Optimal);
+        entry.LastWriteTime = stamp;
+        await using var stream = await entry.OpenAsync(cancellationToken);
+        await using var writer = XmlWriter.Create(stream, WriterSettings);
+        await document.SaveAsync(writer, cancellationToken);
+    }
+
+    private static async Task AddAsync(ZipArchive zip, string path, byte[] content, DateTimeOffset stamp, CompressionLevel level, CancellationToken cancellationToken)
+    {
+        var entry = zip.CreateEntry(path, level);
+        entry.LastWriteTime = stamp;
+        await using var stream = await entry.OpenAsync(cancellationToken);
+        await stream.WriteAsync(content, cancellationToken);
+    }
+}

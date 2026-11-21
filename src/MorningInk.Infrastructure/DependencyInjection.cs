@@ -8,10 +8,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MorningInk.Application.Processing;
+using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
 using MorningInk.Infrastructure.Http;
 using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Processing;
+using MorningInk.Infrastructure.Rendering;
 using MorningInk.Infrastructure.Sources;
 
 namespace MorningInk.Infrastructure;
@@ -24,7 +26,7 @@ public static class DependencyInjection
 
     private const string UserAgent = "MorningInk/0.1 (+https://github.com/maxcarl/morning-ink)";
 
-    /// <summary>Adds storage, Data Protection, the database, the safe HTTP client, sources and processors.</summary>
+    /// <summary>Adds storage, Data Protection, the database, the safe HTTP client, sources, processors and renderers.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // TryAdd, so tests can register a fixed clock first.
@@ -35,6 +37,7 @@ public static class DependencyInjection
         AddSafeHttp(services, configuration);
         AddSources(services);
         AddProcessors(services, configuration);
+        services.AddTransient<IRenderer, EpubRenderer>();
         return services;
     }
 

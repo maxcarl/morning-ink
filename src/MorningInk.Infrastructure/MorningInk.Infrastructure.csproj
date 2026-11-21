@@ -13,4 +13,9 @@
     <InternalsVisibleTo Include="MorningInk.Infrastructure.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Literata (SIL Open Font License 1.1, see Rendering/Fonts/OFL.txt) for generated covers. -->
+    <EmbeddedResource Include="Rendering\Fonts\*.ttf" LogicalName="Fonts.%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>
