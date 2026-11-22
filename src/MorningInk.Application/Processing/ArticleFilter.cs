@@ -9,6 +9,7 @@ public enum FilterReason
 {
     LiveTicker,
     Ad,
+    Media,
     Excluded,
     NotIncluded,
     TooShort,
@@ -45,6 +46,11 @@ public static partial class ArticleFilter
             return new(FilterReason.Ad);
         }
 
+        if (source.SkipMedia && IsVideoOrAudio(article))
+        {
+            return new(FilterReason.Media);
+        }
+
         if (source.ExcludeKeywords.FirstOrDefault(keyword => Contains(text, keyword)) is { } excluded)
         {
             return new(FilterReason.Excluded, excluded);
@@ -65,6 +71,23 @@ public static partial class ArticleFilter
         AdTitle().IsMatch(article.Title)
         || (article.Categories ?? []).Any(category => AdMarks.Contains(category))
         || article.Url.AbsolutePath.Split('/').Any(segment => AdSections.Contains(Path.GetFileNameWithoutExtension(segment)));
+
+    /// <summary>Whether the item is a video or a programme to listen to, which an e-reader cannot play.</summary>
+    /// <remarks>
+    /// Told by an attached video or audio file, a "Video:" title, or the address: a media section like
+    /// "/multimedia/" or "/podcast/", or a page named "video-…" as on tagesschau.de.
+    /// </remarks>
+    public static bool IsVideoOrAudio(FetchedArticle article)
+    {
+        if (article.MediaType?.Split('/')[0].ToLowerInvariant() is "video" or "audio" || MediaTitle().IsMatch(article.Title))
+        {
+            return true;
+        }
+
+        var segments = article.Url.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.SkipLast(1).Any(MediaSections.Contains)
+            || (segments.LastOrDefault() is { } page && MediaPage().IsMatch(page));
+    }
 
     private static string HeadlineAndTeaser(FetchedArticle article) => $"{article.Title} {PlainText(article.Summary)}";
 
@@ -103,6 +126,19 @@ public static partial class ArticleFilter
     // A mark at the start followed by ":" or "|" ("Anzeige: …", "Sponsored | …"), or in brackets anywhere ("… (Werbung)").
     [GeneratedRegex(@"^\s*[\[(]?\s*(anzeige|werbung|gesponsert|sponsored(\s+(post|content))?|advertorial|promoted|paid\s+post)\s*[\])]?\s*[:|]|[\[(]\s*(anzeige|werbung|gesponsert|sponsored|advertorial|promoted)\s*[\])]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
     private static partial Regex AdTitle();
+
+    // Sections that hold programmes, not articles; only folders count, so a page named "video-games" is no section.
+    private static readonly HashSet<string> MediaSections = new(
+        ["multimedia", "video", "videos", "audio", "audios", "podcast", "podcasts", "mediathek", "sendung", "sendungen"],
+        StringComparer.OrdinalIgnoreCase);
+
+    // "video-1530922.html", "audio-123.html": the player pages of public broadcasters.
+    [GeneratedRegex(@"^(video|audio)-\d+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    private static partial Regex MediaPage();
+
+    // "Video: …", "Audio: …", "Podcast | …" at the start.
+    [GeneratedRegex(@"^\s*(video|audio|podcast)\s*[:|]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    private static partial Regex MediaTitle();
 
     // "Liveticker", "Live-Ticker", "Liveblog", "LIVE:" at the start, and the "+++ … +++" style of breaking news tickers.
     [GeneratedRegex(@"\blive[\s-]?(ticker|blog)|^\s*live\s*[:|–-]|\+\+\+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]

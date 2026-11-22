@@ -125,7 +125,8 @@ internal static partial class FeedParser
             Author: Text(item, DublinCore + "creator") ?? Text(item, ns + "author"),
             Summary: Text(item, ns + "description"),
             Content: Text(item, ContentModule + "encoded"),
-            Categories: Categories(item.Elements(ns + "category").Concat(item.Elements(DublinCore + "subject")).Select(c => Text(c))));
+            Categories: Categories(item.Elements(ns + "category").Concat(item.Elements(DublinCore + "subject")).Select(c => Text(c))),
+            MediaType: (string?)item.Element(ns + "enclosure")?.Attribute("type"));
     }
 
     private static FetchedArticle? FromAtom(XElement entry, Uri baseUri)
@@ -147,7 +148,8 @@ internal static partial class FeedParser
             Author: Text(entry.Element(Atom + "author"), Atom + "name"),
             Summary: Text(entry, Atom + "summary"),
             Content: Text(entry, Atom + "content"),
-            Categories: Categories(entry.Elements(Atom + "category").SelectMany(c => new[] { (string?)c.Attribute("term"), (string?)c.Attribute("label") })));
+            Categories: Categories(entry.Elements(Atom + "category").SelectMany(c => new[] { (string?)c.Attribute("term"), (string?)c.Attribute("label") })),
+            MediaType: (string?)entry.Elements(Atom + "link").FirstOrDefault(l => (string?)l.Attribute("rel") == "enclosure")?.Attribute("type"));
     }
 
     private static List<string> Categories(IEnumerable<string?> names) =>

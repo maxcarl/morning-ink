@@ -9,6 +9,8 @@ namespace MorningInk.Application.Sources;
 /// <param name="Summary">Teaser, often HTML.</param>
 /// <param name="Content">Full text, often HTML; many feeds only have a summary.</param>
 /// <param name="AiSummary">A few plain sentences written by the AI, checked before use; null without AI.</param>
+/// <param name="Categories">The publisher's categories or tags.</param>
+/// <param name="MediaType">Type of an attached file (RSS enclosure), e.g. "video/mp4" for a programme.</param>
 public sealed record FetchedArticle(
     string? Id,
     string Title,
@@ -18,4 +20,5 @@ public sealed record FetchedArticle(
     string? Summary,
     string? Content,
     string? AiSummary = null,
-    IReadOnlyList<string>? Categories = null);
+    IReadOnlyList<string>? Categories = null,
+    string? MediaType = null);

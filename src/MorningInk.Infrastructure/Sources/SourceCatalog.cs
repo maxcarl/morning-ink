@@ -32,7 +32,8 @@ public sealed record SourceSettings(
     bool SkipAds = true,
     bool MarkReadAfterDelivery = true,
     bool LoadImages = true,
-    string? Sender = null)
+    string? Sender = null,
+    bool SkipMedia = true)
 {
     private static readonly char[] Separators = [',', ';', '\n', '\r'];
 
@@ -159,6 +160,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         source.SkipLiveTickers = settings.SkipLiveTickers;
         source.LocalAiOnly = settings.LocalAiOnly;
         source.SkipAds = settings.SkipAds;
+        source.SkipMedia = settings.SkipMedia;
         source.MarkReadAfterDelivery = settings.MarkReadAfterDelivery;
         source.LoadImages = settings.LoadImages;
         if (source.Kind == SourceKind.Newsletter)

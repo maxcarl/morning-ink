@@ -110,6 +110,8 @@
                                         <label class="checkbox"><input id="source-live" type="checkbox" @bind="_edit.SkipLiveTickers" /> @T["Sources_SkipLive"]</label>
                                         <label class="checkbox"><input id="source-ads" type="checkbox" @bind="_edit.SkipAds" aria-describedby="source-ads-hint" /> @T["Sources_SkipAds"]</label>
                                         <span id="source-ads-hint" class="hint">@T["Sources_SkipAdsHint"]</span>
+                                        <label class="checkbox"><input id="source-media" type="checkbox" @bind="_edit.SkipMedia" aria-describedby="source-media-hint" /> @T["Sources_SkipMedia"]</label>
+                                        <span id="source-media-hint" class="hint">@T["Sources_SkipMediaHint"]</span>
                                         <label class="checkbox"><input type="checkbox" @bind="_edit.FetchFullText" /> @T["Sources_FullText"]</label>
                                     </div>
                                 </div>
@@ -525,6 +527,7 @@
             LocalAiOnly = source.LocalAiOnly,
             MarkReadAfterDelivery = source.MarkReadAfterDelivery,
             SkipAds = source.SkipAds,
+            SkipMedia = source.SkipMedia,
             LoadImages = source.LoadImages,
             Sender = source.Sender,
         };
@@ -544,7 +547,8 @@
             _edit.SkipAds,
             _edit.MarkReadAfterDelivery,
             _edit.LoadImages,
-            _edit.Sender);
+            _edit.Sender,
+            _edit.SkipMedia);
         if (await UseAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, id, settings, Closed)) is SourceSaveResult.Invalid invalid)
         {
             _error = T[$"Error_{invalid.Reason}"];
@@ -730,6 +734,8 @@
         public bool MarkReadAfterDelivery { get; set; } = true;
 
         public bool SkipAds { get; set; } = true;
+
+        public bool SkipMedia { get; set; } = true;
 
         public bool LoadImages { get; set; } = true;
 

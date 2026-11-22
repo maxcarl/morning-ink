@@ -65,6 +65,9 @@ public class Source
     /// </summary>
     public bool SkipAds { get; set; } = true;
 
+    /// <summary>Whether to leave out videos and programmes to listen to, e.g. the evening news as video; on by default.</summary>
+    public bool SkipMedia { get; set; } = true;
+
     /// <summary>
     /// Whether the articles' images are downloaded. Off, none is requested: for newsletters, whose tracking pixels
     /// would otherwise tell the sender the mail was opened.

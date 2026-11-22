@@ -576,4 +576,7 @@
   <data name="Error_SenderTooLong" xml:space="preserve"><value>The sender may have at most 200 characters.</value></data>
   <data name="Settings_SearxngRequest" xml:space="preserve"><value>Request sent:</value></data>
   <data name="Source_SearxngEnginesFailed" xml:space="preserve"><value>SearXNG found nothing because these search engines failed: {0}. Check them in SearXNG, e.g. switch off engines that are blocked.</value></data>
+  <data name="Sources_SkipMedia" xml:space="preserve"><value>No videos or audio</value></data>
+  <data name="Sources_SkipMediaHint" xml:space="preserve"><value>Leaves out programmes an e-reader cannot play, e.g. the evening news as video: told by an attached video, a “Video:” title or a media section in the address.</value></data>
+  <data name="Sources_Reason_Media" xml:space="preserve"><value>Video or audio</value></data>
 </root>

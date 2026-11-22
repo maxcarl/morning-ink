@@ -106,5 +106,20 @@ public class FeedParserTests
     private static List<FetchedArticle> Parse(string file) =>
         Assert.IsType<SourceResult.Success>(FeedParser.Parse(Read(file), BaseUri)).Articles.ToList();
 
+    [Fact]
+    public void Attached_files_tell_their_type_so_videos_can_be_left_out()
+    {
+        const string Rss = """
+            <rss version="2.0"><channel><title>t</title>
+              <item><title>tagesschau 20:00 Uhr</title><link>https://www.tagesschau.de/a</link><enclosure url="https://media.example.com/a.mp4" type="video/mp4" length="1"/></item>
+              <item><title>Text</title><link>https://www.tagesschau.de/b</link></item>
+            </channel></rss>
+            """;
+
+        var articles = Assert.IsType<SourceResult.Success>(FeedParser.Parse(System.Text.Encoding.UTF8.GetBytes(Rss), new Uri("https://www.tagesschau.de/"))).Articles;
+
+        Assert.Equal(["video/mp4", null], articles.Select(a => a.MediaType));
+    }
+
     private static byte[] Read(string file) => File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "TestData", "Feeds", file));
 }

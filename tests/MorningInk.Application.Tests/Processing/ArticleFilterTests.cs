@@ -120,6 +120,26 @@ public class ArticleFilterTests
         Assert.True(ArticleFilter.IsLongEnough(Article("Kurz", content: "<p>Kurz.</p>"), Source(_ => { }))); // no minimum set
     }
 
+    [Theory]
+    [InlineData("tagesschau 20:00 Uhr", "https://www.tagesschau.de/multimedia/sendung/tagesschau_20_uhr/video-1530922.html", null)]
+    [InlineData("Wetter am Abend", "https://www.tagesschau.de/multimedia/video/video-1530990.html", null)]
+    [InlineData("Video: Hochwasser in Passau", "https://example.com/news/hochwasser", null)]
+    [InlineData("Die Lage am Morgen", "https://example.com/podcast/lage-am-morgen", null)]
+    [InlineData("Interview mit der Ministerin", "https://example.com/news/interview", "audio/mpeg")]
+    public void Videos_and_audio_are_left_out_since_an_e_reader_cannot_play_them(string title, string url, string? mediaType)
+    {
+        var article = new FetchedArticle(null, title, new Uri(url), null, null, null, null, MediaType: mediaType);
+
+        Assert.Equal(FilterReason.Media, ArticleFilter.Reject(article, Source(_ => { }))?.Reason); // on by default
+        Assert.True(ArticleFilter.Admits(article, Source(s => s.SkipMedia = false)));
+    }
+
+    [Theory]
+    [InlineData("Neue Videospiele auf der Messe", "https://example.com/digital/videospiele-messe")] // an article about videos
+    [InlineData("Fotos vom Stadtfest", "https://example.com/news/stadtfest", "image/jpeg")] // a picture is fine
+    public void Articles_about_media_stay(string title, string url, string? mediaType = null) =>
+        Assert.True(ArticleFilter.Admits(new FetchedArticle(null, title, new Uri(url), null, null, null, null, MediaType: mediaType), Source(_ => { })));
+
     private static Source Source(Action<Source> configure)
     {
         var source = new Source { UserId = Guid.NewGuid(), Name = "Test", Url = "https://example.com/feed" };
