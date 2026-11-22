@@ -505,6 +505,16 @@ public sealed class IssuePublisherTests : IDisposable
     private Task<PublishResult> PublishAsync(DateTimeOffset? slot = null) =>
         CreatePublisher().PublishAsync(_profile.Id, slot ?? Slot, CancellationToken.None);
 
-    private IssuePublisher CreatePublisher() => new(
-        _store, [_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], [_renderer], _delivery, _files, _locks, _geocoder, _weather, _notifier, new FixedTimeProvider(Slot));
+    private IssuePublisher CreatePublisher()
+    {
+        var time = new FixedTimeProvider(Slot);
+        return new(
+            _store,
+            new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], _geocoder, _weather, time),
+            new IssueRelease(_store, [_sources], _seen, _delivery, _files, _notifier, time),
+            [_renderer],
+            _files,
+            _locks,
+            time);
+    }
 }

@@ -129,19 +129,19 @@ public sealed class PublishingTests : IDisposable
     {
         await using var scope = services.CreateAsyncScope();
         var provider = scope.ServiceProvider;
+        var time = provider.GetRequiredService<TimeProvider>();
+        var store = provider.GetRequiredService<IPublishingStore>();
+        var sources = provider.GetServices<ISource>().ToList();
+        var seen = provider.GetRequiredService<ISeenArticles>();
+        var files = provider.GetRequiredService<IIssueFiles>();
         var publisher = new IssuePublisher(
-            provider.GetRequiredService<IPublishingStore>(),
-            provider.GetServices<ISource>(),
-            provider.GetRequiredService<ISeenArticles>(),
-            provider.GetServices<IProcessor>(),
+            store,
+            new IssueBuilder(sources, seen, provider.GetServices<IProcessor>(), provider.GetRequiredService<IGeocoder>(), provider.GetRequiredService<IWeatherForecast>(), time),
+            new IssueRelease(store, sources, seen, provider.GetRequiredService<IDelivery>(), files, provider.GetRequiredService<MorningInk.Application.Notifications.INotifier>(), time),
             provider.GetServices<IRenderer>(),
-            provider.GetRequiredService<IDelivery>(),
-            provider.GetRequiredService<IIssueFiles>(),
+            files,
             Locks,
-            provider.GetRequiredService<IGeocoder>(),
-            provider.GetRequiredService<IWeatherForecast>(),
-            provider.GetRequiredService<MorningInk.Application.Notifications.INotifier>(),
-            provider.GetRequiredService<TimeProvider>());
+            time);
         return await publisher.PublishAsync(profileId, slot, CancellationToken.None);
     }
 
