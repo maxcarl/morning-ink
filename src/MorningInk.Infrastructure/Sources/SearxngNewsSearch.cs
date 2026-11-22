@@ -8,16 +8,17 @@ using MorningInk.Infrastructure.Weather;
 namespace MorningInk.Infrastructure.Sources;
 
 /// <summary>
-/// News search via a self-hosted SearXNG, used instead of Bing when <see cref="NewsSearchOptions.SearxngUrl"/> is set:
+/// News search via a self-hosted SearXNG, used instead of Bing when an address is set (see <see cref="NewsSearchSettingsStore"/>):
 /// the towns searched for stay with one's own instance, which asks its news engines. Its results link to the publishers,
 /// so the full text comes from there like with any feed.
 /// </summary>
 /// <remarks>Needs "json" among <c>search.formats</c> in SearXNG's settings.yml; without it SearXNG answers 403.</remarks>
-internal sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOptions> options) : INewsSearch
+public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOptions> options)
 {
     private const string Forbidden = "403";
 
-    public async Task<SourceResult> SearchAsync(NewsQuery query, CancellationToken cancellationToken)
+    /// <param name="baseUrl">The instance, e.g. "https://searx.example.com".</param>
+    public async Task<SourceResult> SearchAsync(NewsQuery query, string baseUrl, CancellationToken cancellationToken)
     {
         var settings = options.Value;
         var country = query.Country ?? settings.Country;
@@ -32,8 +33,7 @@ internal sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearch
             ("time_range", TimeRange(query.MaxAge)),
         ];
 
-        // ! is safe: this search is only registered when the address is set
-        var endpoint = settings.SearxngUrl!.TrimEnd('/') + "/search";
+        var endpoint = baseUrl.TrimEnd('/') + "/search";
         var fetched = await http.GetAsync(Urls.WithQuery(endpoint, parameters), cancellationToken: cancellationToken);
         if (fetched is not FetchResult.Success page)
         {

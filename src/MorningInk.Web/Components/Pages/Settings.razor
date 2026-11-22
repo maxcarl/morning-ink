@@ -8,6 +8,7 @@
 @using MorningInk.Infrastructure.Delivery
 @using MorningInk.Infrastructure.Http
 @using MorningInk.Infrastructure.Profiles
+@using MorningInk.Infrastructure.Sources
 @inject HostAllowlist Allowlist
 @inject MorningInk.Infrastructure.Ai.AiChat AiChat
 
@@ -86,6 +87,25 @@
 
     </section>
 
+    <section aria-labelledby="news-heading">
+        <h2 id="news-heading" class="department">@T["Settings_News"]</h2>
+        <p class="hint">@T["Settings_NewsHint"]</p>
+        <form @onsubmit="SaveNewsAsync">
+            <div class="field">
+                <label for="searxng-url">@T["Settings_SearxngUrl"]</label>
+                <input id="searxng-url" class="input" @bind="_searxngUrl" placeholder="https://searx.example.com" readonly="@_searxngLocked" aria-describedby="searxng-hint" />
+                <span id="searxng-hint" class="hint">@(_searxngLocked ? T["Settings_SearxngLocked"] : T["Settings_SearxngHint"])</span>
+            </div>
+            <div class="row-actions">
+                @if (!_searxngLocked)
+                {
+                    <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
+                }
+                <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestNewsAsync">@T["Settings_SearxngTest"]</button>
+            </div>
+        </form>
+    </section>
+
     <section aria-labelledby="network-heading">
         <h2 id="network-heading" class="department">@T["Settings_Network"]</h2>
         <p class="hint">@T["Settings_NetworkHint"]</p>
@@ -135,10 +155,61 @@
     private bool _aiSummaries = true;
     private bool _aiEnabled = true;
 
+    // Local news
+    private string? _searxngUrl;
+    private bool _searxngLocked;
+
     protected override async Task LoadAsync()
     {
         _testRecipient = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Recipient;
         await LoadAiAsync();
+        await LoadNewsAsync();
+    }
+
+    private async Task LoadNewsAsync()
+    {
+        _searxngUrl = await UseAsync<NewsSearchSettingsStore, string?>(store => store.SearxngUrlAsync(Closed));
+        _searxngLocked = await UseAsync<NewsSearchSettingsStore, bool>(store => Task.FromResult(store.IsLocked));
+    }
+
+    private async Task SaveNewsAsync()
+    {
+        Clear();
+        if (!await UseAsync<NewsSearchSettingsStore, bool>(store => store.SaveAsync(_searxngUrl, UserId, Closed)))
+        {
+            _errors = [T["Settings_Error_SearxngUrl"]];
+            return;
+        }
+
+        _notice = string.IsNullOrWhiteSpace(_searxngUrl) ? T["Settings_SearxngOff"] : T["Settings_Saved"];
+        await LoadNewsAsync();
+    }
+
+    // Tests what is saved, like the AI test: one search for a well-known place.
+    private async Task TestNewsAsync()
+    {
+        Clear();
+        _busy = true;
+        try
+        {
+            var term = T["Settings_SearxngTestTerm"].Value;
+            switch (await UseAsync<NewsSearchSettingsStore, MorningInk.Application.Sources.SourceResult?>(store => store.TestAsync(term, Closed)))
+            {
+                case null:
+                    _errors = [T["Settings_SearxngNotSet"]];
+                    break;
+                case MorningInk.Application.Sources.SourceResult.Failure failure:
+                    _errors = [T["Settings_SearxngFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)]];
+                    break;
+                case MorningInk.Application.Sources.SourceResult.Success success:
+                    _notice = T["Settings_SearxngWorks", success.Articles.Count, term];
+                    break;
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private async Task LoadAiAsync()

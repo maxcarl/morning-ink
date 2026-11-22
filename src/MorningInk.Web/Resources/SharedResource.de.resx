@@ -470,4 +470,16 @@
   <data name="Account_ReaderRenew" xml:space="preserve"><value>Neues erzeugen</value></data>
   <data name="Account_ReaderRevoke" xml:space="preserve"><value>Zurückziehen</value></data>
   <data name="Account_ReaderRevoked" xml:space="preserve"><value>Das Reader-Passwort wurde zurückgezogen.</value></data>
+  <data name="Settings_News" xml:space="preserve"><value>Lokale Nachrichten</value></data>
+  <data name="Settings_NewsHint" xml:space="preserve"><value>Lokale Quellen suchen Nachrichten für ihren Ort. Ohne eigenes SearXNG nutzen sie Bing, und die Orte gehen an Microsoft.</value></data>
+  <data name="Settings_SearxngUrl" xml:space="preserve"><value>Dein SearXNG (optional)</value></data>
+  <data name="Settings_SearxngHint" xml:space="preserve"><value>Seine Adresse; leer nutzt Bing. In seiner settings.yml muss JSON erlaubt sein (search.formats). Ein Host im Heimnetz wird beim Speichern freigegeben.</value></data>
+  <data name="Settings_SearxngLocked" xml:space="preserve"><value>Gesetzt durch die Umgebungsvariable NewsSearch__SearxngUrl.</value></data>
+  <data name="Settings_SearxngTest" xml:space="preserve"><value>Suche testen</value></data>
+  <data name="Settings_SearxngTestTerm" xml:space="preserve"><value>Berlin</value></data>
+  <data name="Settings_SearxngWorks" xml:space="preserve"><value>SearXNG antwortet: {0} Meldungen zu {1}.</value></data>
+  <data name="Settings_SearxngFailed" xml:space="preserve"><value>SearXNG hat nicht wie erwartet geantwortet: {0}</value></data>
+  <data name="Settings_SearxngNotSet" xml:space="preserve"><value>Speichere zuerst eine SearXNG-Adresse.</value></data>
+  <data name="Settings_SearxngOff" xml:space="preserve"><value>Gespeichert. Lokale Nachrichten kommen wieder über Bing.</value></data>
+  <data name="Settings_Error_SearxngUrl" xml:space="preserve"><value>Das ist keine gültige http- oder https-Adresse.</value></data>
 </root>

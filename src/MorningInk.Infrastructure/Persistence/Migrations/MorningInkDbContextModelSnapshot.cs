@@ -381,6 +381,20 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("MailSettings");
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.NewsSearchSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SearxngUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NewsSearchSettings");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Profile", b =>
                 {
                     b.Property<Guid>("Id")

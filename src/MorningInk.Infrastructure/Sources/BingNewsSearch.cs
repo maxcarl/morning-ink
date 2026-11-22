@@ -11,7 +11,7 @@ namespace MorningInk.Infrastructure.Sources;
 /// teaser, so local news can be read in full like any feed (see ADR 0003). The search terms, i.e. towns, go to Microsoft.
 /// </summary>
 /// <remarks>The RSS output is not an official API; should it change, the source reports a failure and the issue appears without it.</remarks>
-internal sealed class BingNewsSearch(SafeHttpClient http, IOptions<NewsSearchOptions> options) : INewsSearch
+internal sealed class BingNewsSearch(SafeHttpClient http, IOptions<NewsSearchOptions> options)
 {
     // Bing names its own elements with the request URL as namespace, so they are found by local name.
     private const string SourceElement = "Source";

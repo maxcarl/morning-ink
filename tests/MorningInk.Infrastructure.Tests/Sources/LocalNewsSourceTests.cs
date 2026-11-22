@@ -3,7 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Application.Sources;
 using MorningInk.Domain;
+using MorningInk.Infrastructure.Persistence;
+using MorningInk.Infrastructure.Sources;
 using MorningInk.Infrastructure.Tests.Http;
+using MorningInk.Infrastructure.Tests.Persistence;
 
 namespace MorningInk.Infrastructure.Tests.Sources;
 
@@ -13,6 +16,7 @@ public sealed class LocalNewsSourceTests : IDisposable
     private static readonly DateTimeOffset Now = new(2026, 11, 21, 19, 0, 0, TimeSpan.Zero);
 
     private readonly Guid _userId = Guid.NewGuid();
+    private readonly TestHost _host = new();
     private readonly LocalServer _server = new(async context =>
     {
         var query = context.Request.QueryString;
@@ -149,29 +153,48 @@ public sealed class LocalNewsSourceTests : IDisposable
     public async Task Searxng_down_is_a_failure() =>
         Assert.IsType<SourceResult.Failure>(await FetchAsync(Local("52062"), searxng: "/searxng-down")); // answers 500
 
-    public void Dispose() => _server.Dispose();
+    [Fact]
+    public async Task Searxng_saved_on_the_settings_page_is_used_without_a_restart()
+    {
+        await FetchAsync(Local("52062"), storedSearxng: "/searxng");
+
+        Assert.Empty(SearchRequests()); // not Bing
+        Assert.Single(_server.Requests, r => r.Url.Contains("/searxng/search", StringComparison.Ordinal));
+    }
+
+    public void Dispose()
+    {
+        _server.Dispose();
+        _host.Dispose();
+    }
 
     private Source Local(string? place, string? country = "DE") => new() { UserId = _userId, Name = $"Lokales {place}", Kind = SourceKind.Local, Place = place, Country = country };
 
     private List<string> SearchRequests() => _server.Requests.Select(r => r.Url).Where(u => u.Contains("/news/search", StringComparison.Ordinal)).ToList();
 
-    private async Task<SourceResult> FetchAsync(Source source, bool searchFails = false, string? searxng = null)
+    private async Task<SourceResult> FetchAsync(Source source, bool searchFails = false, string? searxng = null, string? storedSearxng = null)
     {
         var baseUrl = _server.Url("/").ToString().TrimEnd('/');
-        using var services = new ServiceCollection()
-            .AddLogging()
-            .AddSingleton<TimeProvider>(new FixedTimeProvider(Now))
-            .AddInfrastructure(new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["Storage:DataDirectory"] = Path.GetTempPath(),
-                    ["Http:AllowedHosts:0"] = $"127.0.0.1:{_server.Port}",
-                    ["Weather:GeocodingUrl"] = baseUrl + "/search",
-                    ["NewsSearch:BingNewsUrl"] = baseUrl + "/news/search" + (searchFails ? "?fail=1" : string.Empty),
-                    ["NewsSearch:SearxngUrl"] = searxng is null ? null : baseUrl + searxng,
-                })
-                .Build())
-            .BuildServiceProvider();
-        return await services.GetServices<ISource>().Single(s => s.Kind == SourceKind.Local).FetchAsync(source, CancellationToken.None);
+        await using var services = await _host.StartAsync(
+            new()
+            {
+                ["Http:AllowedHosts:0"] = $"127.0.0.1:{_server.Port}",
+                ["Weather:GeocodingUrl"] = baseUrl + "/search",
+                ["NewsSearch:BingNewsUrl"] = baseUrl + "/news/search" + (searchFails ? "?fail=1" : string.Empty),
+                ["NewsSearch:SearxngUrl"] = searxng is null ? null : baseUrl + searxng,
+            },
+            collection => collection.AddSingleton<TimeProvider>(new FixedTimeProvider(Now)));
+        await using var scope = services.CreateAsyncScope();
+        if (storedSearxng is not null)
+        {
+            // As an admin saves it on the settings page.
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            var admin = new User { Name = "admin", Role = UserRole.Admin };
+            db.DomainUsers.Add(admin);
+            await db.SaveChangesAsync();
+            Assert.True(await scope.ServiceProvider.GetRequiredService<NewsSearchSettingsStore>().SaveAsync(baseUrl + storedSearxng, admin.Id, CancellationToken.None));
+        }
+
+        return await scope.ServiceProvider.GetServices<ISource>().Single(s => s.Kind == SourceKind.Local).FetchAsync(source, CancellationToken.None);
     }
 }

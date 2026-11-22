@@ -47,6 +47,8 @@ public sealed class MorningInkDbContext(
 
     public DbSet<AiSettings> AiSettings => Set<AiSettings>();
 
+    public DbSet<NewsSearchSettings> NewsSearchSettings => Set<NewsSearchSettings>();
+
     // SQLite has no date type: as text, DateTimeOffset cannot be compared or sorted in queries. As a number
     // (UTC ticks plus offset) it can, which slot lookups and the cleanup by age need.
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
@@ -139,6 +141,8 @@ public sealed class MorningInkDbContext(
             issue.HasMany(i => i.Entries).WithOne().HasForeignKey(e => e.IssueId).OnDelete(DeleteBehavior.Cascade);
             issue.HasMany(i => i.Attempts).WithOne().HasForeignKey(a => a.IssueId).OnDelete(DeleteBehavior.Cascade);
         });
+
+        builder.Entity<NewsSearchSettings>().Property(n => n.SearxngUrl).HasMaxLength(500);
 
         builder.Entity<AiSettings>(ai =>
         {

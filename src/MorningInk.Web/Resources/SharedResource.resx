@@ -470,4 +470,16 @@
   <data name="Account_ReaderRenew" xml:space="preserve"><value>Make a new one</value></data>
   <data name="Account_ReaderRevoke" xml:space="preserve"><value>Withdraw</value></data>
   <data name="Account_ReaderRevoked" xml:space="preserve"><value>The reader password was withdrawn.</value></data>
+  <data name="Settings_News" xml:space="preserve"><value>Local news</value></data>
+  <data name="Settings_NewsHint" xml:space="preserve"><value>Local sources search the news for their town. Without your own SearXNG they use Bing, and the towns go to Microsoft.</value></data>
+  <data name="Settings_SearxngUrl" xml:space="preserve"><value>Your SearXNG (optional)</value></data>
+  <data name="Settings_SearxngHint" xml:space="preserve"><value>Its address; empty uses Bing. JSON must be allowed in its settings.yml (search.formats). A host in your home network is allowed when you save.</value></data>
+  <data name="Settings_SearxngLocked" xml:space="preserve"><value>Set by the environment variable NewsSearch__SearxngUrl.</value></data>
+  <data name="Settings_SearxngTest" xml:space="preserve"><value>Test search</value></data>
+  <data name="Settings_SearxngTestTerm" xml:space="preserve"><value>London</value></data>
+  <data name="Settings_SearxngWorks" xml:space="preserve"><value>SearXNG answers: {0} news items about {1}.</value></data>
+  <data name="Settings_SearxngFailed" xml:space="preserve"><value>SearXNG did not answer as it should: {0}</value></data>
+  <data name="Settings_SearxngNotSet" xml:space="preserve"><value>Save a SearXNG address first.</value></data>
+  <data name="Settings_SearxngOff" xml:space="preserve"><value>Saved. Local news come from Bing again.</value></data>
+  <data name="Settings_Error_SearxngUrl" xml:space="preserve"><value>That is not a valid http or https address.</value></data>
 </root>

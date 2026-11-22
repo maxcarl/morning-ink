@@ -1,6 +1,9 @@
 using System.Globalization;
 using System.Net;
 using Bunit;
+using Microsoft.Extensions.DependencyInjection;
+using MorningInk.Infrastructure.Http;
+using MorningInk.Infrastructure.Sources;
 using MorningInk.Infrastructure.Tests.Delivery;
 using MorningInk.Web.Components.Pages;
 
@@ -124,6 +127,35 @@ public sealed class SettingsPageTests : IDisposable
 
         Assert.NotEqual(HttpStatusCode.OK, page.StatusCode);
         Assert.DoesNotContain("href=\"/settings\"", home, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Admin_saves_a_searxng_whose_host_is_then_allowed()
+    {
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("Local news");
+
+        Pages.Submit(page, ("#searxng-url", "not an address"));
+        Pages.Shows(page, "That is not a valid http or https address.");
+        Pages.Submit(page, ("#searxng-url", "http://searx.lan:8080/"));
+
+        Pages.Shows(page, "Saved.");
+        await using var scope = app.Services.CreateAsyncScope();
+        Assert.Equal("http://searx.lan:8080", await scope.ServiceProvider.GetRequiredService<NewsSearchSettingsStore>().SearxngUrlAsync(CancellationToken.None));
+        Assert.True(app.Services.GetRequiredService<HostAllowlist>().IsAllowed("searx.lan", 8080));
+    }
+
+    [Fact]
+    public async Task Searxng_from_the_environment_is_shown_read_only()
+    {
+        using var app = new TestApp(new() { ["NewsSearch:SearxngUrl"] = "https://searx.example.com" });
+        using var pages = await Pages.AsAdminAsync(app);
+
+        var page = pages.Open<Settings>("NewsSearch__SearxngUrl");
+
+        Assert.Equal("https://searx.example.com", page.Find("#searxng-url").GetAttribute("value"));
+        Assert.True(page.Find("#searxng-url").HasAttribute("readonly"));
     }
 
     public void Dispose() => _smtp.Dispose();
