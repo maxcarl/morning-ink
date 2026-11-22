@@ -484,3 +484,17 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 25 | 4 Abnahme | Probelauf über 7 Tage mit drei echten Feeds | Alle Abnahmekriterien für das MVP sind abgehakt | 1–24 | – |
 
 Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko steckt in 8 (Volltext) und 11 (EPUB für Kindle), deshalb lohnt es sich, dort früh echte Seiten und einen echten Kindle zu testen.
+
+## Aufgaben Stufe 2 (Komfort)
+
+| Nr. | Bereich | Aufgabe | Fertig, wenn | Hängt ab von | Status |
+| --- | --- | --- | --- | --- | --- |
+| 26 | Ausgaben | Mehrere Ausgaben: mehrere Profile pro Benutzer mit eigenen Rubriken, Zeit und Empfänger; Wochentage pro Profil | Morgen- und Abendausgabe kommen getrennt, eine Wochenendausgabe nur samstags und sonntags | 20, 22 | – |
+| 27 | Quellen | OPML-Import und -Export auf der Quellen-Seite | Ein Export aus FreshRSS oder Feedly wird übernommen, Dubletten werden übersprungen | 19 | – |
+| 28 | Ausgaben | Archiv: alle Ausgaben, herunterladen, erneut senden, anheften | Eine alte Ausgabe lässt sich erneut an den Kindle schicken | 22 | – |
+| 29 | Ausgaben | Vorschau: die nächste Ausgabe im Browser blättern (Sandbox-iframe) | Zeigt dieselben Artikel wie die Zustellung, ohne sie als gelesen zu markieren | 22 | – |
+| 30 | Verarbeitung | Filter pro Quelle: Stichwörter ein- oder ausschließen, Mindestlänge, keine Liveticker | Ausgeschlossene Artikel erscheinen nicht in der Ausgabe | 19 | – |
+| 31 | Verarbeitung | Duplikate über Quellen hinweg erkennen, mit „auch bei: …“ | Dieselbe Meldung aus zwei Quellen steht nur einmal im Heft | 13 | – |
+| 32 | Verarbeitung | Interessen mit Stichwörtern und Gewicht pro Profil | Bevorzugte Themen rücken bei knappem Limit nach vorn, „ausblenden“ wirkt als Filter | 26 | – |
+| 33 | Benutzer | Mehrere Benutzer (Familie und Freunde), vom Admin angelegt | Jeder sieht und bearbeitet nur die eigenen Quellen und Ausgaben | 18 | – |
+| 34 | Zustellung | OPDS-Katalog für KOReader und Reader-Apps | KOReader holt die Ausgabe mit Login selbst ab | 28 | – |
