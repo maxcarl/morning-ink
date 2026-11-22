@@ -52,14 +52,27 @@ internal static class EpubPages
 
     private static string Join(params string?[] parts) => string.Join(", ", parts.Where(p => p is not null));
 
-    public static XDocument SectionPage(IssueSection section, EpubTexts texts, Func<IssueArticle, string> hrefOf, Func<IssueArticle, int> minutesOf) =>
+    /// <summary>
+    /// The page for a section's briefs: news that came as a headline only (local news, for example), gathered in one list
+    /// with a link each, instead of a nearly empty page per headline. Full articles are not repeated here; the contents list them.
+    /// </summary>
+    public static XDocument BriefsPage(IssueSection section, IReadOnlyList<IssueArticle> briefs, DateTimeOffset issueTime, EpubTexts texts) =>
         Page(section.Name, texts,
             new XElement(Xhtml + "h1", section.Name),
-            new XElement(Xhtml + "ul", new XAttribute("class", "articles"), section.Articles.Select(a => new XElement(Xhtml + "li",
-                new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title),
-                new XElement(Xhtml + "span", new XAttribute("class", "meta"), $" · {a.SourceName} · {texts.ReadingTime(minutesOf(a))}")))));
+            new XElement(Xhtml + "h2", texts.Briefs),
+            new XElement(Xhtml + "ul", new XAttribute("class", "briefs"), briefs.Select(a => new XElement(Xhtml + "li",
+                new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(a.Article.Url)), a.Article.Title),
+                new XElement(Xhtml + "span", new XAttribute("class", "meta"), " · " + string.Join(" · ", new[]
+                {
+                    a.SourceName,
+                    a.Article.PublishedAt?.ToOffset(issueTime.Offset).ToString("t", texts.Culture),
+                }.Where(m => !string.IsNullOrWhiteSpace(m))))))));
 
-    public static XDocument ArticlePage(IssueArticle item, IReadOnlyList<XNode> body, DateTimeOffset issueTime, EpubTexts texts)
+    /// <summary>Whether an article has nothing to read but its headline, so it belongs among the briefs.</summary>
+    public static bool IsBrief(ArticleBody.Result body) => body.Images.Count == 0 && ReadingWords(body.Nodes) == 0;
+
+    /// <param name="section">Shown above the headline, like a newspaper's department line.</param>
+    public static XDocument ArticlePage(IssueArticle item, string section, IReadOnlyList<XNode> body, DateTimeOffset issueTime, EpubTexts texts)
     {
         var article = item.Article;
         var meta = new[]
@@ -70,6 +83,7 @@ internal static class EpubPages
         };
         return Page(article.Title, texts,
             new XElement(Xhtml + "article",
+                new XElement(Xhtml + "p", new XAttribute("class", "kicker"), section),
                 new XElement(Xhtml + "h1", article.Title),
                 new XElement(Xhtml + "p", new XAttribute("class", "meta"), string.Join(" · ", meta.Where(m => !string.IsNullOrWhiteSpace(m)))),
                 body,
@@ -78,7 +92,9 @@ internal static class EpubPages
     }
 
     /// <summary>The EPUB 3 table of contents, also shown as a page for readers without their own TOC view.</summary>
-    public static XDocument Navigation(IssueContent issue, EpubTexts texts, string titleHref, Func<int, string> sectionHrefOf, Func<IssueArticle, string> hrefOf) =>
+    /// <param name="sectionHrefOf">Where a section starts: its first full article, or its briefs page.</param>
+    /// <param name="articlesOf">The full articles of a section; briefs have no page of their own and no entry.</param>
+    public static XDocument Navigation(IssueContent issue, EpubTexts texts, string titleHref, Func<int, string> sectionHrefOf, Func<int, IReadOnlyList<IssueArticle>> articlesOf, Func<IssueArticle, string> hrefOf) =>
         Page(texts.Contents, texts,
             new XElement(Xhtml + "nav", new XAttribute(Epub + "type", "toc"), new XAttribute("id", "toc"),
                 new XElement(Xhtml + "h1", texts.Contents),
@@ -86,18 +102,18 @@ internal static class EpubPages
                     new XElement(Xhtml + "li", new XElement(Xhtml + "a", new XAttribute("href", titleHref), texts.TitlePage)),
                     issue.Sections.Select((section, index) => new XElement(Xhtml + "li",
                         new XElement(Xhtml + "a", new XAttribute("href", sectionHrefOf(index)), section.Name),
-                        new XElement(Xhtml + "ol", section.Articles.Select(a => new XElement(Xhtml + "li",
+                        articlesOf(index).Count == 0 ? null : new XElement(Xhtml + "ol", articlesOf(index).Select(a => new XElement(Xhtml + "li",
                             new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title)))))))));
 
     public static string DateLine(IssueContent issue, EpubTexts texts) =>
         $"{issue.PublishedAt.ToString("D", texts.Culture)} · {texts.IssueNumber(issue.Number)}";
 
-    public static int ReadingMinutes(IReadOnlyList<XNode> body)
-    {
-        var words = string.Concat(body.Select(n => n is XElement e ? e.Value + " " : (n as XText)?.Value))
+    public static int ReadingMinutes(IReadOnlyList<XNode> body) =>
+        Math.Max(1, (int)Math.Round((double)ReadingWords(body) / WordsPerMinute, MidpointRounding.AwayFromZero));
+
+    private static int ReadingWords(IReadOnlyList<XNode> body) =>
+        string.Concat(body.Select(n => n is XElement e ? e.Value + " " : (n as XText)?.Value))
             .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
-        return Math.Max(1, (int)Math.Round((double)words / WordsPerMinute, MidpointRounding.AwayFromZero));
-    }
 
     private static XDocument Page(string title, EpubTexts texts, params object?[] body) =>
         new(new XElement(Xhtml + "html",
@@ -121,6 +137,8 @@ internal static class EpubPages
         figure { margin: 1em 0; }
         figcaption { font-size: 0.85em; color: #444; }
         .original { margin-top: 1.5em; font-size: 0.9em; }
+        .kicker { font-variant: small-caps; letter-spacing: 0.05em; color: #444; margin: 0; }
+        .briefs li { margin-bottom: 0.8em; }
         """;
 
     public static string Iso(DateTimeOffset time) =>

@@ -20,7 +20,12 @@ internal sealed class PublishingStore(MorningInkDbContext db) : IPublishingStore
             return null;
         }
 
-        var language = await db.DomainUsers.Where(u => u.Id == profile.UserId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken);
+        // The edition's country first (a paper for Munich speaks German), if issues can be printed in its language;
+        // otherwise the owner's language, so texts and dates never come in two languages at once.
+        var countryLanguage = Countries.LanguageOf(profile.Country);
+        var language = countryLanguage is not null && Rendering.EpubTexts.Exist(countryLanguage)
+            ? countryLanguage
+            : await db.DomainUsers.Where(u => u.Id == profile.UserId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken);
         return new PublishingProfile(profile, language ?? FallbackLanguage);
     }
 

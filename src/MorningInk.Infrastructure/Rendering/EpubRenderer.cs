@@ -41,24 +41,34 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
         var imageDirectory = storage.Value.ImageDirectory;
         var bookTitle = issue.BookTitle;
 
-        // Article file names by position, never from titles; by reference, like the bodies below.
-        var hrefs = new Dictionary<IssueArticle, string>(ReferenceEqualityComparer.Instance);
-        for (var s = 0; s < issue.Sections.Count; s++)
-        {
-            for (var a = 0; a < issue.Sections[s].Articles.Count; a++)
-            {
-                hrefs[issue.Sections[s].Articles[a]] = $"article-{s + 1}-{a + 1}.xhtml";
-            }
-        }
-
-        string HrefOf(IssueArticle article) => hrefs[article];
-        static string SectionHrefOf(int index) => $"section-{index + 1}.xhtml";
-
         // By reference: two equal articles in different sections are still two pages.
         var bodies = issue.Sections.SelectMany(s => s.Articles).ToDictionary<IssueArticle, IssueArticle, ArticleBody.Result>(
             a => a,
             a => ArticleBody.ToXhtml(a.Article.Content ?? a.Article.Summary ?? string.Empty, name => File.Exists(Path.Combine(imageDirectory, name))),
             ReferenceEqualityComparer.Instance);
+
+        // Headline-only news go on their section's briefs page; everything else gets a page and a contents entry.
+        var full = issue.Sections.Select(s => (IReadOnlyList<IssueArticle>)s.Articles.Where(a => !EpubPages.IsBrief(bodies[a])).ToList()).ToList();
+        var briefs = issue.Sections.Select(s => (IReadOnlyList<IssueArticle>)s.Articles.Where(a => EpubPages.IsBrief(bodies[a])).ToList()).ToList();
+
+        // File names by position, never from titles.
+        var hrefs = new Dictionary<IssueArticle, string>(ReferenceEqualityComparer.Instance);
+        for (var s = 0; s < issue.Sections.Count; s++)
+        {
+            for (var a = 0; a < full[s].Count; a++)
+            {
+                hrefs[full[s][a]] = $"article-{s + 1}-{a + 1}.xhtml";
+            }
+
+            foreach (var brief in briefs[s])
+            {
+                hrefs[brief] = BriefsHrefOf(s);
+            }
+        }
+
+        string HrefOf(IssueArticle article) => hrefs[article];
+        static string BriefsHrefOf(int index) => $"section-{index + 1}.xhtml";
+        string SectionHrefOf(int index) => full[index].Count > 0 ? HrefOf(full[index][0]) : BriefsHrefOf(index);
 
         using var zip = new ZipArchive(output, ZipArchiveMode.Create, leaveOpen: true);
         var stamp = issue.PublishedAt;
@@ -80,20 +90,17 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
         await AddContentAsync(zip, "cover.jpg", CoverGenerator.Create(issue.Title, EpubPages.DateLine(issue, texts), headlines), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPages.StyleSheet, Encoding.UTF8.GetBytes(EpubPages.Css), stamp, cancellationToken);
         await AddContentAsync(zip, TitleHref, EpubPages.TitlePage(issue, texts, HrefOf), stamp, cancellationToken);
-        await AddContentAsync(zip, NavHref, EpubPages.Navigation(issue, texts, TitleHref, SectionHrefOf, HrefOf), stamp, cancellationToken);
+        await AddContentAsync(zip, NavHref, EpubPages.Navigation(issue, texts, TitleHref, SectionHrefOf, s => full[s], HrefOf), stamp, cancellationToken);
 
         var images = new HashSet<string>(StringComparer.Ordinal);
         for (var s = 0; s < issue.Sections.Count; s++)
         {
             var section = issue.Sections[s];
-            items.Add(new($"s{s + 1}", SectionHrefOf(s), XhtmlType, InSpine: true));
-            await AddContentAsync(zip, SectionHrefOf(s), EpubPages.SectionPage(section, texts, HrefOf, a => EpubPages.ReadingMinutes(bodies[a].Nodes)), stamp, cancellationToken);
-
-            foreach (var article in section.Articles)
+            foreach (var article in full[s])
             {
                 var body = bodies[article];
                 items.Add(new(Path.GetFileNameWithoutExtension(HrefOf(article)), HrefOf(article), XhtmlType, InSpine: true));
-                await AddContentAsync(zip, HrefOf(article), EpubPages.ArticlePage(article, body.Nodes, issue.PublishedAt, texts), stamp, cancellationToken);
+                await AddContentAsync(zip, HrefOf(article), EpubPages.ArticlePage(article, section.Name, body.Nodes, issue.PublishedAt, texts), stamp, cancellationToken);
 
                 foreach (var image in body.Images.Where(images.Add))
                 {
@@ -101,13 +108,20 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
                     await AddContentAsync(zip, $"images/{image}", await File.ReadAllBytesAsync(Path.Combine(imageDirectory, image), cancellationToken), stamp, cancellationToken);
                 }
             }
+
+            // "In brief" at the end of the section, as in a printed paper.
+            if (briefs[s].Count > 0)
+            {
+                items.Add(new($"s{s + 1}", BriefsHrefOf(s), XhtmlType, InSpine: true));
+                await AddContentAsync(zip, BriefsHrefOf(s), EpubPages.BriefsPage(section, briefs[s], issue.PublishedAt, texts), stamp, cancellationToken);
+            }
         }
 
         var toc = new List<EpubPackage.TocEntry> { new(texts.TitlePage, TitleHref, []) };
         toc.AddRange(issue.Sections.Select((section, index) => new EpubPackage.TocEntry(
             section.Name,
             SectionHrefOf(index),
-            section.Articles.Select(a => new EpubPackage.TocEntry(a.Article.Title, HrefOf(a), [])).ToList())));
+            full[index].Select(a => new EpubPackage.TocEntry(a.Article.Title, HrefOf(a), [])).ToList())));
         await AddContentAsync(zip, EpubPackage.NcxFile, EpubPackage.NcxDocument(issue, bookTitle, toc), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPackage.PackageFile, EpubPackage.PackageDocument(issue, bookTitle, CoverId, items), stamp, cancellationToken);
     }

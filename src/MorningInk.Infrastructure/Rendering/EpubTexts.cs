@@ -10,6 +10,11 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public CultureInfo Culture { get; } = culture;
 
+    /// <summary>Whether issue texts exist in <paramref name="language"/> (English is the built-in default).</summary>
+    public static bool Exist(string language) =>
+        language.Equals("en", StringComparison.OrdinalIgnoreCase)
+        || Resources.GetResourceSet(CultureInfo.GetCultureInfo(language), createIfNotExists: true, tryParents: false) is not null;
+
     public string Contents => Get(nameof(Contents));
 
     public string TitlePage => Get(nameof(TitlePage));
@@ -19,6 +24,8 @@ internal sealed class EpubTexts(CultureInfo culture)
     public string Notes => Get(nameof(Notes));
 
     public string ReadOriginal => Get(nameof(ReadOriginal));
+
+    public string Briefs => Get(nameof(Briefs));
 
     public string IssueNumber(int number) => string.Format(Culture, Get(nameof(IssueNumber)), number);
 

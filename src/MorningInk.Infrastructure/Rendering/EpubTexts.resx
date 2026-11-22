@@ -32,4 +32,5 @@
   <data name="WeatherSnowShowers" xml:space="preserve"><value>Snow showers</value></data>
   <data name="WeatherThunderstorm" xml:space="preserve"><value>Thunderstorm</value></data>
   <data name="WeatherUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Briefs" xml:space="preserve"><value>In brief</value></data>
 </root>

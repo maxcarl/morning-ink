@@ -81,6 +81,33 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task Headlines_without_text_are_briefs_on_the_section_page_not_pages_of_their_own()
+    {
+        using var epub = await RenderAsync();
+
+        var texts = epub.Entries.Where(e => e.FullName.EndsWith(".xhtml", StringComparison.Ordinal)).Select(e => (e.Name, Text: ReadText(e))).ToList();
+        var section = XDocument.Parse(texts.Single(t => t.Text.Contains("Feuer in Schwabing", StringComparison.Ordinal) && !t.Name.StartsWith("nav", StringComparison.Ordinal) && !t.Name.StartsWith("title", StringComparison.Ordinal)).Text);
+        Assert.Equal("Lokales", section.Descendants(Xhtml + "h1").Single().Value);
+        Assert.Contains(section.Descendants(Xhtml + "a"), a => (string?)a.Attribute("href") == "https://example.com/Feuer%20in%20Schwabing");
+        Assert.DoesNotContain(texts, t => t.Text.Contains("<article", StringComparison.Ordinal) && t.Text.Contains("Feuer in Schwabing", StringComparison.Ordinal));
+        var nav = XDocument.Parse(texts.Single(t => t.Name == "nav.xhtml").Text);
+        Assert.DoesNotContain("Feuer in Schwabing", nav.Descendants(Xhtml + "a").Select(a => a.Value));
+    }
+
+    [Fact]
+    public async Task Full_articles_are_listed_once_in_the_contents_and_carry_their_section()
+    {
+        using var epub = await RenderAsync();
+
+        // No page that only repeats the contents: a section without briefs has no page of its own.
+        var sectionPages = epub.Entries.Where(e => e.Name.StartsWith("section-", StringComparison.Ordinal)).Select(ReadText).ToList();
+        Assert.Single(sectionPages);
+        Assert.DoesNotContain("Nur Teaser", sectionPages[0], StringComparison.Ordinal);
+        var article = XDocument.Parse(epub.Entries.Select(ReadText).Single(t => t.Contains("<article", StringComparison.Ordinal) && t.Contains("Größere Überraschung", StringComparison.Ordinal)));
+        Assert.Equal("Politik", article.Descendants(Xhtml + "p").First(p => (string?)p.Attribute("class") == "kicker").Value);
+    }
+
+    [Fact]
     public async Task Article_page_has_text_links_and_local_images_only()
     {
         using var epub = await RenderAsync();
@@ -189,7 +216,7 @@ public sealed class EpubRendererTests : IDisposable
             Sections:
             [
                 new IssueSection("Politik", [new IssueArticle(politics, "tagesschau"), new IssueArticle(Article("<script>alert(1)</script> & Co", "<p>Text</p>"), "heise")]),
-                new IssueSection("Lokales", [new IssueArticle(Article("Nur Teaser", null, "<p>Kurzfassung</p>"), "Stadt")]),
+                new IssueSection("Lokales", [new IssueArticle(Article("Nur Teaser", null, "<p>Kurzfassung</p>"), "Stadt"), new IssueArticle(Article("Feuer in Schwabing", null), "Lokales München")]),
             ],
             UnavailableSources: ["heise"],
             Weather: new WeatherForecast(
