@@ -78,6 +78,15 @@ internal sealed class MarkingProcessor : IProcessor
             : Task.FromResult(article with { Content = (article.Content ?? string.Empty) + "[processed]" });
 }
 
+/// <summary>Stands for an AI step: marks the article, so tests see whether it ran.</summary>
+internal sealed class FakeAiProcessor : IProcessor
+{
+    public bool UsesAi => true;
+
+    public Task<FetchedArticle> ProcessAsync(FetchedArticle article, Source source, CancellationToken cancellationToken) =>
+        Task.FromResult(article with { AiSummary = "KI" });
+}
+
 internal sealed class FakeRenderer : IRenderer
 {
     public List<IssueContent> Rendered { get; } = [];

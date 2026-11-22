@@ -22,6 +22,7 @@ public static class WebUi
     {
         services.AddRazorComponents().AddInteractiveServerComponents();
         services.AddSingleton<ActionScopes>();
+        services.AddSingleton<PreviewStore>();
         services.AddCascadingAuthenticationState();
         services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -70,6 +71,7 @@ public static class WebUi
         app.MapHealthChecks("/health").AllowAnonymous();
         app.MapThemeSwitch();
         app.MapIssueDownload();
+        app.MapPreviewFiles();
         app.MapPost("/logout", async (HttpContext context, IAntiforgery antiforgery, SignInManager<AppUser> signIn) =>
         {
             // Without a valid token the request may come from another site: refuse it.

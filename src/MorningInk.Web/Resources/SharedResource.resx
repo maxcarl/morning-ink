@@ -302,4 +302,17 @@
   <data name="Profile_LeadMinutes" xml:space="preserve"><value>{0} minutes before</value></data>
   <data name="Profile_LeadHours" xml:space="preserve"><value>{0} h before</value></data>
   <data name="Profile_Error_LeadTime" xml:space="preserve"><value>Choose a lead time of at most 12 hours.</value></data>
+  <data name="Preview_Kicker" xml:space="preserve"><value>Proof</value></data>
+  <data name="Preview_Title" xml:space="preserve"><value>Preview</value></data>
+  <data name="Preview_Lede" xml:space="preserve"><value>The issue as it would look if it were built now, without sending it or marking anything as read.</value></data>
+  <data name="Preview_Edition" xml:space="preserve"><value>Edition</value></data>
+  <data name="Preview_WithAi" xml:space="preserve"><value>With AI summaries (takes longer)</value></data>
+  <data name="Preview_Build" xml:space="preserve"><value>Build preview</value></data>
+  <data name="Preview_Building" xml:space="preserve"><value>Building the preview…</value></data>
+  <data name="Preview_Cover" xml:space="preserve"><value>Cover of the preview</value></data>
+  <data name="Preview_FrontPage" xml:space="preserve"><value>Front page</value></data>
+  <data name="Preview_Contents" xml:space="preserve"><value>Contents</value></data>
+  <data name="Preview_State" xml:space="preserve"><value>State at {0}. The issue can still change until its delivery time: new articles come in, older ones drop out.</value></data>
+  <data name="Preview_Empty" xml:space="preserve"><value>There are no new articles right now; the issue would not be sent.</value></data>
+  <data name="Preview_Open" xml:space="preserve"><value>Preview</value></data>
 </root>

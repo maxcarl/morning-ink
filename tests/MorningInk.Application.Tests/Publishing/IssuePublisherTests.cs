@@ -326,6 +326,31 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Preview_shows_the_next_issue_but_stores_sends_and_marks_nothing()
+    {
+        _tagesschau.ETag = "\"v1\""; // as after an earlier fetch
+
+        var preview = await CreatePublisher().PreviewAsync(_profile.Id, withAi: false, CancellationToken.None);
+
+        var built = Assert.IsType<PreviewResult.Built>(preview);
+        Assert.NotEmpty(built.File);
+        Assert.Empty(_store.Issues);
+        Assert.Empty(_delivery.Requests);
+        Assert.Empty(_seen.Seen);
+        Assert.All(_sources.Fetched, s => Assert.Null(s.ETag)); // asked afresh, or an unchanged feed would look empty
+        Assert.All(Assert.Single(_renderer.Rendered).Sections.SelectMany(s => s.Articles), a => Assert.Null(a.Article.AiSummary));
+    }
+
+    [Fact]
+    public async Task Preview_runs_the_ai_only_when_asked()
+    {
+        var preview = await CreatePublisher().PreviewAsync(_profile.Id, withAi: true, CancellationToken.None);
+
+        Assert.IsType<PreviewResult.Built>(preview);
+        Assert.All(Assert.Single(_renderer.Rendered).Sections.SelectMany(s => s.Articles), a => Assert.Equal("KI", a.Article.AiSummary));
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 
@@ -343,5 +368,5 @@ public sealed class IssuePublisherTests : IDisposable
         CreatePublisher().PublishAsync(_profile.Id, slot ?? Slot, CancellationToken.None);
 
     private IssuePublisher CreatePublisher() => new(
-        _store, [_sources], _seen, [new MarkingProcessor()], [_renderer], _delivery, _files, _locks, _geocoder, _weather, new FixedTimeProvider(Slot));
+        _store, [_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], [_renderer], _delivery, _files, _locks, _geocoder, _weather, new FixedTimeProvider(Slot));
 }

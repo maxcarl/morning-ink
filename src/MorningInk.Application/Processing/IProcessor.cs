@@ -14,4 +14,7 @@ public interface IProcessor
     /// found) returns the article unchanged instead of failing, so the issue still appears.
     /// </summary>
     Task<FetchedArticle> ProcessAsync(FetchedArticle article, Source source, CancellationToken cancellationToken);
+
+    /// <summary>Whether the step asks an AI; such steps can be left out where speed matters, e.g. in the preview.</summary>
+    bool UsesAi => false;
 }

@@ -35,6 +35,7 @@
                         : T["Dash_NextLede", lead.NextNumber, lead.Profile.Sections.Count, lead.Profile.Recipient])
                 </p>
                 @SendButton(lead, view, small: false)
+                <a class="link-button" href="/preview?edition=@lead.Profile.Id">@T["Preview_Open"]</a>
             </section>
 
             @if (several)

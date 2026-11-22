@@ -46,6 +46,47 @@ public sealed class IssuePublisher(
         }
     }
 
+    /// <summary>
+    /// Builds the profile's next issue as it would look now, without storing, sending or marking anything as seen.
+    /// Sources are asked afresh (no cache validators), or an unchanged feed would show up empty.
+    /// </summary>
+    /// <param name="withAi">Whether to run AI steps too; off by default in the UI, since a slow model makes the preview slow.</param>
+    public async Task<PreviewResult> PreviewAsync(Guid profileId, bool withAi, CancellationToken cancellationToken)
+    {
+        if (await store.LoadProfileAsync(profileId, cancellationToken) is not { } loaded)
+        {
+            return new PreviewResult.ProfileNotFound();
+        }
+
+        // The loaded objects are tracked, but nothing here saves them: the changes below stay with this preview.
+        foreach (var source in loaded.Profile.Sections.SelectMany(s => s.Sources))
+        {
+            source.ETag = null;
+            source.LastModified = null;
+        }
+
+        var profile = loaded.Profile;
+        var localTime = TimeZoneInfo.ConvertTime(time.GetUtcNow(), ProfileTimeZone.Find(profile.TimeZoneId));
+        var draft = new Issue
+        {
+            ProfileId = profileId,
+            Number = await store.NextIssueNumberAsync(profileId, cancellationToken),
+            ScheduledFor = time.GetUtcNow(),
+            CreatedAt = time.GetUtcNow(),
+        };
+        var problems = new List<SourceProblem>();
+        var content = await BuildAsync(loaded, draft, localTime, problems, cancellationToken, withAi);
+        if (content is null)
+        {
+            return new PreviewResult.Empty(problems);
+        }
+
+        var renderer = renderers.First(r => r.FileExtension == Format);
+        using var output = new MemoryStream();
+        await renderer.RenderAsync(content, output, cancellationToken);
+        return new PreviewResult.Built(output.ToArray(), renderer.FileExtension, renderer.MediaType, problems);
+    }
+
     private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, bool prepareOnly, CancellationToken cancellationToken)
     {
         if (await store.LoadProfileAsync(profileId, cancellationToken) is not { } loaded)
@@ -115,7 +156,8 @@ public sealed class IssuePublisher(
         Issue issue,
         DateTimeOffset localTime,
         List<SourceProblem> problems,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool withAi = true)
     {
         var profile = loaded.Profile;
         var orderedSections = profile.Sections.OrderBy(s => s.Position).ToList();
@@ -177,7 +219,7 @@ public sealed class IssuePublisher(
             foreach (var (article, source, alsoAt) in picks)
             {
                 // ponytail: an article too short after the full text leaves a gap in the limit; fetching spares would cost downloads.
-                if (await ProcessAsync(article, source, cancellationToken) is { } processed && ArticleFilter.IsLongEnough(processed, source))
+                if (await ProcessAsync(article, source, withAi, cancellationToken) is { } processed && ArticleFilter.IsLongEnough(processed, source))
                 {
                     articles.Add(new IssueArticle(processed, source.Name, alsoAt));
                 }
@@ -251,11 +293,11 @@ public sealed class IssuePublisher(
         }
     }
 
-    private async Task<FetchedArticle?> ProcessAsync(FetchedArticle article, Source source, CancellationToken cancellationToken)
+    private async Task<FetchedArticle?> ProcessAsync(FetchedArticle article, Source source, bool withAi, CancellationToken cancellationToken)
     {
         try
         {
-            foreach (var processor in processors)
+            foreach (var processor in processors.Where(p => withAi || !p.UsesAi))
             {
                 article = await processor.ProcessAsync(article, source, cancellationToken);
             }

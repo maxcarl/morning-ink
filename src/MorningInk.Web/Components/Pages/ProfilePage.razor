@@ -27,6 +27,7 @@
             <a href="/profile/@edition.Id" aria-current="@(edition.Id == _profile.Id ? "page" : null)">@edition.Title</a>
         }
         <button type="button" class="link-button" @onclick="CreateEditionAsync">+ @T["Profile_NewEdition"]</button>
+        <a class="link-button" href="/preview?edition=@_profile.Id">@T["Preview_Open"]</a>
     </nav>
     }
     @if (_notice is not null)

@@ -22,6 +22,8 @@ internal sealed partial class AiSummaryProcessor(AiSettingsStore store, AiChat c
     private static readonly string Instructions = LoadPrompt("summarize.txt");
 
     private AiSettings? _settings;
+
+    public bool UsesAi => true;
     private bool _unavailable;
 
     public async Task<FetchedArticle> ProcessAsync(FetchedArticle article, Source source, CancellationToken cancellationToken)

@@ -302,4 +302,17 @@
   <data name="Profile_LeadMinutes" xml:space="preserve"><value>{0} Minuten vorher</value></data>
   <data name="Profile_LeadHours" xml:space="preserve"><value>{0} Std. vorher</value></data>
   <data name="Profile_Error_LeadTime" xml:space="preserve"><value>Wähl einen Vorlauf von höchstens 12 Stunden.</value></data>
+  <data name="Preview_Kicker" xml:space="preserve"><value>Andruck</value></data>
+  <data name="Preview_Title" xml:space="preserve"><value>Vorschau</value></data>
+  <data name="Preview_Lede" xml:space="preserve"><value>Die Ausgabe, wie sie aussähe, wenn sie jetzt gebaut würde, ohne sie zu senden oder etwas als gelesen zu markieren.</value></data>
+  <data name="Preview_Edition" xml:space="preserve"><value>Ausgabe</value></data>
+  <data name="Preview_WithAi" xml:space="preserve"><value>Mit KI-Zusammenfassungen (dauert länger)</value></data>
+  <data name="Preview_Build" xml:space="preserve"><value>Vorschau bauen</value></data>
+  <data name="Preview_Building" xml:space="preserve"><value>Die Vorschau wird gebaut …</value></data>
+  <data name="Preview_Cover" xml:space="preserve"><value>Titelbild der Vorschau</value></data>
+  <data name="Preview_FrontPage" xml:space="preserve"><value>Titelseite</value></data>
+  <data name="Preview_Contents" xml:space="preserve"><value>Inhalt</value></data>
+  <data name="Preview_State" xml:space="preserve"><value>Stand {0} Uhr. Bis zur Lieferzeit kann sich die Ausgabe noch ändern: Neue Meldungen kommen dazu, ältere fallen weg.</value></data>
+  <data name="Preview_Empty" xml:space="preserve"><value>Gerade gibt es keine neuen Meldungen; die Ausgabe würde nicht verschickt.</value></data>
+  <data name="Preview_Open" xml:space="preserve"><value>Vorschau</value></data>
 </root>
