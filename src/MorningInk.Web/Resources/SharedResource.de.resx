@@ -202,4 +202,37 @@
   <data name="Status_Delivered" xml:space="preserve"><value>Zugestellt</value></data>
   <data name="Status_Failed" xml:space="preserve"><value>Zustellung fehlgeschlagen</value></data>
   <data name="Status_Empty" xml:space="preserve"><value>Keine neuen Artikel</value></data>
+  <data name="Welcome_Kicker" xml:space="preserve"><value>Einrichtung</value></data>
+  <data name="Welcome_Title" xml:space="preserve"><value>Willkommen bei Morning Ink</value></data>
+  <data name="Welcome_Lede" xml:space="preserve"><value>In fünf Schritten zur ersten Zeitung.</value></data>
+  <data name="Welcome_StepOf" xml:space="preserve"><value>Schritt {0} von {1}</value></data>
+  <data name="Welcome_Step_Delivery" xml:space="preserve"><value>Dein Kindle</value></data>
+  <data name="Welcome_Step_Mail" xml:space="preserve"><value>Mailserver</value></data>
+  <data name="Welcome_Step_Region" xml:space="preserve"><value>Deine Region</value></data>
+  <data name="Welcome_Step_Sources" xml:space="preserve"><value>Quellen</value></data>
+  <data name="Welcome_Step_Done" xml:space="preserve"><value>Erste Ausgabe</value></data>
+  <data name="Welcome_Next" xml:space="preserve"><value>Weiter</value></data>
+  <data name="Welcome_Back" xml:space="preserve"><value>Zurück</value></data>
+  <data name="Welcome_CountryHint" xml:space="preserve"><value>Vorgeschlagene Quellen, Lokales und Wetter richten sich nach diesem Land.</value></data>
+  <data name="Welcome_SaveAndTest" xml:space="preserve"><value>Speichern und Testmail senden</value></data>
+  <data name="Welcome_MailByAdmin" xml:space="preserve"><value>Ein Admin hat den Mailserver eingerichtet. Hier ist nichts zu tun.</value></data>
+  <data name="Welcome_LocalNews" xml:space="preserve"><value>Lokale Nachrichten für diesen Ort aufnehmen</value></data>
+  <data name="Welcome_SourcesHint" xml:space="preserve"><value>Ein paar bekannte Quellen für den Anfang. Unter Quellen kannst du sie jederzeit ändern.</value></data>
+  <data name="Welcome_Topic_News" xml:space="preserve"><value>Nachrichten</value></data>
+  <data name="Welcome_Topic_Tech" xml:space="preserve"><value>Technik</value></data>
+  <data name="Welcome_SectionNews" xml:space="preserve"><value>Nachrichten</value></data>
+  <data name="Welcome_SectionTech" xml:space="preserve"><value>Technik</value></data>
+  <data name="Welcome_SectionRegion" xml:space="preserve"><value>Region</value></data>
+  <data name="Welcome_DoneLede" xml:space="preserve"><value>Deine Zeitung hat {0} Rubriken und geht an {1}.</value></data>
+  <data name="Welcome_DoneMissingSetup" xml:space="preserve"><value>Es fehlt noch etwas: ein Empfänger oder mindestens eine Rubrik.</value></data>
+  <data name="Welcome_SendFirst" xml:space="preserve"><value>Erste Ausgabe senden</value></data>
+  <data name="Welcome_Later" xml:space="preserve"><value>Später, zur Übersicht</value></data>
+  <data name="Welcome_Help" xml:space="preserve"><value>Hilfe</value></data>
+  <data name="Welcome_Help_Delivery" xml:space="preserve"><value>Deine Send-to-Kindle-Adresse steht bei Amazon unter „Inhalte und Geräte → Einstellungen → Einstellungen für persönliche Dokumente“.</value></data>
+  <data name="Welcome_Help_Mail" xml:space="preserve"><value>Morning Ink verschickt die Zeitung über deinen eigenen Mailserver, z. B. den deines Mailanbieters. Server und Port stehen in dessen Hilfe.</value></data>
+  <data name="Welcome_Help_Region" xml:space="preserve"><value>Eine Postleitzahl oder ein Ort bringt das Wetter auf die Titelseite und auf Wunsch lokale Nachrichten.</value></data>
+  <data name="Welcome_Help_Sources" xml:space="preserve"><value>Die Vorschläge passen zu deinem Land und deiner Sprache. Weiter unten gibt es Feeds in anderen Sprachen.</value></data>
+  <data name="Welcome_Help_Done" xml:space="preserve"><value>Die erste Ausgabe wird jetzt gebaut und ist in ein paar Minuten auf deinem Kindle. Danach kommt sie jeden Tag zur Lieferzeit.</value></data>
+  <data name="Welcome_AmazonHint" xml:space="preserve"><value>Wichtig: Trag {0} bei Amazon unter „Einstellungen für persönliche Dokumente → Genehmigte E-Mail-Liste“ ein. Sonst verwirft Amazon die Zeitung ohne Meldung.</value></data>
+  <data name="Dash_Wizard" xml:space="preserve"><value>Einrichtungsassistent fortsetzen.</value></data>
 </root>

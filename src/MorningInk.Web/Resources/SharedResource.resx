@@ -202,4 +202,37 @@
   <data name="Status_Delivered" xml:space="preserve"><value>Delivered</value></data>
   <data name="Status_Failed" xml:space="preserve"><value>Delivery failed</value></data>
   <data name="Status_Empty" xml:space="preserve"><value>No new articles</value></data>
+  <data name="Welcome_Kicker" xml:space="preserve"><value>Setup</value></data>
+  <data name="Welcome_Title" xml:space="preserve"><value>Welcome to Morning Ink</value></data>
+  <data name="Welcome_Lede" xml:space="preserve"><value>Five steps to your first newspaper.</value></data>
+  <data name="Welcome_StepOf" xml:space="preserve"><value>Step {0} of {1}</value></data>
+  <data name="Welcome_Step_Delivery" xml:space="preserve"><value>Your Kindle</value></data>
+  <data name="Welcome_Step_Mail" xml:space="preserve"><value>Mail server</value></data>
+  <data name="Welcome_Step_Region" xml:space="preserve"><value>Your region</value></data>
+  <data name="Welcome_Step_Sources" xml:space="preserve"><value>Sources</value></data>
+  <data name="Welcome_Step_Done" xml:space="preserve"><value>First issue</value></data>
+  <data name="Welcome_Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Welcome_Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Welcome_CountryHint" xml:space="preserve"><value>Suggested sources, local news and weather follow this country.</value></data>
+  <data name="Welcome_SaveAndTest" xml:space="preserve"><value>Save and send a test mail</value></data>
+  <data name="Welcome_MailByAdmin" xml:space="preserve"><value>An admin has set up the mail server. Nothing to do here.</value></data>
+  <data name="Welcome_LocalNews" xml:space="preserve"><value>Add local news for this place</value></data>
+  <data name="Welcome_SourcesHint" xml:space="preserve"><value>A few well-known sources to start with. Change them any time under Sources.</value></data>
+  <data name="Welcome_Topic_News" xml:space="preserve"><value>news</value></data>
+  <data name="Welcome_Topic_Tech" xml:space="preserve"><value>tech</value></data>
+  <data name="Welcome_SectionNews" xml:space="preserve"><value>News</value></data>
+  <data name="Welcome_SectionTech" xml:space="preserve"><value>Tech</value></data>
+  <data name="Welcome_SectionRegion" xml:space="preserve"><value>Region</value></data>
+  <data name="Welcome_DoneLede" xml:space="preserve"><value>Your newspaper has {0} sections and goes to {1}.</value></data>
+  <data name="Welcome_DoneMissingSetup" xml:space="preserve"><value>Something is still missing: a recipient or at least one section.</value></data>
+  <data name="Welcome_SendFirst" xml:space="preserve"><value>Send the first issue</value></data>
+  <data name="Welcome_Later" xml:space="preserve"><value>Later, to the overview</value></data>
+  <data name="Welcome_Help" xml:space="preserve"><value>Help</value></data>
+  <data name="Welcome_Help_Delivery" xml:space="preserve"><value>Your Send-to-Kindle address is on Amazon under Content &amp; Devices → Preferences → Personal Document Settings.</value></data>
+  <data name="Welcome_Help_Mail" xml:space="preserve"><value>Morning Ink sends the newspaper through your own mail server, e.g. that of your mail provider. Its help pages list the server and port.</value></data>
+  <data name="Welcome_Help_Region" xml:space="preserve"><value>A postal code or town gives the weather on the front page and, if you like, local news.</value></data>
+  <data name="Welcome_Help_Sources" xml:space="preserve"><value>The suggestions fit your country and language. Readers abroad find feeds in other languages further down.</value></data>
+  <data name="Welcome_Help_Done" xml:space="preserve"><value>The first issue is built now and arrives on your Kindle in a few minutes. After that it comes every day at your delivery time.</value></data>
+  <data name="Welcome_AmazonHint" xml:space="preserve"><value>Important: add {0} on Amazon under Personal Document Settings → Approved Personal Document E-mail List. Otherwise Amazon silently drops the newspaper.</value></data>
+  <data name="Dash_Wizard" xml:space="preserve"><value>Continue the setup wizard.</value></data>
 </root>

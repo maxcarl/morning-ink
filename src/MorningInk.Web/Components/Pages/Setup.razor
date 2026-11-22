@@ -87,7 +87,9 @@
         }
 
         await SignInManager.SignInAsync(login, isPersistent: true);
-        Navigation.NavigateTo("/");
+
+        // Straight on to the wizard: the goal is the first newspaper within ten minutes.
+        Navigation.NavigateTo("/welcome");
     }
 
     private string ErrorText(string code) => code switch

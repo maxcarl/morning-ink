@@ -34,9 +34,11 @@ public sealed class SignInTests : IDisposable
     }
 
     [Fact]
-    public async Task Setup_creates_the_admin_and_signs_in()
+    public async Task Setup_creates_the_admin_signs_in_and_opens_the_wizard()
     {
-        var browser = await _app.SignedInAdminAsync();
+        var browser = _app.Browser();
+        var setup = await TestApp.SubmitAsync(browser, "/setup", Setup(_app.SetupCode()));
+        Assert.Equal("/welcome", TestApp.RedirectTarget(setup));
 
         var home = await browser.GetAsync("/");
 

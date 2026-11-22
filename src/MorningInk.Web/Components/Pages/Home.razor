@@ -5,6 +5,7 @@
 @using MorningInk.Application.Scheduling
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Profiles
+@inject TimeProvider Time
 
 <PageTitle>@T["Home_Title"] – @T["Brand"]</PageTitle>
 
@@ -74,6 +75,10 @@
                 {
                     <li><a href="/profile">@T["Dash_NeedSections"]</a></li>
                 }
+                @if (!view.CanSend)
+                {
+                    <li><a href="/welcome">@T["Dash_Wizard"]</a></li>
+                }
                 @if (!view.MailServerSet)
                 {
                     <li>
@@ -101,6 +106,9 @@
     private static readonly TimeSpan PollEvery = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan PollFor = TimeSpan.FromMinutes(5);
 
+    // The wizard started the issue a moment before this page opened.
+    private static readonly TimeSpan FollowBack = TimeSpan.FromMinutes(1);
+
     private NewsroomView? _view;
     private string? _notice;
     private bool _sending;
@@ -109,29 +117,44 @@
 
     private async Task ReloadAsync() => _view = await UseAsync<Newsroom, NewsroomView>(newsroom => newsroom.LoadAsync(UserId, Closed));
 
+    /// <summary>Set by the setup wizard after it started the first issue, so the page follows it.</summary>
+    [SupplyParameterFromQuery(Name = "sent")]
+    private bool Sent { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only once the page is interactive: while prerendering, nothing could update it later.
+        if (firstRender && Sent && RendererInfo.IsInteractive)
+        {
+            await FollowAsync(Time.GetUtcNow() - FollowBack);
+        }
+    }
+
     private async Task SendNowAsync()
     {
-        var newest = _view?.Issues.FirstOrDefault()?.Id;
-        _sending = true;
-        if (!await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, Closed)))
+        var since = Time.GetUtcNow();
+        if (await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, Closed)))
         {
-            _sending = false;
-            return;
+            await FollowAsync(since);
         }
+    }
 
+    // The issue is built in the background; look for it until it is done, so the page shows how it went.
+    private async Task FollowAsync(DateTimeOffset since)
+    {
+        _sending = true;
         _notice = T["Dash_SendStarted"];
         StateHasChanged();
 
-        // The issue is built in the background; look for it until it is done, so the page shows how it went.
         using var timer = new PeriodicTimer(PollEvery);
-        var until = DateTime.UtcNow + PollFor;
+        var until = Time.GetUtcNow() + PollFor;
         try
         {
-            while (DateTime.UtcNow < until && await timer.WaitForNextTickAsync(Closed))
+            while (Time.GetUtcNow() < until && await timer.WaitForNextTickAsync(Closed))
             {
                 await ReloadAsync();
                 StateHasChanged();
-                if (_view?.Issues.FirstOrDefault() is { } latest && latest.Id != newest && latest.Status is not IssueStatus.Building)
+                if (_view?.Issues.FirstOrDefault() is { } latest && latest.CreatedAt >= since && latest.Status is not IssueStatus.Building)
                 {
                     break;
                 }
@@ -145,6 +168,7 @@
 
         _notice = null;
         _sending = false;
+        StateHasChanged();
     }
 
     // Weekday and short time; "t" inside a custom format would mean the AM/PM letter, so the two are formatted apart.

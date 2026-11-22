@@ -1,0 +1,113 @@
+@using System.Globalization
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Delivery
+@inject ActionScopes Scopes
+@inject MailSettingsLocks Locks
+@* The mail server fields, used by the settings page and the setup wizard. Fields set by the environment are read-only. *@
+
+<form @onsubmit="SaveAsync">
+    <div class="inline-form field">
+        <div class="row-main">
+            <label class="label" for="host">@T["Settings_Host"]</label>
+            <input id="host" class="input" @bind="_host" readonly="@IsLocked(MailSettingsStore.HostField)" aria-describedby="host-lock" />
+            <LockHint Field="@MailSettingsStore.HostField" Id="host-lock" Locked="@Locks.Fields" />
+        </div>
+        <div>
+            <label class="label" for="port">@T["Settings_Port"]</label>
+            <input id="port" class="input" @bind="_port" inputmode="numeric" readonly="@IsLocked(MailSettingsStore.PortField)" />
+        </div>
+    </div>
+    <div class="field">
+        <label class="label" for="security">@T["Settings_Security"]</label>
+        <select id="security" class="input" @bind="_security" disabled="@IsLocked(MailSettingsStore.SecurityField)">
+            @foreach (var option in Enum.GetValues<MailSecurity>())
+            {
+                <option value="@option">@T[$"Security_{option}"]</option>
+            }
+        </select>
+    </div>
+    <div class="inline-form field">
+        <div class="row-main">
+            <label class="label" for="username">@T["Settings_Username"]</label>
+            <input id="username" class="input" @bind="_username" autocomplete="off" readonly="@IsLocked(MailSettingsStore.UsernameField)" />
+        </div>
+        <div class="row-main">
+            <label class="label" for="password">@T["Settings_Password"]</label>
+            @* Never filled in from storage: a saved password does not leave the server again. *@
+            <input id="password" class="input" type="password" @bind="_password" autocomplete="new-password" readonly="@IsLocked(MailSettingsStore.PasswordField)" aria-describedby="password-hint" />
+            <span id="password-hint" class="hint">@(_passwordSaved ? T["Settings_PasswordSaved"] : T["Settings_PasswordNone"])</span>
+        </div>
+    </div>
+    <div class="inline-form field">
+        <div class="row-main">
+            <label class="label" for="from">@T["Settings_FromAddress"]</label>
+            <input id="from" class="input" @bind="_fromAddress" type="email" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
+            <LockHint Field="@MailSettingsStore.FromAddressField" Id="from-lock" Locked="@Locks.Fields" />
+        </div>
+        <div class="row-main">
+            <label class="label" for="from-name">@T["Settings_FromName"]</label>
+            <input id="from-name" class="input" @bind="_fromName" readonly="@IsLocked(MailSettingsStore.FromNameField)" />
+        </div>
+    </div>
+    <button type="submit" class="button" disabled="@_busy">@(SubmitText ?? T["Settings_Save"])</button>
+</form>
+
+@code {
+    private bool _busy;
+    private string? _host;
+    private string? _port;
+    private MailSecurity _security;
+    private string? _username;
+    private string? _password;
+    private bool _passwordSaved;
+    private string? _fromAddress;
+    private string? _fromName;
+
+    /// <summary>Called after saving with the error texts; empty when it was saved.</summary>
+    [Parameter]
+    public EventCallback<IReadOnlyList<string>> Saved { get; set; }
+
+    /// <summary>Text of the submit button; "Save" when not set.</summary>
+    [Parameter]
+    public string? SubmitText { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        var mail = await Scopes.RunAsync<MailSettingsStore, MailSettings>(store => store.LoadAsync(Cancellation));
+        _host = mail.Host;
+        _port = mail.Port.ToString(CultureInfo.InvariantCulture);
+        _security = mail.Security;
+        _username = mail.Username;
+        _password = null;
+        _passwordSaved = mail.Password is not null;
+        _fromAddress = mail.FromAddress;
+        _fromName = mail.FromName;
+    }
+
+    private bool IsLocked(string field) => Locks.Fields.Contains(field);
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        try
+        {
+            var input = new MailSettingsInput(_host, _port, _security, _username, _password, _fromAddress, _fromName);
+            var errors = await Scopes.RunAsync<MailSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, Cancellation));
+            if (errors.Count == 0)
+            {
+                await LoadAsync();
+            }
+
+            await Saved.InvokeAsync(errors.Select(field => T[$"Settings_Error_{field}"].Value).ToList());
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

@@ -240,3 +240,10 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .lead-headline { font-size: clamp(2rem, 5vw, var(--text-2xl)); margin-bottom: var(--space-2); }
 .lead .lede { margin-bottom: var(--space-4); }
 .issue-error { margin: var(--space-1) 0 0; }
+
+/* Setup wizard: the steps as a folio line, the current one marked like the active tab */
+.steps { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-6); list-style: none; counter-reset: step; margin: var(--space-6) 0 0; padding: var(--space-2) 0; border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule); font-size: var(--text-sm); color: var(--color-muted); }
+.steps li { counter-increment: step; }
+.steps li::before { content: counter(step) " "; font-family: var(--font-serif); font-weight: 700; }
+.steps li[aria-current="step"] { color: var(--color-accent); font-weight: 700; }
+.wizard-nav { margin-top: var(--space-6); }

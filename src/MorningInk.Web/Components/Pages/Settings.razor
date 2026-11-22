@@ -8,7 +8,6 @@
 @using MorningInk.Infrastructure.Delivery
 @using MorningInk.Infrastructure.Http
 @using MorningInk.Infrastructure.Profiles
-@inject MailSettingsLocks Locks
 @inject HostAllowlist Allowlist
 
 <PageTitle>@T["Settings_Title"] – @T["Brand"]</PageTitle>
@@ -36,52 +35,7 @@
     <section aria-labelledby="mail-heading">
         <h2 id="mail-heading" class="department">@T["Settings_Mail"]</h2>
         <p class="hint">@T["Settings_MailHint"]</p>
-        <form @onsubmit="SaveMailAsync">
-            <div class="inline-form field">
-                <div class="row-main">
-                    <label class="label" for="host">@T["Settings_Host"]</label>
-                    <input id="host" class="input" @bind="_host" readonly="@IsLocked(MailSettingsStore.HostField)" aria-describedby="host-lock" />
-                    <LockHint Field="@MailSettingsStore.HostField" Id="host-lock" Locked="@Locks.Fields" />
-                </div>
-                <div>
-                    <label class="label" for="port">@T["Settings_Port"]</label>
-                    <input id="port" class="input" @bind="_port" inputmode="numeric" readonly="@IsLocked(MailSettingsStore.PortField)" />
-                </div>
-            </div>
-            <div class="field">
-                <label class="label" for="security">@T["Settings_Security"]</label>
-                <select id="security" class="input" @bind="_security" disabled="@IsLocked(MailSettingsStore.SecurityField)">
-                    @foreach (var option in Enum.GetValues<MailSecurity>())
-                    {
-                        <option value="@option">@T[$"Security_{option}"]</option>
-                    }
-                </select>
-            </div>
-            <div class="inline-form field">
-                <div class="row-main">
-                    <label class="label" for="username">@T["Settings_Username"]</label>
-                    <input id="username" class="input" @bind="_username" autocomplete="off" readonly="@IsLocked(MailSettingsStore.UsernameField)" />
-                </div>
-                <div class="row-main">
-                    <label class="label" for="password">@T["Settings_Password"]</label>
-                    @* Never filled in from storage: a saved password does not leave the server again. *@
-                    <input id="password" class="input" type="password" @bind="_password" autocomplete="new-password" readonly="@IsLocked(MailSettingsStore.PasswordField)" aria-describedby="password-hint" />
-                    <span id="password-hint" class="hint">@(_passwordSaved ? T["Settings_PasswordSaved"] : T["Settings_PasswordNone"])</span>
-                </div>
-            </div>
-            <div class="inline-form field">
-                <div class="row-main">
-                    <label class="label" for="from">@T["Settings_FromAddress"]</label>
-                    <input id="from" class="input" @bind="_fromAddress" type="email" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
-                    <LockHint Field="@MailSettingsStore.FromAddressField" Id="from-lock" Locked="@Locks.Fields" />
-                </div>
-                <div class="row-main">
-                    <label class="label" for="from-name">@T["Settings_FromName"]</label>
-                    <input id="from-name" class="input" @bind="_fromName" readonly="@IsLocked(MailSettingsStore.FromNameField)" />
-                </div>
-            </div>
-            <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
-        </form>
+        <MailServerForm Saved="MailSaved" Cancellation="Closed" />
 
         <h2 class="department">@T["Settings_Network"]</h2>
         <p class="hint">@T["Settings_NetworkHint"]</p>
@@ -130,49 +84,18 @@
     private string? _notice;
     private bool _busy;
 
-    private string? _host;
-    private string? _port;
-    private MailSecurity _security;
-    private string? _username;
-    private string? _password;
-    private bool _passwordSaved;
-    private string? _fromAddress;
-    private string? _fromName;
     private string? _testRecipient;
     private string? _newEntry;
 
     protected override async Task LoadAsync()
     {
-        await LoadMailAsync();
         _testRecipient = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Recipient;
     }
 
-    private async Task LoadMailAsync()
+    private void MailSaved(IReadOnlyList<string> errors)
     {
-        var mail = await UseAsync<MailSettingsStore, MailSettings>(store => store.LoadAsync(Closed));
-        _host = mail.Host;
-        _port = mail.Port.ToString(CultureInfo.InvariantCulture);
-        _security = mail.Security;
-        _username = mail.Username;
-        _password = null;
-        _passwordSaved = mail.Password is not null;
-        _fromAddress = mail.FromAddress;
-        _fromName = mail.FromName;
-    }
-
-    private bool IsLocked(string field) => Locks.Fields.Contains(field);
-
-    private async Task SaveMailAsync()
-    {
-        Clear();
-        var input = new MailSettingsInput(_host, _port, _security, _username, _password, _fromAddress, _fromName);
-        var errors = await UseAsync<MailSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, Closed));
-        _errors = errors.Select(field => T[$"Settings_Error_{field}"].Value).ToList();
-        if (_errors.Count == 0)
-        {
-            _notice = T["Settings_Saved"];
-            await LoadMailAsync();
-        }
+        _errors = [.. errors];
+        _notice = errors.Count == 0 ? T["Settings_Saved"].Value : null;
     }
 
     private async Task SendTestAsync()

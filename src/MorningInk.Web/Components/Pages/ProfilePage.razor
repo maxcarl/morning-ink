@@ -150,7 +150,7 @@
             <div class="field">
                 <label for="zone">@T["Profile_TimeZone"]</label>
                 <select id="zone" class="input" @bind="_zone">
-                    @foreach (var zone in TimeZones)
+                    @foreach (var zone in TimeZones.All)
                     {
                         <option value="@zone">@zone</option>
                     }
@@ -172,14 +172,6 @@
 </div>
 
 @code {
-    // IANA ids, which every platform .NET runs on understands since .NET 6.
-    private static readonly IReadOnlyList<string> TimeZones = TimeZoneInfo.GetSystemTimeZones()
-        .Select(z => TimeZoneInfo.TryConvertWindowsIdToIanaId(z.Id, out var iana) ? iana : z.Id)
-        .Where(id => id.Contains('/', StringComparison.Ordinal))
-        .Distinct()
-        .Order(StringComparer.Ordinal)
-        .ToList();
-
     // Up to this many sources, the list is short enough to scan without a search field.
     private const int SearchFrom = 8;
 

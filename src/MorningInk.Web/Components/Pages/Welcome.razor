@@ -1,0 +1,316 @@
+@page "/welcome"
+@rendermode InteractiveServer
+@inherits InteractivePage
+@using System.Globalization
+@using MorningInk.Application.Delivery
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Delivery
+@using MorningInk.Infrastructure.Profiles
+@using MorningInk.Infrastructure.Sources
+@inject NavigationManager Navigation
+
+<PageTitle>@T["Welcome_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <span class="kicker">@T["Welcome_Kicker"]</span>
+    <h1>@T["Welcome_Title"]</h1>
+    <p class="lede">@T["Welcome_Lede"]</p>
+    <ol class="steps">
+        @foreach (var step in Enum.GetValues<Step>())
+        {
+            <li aria-current="@(step == _step ? "step" : null)">@T[$"Welcome_Step_{step}"]</li>
+        }
+    </ol>
+    @if (_notice is not null)
+    {
+        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+    }
+    @if (_errors.Count > 0)
+    {
+        <div class="alert alert-error" role="alert">
+            @foreach (var error in _errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+</header>
+
+@if (_profile is not null)
+{
+    <div class="with-sidebar">
+        <section aria-labelledby="step-heading">
+            <span class="kicker">@T["Welcome_StepOf", (int)_step + 1, StepCount]</span>
+            <h2 id="step-heading" class="department">@T[$"Welcome_Step_{_step}"]</h2>
+            @switch (_step)
+            {
+                case Step.Delivery:
+                    <form @onsubmit="SaveDeliveryAsync">
+                        <div class="field">
+                            <label for="recipient">@T["Profile_Recipient"]</label>
+                            <input id="recipient" class="input" type="email" @bind="_recipient" autocomplete="off" aria-describedby="recipient-hint" required />
+                            <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
+                        </div>
+                        <div class="inline-form field">
+                            <div>
+                                <label class="label" for="time">@T["Profile_DeliveryTime"]</label>
+                                @* Not @bind: Blazor's time parsing does not accept the "HH:mm" browsers send. *@
+                                <input id="time" class="input" type="time" value="@_time" @onchange="e => _time = e.Value as string ?? string.Empty" required />
+                            </div>
+                            <div class="row-main">
+                                <label class="label" for="zone">@T["Profile_TimeZone"]</label>
+                                <select id="zone" class="input" @bind="_zone">
+                                    @foreach (var zone in TimeZones.All)
+                                    {
+                                        <option value="@zone">@zone</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="country">@T["Country"]</label>
+                            <CountrySelect Id="country" @bind-Selected="_country" DescribedBy="country-hint" />
+                            <span id="country-hint" class="hint">@T["Welcome_CountryHint"]</span>
+                        </div>
+                        <button type="submit" class="button">@T["Welcome_Next"]</button>
+                    </form>
+                    break;
+
+                case Step.Mail:
+                    @if (IsAdmin)
+                    {
+                        <p class="hint">@T["Settings_MailHint"]</p>
+                        <MailServerForm Saved="MailSavedAsync" SubmitText="@T["Welcome_SaveAndTest"]" Cancellation="Closed" />
+                    }
+                    else
+                    {
+                        <p>@(_mailServerSet ? T["Welcome_MailByAdmin"] : T["Dash_NeedMail"])</p>
+                    }
+                    <div class="row-actions wizard-nav">
+                        <button type="button" class="link-button" @onclick="() => Go(Step.Delivery)">@T["Welcome_Back"]</button>
+                        <button type="button" class="button button-secondary" @onclick="() => Go(Step.Region)">@T["Welcome_Next"]</button>
+                    </div>
+                    break;
+
+                case Step.Region:
+                    <form @onsubmit="SaveRegionAsync">
+                        <div class="field">
+                            <label for="region">@T["Profile_Region"]</label>
+                            <input id="region" class="input" @bind="_region" aria-describedby="region-hint" />
+                            <span id="region-hint" class="hint">@T["Profile_RegionHint"]</span>
+                        </div>
+                        <div class="field">
+                            <label class="checkbox"><input id="local" type="checkbox" @bind="_local" /> @T["Welcome_LocalNews"]</label>
+                        </div>
+                        <div class="row-actions wizard-nav">
+                            <button type="button" class="link-button" @onclick="() => Go(Step.Mail)">@T["Welcome_Back"]</button>
+                            <button type="submit" class="button">@T["Welcome_Next"]</button>
+                        </div>
+                    </form>
+                    break;
+
+                case Step.Sources:
+                    <p class="hint">@T["Welcome_SourcesHint"]</p>
+                    @* The user's language first; every other language follows, so readers anywhere find something. *@
+                    @foreach (var group in SampleSources.All.GroupBy(s => s.Language).OrderBy(g => g.Key == Language ? 0 : 1).ThenBy(g => LanguageName(g.Key), StringComparer.CurrentCulture))
+                    {
+                        <fieldset class="field">
+                            <legend class="label">@LanguageName(group.Key)</legend>
+                            <div class="choices">
+                                @foreach (var sample in group)
+                                {
+                                    <label class="checkbox" @key="sample.Url">
+                                        <input type="checkbox" value="@sample.Url" checked="@_picked.Contains(sample)" @onchange="() => Pick(sample)" />
+                                        @sample.Name <span class="muted">· @T[$"Welcome_Topic_{sample.Topic}"]</span>
+                                    </label>
+                                }
+                            </div>
+                        </fieldset>
+                    }
+                    <div class="row-actions wizard-nav">
+                        <button type="button" class="link-button" @onclick="() => Go(Step.Region)">@T["Welcome_Back"]</button>
+                        <button type="button" class="button" disabled="@_busy" @onclick="AddSourcesAsync">@T["Welcome_Next"]</button>
+                    </div>
+                    break;
+
+                case Step.Done:
+                    <p>@T["Welcome_DoneLede", _profile.Sections.Count, _profile.Recipient]</p>
+                    @if (!CanSend)
+                    {
+                        <p class="status status-warn">@(_mailServerSet ? T["Welcome_DoneMissingSetup"] : T["Dash_NeedMail"])</p>
+                    }
+                    <div class="row-actions wizard-nav">
+                        <button type="button" class="link-button" @onclick="() => Go(Step.Sources)">@T["Welcome_Back"]</button>
+                        <button type="button" class="button" disabled="@(!CanSend || _busy)" @onclick="SendFirstAsync">@T["Welcome_SendFirst"]</button>
+                        <a class="link-button" href="/">@T["Welcome_Later"]</a>
+                    </div>
+                    break;
+            }
+        </section>
+
+        <aside class="sidebar" aria-labelledby="help-heading">
+            <h2 id="help-heading" class="label muted">@T["Welcome_Help"]</h2>
+            <p>@T[$"Welcome_Help_{_step}"]</p>
+            @if (_step == Step.Mail && _fromAddress is not null)
+            {
+                @* Amazon drops mail from senders not on this list, without telling anyone. *@
+                <p class="status">@T["Welcome_AmazonHint", _fromAddress]</p>
+            }
+        </aside>
+    </div>
+}
+
+@code {
+    private enum Step
+    {
+        Delivery,
+        Mail,
+        Region,
+        Sources,
+        Done,
+    }
+
+    private static readonly int StepCount = Enum.GetValues<Step>().Length;
+
+    private Step _step;
+    private Profile? _profile;
+    private List<string> _errors = [];
+    private string? _notice;
+    private bool _busy;
+    private bool _mailServerSet;
+    private string? _fromAddress;
+
+    private string _recipient = string.Empty;
+    private string _time = string.Empty;
+    private string _zone = string.Empty;
+    private string? _country;
+    private string? _region;
+    private bool _local = true;
+    private HashSet<SampleSource> _picked = [];
+
+    private static string Language => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+    private bool CanSend => _profile is { } profile && !string.IsNullOrEmpty(profile.Recipient) && profile.Sections.Count > 0 && _mailServerSet;
+
+    protected override async Task LoadAsync()
+    {
+        await ReloadAsync();
+        var profile = _profile!; // ! is safe: ReloadAsync just set it
+        _recipient = profile.Recipient;
+        _time = profile.DeliveryTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+        _zone = profile.TimeZoneId;
+        _country = profile.Country;
+        _region = profile.Region;
+    }
+
+    private async Task ReloadAsync()
+    {
+        _profile = await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed));
+        var mail = await UseAsync<MailSettingsStore, MorningInk.Infrastructure.Delivery.SmtpOptions>(store => store.EffectiveAsync(Closed));
+        _mailServerSet = !string.IsNullOrWhiteSpace(mail.Host);
+        _fromAddress = string.IsNullOrWhiteSpace(mail.FromAddress) ? null : mail.FromAddress;
+    }
+
+    private void Go(Step step)
+    {
+        _errors = [];
+        _notice = null;
+        if (step == Step.Sources && _picked.Count == 0)
+        {
+            // Suggested once: one source per topic from the user's country or language.
+            _picked = [.. SampleSources.Suggest(Language, _country)];
+        }
+
+        _step = step;
+    }
+
+    private Task SaveDeliveryAsync() => SaveSettingsAsync(Step.Mail);
+
+    private Task SaveRegionAsync() => SaveSettingsAsync(Step.Sources);
+
+    private async Task SaveSettingsAsync(Step next)
+    {
+        var settings = new ProfileSettings(_profile!.Title, _recipient, _time, _zone, _region, _country); // ! is safe: the form only shows once the profile is loaded
+        var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(UserId, settings, Closed));
+        if (errors.Count > 0)
+        {
+            _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
+            return;
+        }
+
+        await ReloadAsync();
+        Go(next);
+    }
+
+    // Saved: send the test mail right away to the address from step 1, so the whole way to the Kindle is tested.
+    private async Task MailSavedAsync(IReadOnlyList<string> errors)
+    {
+        _notice = null;
+        _errors = [.. errors];
+        if (errors.Count > 0)
+        {
+            return;
+        }
+
+        await ReloadAsync();
+        switch (await UseAsync<TestMail, DeliveryResult>(mail => mail.SendAsync(_recipient, Language, Closed)))
+        {
+            case DeliveryResult.Failure failure:
+                _errors = [T["Settings_TestFailed", failure.Message]];
+                break;
+            default:
+                _notice = T["Settings_TestSent", _recipient];
+                break;
+        }
+    }
+
+    private void Pick(SampleSource sample)
+    {
+        if (!_picked.Remove(sample))
+        {
+            _picked.Add(sample);
+        }
+    }
+
+    private async Task AddSourcesAsync()
+    {
+        _busy = true;
+        try
+        {
+            var place = _region?.Trim();
+            var local = _local && !string.IsNullOrEmpty(place)
+                ? new LocalStarter($"{T["Sources_Local"]} {place}", place, _country, T["Welcome_SectionRegion"])
+                : null;
+            var names = new Dictionary<SampleTopic, string>
+            {
+                [SampleTopic.News] = T["Welcome_SectionNews"],
+                [SampleTopic.Tech] = T["Welcome_SectionTech"],
+            };
+            await UseAsync<Onboarding>(onboarding => onboarding.AddStartersAsync(UserId, new StarterChoice([.. _picked], names, local), Closed));
+            await ReloadAsync();
+            Go(Step.Done);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task SendFirstAsync()
+    {
+        _busy = true;
+        if (await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, Closed)))
+        {
+            // The dashboard follows the issue until it is out.
+            Navigation.NavigateTo("/?sent=1");
+        }
+
+        _busy = false;
+    }
+
+    private static string LanguageName(string language)
+    {
+        var name = CultureInfo.GetCultureInfo(language).NativeName;
+        return string.Concat(name[..1].ToUpper(CultureInfo.CurrentCulture), name[1..]);
+    }
+}
