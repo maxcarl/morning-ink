@@ -21,26 +21,38 @@
 
 @if (_view is { } view)
 {
-    var profile = view.Profile;
+    var lead = view.Editions[0];
+    var several = view.Editions.Count > 1;
     <div class="with-sidebar">
         <div>
             @* The lead story: the next issue, big, like a front page's top headline. *@
             <section class="lead" aria-labelledby="next-heading">
-                <span class="kicker">@T["Dash_Next"]</span>
-                <h2 id="next-heading" class="lead-headline">@Headline(view.NextIssue)</h2>
+                <span class="kicker">@T["Dash_Next"]@(several ? $" · {lead.Profile.Title}" : null)</span>
+                <h2 id="next-heading" class="lead-headline">@Headline(lead.NextIssue, lead.Profile)</h2>
                 <p class="lede">
-                    @(string.IsNullOrEmpty(profile.Recipient)
-                        ? T["Dash_NextLedeNoRecipient", NextNumber(view), profile.Sections.Count]
-                        : T["Dash_NextLede", NextNumber(view), profile.Sections.Count, profile.Recipient])
+                    @(string.IsNullOrEmpty(lead.Profile.Recipient)
+                        ? T["Dash_NextLedeNoRecipient", lead.NextNumber, lead.Profile.Sections.Count]
+                        : T["Dash_NextLede", lead.NextNumber, lead.Profile.Sections.Count, lead.Profile.Recipient])
                 </p>
-                @{ var blocked = !view.CanSend || !view.MailServerSet; }
-                <button type="button" class="button" disabled="@(blocked || _sending)" aria-describedby="@(blocked ? "send-blocked" : null)" @onclick="SendNowAsync">@T["Dash_SendNow"]</button>
-                @if (blocked)
-                {
-                    @* Right at the button: on a phone the notes that explain it are far below. *@
-                    <p id="send-blocked" class="hint">@T["Dash_SendBlocked"]</p>
-                }
+                @SendButton(lead, view, small: false)
             </section>
+
+            @if (several)
+            {
+                <h2 class="department">@T["Dash_Editions"]</h2>
+                <ul class="rows">
+                    @foreach (var edition in view.Editions.Skip(1))
+                    {
+                        <li class="row" @key="edition.Profile.Id">
+                            <div class="row-main">
+                                <div class="row-title">@edition.Profile.Title</div>
+                                <div class="row-meta">@Headline(edition.NextIssue, edition.Profile) · @T["Dash_IssueTitle", edition.NextNumber]</div>
+                            </div>
+                            @SendButton(edition, view, small: true)
+                        </li>
+                    }
+                </ul>
+            }
 
             <h2 class="department">@T["Dash_Recent"]</h2>
             @if (view.Issues.Count == 0)
@@ -50,10 +62,11 @@
             <ul class="rows" aria-live="polite">
                 @foreach (var issue in view.Issues)
                 {
+                    var profile = ProfileOf(issue);
                     <li class="row" @key="issue.Id">
                         <div class="row-main">
-                            <div class="row-title">@T["Dash_IssueTitle", issue.Number] · @Local(issue.ScheduledFor).ToString("g", CultureInfo.CurrentCulture)</div>
-                            <div class="row-meta">@Facts(issue)</div>
+                            <div class="row-title">@(several ? $"{profile?.Title} · " : null)@T["Dash_IssueTitle", issue.Number] · @Local(issue.ScheduledFor, profile).ToString("g", CultureInfo.CurrentCulture)</div>
+                            <div class="row-meta">@Facts(issue, profile)</div>
                             @if (issue.Error is not null && issue.Status == IssueStatus.Failed)
                             {
                                 <p class="status status-error issue-error">@issue.Error</p>
@@ -73,15 +86,21 @@
         <aside class="sidebar" aria-labelledby="notes-heading">
             <h2 id="notes-heading" class="department">@T["Dash_Notes"]</h2>
             <ul class="notes">
-                @if (string.IsNullOrEmpty(profile.Recipient))
+                @foreach (var edition in view.Editions.Where(e => !e.CanSend))
                 {
-                    <li><a href="/profile">@T["Dash_NeedRecipient"]</a></li>
+                    @* With several editions, each note says which one it is about. *@
+                    var prefix = several ? $"{edition.Profile.Title}: " : null;
+                    var href = $"/profile/{edition.Profile.Id}";
+                    @if (string.IsNullOrEmpty(edition.Profile.Recipient))
+                    {
+                        <li><a href="@href">@prefix@T["Dash_NeedRecipient"]</a></li>
+                    }
+                    @if (edition.Profile.Sections.Count == 0)
+                    {
+                        <li><a href="@href">@prefix@T["Dash_NeedSections"]</a></li>
+                    }
                 }
-                @if (profile.Sections.Count == 0)
-                {
-                    <li><a href="/profile">@T["Dash_NeedSections"]</a></li>
-                }
-                @if (!view.CanSend)
+                @if (!view.Editions[0].CanSend && !several)
                 {
                     <li><a href="/welcome">@T["Dash_Wizard"]</a></li>
                 }
@@ -99,7 +118,7 @@
                     </li>
                 }
             </ul>
-            @if (view.CanSend && view.MailServerSet)
+            @if (view.Editions.All(e => e.CanSend) && view.MailServerSet)
             {
                 <p class="muted">@T["Dash_AllGood"]</p>
             }
@@ -136,10 +155,28 @@
         }
     }
 
-    private async Task SendNowAsync()
+    // One per edition: the lead gets a big one, the others a small one in their row.
+    private RenderFragment SendButton(Edition edition, NewsroomView view, bool small) => __builder =>
+    {
+        var blocked = !edition.CanSend || !view.MailServerSet;
+        var hint = $"send-blocked-{edition.Profile.Id}";
+        <div>
+            <button type="button" class="button @(small ? "button-secondary button-small" : null)" disabled="@(blocked || _sending)"
+                    aria-describedby="@(blocked ? hint : null)" @onclick="() => SendNowAsync(edition.Profile.Id)">
+                @T["Dash_SendNow"]<span class="visually-hidden"> – @edition.Profile.Title</span>
+            </button>
+            @if (blocked && !small)
+            {
+                @* Right at the button: on a phone the notes that explain it are far below. *@
+                <p id="@hint" class="hint">@T["Dash_SendBlocked"]</p>
+            }
+        </div>
+    };
+
+    private async Task SendNowAsync(Guid profileId)
     {
         var since = Time.GetUtcNow();
-        if (await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, Closed)))
+        if (await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, profileId, Closed)))
         {
             await FollowAsync(since);
         }
@@ -178,17 +215,18 @@
     }
 
     // Weekday and short time; "t" inside a custom format would mean the AM/PM letter, so the two are formatted apart.
-    private string Headline(DateTimeOffset utc)
+    private static string Headline(DateTimeOffset utc, Profile profile)
     {
-        var local = Local(utc);
+        var local = Local(utc, profile);
         return $"{local.ToString("dddd", CultureInfo.CurrentCulture)}, {local.ToString("t", CultureInfo.CurrentCulture)}";
     }
 
-    private int NextNumber(NewsroomView view) => view.Issues.Select(i => i.Number).DefaultIfEmpty(0).Max() + 1;
+    private Profile? ProfileOf(Issue issue) => _view?.Editions.FirstOrDefault(e => e.Profile.Id == issue.ProfileId)?.Profile;
 
-    private DateTimeOffset Local(DateTimeOffset utc) => TimeZoneInfo.ConvertTime(utc, ProfileTimeZone.Find(_view?.Profile.TimeZoneId ?? "UTC"));
+    // Times show in the edition's own time zone.
+    private static DateTimeOffset Local(DateTimeOffset utc, Profile? profile) => TimeZoneInfo.ConvertTime(utc, ProfileTimeZone.Find(profile?.TimeZoneId ?? "UTC"));
 
-    private string Facts(Issue issue)
+    private string Facts(Issue issue, Profile? profile)
     {
         var facts = new List<string>();
         if (issue.Entries.Count > 0)
@@ -203,7 +241,7 @@
 
         if (issue.DeliveredAt is { } delivered)
         {
-            facts.Add(T["Dash_DeliveredAt", Local(delivered).ToString("t", CultureInfo.CurrentCulture)]);
+            facts.Add(T["Dash_DeliveredAt", Local(delivered, profile).ToString("t", CultureInfo.CurrentCulture)]);
         }
 
         if (issue.Attempts.Any(a => !a.Succeeded))

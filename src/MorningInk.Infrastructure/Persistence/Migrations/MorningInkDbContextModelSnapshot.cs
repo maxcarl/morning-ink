@@ -350,6 +350,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2)
                         .HasColumnType("TEXT");
 
+                    b.PrimitiveCollection<string>("Days")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<TimeOnly>("DeliveryTime")
                         .HasColumnType("TEXT");
 

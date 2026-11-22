@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
 using MorningInk.Application.Publishing;
+using MorningInk.Application.Scheduling;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Scheduling;
@@ -13,13 +14,14 @@ namespace MorningInk.Infrastructure.Profiles;
 /// <param name="DeliveryTime">"HH:mm", e.g. "06:00".</param>
 /// <param name="TimeZoneId">IANA id, e.g. "Europe/Berlin".</param>
 /// <param name="Country">ISO code, e.g. "DE"; empty searches worldwide.</param>
-public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region, string? Country = null);
+/// <param name="Days">Weekdays with an issue; null keeps the current ones, all seven mean every day, none is an error.</param>
+public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region, string? Country = null, IReadOnlyCollection<DayOfWeek>? Days = null);
 
 /// <summary>
-/// Edits a user's issue profile and its sections. Every method only reaches the given user's profile, and sections only
-/// ever get that user's sources. Changes to the schedule take effect with the next issue.
+/// Edits a user's issue profiles ("editions", e.g. morning and evening) and their sections. Every method only reaches the
+/// given user's profiles, and sections only ever get that user's sources. Schedule changes take effect with the next issue.
 /// </summary>
-public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory schedulers, IssueScheduler issueScheduler)
+public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory schedulers, IssueScheduler issueScheduler, IIssueFiles files)
 {
     private const string DefaultTitle = "Morning Ink";
     private const int MaxNameLength = 200;
@@ -27,21 +29,16 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     private const int MaxSectionArticles = 100;
     private const string TimeFormat = "HH:mm";
 
-    /// <summary>The user's profile with sections and sources; created with defaults on the first visit.</summary>
+    /// <summary>The user's first profile with sections and sources; created with defaults when the user has none.</summary>
     public async Task<Profile> GetOrCreateAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var profile = await db.Profiles
-            .Where(p => p.UserId == userId)
-            .Include(p => p.Sections).ThenInclude(s => s.Sources)
-            .AsSplitQuery()
-            .OrderBy(p => p.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+        // Ids are version 7 GUIDs, so the oldest profile comes first.
+        var profile = await Query(userId).OrderBy(p => p.Id).FirstOrDefaultAsync(cancellationToken);
         if (profile is not null)
         {
             return profile;
         }
 
-        // ponytail: one profile per user for now; several issues per user (morning, evening) come with stage 2.
         profile = new Profile { UserId = userId, Title = DefaultTitle, Recipient = string.Empty };
         db.Profiles.Add(profile);
         await db.SaveChangesAsync(cancellationToken);
@@ -49,8 +46,61 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         return profile;
     }
 
-    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country.</summary>
-    public async Task<IReadOnlyList<string>> SaveSettingsAsync(Guid userId, ProfileSettings settings, CancellationToken cancellationToken)
+    /// <summary>All profiles of the user, oldest first.</summary>
+    public async Task<IReadOnlyList<Profile>> ListAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        await GetOrCreateAsync(userId, cancellationToken);
+        return await Query(userId).OrderBy(p => p.Id).ToListAsync(cancellationToken);
+    }
+
+    /// <summary>The profile if it is the user's; null otherwise.</summary>
+    public Task<Profile?> FindAsync(Guid userId, Guid profileId, CancellationToken cancellationToken) =>
+        Query(userId).SingleOrDefaultAsync(p => p.Id == profileId, cancellationToken);
+
+    /// <summary>Adds a profile. It starts with the recipient, time and region of the first one, so a second edition needs few changes.</summary>
+    public async Task<Profile> CreateAsync(Guid userId, string title, CancellationToken cancellationToken)
+    {
+        var first = await GetOrCreateAsync(userId, cancellationToken);
+        title = title.Trim();
+        var profile = new Profile
+        {
+            UserId = userId,
+            Title = title.Length is 0 or > MaxNameLength ? DefaultTitle : title,
+            Recipient = first.Recipient,
+            DeliveryTime = first.DeliveryTime,
+            TimeZoneId = first.TimeZoneId,
+            Region = first.Region,
+            Country = first.Country,
+        };
+        db.Profiles.Add(profile);
+        await db.SaveChangesAsync(cancellationToken);
+        await RescheduleAsync(profile, cancellationToken);
+        return profile;
+    }
+
+    /// <summary>Deletes the profile with its sections, issues and their files, and stops its schedule.</summary>
+    /// <returns>False when it is not the user's, or the last profile they have: a user always keeps one.</returns>
+    public async Task<bool> DeleteAsync(Guid userId, Guid profileId, CancellationToken cancellationToken)
+    {
+        var ids = await db.Profiles.Where(p => p.UserId == userId).Select(p => p.Id).ToListAsync(cancellationToken);
+        if (!ids.Contains(profileId) || ids.Count == 1)
+        {
+            return false;
+        }
+
+        var fileNames = await db.Issues.Where(i => i.ProfileId == profileId && i.FileName != null).Select(i => i.FileName!).ToListAsync(cancellationToken);
+        await db.Profiles.Where(p => p.Id == profileId).ExecuteDeleteAsync(cancellationToken); // sections and issues go with it (cascade)
+        foreach (var path in fileNames.Select(files.PathFor).Where(File.Exists))
+        {
+            File.Delete(path);
+        }
+
+        await (await schedulers.GetScheduler(cancellationToken)).DeleteJob(IssueScheduler.JobKeyFor(profileId), cancellationToken);
+        return true;
+    }
+
+    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country, Days, Profile.</summary>
+    public async Task<IReadOnlyList<string>> SaveSettingsAsync(Guid userId, Guid profileId, ProfileSettings settings, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
         var title = settings.Title.Trim();
@@ -87,32 +137,48 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
             errors.Add("Country");
         }
 
+        if (settings.Days is { Count: 0 })
+        {
+            errors.Add("Days");
+        }
+
+        var profile = await FindAsync(userId, profileId, cancellationToken);
+        if (profile is null)
+        {
+            errors.Add("Profile");
+        }
+
         if (errors.Count > 0)
         {
             return errors;
         }
 
-        var profile = await GetOrCreateAsync(userId, cancellationToken);
-        profile.Title = title;
+        // ! is safe: a missing profile returned above
+        profile!.Title = title;
         profile.Recipient = recipient;
         profile.DeliveryTime = time;
         profile.TimeZoneId = settings.TimeZoneId;
         profile.Region = string.IsNullOrEmpty(region) ? null : region;
         profile.Country = country;
+        if (settings.Days is { } days)
+        {
+            // Stored as "every day" when all are ticked, so later changes to the default reach these profiles too.
+            profile.Days = DeliverySlots.IsEveryDay(days) ? [] : [.. days.Distinct().Order()];
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         await RescheduleAsync(profile, cancellationToken);
         return [];
     }
 
-    public async Task<bool> AddSectionAsync(Guid userId, string name, CancellationToken cancellationToken)
+    public async Task<bool> AddSectionAsync(Guid userId, Guid profileId, string name, CancellationToken cancellationToken)
     {
         name = name.Trim();
-        if (name.Length is 0 or > MaxNameLength)
+        if (name.Length is 0 or > MaxNameLength || await FindAsync(userId, profileId, cancellationToken) is not { } profile)
         {
             return false;
         }
 
-        var profile = await GetOrCreateAsync(userId, cancellationToken);
         var position = profile.Sections.Select(s => s.Position).DefaultIfEmpty(0).Max() + 1;
         profile.Sections.Add(new Section { Name = name, Position = position });
         await db.SaveChangesAsync(cancellationToken);
@@ -123,7 +189,7 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     public async Task<bool> SaveSectionAsync(Guid userId, Guid sectionId, string name, int? maxArticles, IReadOnlyCollection<Guid> sourceIds, CancellationToken cancellationToken)
     {
         name = name.Trim();
-        var section = (await GetOrCreateAsync(userId, cancellationToken)).Sections.SingleOrDefault(s => s.Id == sectionId);
+        var section = (await OwnerOfSectionAsync(userId, sectionId, cancellationToken))?.Sections.Single(s => s.Id == sectionId);
         if (section is null || name.Length is 0 or > MaxNameLength || maxArticles is < 1 or > MaxSectionArticles)
         {
             return false;
@@ -142,13 +208,12 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
 
     public async Task<bool> DeleteSectionAsync(Guid userId, Guid sectionId, CancellationToken cancellationToken)
     {
-        var profile = await GetOrCreateAsync(userId, cancellationToken);
-        if (profile.Sections.SingleOrDefault(s => s.Id == sectionId) is not { } section)
+        if (await OwnerOfSectionAsync(userId, sectionId, cancellationToken) is not { } profile)
         {
             return false;
         }
 
-        profile.Sections.Remove(section);
+        profile.Sections.Remove(profile.Sections.Single(s => s.Id == sectionId));
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -157,12 +222,13 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     /// <remarks>An index outside the list puts it first or last, so a stale page can never lose a section.</remarks>
     public async Task<bool> MoveSectionAsync(Guid userId, Guid sectionId, int index, CancellationToken cancellationToken)
     {
-        var ordered = (await GetOrCreateAsync(userId, cancellationToken)).Sections.OrderBy(s => s.Position).ToList();
-        var section = ordered.SingleOrDefault(s => s.Id == sectionId);
-        if (section is null)
+        if (await OwnerOfSectionAsync(userId, sectionId, cancellationToken) is not { } profile)
         {
             return false;
         }
+
+        var ordered = profile.Sections.OrderBy(s => s.Position).ToList();
+        var section = ordered.Single(s => s.Id == sectionId);
 
         ordered.Remove(section);
         ordered.Insert(Math.Clamp(index, 0, ordered.Count), section);
@@ -177,6 +243,13 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         return true;
     }
 
+    private IQueryable<Profile> Query(Guid userId) =>
+        db.Profiles.Where(p => p.UserId == userId).Include(p => p.Sections).ThenInclude(s => s.Sources).AsSplitQuery();
+
+    // The user's profile that holds the section; null when no profile of theirs does.
+    private Task<Profile?> OwnerOfSectionAsync(Guid userId, Guid sectionId, CancellationToken cancellationToken) =>
+        Query(userId).SingleOrDefaultAsync(p => p.Sections.Any(s => s.Id == sectionId), cancellationToken);
+
     // Exactly one plain address: no display name, no list, no line breaks (it ends up in a mail header).
     private static bool IsSingleAddress(string value) =>
         value.Length > 0 && !value.Any(c => char.IsControl(c) || c is ',' or ';' or ' ')
@@ -186,7 +259,7 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     private async Task RescheduleAsync(Profile profile, CancellationToken cancellationToken) =>
         await issueScheduler.ScheduleAsync(
             await schedulers.GetScheduler(cancellationToken),
-            new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId),
+            new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days),
             cancellationToken,
             catchUp: false);
 }

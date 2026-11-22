@@ -75,6 +75,22 @@ public sealed class IssueSchedulerTests : IDisposable
     }
 
     [Fact]
+    public async Task Weekend_issue_fires_only_on_saturday_and_sunday()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(6, 30), [DayOfWeek.Saturday, DayOfWeek.Sunday]);
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        // The test clock stands on Saturday 7:00, so the 6:30 slot of today is caught up and the next ones are Sunday and Saturday.
+        var daily = (await scheduler.GetTriggersOfJob(IssueScheduler.JobKeyFor(profileId))).OfType<ICronTrigger>().Single();
+        var first = daily.GetFireTimeAfter(DateTimeOffset.Parse("2026-11-21T06:00:00Z", System.Globalization.CultureInfo.InvariantCulture))!.Value; // ! is safe: a weekly trigger always fires again
+        var second = daily.GetFireTimeAfter(first)!.Value; // ! is safe: as above
+        Assert.Equal([DayOfWeek.Sunday, DayOfWeek.Saturday], new[] { first, second }.Select(t => TimeZoneInfo.ConvertTime(t, daily.TimeZone).DayOfWeek));
+    }
+
+    [Fact]
     public async Task Rescheduling_does_not_add_a_second_daily_trigger()
     {
         await using var services = await StartAsync();
@@ -133,13 +149,13 @@ public sealed class IssueSchedulerTests : IDisposable
         },
         services => services.AddSingleton<ProfileLocks>().AddScoped<IssuePublisher>());
 
-    private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime)
+    private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime, List<DayOfWeek>? days = null)
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
         var user = new User { Name = "max", Language = "de" };
         var source = new Source { UserId = user.Id, Name = "Test-Feed", Url = _feed.Url("/feed").ToString(), FetchFullText = false, MaxAge = TimeSpan.FromDays(3650) };
-        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max_abc@kindle.com", DeliveryTime = deliveryTime };
+        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max_abc@kindle.com", DeliveryTime = deliveryTime, Days = days ?? [] };
         profile.Sections.Add(new Section { Name = "Nachrichten", Position = 1, Sources = { source } });
         db.AddRange(user, source, profile);
         await db.SaveChangesAsync();

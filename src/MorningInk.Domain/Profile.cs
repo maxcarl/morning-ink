@@ -28,6 +28,9 @@ public class Profile
     /// <summary>IANA time zone the delivery time refers to.</summary>
     public string TimeZoneId { get; set; } = "Europe/Berlin";
 
+    /// <summary>Weekdays with an issue, in <see cref="TimeZoneId"/>; empty means every day.</summary>
+    public List<DayOfWeek> Days { get; set; } = [];
+
     /// <summary>Sections of the issue, ordered by <see cref="Section.Position"/>.</summary>
     public ICollection<Section> Sections { get; } = [];
 }

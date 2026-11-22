@@ -86,8 +86,8 @@
   <data name="Nav_Profile" xml:space="preserve"><value>Ausgabe</value></data>
   <data name="Profile_Kicker" xml:space="preserve"><value>Blattplanung</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Ausgabe</value></data>
-  <data name="Profile_Lede" xml:space="preserve"><value>{0} erscheint jeden Tag um {1} ({2}), zugestellt an {3}.</value></data>
-  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} erscheint jeden Tag um {1} ({2}). Trage einen Empfänger ein, damit sie zugestellt werden kann.</value></data>
+  <data name="Profile_Lede" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}), zugestellt an {4}.</value></data>
+  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}). Trage einen Empfänger ein, damit sie zugestellt werden kann.</value></data>
   <data name="Profile_Settings" xml:space="preserve"><value>Zustellung</value></data>
   <data name="Profile_NewspaperTitle" xml:space="preserve"><value>Titel der Zeitung</value></data>
   <data name="Profile_Recipient" xml:space="preserve"><value>Empfänger</value></data>
@@ -236,4 +236,14 @@
   <data name="Welcome_AmazonHint" xml:space="preserve"><value>Wichtig: Trag {0} bei Amazon unter „Einstellungen für persönliche Dokumente → Genehmigte E-Mail-Liste“ ein. Sonst verwirft Amazon die Zeitung ohne Meldung.</value></data>
   <data name="Dash_Wizard" xml:space="preserve"><value>Einrichtungsassistent fortsetzen.</value></data>
   <data name="Dash_SendBlocked" xml:space="preserve"><value>Senden geht, sobald alles eingerichtet ist, siehe Meldungen.</value></data>
+  <data name="Dash_Editions" xml:space="preserve"><value>Weitere Ausgaben</value></data>
+  <data name="Profile_Editions" xml:space="preserve"><value>Ausgaben</value></data>
+  <data name="Profile_NewEdition" xml:space="preserve"><value>Neue Ausgabe</value></data>
+  <data name="Profile_Days" xml:space="preserve"><value>Wochentage</value></data>
+  <data name="Profile_EveryDay" xml:space="preserve"><value>jeden Tag</value></data>
+  <data name="Profile_OnDays" xml:space="preserve"><value>{0}</value></data>
+  <data name="Profile_DeleteEdition" xml:space="preserve"><value>Diese Ausgabe löschen</value></data>
+  <data name="Profile_DeleteEditionHint" xml:space="preserve"><value>Ihre Rubriken und alten Ausgaben werden mit gelöscht.</value></data>
+  <data name="Profile_Error_Days" xml:space="preserve"><value>Wähl mindestens einen Tag.</value></data>
+  <data name="Profile_Error_Profile" xml:space="preserve"><value>Diese Ausgabe gibt es nicht mehr.</value></data>
 </root>

@@ -1,10 +1,12 @@
 @page "/profile"
+@page "/profile/{ProfileId:guid}"
 @rendermode InteractiveServer
 @inherits InteractivePage
 @using System.Globalization
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Profiles
 @using MorningInk.Infrastructure.Sources
+@inject NavigationManager Navigation
 
 <PageTitle>@T["Profile_Title"] – @T["Brand"]</PageTitle>
 
@@ -15,9 +17,17 @@
     {
     <p class="lede">
         @(string.IsNullOrEmpty(_profile.Recipient)
-            ? T["Profile_LedeNoRecipient", _profile.Title, _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId]
-            : T["Profile_Lede", _profile.Title, _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId, _profile.Recipient])
+            ? T["Profile_LedeNoRecipient", _profile.Title, DaysText(_profile), _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId]
+            : T["Profile_Lede", _profile.Title, DaysText(_profile), _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId, _profile.Recipient])
     </p>
+    @* One tab per edition, like the sections of a paper; a new one starts as a copy of the first one's delivery. *@
+    <nav class="editions" aria-label="@T["Profile_Editions"]">
+        @foreach (var edition in _editions)
+        {
+            <a href="/profile/@edition.Id" aria-current="@(edition.Id == _profile.Id ? "page" : null)">@edition.Title</a>
+        }
+        <button type="button" class="link-button" @onclick="CreateEditionAsync">+ @T["Profile_NewEdition"]</button>
+    </nav>
     }
     @if (_notice is not null)
     {
@@ -146,6 +156,15 @@
                 <label for="time">@T["Profile_DeliveryTime"]</label>
                 <input id="time" class="input" type="time" @bind="_time" required />
             </div>
+            <fieldset class="field">
+                <legend class="label">@T["Profile_Days"]</legend>
+                <div class="weekdays">
+                    @foreach (var day in Week)
+                    {
+                        <label class="checkbox"><input type="checkbox" checked="@_days.Contains(day)" @onchange="() => ToggleDay(day)" /> @CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)day]</label>
+                    }
+                </div>
+            </fieldset>
             <div class="field">
                 <label for="zone">@T["Profile_TimeZone"]</label>
                 <select id="zone" class="input" @bind="_zone">
@@ -167,6 +186,22 @@
             </div>
             <button type="submit" class="button button-block">@T["Profile_Save"]</button>
         </form>
+        @if (_editions.Count > 1 && _profile is not null)
+        {
+            @* A user always keeps one edition, so the last one has no delete. *@
+            <div class="row-actions edition-delete">
+                @if (_confirmEdition)
+                {
+                    <p class="confirm" role="alert">@T["Confirm_Delete", _profile.Title] @T["Profile_DeleteEditionHint"]</p>
+                    <button type="button" class="button button-small" @onclick="DeleteEditionAsync">@T["Confirm_Yes"]</button>
+                    <button type="button" class="link-button" @onclick="() => _confirmEdition = false">@T["Confirm_Cancel"]</button>
+                }
+                else
+                {
+                    <button type="button" class="link-button link-danger" @onclick="() => _confirmEdition = true">@T["Profile_DeleteEdition"]</button>
+                }
+            </div>
+        }
     </aside>
 </div>
 
@@ -175,6 +210,9 @@
     private const int SearchFrom = 8;
 
     private Profile? _profile;
+    private IReadOnlyList<Profile> _editions = [];
+    private Guid? _shownFor;
+    private bool _confirmEdition;
     private List<Section> _sections = [];
     private IReadOnlyList<Source> _sources = [];
     private List<string> _errors = [];
@@ -199,6 +237,7 @@
     private string _title = string.Empty;
     private string _recipient = string.Empty;
     private TimeOnly _time;
+    private HashSet<DayOfWeek> _days = [];
     private string _zone = string.Empty;
     private string? _country;
     private string? _region;
@@ -211,15 +250,70 @@
         _title = profile.Title;
         _recipient = profile.Recipient;
         _time = profile.DeliveryTime;
+        _days = profile.Days.Count == 0 ? [.. Enum.GetValues<DayOfWeek>()] : [.. profile.Days];
         _zone = profile.TimeZoneId;
         _country = profile.Country;
+        _confirmEdition = false;
+        _shownFor = ProfileId;
         _region = profile.Region;
+    }
+
+    /// <summary>The edition to show; none means the first one.</summary>
+    [Parameter]
+    public Guid? ProfileId { get; set; }
+
+    // The week as the user's culture starts it, e.g. Monday first in Germany.
+    private static IEnumerable<DayOfWeek> Week => Enumerable.Range(0, 7).Select(i => (DayOfWeek)(((int)CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek + i) % 7));
+
+    // A tab click keeps this page and only changes the parameter, so the edition is loaded again here.
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_profile is not null && ProfileId != _shownFor)
+        {
+            _openId = _confirmId = null;
+            Clear();
+            await LoadAsync();
+        }
     }
 
     private async Task ReloadAsync()
     {
-        _profile = await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed));
+        _editions = await UseAsync<ProfileEditor, IReadOnlyList<Profile>>(editor => editor.ListAsync(UserId, Closed));
+        var wanted = _profile?.Id ?? ProfileId;
+        if (ProfileId != _shownFor)
+        {
+            wanted = ProfileId;
+        }
+
+        _profile = _editions.FirstOrDefault(p => p.Id == wanted) ?? _editions[0];
         _sections = [.. _profile.Sections.OrderBy(s => s.Position)];
+    }
+
+    private string DaysText(Profile profile) => profile.Days.Count == 0
+        ? T["Profile_EveryDay"]
+        : T["Profile_OnDays", string.Join(", ", Week.Where(profile.Days.Contains).Select(d => CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)d]))];
+
+    private void ToggleDay(DayOfWeek day)
+    {
+        if (!_days.Remove(day))
+        {
+            _days.Add(day);
+        }
+    }
+
+    private async Task CreateEditionAsync()
+    {
+        var created = await UseAsync<ProfileEditor, Profile>(editor => editor.CreateAsync(UserId, T["Profile_NewEdition"], Closed));
+        Navigation.NavigateTo($"/profile/{created.Id}");
+    }
+
+    private async Task DeleteEditionAsync()
+    {
+        var id = _profile!.Id; // ! is safe: the button only shows with a loaded profile
+        if (await UseAsync<ProfileEditor, bool>(editor => editor.DeleteAsync(UserId, id, Closed)))
+        {
+            Navigation.NavigateTo("/profile");
+        }
     }
 
     private void Toggle(Section section)
@@ -330,7 +424,7 @@
     private async Task AddSectionAsync()
     {
         Clear();
-        if (!await UseAsync<ProfileEditor, bool>(editor => editor.AddSectionAsync(UserId, _newSection, Closed)))
+        if (!await UseAsync<ProfileEditor, bool>(editor => editor.AddSectionAsync(UserId, _profile!.Id, _newSection, Closed)))
         {
             _errors = [T["Profile_SectionInvalid"]];
             return;
@@ -344,7 +438,7 @@
     {
         Clear();
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(
-            UserId, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country), Closed));
+            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days]), Closed));
         _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
         if (_errors.Count == 0)
         {

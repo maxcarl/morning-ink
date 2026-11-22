@@ -67,7 +67,7 @@ public sealed class Onboarding(SourceCatalog catalog, ProfileEditor profiles)
             return section;
         }
 
-        await profiles.AddSectionAsync(userId, name, cancellationToken);
+        await profiles.AddSectionAsync(userId, profile.Id, name, cancellationToken);
         return (await profiles.GetOrCreateAsync(userId, cancellationToken)).Sections.Single(s => s.Name == name);
     }
 }

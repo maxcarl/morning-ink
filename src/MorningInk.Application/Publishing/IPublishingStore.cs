@@ -22,8 +22,9 @@ public interface IPublishingStore
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }
 
-/// <summary>A profile's daily delivery time in its time zone.</summary>
-public sealed record ProfileSchedule(Guid ProfileId, TimeOnly DeliveryTime, string TimeZoneId);
+/// <summary>A profile's delivery time in its time zone.</summary>
+/// <param name="Days">Weekdays with an issue; null or empty means every day.</param>
+public sealed record ProfileSchedule(Guid ProfileId, TimeOnly DeliveryTime, string TimeZoneId, IReadOnlyCollection<DayOfWeek>? Days = null);
 
 /// <param name="Profile">The profile, with sections and sources loaded.</param>
 /// <param name="Language">Culture name of the owner, e.g. "de", for texts in the issue.</param>

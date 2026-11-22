@@ -59,7 +59,7 @@ public sealed partial class IssueScheduler(
             .WithIdentity($"daily-{schedule.ProfileId}")
             .ForJob(job)
             .WithSchedule(CronScheduleBuilder
-                .Create(string.Create(CultureInfo.InvariantCulture, $"0 {schedule.DeliveryTime.Minute} {schedule.DeliveryTime.Hour} * * ?"))
+                .Create(CronFor(schedule))
                 .InTimeZone(zone)
 
                 // If Morning Ink was busy at the moment, run as soon as possible instead of skipping the day.
@@ -69,7 +69,7 @@ public sealed partial class IssueScheduler(
         await scheduler.ScheduleJob(daily, default, cancellationToken);
 
         var now = time.GetUtcNow();
-        var lastSlot = DeliverySlots.LastAtOrBefore(now, schedule.DeliveryTime, zone);
+        var lastSlot = DeliverySlots.LastAtOrBefore(now, schedule.DeliveryTime, zone, schedule.Days);
         if (catchUp && now - lastSlot <= options.Value.CatchUpWindow)
         {
             // Harmless when the slot was already delivered: the publisher then does nothing.
@@ -103,6 +103,20 @@ public sealed partial class IssueScheduler(
         var at = time.GetUtcNow() + RetryDelay(attempts, options.Value.FirstRetryDelay);
         await scheduler.ScheduleJob(OneOff(JobKeyFor(profileId), $"retry-{profileId}-{attempts}", slot, at), ScheduleJobOptions.Replacing, cancellationToken);
         LogRetry(logger, profileId, at);
+    }
+
+    /// <summary>Quartz cron for the delivery time: every day, or only on the chosen weekdays.</summary>
+    internal static string CronFor(ProfileSchedule schedule)
+    {
+        var (minute, hour) = (schedule.DeliveryTime.Minute, schedule.DeliveryTime.Hour);
+        if (DeliverySlots.IsEveryDay(schedule.Days))
+        {
+            return string.Create(CultureInfo.InvariantCulture, $"0 {minute} {hour} * * ?");
+        }
+
+        // Quartz wants "?" for the day of month when the day of week is given; its weekday names are SUN, MON, …
+        var days = string.Join(',', schedule.Days!.Distinct().Order().Select(d => d.ToString()[..3].ToUpperInvariant())); // ! is safe: IsEveryDay is true for null
+        return string.Create(CultureInfo.InvariantCulture, $"0 {minute} {hour} ? * {days}");
     }
 
     /// <summary>5, 15, 45, 135 minutes … with the default first delay.</summary>

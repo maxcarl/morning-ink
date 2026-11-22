@@ -230,7 +230,7 @@
     private async Task SaveSettingsAsync(Step next)
     {
         var settings = new ProfileSettings(_profile!.Title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country); // ! is safe: the form only shows once the profile is loaded
-        var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(UserId, settings, Closed));
+        var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(UserId, _profile.Id, settings, Closed));
         if (errors.Count > 0)
         {
             _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
@@ -298,7 +298,8 @@
     private async Task SendFirstAsync()
     {
         _busy = true;
-        if (await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, Closed)))
+        // ! is safe: the last step only shows once the profile is loaded
+        if (await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, _profile!.Id, Closed)))
         {
             // The dashboard follows the issue until it is out.
             Navigation.NavigateTo("/?sent=1");

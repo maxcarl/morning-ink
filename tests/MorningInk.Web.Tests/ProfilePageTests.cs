@@ -1,8 +1,10 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
+using MorningInk.Infrastructure.Profiles;
 using MorningInk.Web.Components.Pages;
 
 namespace MorningInk.Web.Tests;
@@ -117,7 +119,79 @@ public sealed class ProfilePageTests : IDisposable
         Assert.DoesNotContain("> zeit</label>", page.Markup, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task New_edition_is_created_and_opened()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+
+        Pages.Button(page, "+ New edition").Click();
+
+        await WaitForAsync(async () => (await ProfilesAsync()).Count == 2);
+        var created = (await ProfilesAsync())[1];
+        Assert.Equal("New edition", created.Title);
+        Assert.EndsWith($"/profile/{created.Id}", pages.Services.GetRequiredService<NavigationManager>().Uri, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Weekend_edition_comes_only_on_saturday_and_sunday()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var weekend = await CreateEditionAsync("Wochenende");
+        var page = pages.Open<ProfilePage>("Wochenende comes out", p => p.Add(x => x.ProfileId, weekend));
+
+        foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri" })
+        {
+            page.FindAll(".weekdays label").Single(l => l.TextContent.Trim() == day).QuerySelector("input")!.Change(false); // ! is safe: every day label holds a checkbox
+        }
+
+        Pages.Submit(page, ("#recipient", "max_abc@kindle.com"));
+
+        Pages.Shows(page, "Wochenende comes out on Sun, Sat at"); // in English the week starts on Sunday
+        Assert.Equal([DayOfWeek.Sunday, DayOfWeek.Saturday], (await ProfilesAsync()).Single(p => p.Id == weekend).Days);
+        Assert.Equal(Enumerable.Empty<DayOfWeek>(), (await ProfilesAsync())[0].Days); // the first edition keeps every day
+    }
+
+    [Fact]
+    public async Task Edition_is_deleted_only_after_confirmation_and_the_last_one_has_no_delete()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var evening = await CreateEditionAsync("Abend");
+        var page = pages.Open<ProfilePage>("Abend comes out", p => p.Add(x => x.ProfileId, evening));
+
+        Pages.Button(page, "Delete this edition").Click();
+        Assert.Equal(2, (await ProfilesAsync()).Count);
+        Pages.Button(page, "Yes, delete").Click();
+
+        await WaitForAsync(async () => (await ProfilesAsync()).Count == 1);
+        var first = pages.Open<ProfilePage>("comes out every day");
+        Assert.DoesNotContain("Delete this edition", first.Markup, StringComparison.Ordinal);
+    }
+
     public void Dispose() => _app.Dispose();
+
+    private async Task<Guid> CreateEditionAsync(string title)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var userId = await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().DomainUsers.Where(u => u.Name == TestApp.AdminName).Select(u => u.Id).SingleAsync();
+        return (await scope.ServiceProvider.GetRequiredService<ProfileEditor>().CreateAsync(userId, title, CancellationToken.None)).Id;
+    }
+
+    private async Task<List<Profile>> ProfilesAsync()
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles.OrderBy(p => p.Id).ToListAsync();
+    }
+
+    private static async Task WaitForAsync(Func<Task<bool>> condition)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (!await condition())
+        {
+            Assert.True(DateTime.UtcNow < deadline, "Timed out.");
+            await Task.Delay(50);
+        }
+    }
 
     private static void AddSection(IRenderedComponent<ProfilePage> page, string name)
     {

@@ -6,6 +6,7 @@ namespace MorningInk.Application.Tests.Scheduling;
 public class DeliverySlotsTests
 {
     private static readonly TimeZoneInfo Berlin = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
+    private static readonly DayOfWeek[] Weekend = [DayOfWeek.Saturday, DayOfWeek.Sunday];
 
     [Theory]
     [InlineData("2026-11-21T07:00:00+01:00", "06:00", "2026-11-21T05:00:00Z")] // an hour after the slot
@@ -28,6 +29,24 @@ public class DeliverySlotsTests
         Assert.Equal(
             DateTimeOffset.Parse(expected, CultureInfo.InvariantCulture),
             DeliverySlots.NextAfter(DateTimeOffset.Parse(now, CultureInfo.InvariantCulture), TimeOnly.Parse(time, CultureInfo.InvariantCulture), Berlin));
+
+    [Theory]
+    [InlineData("2026-11-23T07:00:00+01:00", "2026-11-22T05:00:00Z")] // Monday: back to Sunday 6:00
+    [InlineData("2026-11-21T07:00:00+01:00", "2026-11-21T05:00:00Z")] // Saturday after 6:00: today
+    [InlineData("2026-11-21T05:00:00+01:00", "2026-11-15T05:00:00Z")] // Saturday before 6:00: last Sunday
+    public void Last_slot_only_falls_on_the_chosen_days(string now, string expected) =>
+        Assert.Equal(
+            DateTimeOffset.Parse(expected, CultureInfo.InvariantCulture),
+            DeliverySlots.LastAtOrBefore(DateTimeOffset.Parse(now, CultureInfo.InvariantCulture), new TimeOnly(6, 0), Berlin, Weekend));
+
+    [Theory]
+    [InlineData("2026-11-23T07:00:00+01:00", "2026-11-28T05:00:00Z")] // Monday: on to Saturday
+    [InlineData("2026-11-21T07:00:00+01:00", "2026-11-22T05:00:00Z")] // Saturday after 6:00: Sunday
+    [InlineData("2026-11-22T07:00:00+01:00", "2026-11-28T05:00:00Z")] // Sunday after 6:00: next Saturday
+    public void Next_slot_only_falls_on_the_chosen_days(string now, string expected) =>
+        Assert.Equal(
+            DateTimeOffset.Parse(expected, CultureInfo.InvariantCulture),
+            DeliverySlots.NextAfter(DateTimeOffset.Parse(now, CultureInfo.InvariantCulture), new TimeOnly(6, 0), Berlin, Weekend));
 
     [Fact]
     public void Unknown_time_zone_falls_back_to_utc() =>

@@ -56,8 +56,8 @@ public sealed class HomePageTests : IDisposable
         {
             var editor = scope.ServiceProvider.GetRequiredService<ProfileEditor>();
             var userId = await UserIdAsync(scope);
-            await editor.SaveSettingsAsync(userId, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None);
-            await editor.AddSectionAsync(userId, "Politik", CancellationToken.None);
+            await editor.SaveSettingsAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None);
+            await editor.AddSectionAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, "Politik", CancellationToken.None);
         }
 
         var page = pages.Open<Home>("Next issue");
@@ -68,6 +68,23 @@ public sealed class HomePageTests : IDisposable
         // A section without sources has nothing new, so the issue ends up empty, but it is there, with its status.
         Pages.Shows(page, "No. 1");
         Pages.Shows(page, "No new articles");
+    }
+
+    [Fact]
+    public async Task Every_edition_shows_with_its_next_issue_and_its_own_send_button()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            var userId = await UserIdAsync(scope);
+            await scope.ServiceProvider.GetRequiredService<ProfileEditor>().CreateAsync(userId, "Abendausgabe", CancellationToken.None);
+        }
+
+        var page = pages.Open<Home>("Next issue");
+
+        Assert.Contains("Other editions", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("Abendausgabe", page.Markup, StringComparison.Ordinal);
+        Assert.Equal(2, page.FindAll("button").Count(b => b.TextContent.Trim().StartsWith("Send now", StringComparison.Ordinal)));
     }
 
     public void Dispose() => _app.Dispose();
