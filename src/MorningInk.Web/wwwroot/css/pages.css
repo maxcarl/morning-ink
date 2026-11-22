@@ -84,18 +84,22 @@
 @media (min-width: 48rem) {
   .issue-line {
     display: grid;
-    grid-template-columns: 4.5rem 11rem minmax(0, 1fr) auto 6.5rem;
+    grid-template-columns: 4.5rem 11rem minmax(0, 1fr) auto auto;
   }
+  /* The status always ends the line; a log, where there is one, stands just before it */
   .issue-line .badge {
-    grid-column: 4;
-    justify-self: end;
-  }
-  .issue-log-toggle {
     grid-column: 5;
     justify-self: end;
   }
+  .issue-log-toggle {
+    grid-column: 4;
+    grid-row: 1;
+  }
   .archive-line {
     grid-template-columns: minmax(4.5rem, auto) 11rem minmax(0, 1fr) auto auto;
+  }
+  .archive-line .badge {
+    grid-column: 4;
   }
 }
 

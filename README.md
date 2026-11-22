@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/dashboard.png" alt="The Morning Ink newsroom: the next issue as the lead story, recent issues with their delivery status" width="760">
+  <img src="docs/images/dashboard.png" alt="The Morning Ink newsroom: the next issue with preview and send, recent issues with their delivery status" width="760">
 </p>
 
 > [!NOTE]
