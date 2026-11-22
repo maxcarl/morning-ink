@@ -3,6 +3,7 @@
 @layout AuthLayout
 @inject SignInManager<AppUser> SignInManager
 @inject AdminSetup AdminSetup
+@inject UserLanguages Languages
 @inject NavigationManager Navigation
 
 <PageTitle>@T["Login_Title"] – @T["Brand"]</PageTitle>
@@ -56,6 +57,12 @@
         var result = await SignInManager.PasswordSignInAsync(input.UserName.Trim(), input.Password, isPersistent: true, lockoutOnFailure: true);
         if (result.Succeeded)
         {
+            // The request's language is the browser's: keep the user's language in step for issues and mails.
+            if (await SignInManager.UserManager.FindByNameAsync(input.UserName.Trim()) is { } login)
+            {
+                await Languages.SetAsync(login.Id, System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, HttpContext.RequestAborted);
+            }
+
             Navigation.NavigateTo(LocalReturnUrl(ReturnUrl));
             return;
         }

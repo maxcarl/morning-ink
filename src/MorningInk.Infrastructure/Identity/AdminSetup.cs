@@ -12,11 +12,13 @@ public sealed class AdminSetup(MorningInkDbContext db, UserManager<AppUser> logi
     public async Task<bool> IsNeededAsync(CancellationToken cancellationToken) => !await db.DomainUsers.AnyAsync(cancellationToken);
 
     /// <summary>Creates the admin, or says why not.</summary>
+    /// <param name="language">The browser's language, e.g. "de", as the user's language.</param>
     /// <returns>The new login, or the reasons as Identity error codes plus "InvalidSetupCode" and "AlreadySetUp".</returns>
     public async Task<(AppUser? Login, IReadOnlyList<string> Errors)> CreateAdminAsync(
         string name,
         string password,
         string setupCode,
+        string language,
         CancellationToken cancellationToken)
     {
         if (!await IsNeededAsync(cancellationToken))
@@ -29,7 +31,7 @@ public sealed class AdminSetup(MorningInkDbContext db, UserManager<AppUser> logi
             return (null, ["InvalidSetupCode"]);
         }
 
-        var user = new User { Name = name.Trim(), Role = UserRole.Admin };
+        var user = new User { Name = name.Trim(), Role = UserRole.Admin, Language = language };
         var login = new AppUser { Id = user.Id, UserName = user.Name };
 
         // Domain user and login together or not at all, e.g. when the password is too short.

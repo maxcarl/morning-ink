@@ -79,7 +79,7 @@
             return;
         }
 
-        var (login, errors) = await AdminSetup.CreateAdminAsync(input.UserName, input.Password, input.Code, HttpContext.RequestAborted);
+        var (login, errors) = await AdminSetup.CreateAdminAsync(input.UserName, input.Password, input.Code, System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, HttpContext.RequestAborted);
         if (login is null)
         {
             _errors = errors.Select(ErrorText).Distinct().ToList();

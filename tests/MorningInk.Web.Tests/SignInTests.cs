@@ -1,4 +1,6 @@
 using System.Net;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MorningInk.Web.Tests;
 
@@ -110,7 +112,28 @@ public sealed class SignInTests : IDisposable
         Assert.Contains($"<h1>{title}</h1>", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task The_users_language_follows_the_browser_at_setup_and_sign_in()
+    {
+        var german = _app.Browser("de-DE");
+        await TestApp.SubmitAsync(german, "/setup", Setup(_app.SetupCode()));
+        var afterSetup = await LanguageOfAsync(TestApp.AdminName);
+
+        var english = _app.Browser("en-US");
+        await TestApp.SubmitAsync(english, "/login", new() { ["Input.UserName"] = TestApp.AdminName, ["Input.Password"] = TestApp.AdminPassword });
+        var afterSignIn = await LanguageOfAsync(TestApp.AdminName);
+
+        Assert.Equal(("de", "en"), (afterSetup, afterSignIn));
+    }
+
     public void Dispose() => _app.Dispose();
+
+    private async Task<string> LanguageOfAsync(string name)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Persistence.MorningInkDbContext>().DomainUsers
+            .Where(u => u.Name == name).Select(u => u.Language).SingleAsync();
+    }
 
     private static Dictionary<string, string> Setup(string code, string password = TestApp.AdminPassword) => new()
     {

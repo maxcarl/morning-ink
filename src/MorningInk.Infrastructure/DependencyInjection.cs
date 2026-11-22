@@ -165,6 +165,7 @@ public static class DependencyInjection
 
         services.AddSingleton<SetupCode>();
         services.AddScoped<AdminSetup>();
+        services.AddScoped<UserLanguages>();
         services.AddHostedService<SetupCodeAnnouncer>();
     }
 
