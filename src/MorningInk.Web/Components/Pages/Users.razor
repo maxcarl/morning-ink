@@ -117,7 +117,9 @@
         }
 
         _notice = T["Users_Added", name];
-        (_name, _password, _admin) = (string.Empty, string.Empty, false);
+        _name = string.Empty;
+        _password = string.Empty;
+        _admin = false;
         await LoadAsync();
     }
 
@@ -139,7 +141,8 @@
         }
 
         _notice = T["Users_PasswordSet", user.Name];
-        (_resetId, _resetPassword) = (null, string.Empty);
+        _resetId = null;
+        _resetPassword = string.Empty;
     }
 
     private async Task DeleteAsync(UserSummary user)

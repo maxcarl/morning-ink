@@ -597,4 +597,5 @@
   <data name="Profile_Area_content" xml:space="preserve"><value>Inhalt</value></data>
   <data name="Profile_Area_delivery" xml:space="preserve"><value>Zeitplan &amp; Zustellung</value></data>
   <data name="Profile_Area_notify" xml:space="preserve"><value>Benachrichtigung</value></data>
+  <data name="Status_Stored" xml:space="preserve"><value>Bereitgestellt</value></data>
 </root>

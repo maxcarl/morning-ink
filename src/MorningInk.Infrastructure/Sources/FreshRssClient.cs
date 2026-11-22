@@ -188,7 +188,11 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
     /// <summary>What FreshRSS answered: a body, or why there is none.</summary>
     public sealed class Answer
     {
-        private Answer(string? body, SourceResult.Failure? failure) => (Body, Failure) = (body, failure);
+        private Answer(string? body, SourceResult.Failure? failure)
+        {
+            Body = body;
+            Failure = failure;
+        }
 
         public string? Body { get; }
 

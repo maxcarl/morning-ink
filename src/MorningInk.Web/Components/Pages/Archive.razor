@@ -34,7 +34,7 @@
         @foreach (var item in page.Issues)
         {
             var issue = item.Issue;
-            var name = $"{T["Dash_IssueTitle", issue.Number]} · {Clock.DateAndTime(T, Local(issue.ScheduledFor, item.Profile))}";
+            var name = $"{T["Dash_IssueTitle", issue.Number]} · {Clock.DateAndTime(T, IssueTexts.Local(issue.ScheduledFor, item.Profile))}";
             var open = _openId == issue.Id;
             var inIssue = issue.Entries.Where(e => !e.Duplicate).ToList();
             var logOpen = _logId == issue.Id;
@@ -42,9 +42,9 @@
             <li class="issue" @key="issue.Id">
                 <div class="issue-line archive-line">
                     <span class="issue-name">@(several ? $"{item.Profile.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
-                    <span class="issue-date">@Clock.DateAndTime(T, Local(issue.ScheduledFor, item.Profile))</span>
-                    <span class="issue-facts">@Facts(issue)</span>
-                    <span class="badge @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
+                    <span class="issue-date">@Clock.DateAndTime(T, IssueTexts.Local(issue.ScheduledFor, item.Profile))</span>
+                    <span class="issue-facts">@string.Join(" · ", IssueTexts.Facts(T, issue))</span>
+                    <span class="badge @IssueTexts.StatusClass(issue.Status)">@IssueTexts.Status(T, issue, item.Profile)</span>
                     <span class="issue-actions">
                         @if (item.FileAvailable)
                         {
@@ -162,31 +162,4 @@
         await ReloadAsync();
     }
 
-    // Times show in the edition's own time zone.
-    private static DateTimeOffset Local(DateTimeOffset utc, Profile profile) => TimeZoneInfo.ConvertTime(utc, ProfileTimeZone.Find(profile.TimeZoneId));
-
-    private string Facts(Issue issue)
-    {
-        // Issues from before entries were kept have none; "0 articles" would be wrong, so the count is left out.
-        var facts = new List<string>();
-        if (issue.Entries.Count(e => !e.Duplicate) is var articles and > 0)
-        {
-            facts.Add(T["Dash_Articles", articles]);
-        }
-
-        if (issue.FileSize is { } size)
-        {
-            facts.Add(string.Create(CultureInfo.CurrentCulture, $"{size / 1024.0 / 1024.0:0.0} MB"));
-        }
-
-        return string.Join(" · ", facts);
-    }
-
-    private static string StatusClass(IssueStatus status) => status switch
-    {
-        IssueStatus.Delivered => "status-ok",
-        IssueStatus.Failed => "status-error",
-        IssueStatus.Empty => "muted",
-        _ => "status-warn",
-    };
 }

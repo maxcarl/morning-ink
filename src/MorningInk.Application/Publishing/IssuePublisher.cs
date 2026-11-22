@@ -275,7 +275,8 @@ public sealed class IssuePublisher(
             issue.AddLog(time.GetUtcNow(), "Chosen", section.Name, picks.Count, candidates.Count);
         }
 
-        if (taken.Sum(t => t.AlsoAt.Count) is var merged and > 0)
+        var merged = taken.Sum(t => t.AlsoAt.Count);
+        if (merged > 0)
         {
             issue.AddLog(time.GetUtcNow(), "Merged", merged);
         }
@@ -308,12 +309,14 @@ public sealed class IssuePublisher(
 
         var kept = sections.Sum(s => s.Articles.Count);
         issue.AddLog(time.GetUtcNow(), "Processed", kept, (int)(time.GetUtcNow() - started).TotalSeconds);
-        if (plan.Sum(p => p.Picks.Count) - kept is var dropped and > 0)
+        var dropped = plan.Sum(p => p.Picks.Count) - kept;
+        if (dropped > 0)
         {
             issue.AddLog(time.GetUtcNow(), "Dropped", dropped);
         }
 
-        if (sections.Sum(s => s.Articles.Count(a => a.Article.AiSummary is not null)) is var summaries and > 0)
+        var summaries = sections.Sum(s => s.Articles.Count(a => a.Article.AiSummary is not null));
+        if (summaries > 0)
         {
             issue.AddLog(time.GetUtcNow(), "Summaries", summaries);
         }

@@ -696,7 +696,9 @@
         var chosen = connected.Categories.Where(c => _freshRssPicked.Contains(c.Stream)).ToList();
         var added = await UseAsync<ConnectedSources, IReadOnlyList<Source>>(sources => sources.AddFreshRssAsync(UserId, connected.Api, _freshRssUser, _freshRssPassword, chosen, Closed));
         _notice = T["Sources_FreshRssAdded", added.Count];
-        (_freshRss, _freshRssPicked, _freshRssPassword) = (null, [], string.Empty);
+        _freshRss = null;
+        _freshRssPicked = [];
+        _freshRssPassword = string.Empty;
         await ReloadAsync();
     });
 

@@ -117,7 +117,8 @@
     {
         var userId = UserId;
         var errors = await Users.ChangeOwnPasswordAsync(userId, Input.Current, Input.New, HttpContext.RequestAborted);
-        (Input.Current, Input.New) = (string.Empty, string.Empty);
+        Input.Current = string.Empty;
+        Input.New = string.Empty;
         if (errors.Count > 0)
         {
             _errors = errors.Select(ErrorText).Distinct().ToList();

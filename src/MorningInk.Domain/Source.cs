@@ -107,14 +107,19 @@ public class Source
 
     public void RecordSuccess(DateTimeOffset at, int articles)
     {
-        (FailingSince, LastProblem, LastProblemReason, LastProblemArguments) = (null, null, null, []);
+        FailingSince = null;
+        LastProblem = null;
+        LastProblemReason = null;
+        LastProblemArguments = [];
         EmptySince = articles > 0 ? null : EmptySince ?? at;
     }
 
     public void RecordFailure(DateTimeOffset at, string problem, string? reason, IReadOnlyList<string> arguments)
     {
         FailingSince ??= at;
-        (LastProblem, LastProblemReason, LastProblemArguments) = (problem, reason, [.. arguments]);
+        LastProblem = problem;
+        LastProblemReason = reason;
+        LastProblemArguments = [.. arguments];
     }
 
     public SourceHealth Health(DateTimeOffset now) => (FailingSince, EmptySince) switch
