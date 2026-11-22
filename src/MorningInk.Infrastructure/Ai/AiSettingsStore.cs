@@ -7,7 +7,8 @@ namespace MorningInk.Infrastructure.Ai;
 
 /// <summary>What the settings page saves; an empty endpoint switches the AI off.</summary>
 /// <param name="ApiKey">Empty keeps the saved key, as with the mail password.</param>
-public sealed record AiSettingsInput(string? Endpoint, string? Model, string? ApiKey, bool IsLocal, bool Summaries);
+/// <param name="Enabled">Off pauses the AI without forgetting address, model and key.</param>
+public sealed record AiSettingsInput(string? Endpoint, string? Model, string? ApiKey, bool IsLocal, bool Summaries, bool Enabled = true);
 
 /// <summary>The instance's AI provider settings, in the database.</summary>
 public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowlist)
@@ -51,6 +52,7 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
         settings.Model = endpoint is null ? null : model;
         settings.IsLocal = input.IsLocal;
         settings.Summaries = input.Summaries;
+        settings.Enabled = input.Enabled;
         if (!string.IsNullOrEmpty(input.ApiKey))
         {
             settings.ApiKey = input.ApiKey;

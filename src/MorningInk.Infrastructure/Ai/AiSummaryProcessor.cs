@@ -34,7 +34,7 @@ internal sealed partial class AiSummaryProcessor(AiSettingsStore store, AiChat c
         }
 
         _settings ??= await store.LoadAsync(cancellationToken);
-        if (_settings is not { Summaries: true, Endpoint: not null, Model: not null } settings
+        if (_settings is not { Enabled: true, Summaries: true, Endpoint: not null, Model: not null } settings
             || (source.LocalAiOnly && !settings.IsLocal))
         {
             return article;

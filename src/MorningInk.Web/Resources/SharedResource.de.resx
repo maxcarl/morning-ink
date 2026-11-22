@@ -361,4 +361,6 @@
   <data name="Log_Hide" xml:space="preserve"><value>Protokoll ausblenden</value></data>
   <data name="Clock_Time" xml:space="preserve"><value>{0} Uhr</value></data>
   <data name="Clock_DateTime" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Settings_AiEnabled" xml:space="preserve"><value>KI verwenden</value></data>
+  <data name="Settings_AiEnabledHint" xml:space="preserve"><value>Ausgeschaltet pausiert alle KI-Schritte, z. B. damit Ausgaben schneller fertig sind; Adresse, Modell und Schlüssel bleiben gespeichert.</value></data>
 </root>

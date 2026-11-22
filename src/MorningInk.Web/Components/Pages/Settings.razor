@@ -41,6 +41,10 @@
         <h2 class="department">@T["Settings_Ai"]</h2>
         <p class="hint">@T["Settings_AiHint"]</p>
         <form @onsubmit="SaveAiAsync">
+            <div class="field">
+                <label class="checkbox"><input id="ai-enabled" type="checkbox" @bind="_aiEnabled" aria-describedby="ai-enabled-hint" /> @T["Settings_AiEnabled"]</label>
+                <span id="ai-enabled-hint" class="hint">@T["Settings_AiEnabledHint"]</span>
+            </div>
             <div class="inline-form field">
                 <div class="row-main">
                     <label class="label" for="ai-endpoint">@T["Settings_AiEndpoint"]</label>
@@ -125,6 +129,7 @@
     private bool _aiKeySaved;
     private bool _aiLocal = true;
     private bool _aiSummaries = true;
+    private bool _aiEnabled = true;
 
     protected override async Task LoadAsync()
     {
@@ -141,12 +146,13 @@
         _aiKeySaved = ai.ApiKey is not null;
         _aiLocal = ai.IsLocal;
         _aiSummaries = ai.Summaries;
+        _aiEnabled = ai.Enabled;
     }
 
     private async Task SaveAiAsync()
     {
         Clear();
-        var input = new MorningInk.Infrastructure.Ai.AiSettingsInput(_aiEndpoint, _aiModel, _aiKey, _aiLocal, _aiSummaries);
+        var input = new MorningInk.Infrastructure.Ai.AiSettingsInput(_aiEndpoint, _aiModel, _aiKey, _aiLocal, _aiSummaries, _aiEnabled);
         var errors = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Closed));
         _errors = errors.Select(field => T[$"Settings_Error_Ai{field}"].Value).ToList();
         if (_errors.Count == 0)

@@ -86,7 +86,7 @@
         _editions = await UseAsync<ProfileEditor, IReadOnlyList<Profile>>(editor => editor.ListAsync(UserId, Closed));
         _editionId = _editions.FirstOrDefault(e => e.Id == Edition)?.Id ?? _editions[0].Id;
         var ai = await UseAsync<AiSettingsStore, AiSettings>(store => store.LoadAsync(Closed));
-        _aiAvailable = ai is { Endpoint: not null, Summaries: true };
+        _aiAvailable = ai is { Enabled: true, Endpoint: not null, Summaries: true };
     }
 
     private async Task BuildAsync()

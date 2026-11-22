@@ -150,6 +150,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<string>("ApiKey")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Endpoint")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");

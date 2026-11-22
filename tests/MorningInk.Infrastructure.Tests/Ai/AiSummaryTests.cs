@@ -79,6 +79,21 @@ public sealed class AiSummaryTests : IDisposable
     }
 
     [Fact]
+    public async Task Switched_off_ai_keeps_its_settings_but_asks_nothing()
+    {
+        using var ai = new FakeChatServer();
+        await using var services = await StartAsync(ai, enabled: false);
+
+        var result = await SummarizeAsync(services, Article("Test"));
+
+        Assert.Null(result.AiSummary);
+        Assert.Empty(ai.Bodies);
+        await using var scope = services.CreateAsyncScope();
+        var settings = await scope.ServiceProvider.GetRequiredService<AiSettingsStore>().LoadAsync(CancellationToken.None);
+        Assert.Equal((false, "qwen2.5:7b"), (settings.Enabled, settings.Model)); // back on with one click
+    }
+
+    [Fact]
     public async Task Without_ai_settings_nothing_is_asked()
     {
         await using var services = await _host.StartAsync();
@@ -99,12 +114,12 @@ public sealed class AiSummaryTests : IDisposable
     private static AiSummaryProcessor Summarizer(AsyncServiceScope scope) =>
         scope.ServiceProvider.GetServices<IProcessor>().OfType<AiSummaryProcessor>().Single();
 
-    private async Task<ServiceProvider> StartAsync(FakeChatServer ai, bool isLocal = true)
+    private async Task<ServiceProvider> StartAsync(FakeChatServer ai, bool isLocal = true, bool enabled = true)
     {
         var services = await _host.StartAsync(new() { ["Http:AllowedHosts:0"] = $"127.0.0.1:{ai.Port}" });
         await using var scope = services.CreateAsyncScope();
         var errors = await scope.ServiceProvider.GetRequiredService<AiSettingsStore>()
-            .SaveAsync(new AiSettingsInput(ai.Endpoint, "qwen2.5:7b", ApiKey: null, isLocal, Summaries: true), Guid.NewGuid(), CancellationToken.None);
+            .SaveAsync(new AiSettingsInput(ai.Endpoint, "qwen2.5:7b", ApiKey: null, isLocal, Summaries: true, enabled), Guid.NewGuid(), CancellationToken.None);
         Assert.Empty(errors);
         return services;
     }

@@ -5,6 +5,9 @@ public class AiSettings
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
+    /// <summary>Whether the AI is used at all; off pauses every AI step but keeps the provider's settings.</summary>
+    public bool Enabled { get; set; } = true;
+
     /// <summary>Base address, e.g. "http://192.168.1.20:11434/v1"; null means no AI.</summary>
     public string? Endpoint { get; set; }
 

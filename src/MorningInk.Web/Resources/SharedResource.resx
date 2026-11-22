@@ -361,4 +361,6 @@
   <data name="Log_Hide" xml:space="preserve"><value>Hide log</value></data>
   <data name="Clock_Time" xml:space="preserve"><value>{0}</value></data>
   <data name="Clock_DateTime" xml:space="preserve"><value>{0} {1}</value></data>
+  <data name="Settings_AiEnabled" xml:space="preserve"><value>Use AI</value></data>
+  <data name="Settings_AiEnabledHint" xml:space="preserve"><value>Off pauses every AI step, e.g. to build issues faster; address, model and key stay saved.</value></data>
 </root>
