@@ -1,3 +1,4 @@
+using System.Net.Security;
 using System.Net.Sockets;
 using MailKit;
 using MailKit.Net.Smtp;
@@ -47,6 +48,14 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
     private async Task<DeliveryResult> SendAsync(SmtpOptions smtp, string host, MimeMessage message, long size, CancellationToken cancellationToken)
     {
         using var client = new SmtpClient { Timeout = (int)smtp.Timeout.TotalMilliseconds };
+
+        // The usual check (trusted chain, matching name), but the outcome is kept to explain a failed handshake.
+        SslPolicyErrors? certificateErrors = null;
+        client.ServerCertificateValidationCallback = (_, _, _, errors) =>
+        {
+            certificateErrors = errors;
+            return errors == SslPolicyErrors.None;
+        };
         try
         {
             await client.ConnectAsync(host, smtp.Port, ToSocketOptions(smtp.Security), cancellationToken);
@@ -73,7 +82,7 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
         }
         catch (SslHandshakeException)
         {
-            return new DeliveryResult.Failure("No secure connection to the mail server: certificate or encryption setting does not match.", Retryable: false);
+            return new DeliveryResult.Failure(HandshakeProblem(host, smtp.Port, certificateErrors), Retryable: false);
         }
         catch (Exception e) when (e is SocketException or IOException or TimeoutException or ServiceNotConnectedException or SmtpProtocolException)
         {
@@ -121,6 +130,18 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
         address = parsed;
         return true;
     }
+
+    // Three causes with three different fixes, so the message names the one that happened.
+    private static string HandshakeProblem(string host, int port, SslPolicyErrors? certificateErrors) => certificateErrors switch
+    {
+        { } errors when errors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors) =>
+            $"The mail server {host} presents a certificate that is not trusted (self-signed or from an unknown authority).",
+        { } errors when errors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch) =>
+            $"The certificate of the mail server is issued for another name than {host}. Enter the server name exactly as your mail provider gives it, not an IP address.",
+
+        // No certificate was checked at all: the two sides did not even agree to encrypt.
+        _ => $"No encrypted connection to {host} on port {port}: the encryption setting probably does not fit the port. Port 587 usually uses STARTTLS, port 465 SSL/TLS.",
+    };
 
     private static SecureSocketOptions ToSocketOptions(MailSecurity security) => security switch
     {

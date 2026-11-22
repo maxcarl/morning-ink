@@ -38,6 +38,20 @@ public sealed class SettingsPageTests : IDisposable
         Assert.Single(Assert.Single(_smtp.Messages).Attachments);
     }
 
+    [Theory]
+    [InlineData("465", "SslOnConnect")]
+    [InlineData("587", "StartTls")]
+    public async Task Common_ports_pick_their_encryption(string port, string security)
+    {
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("No password saved");
+
+        page.Find("#port").Change(port);
+
+        Assert.Equal(security, page.Find("#security").GetAttribute("value"));
+    }
+
     [Fact]
     public async Task Fields_set_by_the_environment_are_read_only()
     {

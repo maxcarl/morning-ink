@@ -107,6 +107,28 @@ public sealed class MailDeliveryTests : IDisposable
         Assert.True(Assert.IsType<DeliveryResult.Failure>(result).Retryable);
     }
 
+    [Fact]
+    public async Task Encryption_that_does_not_fit_the_port_is_named()
+    {
+        using var server = new FakeSmtpServer(); // plain SMTP, like port 587 before STARTTLS
+
+        var result = await DeliverAsync(server.Port, new DeliveryRequest(Kindle, Title, WriteFile(10), ".epub", "application/epub+zip"), security: "SslOnConnect");
+
+        var failure = Assert.IsType<DeliveryResult.Failure>(result);
+        Assert.Contains("Port 587 usually uses STARTTLS, port 465 SSL/TLS", failure.Message, StringComparison.Ordinal);
+        Assert.False(failure.Retryable);
+    }
+
+    [Fact]
+    public async Task Untrusted_certificate_is_named()
+    {
+        using var server = new SelfSignedTlsServer();
+
+        var result = await DeliverAsync(server.Port, new DeliveryRequest(Kindle, Title, WriteFile(10), ".epub", "application/epub+zip"), security: "SslOnConnect");
+
+        Assert.Contains("not trusted", Assert.IsType<DeliveryResult.Failure>(result).Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("not an address")]
     [InlineData("a@example.com, b@example.com")]
@@ -146,13 +168,13 @@ public sealed class MailDeliveryTests : IDisposable
     private Task<DeliveryResult> DeliverAsync(FakeSmtpServer server, DeliveryRequest request, long? maxMessageBytes = null, string? username = null, string? password = null) =>
         DeliverAsync(server.Port, request, maxMessageBytes, username, password);
 
-    private async Task<DeliveryResult> DeliverAsync(int port, DeliveryRequest request, long? maxMessageBytes = null, string? username = null, string? password = null)
+    private async Task<DeliveryResult> DeliverAsync(int port, DeliveryRequest request, long? maxMessageBytes = null, string? username = null, string? password = null, string security = "None")
     {
         var settings = new Dictionary<string, string?>
         {
             ["Smtp:Host"] = "127.0.0.1",
             ["Smtp:Port"] = port.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            ["Smtp:Security"] = "None",
+            ["Smtp:Security"] = security,
             ["Smtp:FromAddress"] = "morning-ink@example.com",
             ["Smtp:Username"] = username,
             ["Smtp:Password"] = password,

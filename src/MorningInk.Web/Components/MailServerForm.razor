@@ -14,7 +14,7 @@
         </div>
         <div>
             <label class="label" for="port">@T["Settings_Port"]</label>
-            <input id="port" class="input" @bind="_port" inputmode="numeric" readonly="@IsLocked(MailSettingsStore.PortField)" />
+            <input id="port" class="input" @bind="_port" @bind:after="PortChanged" inputmode="numeric" readonly="@IsLocked(MailSettingsStore.PortField)" />
         </div>
     </div>
     <div class="field">
@@ -90,6 +90,22 @@
     }
 
     private bool IsLocked(string field) => Locks.Fields.Contains(field);
+
+    // The most common setup mistake is encryption that does not fit the port; for the two standard ports it follows by itself.
+    private void PortChanged()
+    {
+        if (IsLocked(MailSettingsStore.SecurityField))
+        {
+            return;
+        }
+
+        _security = _port?.Trim() switch
+        {
+            "465" => MailSecurity.SslOnConnect,
+            "587" => MailSecurity.StartTls,
+            _ => _security,
+        };
+    }
 
     private async Task SaveAsync()
     {
