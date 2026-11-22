@@ -54,12 +54,20 @@ internal static class EpubPackage
     /// <summary>NCX for readers and converters that predate EPUB 3 navigation, Kindle among them.</summary>
     public static XDocument NcxDocument(IssueContent issue, string bookTitle, IReadOnlyList<TocEntry> toc)
     {
-        var order = 0;
+        // Play order is per target, numbered by first appearance: a section's entry and its first article lead to the
+        // same page and must share the number (epubcheck RSC-005). Ids stay unique per entry.
+        var orders = new Dictionary<string, int>(StringComparer.Ordinal);
+        var count = 0;
         XElement Point(TocEntry entry)
         {
-            order++;
+            count++;
+            if (!orders.TryGetValue(entry.Href, out var order))
+            {
+                orders[entry.Href] = order = orders.Count + 1;
+            }
+
             return new XElement(Ncx + "navPoint",
-                new XAttribute("id", $"np{order}"),
+                new XAttribute("id", $"np{count}"),
                 new XAttribute("playOrder", order),
                 new XElement(Ncx + "navLabel", new XElement(Ncx + "text", entry.Label)),
                 new XElement(Ncx + "content", new XAttribute("src", entry.Href)),
