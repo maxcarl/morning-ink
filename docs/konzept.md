@@ -229,7 +229,7 @@ Das Hauptformat ist EPUB. Weitere Formate kommen später dazu, als eigene „Ren
 
 - **EPUB:** für Kindle (via Send to Kindle), Kobo, KOReader
 - **PDF im Zeitungslayout:** zweispaltig, für reMarkable, Tablets oder zum Ausdrucken
-- **Web-Ansicht:** dieselbe Ausgabe im Browser lesen, auch im Kindle-Browser
+- **Web-Ansicht:** dieselbe Ausgabe im Browser lesen
 - **Audio (später):** per Sprachausgabe als privater Podcast-Feed
 
 **Aufbau einer Ausgabe**
@@ -258,7 +258,7 @@ Die Zeitung geht per Send-to-Kindle-Mail raus. Weitere Wege machen das Tool auch
 - **OPDS-Katalog:** KOReader und viele Reader-Apps holen sich die Ausgabe selbst
 - **Ablage:** WebDAV, Nextcloud oder ein Ordner auf dem Server
 - **Messenger:** Telegram- oder Matrix-Bot schickt die Datei
-- **Download-Seite:** schlanke Seite, die auch der Kindle-Browser darstellen kann
+- **Download-Seite:** die letzten Ausgaben zum Herunterladen
 
 **Zeitplan**
 
@@ -284,7 +284,7 @@ Die Zeitung geht per Send-to-Kindle-Mail raus. Weitere Wege machen das Tool auch
 
 ## Frontend
 
-Die Weboberfläche ist der Redaktionsraum. Entschieden: Blazor Web App mit .NET 10. Alles bleibt in einem Stack und einem Container. Die Seiten werden standardmäßig statisch gerendert und sind nur dort interaktiv, wo es etwas bringt: Drag & Drop, Live-Vorschau, Feed-Test. Die Seiten für den Kindle-Browser bleiben rein statisch.
+Die Weboberfläche ist der Redaktionsraum. Entschieden: Blazor Web App mit .NET 10. Alles bleibt in einem Stack und einem Container. Die Seiten werden standardmäßig statisch gerendert und sind dort interaktiv, wo es etwas bringt: Drag & Drop, Live-Suche, Vorschau, Feed-Test, Bestätigungsdialoge. Der Kindle-Browser muss keine Seite der Oberfläche darstellen (siehe ADR 0002).
 
 | Seite | Inhalt |
 | --- | --- |
@@ -388,7 +388,7 @@ Das sind Ideen, die das Tool von einem Feed-Konverter zu einer echten persönlic
 
 **Feedback vom Kindle zurück**
 
-- Unter jedem Artikel stehen Links wie „Mehr davon“, „Weniger davon“ und „Später lesen“. Sie zeigen auf deinen Server, der Kindle-Browser öffnet sie. So lernt das Interessenprofil mit.
+- Unter jedem Artikel stehen Links wie „Mehr davon“, „Weniger davon“ und „Später lesen“. Sie zeigen auf einen API-Endpunkt deines Servers, der nur eine kurze Bestätigung zurückgibt, keine Seite der Oberfläche. So lernt das Interessenprofil mit.
 - Ein Link „In Wallabag speichern“ pro Artikel
 - `My Clippings.txt` vom Kindle hochladen: Markierungen landen im Archiv und fließen ins Profil ein
 
@@ -442,7 +442,7 @@ Das MVP ist fertig, wenn:
 - **Andere Reader:** neben Kindle auch Kobo, KOReader, PocketBook und reMarkable, über OPDS, Download, WebDAV und PDF.
 - **Nicht-Ziele:** bestätigt.
 - **KI:** Ollama ohne GPU, siehe Modell-Empfehlung.
-- **Frontend:** Blazor, standardmäßig statisch gerendert.
+- **Frontend:** Blazor, standardmäßig statisch gerendert, interaktiv wo es etwas bringt. Keine Rücksicht auf den Kindle-Browser (ADR 0002).
 - **Länder:** Profil und jede lokale Quelle haben ein Land. Postleitzahlen werden nur dort gesucht, Ortsnamen und Nachrichten kommen in der Sprache und Ausgabe dieses Landes (z. B. Deutschland `de`/`DE`, USA `en`/`US`). Ohne Land wird weltweit gesucht.
 - **Lokale Nachrichten:** über eine Nachrichtensuche nach Ort und Landkreis hinter einer Schnittstelle. Zum Start Google News RSS (der Ortsname geht dabei an Google), später wahlweise ein selbst gehostetes SearXNG, dasselbe wie für die KI-Recherche.
 
