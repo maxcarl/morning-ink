@@ -47,16 +47,17 @@
                     <div class="row-meta">
                         @Facts(issue) · <span class="status @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
                     </div>
-                    @if (issue.Entries.Count > 0)
+                    @{ var inIssue = issue.Entries.Where(e => !e.Duplicate).ToList(); }
+                    @if (inIssue.Count > 0)
                     {
                         <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="entries-@issue.Id" @onclick="() => _openId = open ? null : issue.Id">
-                            @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", issue.Entries.Count])
+                            @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", inIssue.Count])
                         </button>
                     }
                     @if (open)
                     {
                         <ul id="entries-@issue.Id" class="headline-list">
-                            @foreach (var entry in issue.Entries.OrderBy(e => e.SourceName, StringComparer.CurrentCulture))
+                            @foreach (var entry in inIssue.OrderBy(e => e.SourceName, StringComparer.CurrentCulture))
                             {
                                 <li>
                                     <a href="@entry.Url" rel="noopener noreferrer" target="_blank">@entry.Title</a>
@@ -150,7 +151,7 @@
 
     private string Facts(Issue issue)
     {
-        var facts = new List<string> { T["Dash_Articles", issue.Entries.Count] };
+        var facts = new List<string> { T["Dash_Articles", issue.Entries.Count(e => !e.Duplicate)] };
         if (issue.FileSize is { } size)
         {
             facts.Add(string.Create(CultureInfo.CurrentCulture, $"{size / 1024.0 / 1024.0:0.0} MB"));

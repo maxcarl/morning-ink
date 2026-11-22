@@ -105,6 +105,7 @@ public sealed class EpubRendererTests : IDisposable
         Assert.DoesNotContain("Nur Teaser", sectionPages[0], StringComparison.Ordinal);
         var article = XDocument.Parse(epub.Entries.Select(ReadText).Single(t => t.Contains("<article", StringComparison.Ordinal) && t.Contains("Größere Überraschung", StringComparison.Ordinal)));
         Assert.Equal("Politik", article.Descendants(Xhtml + "p").First(p => (string?)p.Attribute("class") == "kicker").Value);
+        Assert.Contains("Auch bei: Süddeutsche Zeitung", article.Root!.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -215,7 +216,7 @@ public sealed class EpubRendererTests : IDisposable
             Language: "de",
             Sections:
             [
-                new IssueSection("Politik", [new IssueArticle(politics, "tagesschau"), new IssueArticle(Article("<script>alert(1)</script> & Co", "<p>Text</p>"), "heise")]),
+                new IssueSection("Politik", [new IssueArticle(politics, "tagesschau", [new AlsoReported("Süddeutsche Zeitung", Article("Wahl: größere Überraschung", "<p>Text</p>"))]), new IssueArticle(Article("<script>alert(1)</script> & Co", "<p>Text</p>"), "heise")]),
                 new IssueSection("Lokales", [new IssueArticle(Article("Nur Teaser", null, "<p>Kurzfassung</p>"), "Stadt"), new IssueArticle(Article("Feuer in Schwabing", null), "Lokales München")]),
             ],
             UnavailableSources: ["heise"],

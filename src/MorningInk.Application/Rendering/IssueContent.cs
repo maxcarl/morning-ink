@@ -36,4 +36,11 @@ public sealed record IssueContent(
 public sealed record IssueSection(string Name, IReadOnlyList<IssueArticle> Articles);
 
 /// <summary>An article in an issue, with the name of the source it came from.</summary>
-public sealed record IssueArticle(FetchedArticle Article, string SourceName);
+/// <param name="AlsoAt">The same story from other sources, left out of the issue and named under the article.</param>
+public sealed record IssueArticle(FetchedArticle Article, string SourceName, IReadOnlyList<AlsoReported>? AlsoAt = null)
+{
+    public IReadOnlyList<AlsoReported> AlsoAt { get; init; } = AlsoAt ?? [];
+}
+
+/// <summary>Another source's article about the same story.</summary>
+public sealed record AlsoReported(string SourceName, FetchedArticle Article);

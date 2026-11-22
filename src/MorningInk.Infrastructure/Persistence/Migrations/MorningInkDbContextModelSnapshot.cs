@@ -278,6 +278,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("Duplicate")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("IssueId")
                         .HasColumnType("TEXT");
 

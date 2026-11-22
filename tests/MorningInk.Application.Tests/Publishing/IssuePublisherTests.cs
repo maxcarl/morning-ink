@@ -287,6 +287,27 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Same_story_from_two_sources_appears_once_with_the_other_source_named()
+    {
+        Answer(_tagesschau, new SourceResult.Success(
+            [new FetchedArticle(null, "Großbrand in Schwabing: Wohnhaus evakuiert", new Uri("https://tagesschau.de/brand"), Slot.AddHours(-1), null, null, "<p>Text</p>")],
+            ETag: null,
+            LastModified: null));
+        Answer(_heise, new SourceResult.Success(
+            [new FetchedArticle(null, "Schwabing: Wohnhaus nach Großbrand evakuiert", new Uri("https://heise.de/brand"), Slot.AddHours(-2), null, null, "<p>Text</p>")],
+            ETag: null,
+            LastModified: null));
+
+        var result = await PublishAsync();
+
+        var sections = Assert.Single(_renderer.Rendered).Sections;
+        var kept = Assert.Single(Assert.Single(sections).Articles); // the Tech section had nothing else and is gone
+        Assert.Equal(("tagesschau", "heise"), (kept.SourceName, Assert.Single(kept.AlsoAt).SourceName));
+        Assert.Equal(1, Assert.IsType<PublishResult.Delivered>(result).Articles);
+        Assert.Contains("https://heise.de/brand", _seen.Seen); // so it does not come alone tomorrow
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 

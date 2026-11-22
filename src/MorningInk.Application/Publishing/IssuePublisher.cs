@@ -126,24 +126,54 @@ public sealed class IssuePublisher(
             await seen.FilterNewAsync(profile.UserId, bySource.Values.SelectMany(a => a).ToList(), cancellationToken),
             ReferenceEqualityComparer.Instance);
 
-        var sections = new List<IssueSection>();
+        // First choose, across all sections, so a story another section already took is merged instead of repeated.
+        var taken = new List<(FetchedArticle Article, string SourceName, List<AlsoReported> AlsoAt)>();
+        var plan = new List<(Section Section, List<(FetchedArticle Article, Source Source, List<AlsoReported> AlsoAt)> Picks)>();
         foreach (var section in orderedSections)
         {
-            var chosen = section.Sources
+            var picks = new List<(FetchedArticle, Source, List<AlsoReported>)>();
+            var candidates = section.Sources
                 .SelectMany(source => bySource[source.Id].Select(article => (Article: article, Source: source)))
                 .Where(candidate => fresh.Contains(candidate.Article) && ArticleFilter.Admits(candidate.Article, candidate.Source))
-                .OrderByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue)
-                .Take(section.MaxArticles ?? int.MaxValue)
-                .ToList();
-
-            var articles = new List<IssueArticle>();
-            foreach (var (article, source) in chosen)
+                .OrderByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue);
+            foreach (var (article, source) in candidates)
             {
+                if (picks.Count >= (section.MaxArticles ?? int.MaxValue))
+                {
+                    break;
+                }
+
                 fresh.Remove(article); // an article appears in the first section that takes it
+                var same = taken.FindIndex(t => Duplicates.AreSame(t.Article, article));
+                if (same >= 0)
+                {
+                    // Named under the kept one, unless it is the same source telling the story twice.
+                    if (taken[same].SourceName != source.Name)
+                    {
+                        taken[same].AlsoAt.Add(new AlsoReported(source.Name, article));
+                    }
+
+                    continue;
+                }
+
+                var alsoAt = new List<AlsoReported>();
+                taken.Add((article, source.Name, alsoAt));
+                picks.Add((article, source, alsoAt));
+            }
+
+            plan.Add((section, picks));
+        }
+
+        var sections = new List<IssueSection>();
+        foreach (var (section, picks) in plan)
+        {
+            var articles = new List<IssueArticle>();
+            foreach (var (article, source, alsoAt) in picks)
+            {
                 // ponytail: an article too short after the full text leaves a gap in the limit; fetching spares would cost downloads.
                 if (await ProcessAsync(article, source, cancellationToken) is { } processed && ArticleFilter.IsLongEnough(processed, source))
                 {
-                    articles.Add(new IssueArticle(processed, source.Name));
+                    articles.Add(new IssueArticle(processed, source.Name, alsoAt));
                 }
             }
 
@@ -248,6 +278,12 @@ public sealed class IssuePublisher(
         foreach (var article in content.Sections.SelectMany(s => s.Articles))
         {
             issue.Entries.Add(new IssueEntry { Url = article.Article.Url.AbsoluteUri, Title = article.Article.Title, SourceName = article.SourceName });
+
+            // Kept as entries too, so they count as seen once the issue is out and do not come alone the next day.
+            foreach (var other in article.AlsoAt)
+            {
+                issue.Entries.Add(new IssueEntry { Url = other.Article.Url.AbsoluteUri, Title = other.Article.Title, SourceName = other.SourceName, Duplicate = true });
+            }
         }
 
         await store.SaveChangesAsync(cancellationToken);
@@ -285,6 +321,6 @@ public sealed class IssuePublisher(
         // Only now: had the delivery failed, the articles would have to come again.
         await seen.MarkSeenAsync(profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);
         await store.SaveChangesAsync(cancellationToken);
-        return new PublishResult.Delivered(issue.Id, issue.Entries.Count, problems);
+        return new PublishResult.Delivered(issue.Id, issue.Entries.Count(e => !e.Duplicate), problems);
     }
 }

@@ -33,4 +33,5 @@
   <data name="WeatherThunderstorm" xml:space="preserve"><value>Gewitter</value></data>
   <data name="WeatherUnknown" xml:space="preserve"><value>Unbekannt</value></data>
   <data name="Briefs" xml:space="preserve"><value>Kurz notiert</value></data>
+  <data name="AlsoAt" xml:space="preserve"><value>Auch bei: {0}</value></data>
 </root>

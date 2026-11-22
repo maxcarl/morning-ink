@@ -229,9 +229,10 @@
     private string Facts(Issue issue, Profile? profile)
     {
         var facts = new List<string>();
-        if (issue.Entries.Count > 0)
+        // Merged duplicates are entries too, only so they count as seen; they are not in the issue.
+        if (issue.Entries.Count(e => !e.Duplicate) is var articles and > 0)
         {
-            facts.Add(T["Dash_Articles", issue.Entries.Count]);
+            facts.Add(T["Dash_Articles", articles]);
         }
 
         if (issue.FileSize is { } size)

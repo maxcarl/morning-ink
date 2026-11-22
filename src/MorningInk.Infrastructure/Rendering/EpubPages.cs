@@ -66,7 +66,13 @@ internal static class EpubPages
                 {
                     a.SourceName,
                     a.Article.PublishedAt?.ToOffset(issueTime.Offset).ToString("t", texts.Culture),
+                    a.AlsoAt.Count == 0 ? null : texts.AlsoAt(string.Join(", ", a.AlsoAt.Select(o => o.SourceName).Distinct())),
                 }.Where(m => !string.IsNullOrWhiteSpace(m))))))));
+
+    // The same story from other sources, merged into this one.
+    private static XElement? AlsoAt(IssueArticle item, EpubTexts texts) => item.AlsoAt.Count == 0
+        ? null
+        : new XElement(Xhtml + "p", new XAttribute("class", "meta"), texts.AlsoAt(string.Join(", ", item.AlsoAt.Select(a => a.SourceName).Distinct())));
 
     /// <summary>Whether an article has nothing to read but its headline, so it belongs among the briefs.</summary>
     public static bool IsBrief(ArticleBody.Result body) => body.Images.Count == 0 && ReadingWords(body.Nodes) == 0;
@@ -86,6 +92,7 @@ internal static class EpubPages
                 new XElement(Xhtml + "p", new XAttribute("class", "kicker"), section),
                 new XElement(Xhtml + "h1", article.Title),
                 new XElement(Xhtml + "p", new XAttribute("class", "meta"), string.Join(" · ", meta.Where(m => !string.IsNullOrWhiteSpace(m)))),
+                AlsoAt(item, texts),
                 body,
                 new XElement(Xhtml + "p", new XAttribute("class", "original"),
                     new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(article.Url)), texts.ReadOriginal))));
