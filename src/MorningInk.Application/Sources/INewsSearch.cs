@@ -1,6 +1,6 @@
 namespace MorningInk.Application.Sources;
 
-/// <summary>Finds recent news for search terms, with links straight to the publishers; Bing News now, a self-hosted SearXNG later.</summary>
+/// <summary>Finds recent news for search terms, with links straight to the publishers: Bing News, or a self-hosted SearXNG.</summary>
 public interface INewsSearch
 {
     /// <summary>Recent articles matching any of the terms; expected problems come back as <see cref="SourceResult.Failure"/>.</summary>

@@ -101,7 +101,15 @@ public static class DependencyInjection
         services.AddScoped<Profiles.Onboarding>();
         services.AddScoped<Profiles.IssueArchive>();
         services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));
-        services.AddTransient<INewsSearch, BingNewsSearch>();
+        // One's own SearXNG when its address is set, else Bing; read at start, like every option here.
+        if (string.IsNullOrWhiteSpace(configuration[$"{NewsSearchOptions.SectionName}:{nameof(NewsSearchOptions.SearxngUrl)}"]))
+        {
+            services.AddTransient<INewsSearch, BingNewsSearch>();
+        }
+        else
+        {
+            services.AddTransient<INewsSearch, SearxngNewsSearch>();
+        }
 
         services.AddOptions<WeatherOptions>().Bind(configuration.GetSection(WeatherOptions.SectionName));
         services.AddTransient<IGeocoder, NominatimGeocoder>();

@@ -22,11 +22,20 @@ public sealed class LocalNewsSourceTests : IDisposable
             "/search" when query["postalcode"] == "10115" => "Weather/nominatim-10115.json",
             "/search" => "Weather/nominatim-unknown.json",
             "/news/search" when query["fail"] is null => "LocalNews/bingnews-muenchen.xml",
+            "/searxng/search" => "LocalNews/searxng-aachen.json",
+            "/searxng-locked/search" => "forbidden",
             _ => null,
         };
         if (file is null)
         {
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            return;
+        }
+
+        // SearXNG answers 403 when JSON is not among the formats in its settings.yml.
+        if (file == "forbidden")
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             return;
         }
 
@@ -110,13 +119,43 @@ public sealed class LocalNewsSourceTests : IDisposable
     public async Task Search_service_down_is_a_failure() =>
         Assert.IsType<SourceResult.Failure>(await FetchAsync(Local("52062"), searchFails: true));
 
+    [Fact]
+    public async Task With_searxng_set_local_news_come_from_it_newest_first_and_only_with_web_links()
+    {
+        var result = await FetchAsync(Local("52062"), searxng: "/searxng");
+
+        var articles = Assert.IsType<SourceResult.Success>(result).Articles;
+        Assert.Empty(SearchRequests()); // not Bing
+        Assert.Equal(
+            ["Stadtrat beschließt Haushalt für 2027", "Weihnachtsmarkt öffnet am Freitag", "Neue Buslinie in der Städteregion"],
+            articles.Select(a => a.Title));
+        Assert.Contains("&lt;b&gt;mit&lt;/b&gt;", articles[0].Summary, StringComparison.Ordinal); // the teaser is text, never markup
+        var search = Uri.UnescapeDataString(Assert.Single(_server.Requests, r => r.Url.Contains("/searxng/", StringComparison.Ordinal)).Url);
+        Assert.Contains("\"Aachen\" OR \"Städteregion Aachen\"", search, StringComparison.Ordinal);
+        Assert.Contains("categories=news", search, StringComparison.Ordinal);
+        Assert.Contains("format=json", search, StringComparison.Ordinal);
+        Assert.Contains("language=de-DE", search, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Searxng_without_json_output_says_what_to_switch_on()
+    {
+        var failure = Assert.IsType<SourceResult.Failure>(await FetchAsync(Local("52062"), searxng: "/searxng-locked"));
+
+        Assert.Equal("SearxngNoJson", failure.Reason);
+    }
+
+    [Fact]
+    public async Task Searxng_down_is_a_failure() =>
+        Assert.IsType<SourceResult.Failure>(await FetchAsync(Local("52062"), searxng: "/searxng-down")); // answers 500
+
     public void Dispose() => _server.Dispose();
 
     private Source Local(string? place, string? country = "DE") => new() { UserId = _userId, Name = $"Lokales {place}", Kind = SourceKind.Local, Place = place, Country = country };
 
     private List<string> SearchRequests() => _server.Requests.Select(r => r.Url).Where(u => u.Contains("/news/search", StringComparison.Ordinal)).ToList();
 
-    private async Task<SourceResult> FetchAsync(Source source, bool searchFails = false)
+    private async Task<SourceResult> FetchAsync(Source source, bool searchFails = false, string? searxng = null)
     {
         var baseUrl = _server.Url("/").ToString().TrimEnd('/');
         using var services = new ServiceCollection()
@@ -129,6 +168,7 @@ public sealed class LocalNewsSourceTests : IDisposable
                     ["Http:AllowedHosts:0"] = $"127.0.0.1:{_server.Port}",
                     ["Weather:GeocodingUrl"] = baseUrl + "/search",
                     ["NewsSearch:BingNewsUrl"] = baseUrl + "/news/search" + (searchFails ? "?fail=1" : string.Empty),
+                    ["NewsSearch:SearxngUrl"] = searxng is null ? null : baseUrl + searxng,
                 })
                 .Build())
             .BuildServiceProvider();

@@ -1,0 +1,55 @@
+{
+  "query": "\"Aachen\" OR \"Städteregion Aachen\"",
+  "number_of_results": 0,
+  "results": [
+    {
+      "url": "https://www.aachener-zeitung.de/lokales/aachen/weihnachtsmarkt-oeffnet-am-freitag_aid-1001",
+      "title": "Weihnachtsmarkt öffnet am Freitag",
+      "content": "Rund um Dom und Rathaus stehen wieder mehr als 120 Buden. Die Stadt rechnet mit vielen Besuchern.",
+      "publishedDate": "2026-11-21T09:30:00",
+      "engine": "bing news",
+      "engines": ["bing news", "duckduckgo news"],
+      "category": "news",
+      "score": 4.0
+    },
+    {
+      "url": "https://www1.wdr.de/nachrichten/rheinland/aachen-stadtrat-haushalt-100.html",
+      "title": "Stadtrat beschließt Haushalt für 2027",
+      "content": "Nach langer Debatte stimmte eine Mehrheit für den Entwurf der Verwaltung <b>mit</b> Änderungen.",
+      "publishedDate": "2026-11-21T15:05:12+01:00",
+      "engine": "duckduckgo news",
+      "engines": ["duckduckgo news"],
+      "category": "news",
+      "score": 2.0
+    },
+    {
+      "url": "javascript:alert(1)",
+      "title": "Must never reach an issue",
+      "content": "",
+      "publishedDate": "2026-11-21T10:00:00",
+      "engine": "broken",
+      "category": "news"
+    },
+    {
+      "url": "https://www.example.com/staedteregion/neue-buslinie",
+      "title": "Neue Buslinie in der Städteregion",
+      "content": "Ab Dezember fährt eine Linie zwischen Eschweiler und Stolberg.",
+      "publishedDate": null,
+      "engine": "qwant news",
+      "category": "news"
+    },
+    {
+      "url": "https://www.example.com/aachen/archiv/alt",
+      "title": "Ein Bericht aus dem letzten Jahr",
+      "content": "Zu alt für die Ausgabe.",
+      "publishedDate": "2025-10-01T08:00:00",
+      "engine": "bing news",
+      "category": "news"
+    }
+  ],
+  "answers": [],
+  "corrections": [],
+  "infoboxes": [],
+  "suggestions": [],
+  "unresponsive_engines": []
+}

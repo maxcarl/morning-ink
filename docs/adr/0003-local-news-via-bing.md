@@ -20,4 +20,4 @@ Bing News RSS links through a click counter whose `url` parameter is the article
 - Local news read like other articles; a paywall leaves the teaser.
 - The searched towns go to Microsoft instead of Google.
 - Bing's RSS output is not an official API (the Bing News Search API was retired in 2025). If it changes, local sources report a failure and the issue appears without them; the news search is one class behind `INewsSearch`.
-- A self-hosted SearXNG can replace it behind the same interface: its news results also carry direct article URLs and teasers, and the towns then go to no single provider.
+- A self-hosted SearXNG can replace it behind the same interface: its news results also carry direct article URLs and teasers, and the towns then go to no single provider. Done: `NewsSearch__SearxngUrl` switches local news to it.

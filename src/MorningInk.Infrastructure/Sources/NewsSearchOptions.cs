@@ -8,6 +8,12 @@ public sealed class NewsSearchOptions
     /// <summary>Bing News search endpoint (RSS). The search terms (towns) go to Microsoft.</summary>
     public string BingNewsUrl { get; set; } = "https://www.bing.com/news/search";
 
+    /// <summary>
+    /// Address of one's own SearXNG, e.g. "https://searx.example.com"; set, it replaces Bing and the towns stay with
+    /// the own instance. In the home network its host must be allowed like any other.
+    /// </summary>
+    public string? SearxngUrl { get; set; }
+
     /// <summary>Language of the results.</summary>
     public string Language { get; set; } = "de";
 

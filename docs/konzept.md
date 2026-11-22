@@ -498,7 +498,7 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | 32 | Verarbeitung | Interessen mit Stichwörtern und Gewicht pro Profil | Bevorzugte Themen rücken bei knappem Limit nach vorn, „ausblenden“ wirkt als Filter | 26 | ✅ erledigt; Erkennung per KI kommt später |
 | 33 | Benutzer | Mehrere Benutzer (Familie und Freunde), vom Admin angelegt | Jeder sieht und bearbeitet nur die eigenen Quellen und Ausgaben | 18 | ✅ erledigt; Seite „Benutzer“ (anlegen, Passwort zurücksetzen, löschen mit allen Daten), „Konto“ zum eigenen Passwortwechsel; Rollenwechsel später |
 | 34 | Zustellung | OPDS-Katalog für KOReader und Reader-Apps | KOReader holt die Ausgabe mit Login selbst ab | 28 | – |
-| 35 | Quellen | SearXNG als Nachrichtensuche für „Lokales“, wählbar neben Bing (`INewsSearch`, Einstellung `NewsSearch__SearxngUrl`) | Mit gesetzter Adresse kommen lokale Meldungen über die eigene SearXNG-Instanz, mit Volltext vom Verlag; ohne bleibt Bing | 17 | – |
+| 35 | Quellen | SearXNG als Nachrichtensuche für „Lokales“, wählbar neben Bing (`INewsSearch`, Einstellung `NewsSearch__SearxngUrl`) | Mit gesetzter Adresse kommen lokale Meldungen über die eigene SearXNG-Instanz, mit Volltext vom Verlag; ohne bleibt Bing | 17 || ✅ erledigt; braucht JSON in der settings.yml von SearXNG, sonst ein klarer Hinweis |
 
 ## Aufgaben Stufe 3 (KI)
 

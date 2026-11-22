@@ -458,4 +458,5 @@
   <data name="Account_Changed" xml:space="preserve"><value>Your password was changed. Other sessions end within a minute.</value></data>
   <data name="Account_WrongCurrent" xml:space="preserve"><value>The current password is not right.</value></data>
   <data name="Users_NotFound" xml:space="preserve"><value>This user no longer exists.</value></data>
+  <data name="Source_SearxngNoJson" xml:space="preserve"><value>Your SearXNG does not give out JSON. Add “json” to search.formats in its settings.yml.</value></data>
 </root>
