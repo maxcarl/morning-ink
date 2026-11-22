@@ -1,6 +1,7 @@
 @page "/sources"
 @rendermode InteractiveServer
 @inherits InteractivePage
+@using MorningInk.Web.Components.SourceForms
 @using MorningInk.Application.Processing
 @using MorningInk.Application.Sources
 @using MorningInk.Domain
@@ -253,14 +254,8 @@
     private bool _busy;
 
     // FreshRSS: the password stays only until the sources are added, then it is stored encrypted with them.
-    private string _freshRssUrl = string.Empty;
-    private string _freshRssUser = string.Empty;
-    private string _freshRssPassword = string.Empty;
-    private NewsletterDraft _newsletter = new();
     private static readonly string[] AddTabs = ["feed", "local", "freshrss", "newsletter", "opml"];
     private string _addTab = "feed";
-    private FreshRssConnection.Connected? _freshRss;
-    private HashSet<string> _freshRssPicked = [];
 
     // Form fields
     private string _url = string.Empty;
@@ -338,87 +333,10 @@
 
         </div>
         <div id="add-freshrss" role="tabpanel" aria-labelledby="add-tab-freshrss" hidden="@(_addTab != "freshrss")">
-            @* One's own FreshRSS: sign in once, then pick the categories that become sources. *@
-            <form @onsubmit="ConnectFreshRssAsync" class="field" aria-labelledby="freshrss-label">
-                <span id="freshrss-label" class="label">@T["Sources_FreshRss"]</span>
-                <div class="field-row">
-                    <div class="field">
-                        <label for="freshrss-url">@T["Sources_FreshRssUrl"]</label>
-                        <input id="freshrss-url" class="input" type="text" inputmode="url" spellcheck="false" @bind="_freshRssUrl" placeholder="https://freshrss.example.com" required />
-                    </div>
-                    <div class="field">
-                        <label for="freshrss-user">@T["Login_UserName"]</label>
-                        <input id="freshrss-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_freshRssUser" required />
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="freshrss-password">@T["Sources_FreshRssPassword"]</label>
-                    <input id="freshrss-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_freshRssPassword" aria-describedby="freshrss-hint" required />
-                    <span id="freshrss-hint" class="hint">@T["Sources_FreshRssHint"]</span>
-                </div>
-                <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_FreshRssConnect"]</button>
-            </form>
-
-            @if (_freshRss is { } connected)
-            {
-                <form @onsubmit="AddFreshRssAsync" class="field">
-                    <fieldset class="field">
-                        <legend class="label">@T["Sources_FreshRssPick"]</legend>
-                        <div class="choices">
-                            @foreach (var category in connected.Categories)
-                            {
-                                <label class="checkbox" @key="category.Stream">
-                                    <input type="checkbox" checked="@_freshRssPicked.Contains(category.Stream)" @onchange="() => PickCategory(category.Stream)" /> @category.Name
-                                </label>
-                            }
-                        </div>
-                        <span class="hint">@T["Sources_FreshRssPickHint"]</span>
-                    </fieldset>
-                    <button type="submit" class="button" disabled="@_busy">@T["Sources_FreshRssAdd"]</button>
-                </form>
-            }
-
+            <FreshRssForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
         </div>
         <div id="add-newsletter" role="tabpanel" aria-labelledby="add-tab-newsletter" hidden="@(_addTab != "newsletter")">
-            @* Newsletters from one's own mailbox, read only: a dedicated folder or address keeps them apart from other mail. *@
-            <form @onsubmit="AddNewsletterAsync" class="field" aria-labelledby="newsletter-label">
-                <span id="newsletter-label" class="label">@T["Sources_Newsletter"]</span>
-                <span class="hint">@T["Sources_NewsletterHint"]</span>
-                <div class="field-row">
-                    <div class="field">
-                        <label for="newsletter-server">@T["Sources_NewsletterServer"]</label>
-                        <input id="newsletter-server" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Server" placeholder="imap.example.com" aria-describedby="newsletter-server-hint" required />
-                        <span id="newsletter-server-hint" class="hint">@T["Sources_NewsletterServerHint"]</span>
-                    </div>
-                    <div class="field">
-                        <label for="newsletter-user">@T["Login_UserName"]</label>
-                        <input id="newsletter-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_newsletter.User" required />
-                    </div>
-                </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label for="newsletter-password">@T["Settings_Password"]</label>
-                        <input id="newsletter-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_newsletter.Password" required />
-                    </div>
-                    <div class="field">
-                        <label for="newsletter-folder">@T["Sources_NewsletterFolder"]</label>
-                        <input id="newsletter-folder" class="input" spellcheck="false" @bind="_newsletter.Folder" placeholder="INBOX" />
-                    </div>
-                </div>
-                <div class="field-row">
-                    <div class="field">
-                        <label for="newsletter-sender">@T["Sources_NewsletterSender"]</label>
-                        <input id="newsletter-sender" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Sender" placeholder="substack.com" aria-describedby="newsletter-sender-hint" />
-                        <span id="newsletter-sender-hint" class="hint">@T["Sources_NewsletterSenderHint"]</span>
-                    </div>
-                    <div class="field">
-                        <label for="newsletter-name">@T["Sources_Name"]</label>
-                        <input id="newsletter-name" class="input" @bind="_newsletter.Name" placeholder="@T["Kind_Newsletter"]" />
-                    </div>
-                </div>
-                <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_NewsletterAdd"]</button>
-            </form>
-
+            <NewsletterForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
         </div>
         <div id="add-opml" role="tabpanel" aria-labelledby="add-tab-opml" hidden="@(_addTab != "opml")">
             @* Moving from another reader: its OPML export in, our feeds out. *@
@@ -647,60 +565,17 @@
         }
     }
 
-    private Task ConnectFreshRssAsync() => RunAsync(async () =>
+    // A form of its own (FreshRSS, newsletter) is done: its message replaces the last one, and an added source shows.
+    private async Task FinishedAsync(AddOutcome outcome)
     {
-        _freshRss = null;
-        _freshRssPicked = [];
-        switch (await UseAsync<ConnectedSources, FreshRssConnection>(sources => sources.ConnectFreshRssAsync(_freshRssUrl, _freshRssUser, _freshRssPassword, Closed)))
+        _notice = outcome.Notice;
+        _error = outcome.Error;
+        _blockedHost = outcome.BlockedHost;
+        if (outcome.Notice is not null)
         {
-            case FreshRssConnection.Connected connected:
-                _freshRss = connected;
-                break;
-            case FreshRssConnection.Failed { Failure: var failure }:
-                _error = T["Sources_FreshRssFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)];
-                _blockedHost = failure.BlockedHost;
-                break;
-        }
-    });
-
-    private Task AddNewsletterAsync() => RunAsync(async () =>
-    {
-        var input = new NewsletterInput(
-            string.IsNullOrWhiteSpace(_newsletter.Name) ? T["Kind_Newsletter"] : _newsletter.Name, _newsletter.Server, _newsletter.User, _newsletter.Password, _newsletter.Folder, _newsletter.Sender);
-        var (source, failure) = await UseAsync<ConnectedSources, (Source?, MorningInk.Application.Sources.SourceResult.Failure?)>(sources => sources.AddNewsletterAsync(UserId, input, Closed));
-        if (failure is not null)
-        {
-            _error = T["Sources_NewsletterFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)];
-            _blockedHost = failure.BlockedHost;
-            return;
-        }
-
-        // The password is not kept in the page once it is stored.
-        _newsletter = new();
-        _notice = T["Sources_Added"];
-        await ReloadAsync();
-    });
-
-    private void PickCategory(string stream)
-    {
-        if (!_freshRssPicked.Remove(stream))
-        {
-            _freshRssPicked.Add(stream);
+            await ReloadAsync();
         }
     }
-
-    private Task AddFreshRssAsync() => RunAsync(async () =>
-    {
-        // ! is safe: the form only shows once connected
-        var connected = _freshRss!;
-        var chosen = connected.Categories.Where(c => _freshRssPicked.Contains(c.Stream)).ToList();
-        var added = await UseAsync<ConnectedSources, IReadOnlyList<Source>>(sources => sources.AddFreshRssAsync(UserId, connected.Api, _freshRssUser, _freshRssPassword, chosen, Closed));
-        _notice = T["Sources_FreshRssAdded", added.Count];
-        _freshRss = null;
-        _freshRssPicked = [];
-        _freshRssPassword = string.Empty;
-        await ReloadAsync();
-    });
 
     // One action at a time: messages of the last one go, the buttons are disabled while it runs.
     private async Task RunAsync(Func<Task> action)
@@ -717,22 +592,6 @@
         {
             _busy = false;
         }
-    }
-
-    // The newsletter form's fields.
-    private sealed class NewsletterDraft
-    {
-        public string Server { get; set; } = string.Empty;
-
-        public string User { get; set; } = string.Empty;
-
-        public string Password { get; set; } = string.Empty;
-
-        public string Folder { get; set; } = "INBOX";
-
-        public string? Sender { get; set; }
-
-        public string? Name { get; set; }
     }
 
     // The open editor's fields; only one source is edited at a time.

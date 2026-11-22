@@ -1,0 +1,81 @@
+@using MorningInk.Application.Sources
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Sources
+@inject ActionScopes Scopes
+
+@* Newsletters from one's own mailbox, read only: a dedicated folder or address keeps them apart from other mail. *@
+<form @onsubmit="AddAsync" class="field" aria-labelledby="newsletter-label">
+    <span id="newsletter-label" class="label">@T["Sources_Newsletter"]</span>
+    <span class="hint">@T["Sources_NewsletterHint"]</span>
+    <div class="field-row">
+        <div class="field">
+            <label for="newsletter-server">@T["Sources_NewsletterServer"]</label>
+            <input id="newsletter-server" class="input" spellcheck="false" autocapitalize="none" @bind="_server" placeholder="imap.example.com" aria-describedby="newsletter-server-hint" required />
+            <span id="newsletter-server-hint" class="hint">@T["Sources_NewsletterServerHint"]</span>
+        </div>
+        <div class="field">
+            <label for="newsletter-user">@T["Login_UserName"]</label>
+            <input id="newsletter-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_user" required />
+        </div>
+    </div>
+    <div class="field-row">
+        <div class="field">
+            <label for="newsletter-password">@T["Settings_Password"]</label>
+            <input id="newsletter-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_password" required />
+        </div>
+        <div class="field">
+            <label for="newsletter-folder">@T["Sources_NewsletterFolder"]</label>
+            <input id="newsletter-folder" class="input" spellcheck="false" @bind="_folder" placeholder="INBOX" />
+        </div>
+    </div>
+    <div class="field-row">
+        <div class="field">
+            <label for="newsletter-sender">@T["Sources_NewsletterSender"]</label>
+            <input id="newsletter-sender" class="input" spellcheck="false" autocapitalize="none" @bind="_sender" placeholder="substack.com" aria-describedby="newsletter-sender-hint" />
+            <span id="newsletter-sender-hint" class="hint">@T["Sources_NewsletterSenderHint"]</span>
+        </div>
+        <div class="field">
+            <label for="newsletter-name">@T["Sources_Name"]</label>
+            <input id="newsletter-name" class="input" @bind="_name" placeholder="@T["Kind_Newsletter"]" />
+        </div>
+    </div>
+    <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_NewsletterAdd"]</button>
+</form>
+
+@code {
+    private string _server = string.Empty;
+    private string _user = string.Empty;
+    private string _password = string.Empty;
+    private string _folder = "INBOX";
+    private string? _sender;
+    private string? _name;
+    private bool _busy;
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    [Parameter]
+    public EventCallback<AddOutcome> Finished { get; set; }
+
+    private async Task AddAsync()
+    {
+        _busy = true;
+        var input = new NewsletterInput(string.IsNullOrWhiteSpace(_name) ? T["Kind_Newsletter"] : _name, _server, _user, _password, _folder, _sender);
+        var (_, failure) = await Scopes.RunAsync<ConnectedSources, (Source?, SourceResult.Failure?)>(sources => sources.AddNewsletterAsync(UserId, input, Cancellation));
+        _busy = false;
+        if (failure is not null)
+        {
+            await Finished.InvokeAsync(AddOutcome.Failed(T["Sources_NewsletterFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)], failure.BlockedHost));
+            return;
+        }
+
+        // The password is not kept in the page once it is stored; the next newsletter may use the same mailbox.
+        _password = string.Empty;
+        _sender = null;
+        _name = null;
+        await Finished.InvokeAsync(new AddOutcome(T["Sources_Added"]));
+    }
+}

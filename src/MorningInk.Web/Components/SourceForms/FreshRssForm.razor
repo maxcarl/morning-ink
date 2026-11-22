@@ -1,0 +1,106 @@
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Sources
+@inject ActionScopes Scopes
+
+@* One's own FreshRSS: sign in once, then pick the categories that become sources. *@
+<form @onsubmit="ConnectAsync" class="field" aria-labelledby="freshrss-label">
+    <span id="freshrss-label" class="label">@T["Sources_FreshRss"]</span>
+    <div class="field-row">
+        <div class="field">
+            <label for="freshrss-url">@T["Sources_FreshRssUrl"]</label>
+            <input id="freshrss-url" class="input" type="text" inputmode="url" spellcheck="false" @bind="_url" placeholder="https://freshrss.example.com" required />
+        </div>
+        <div class="field">
+            <label for="freshrss-user">@T["Login_UserName"]</label>
+            <input id="freshrss-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_user" required />
+        </div>
+    </div>
+    <div class="field">
+        <label for="freshrss-password">@T["Sources_FreshRssPassword"]</label>
+        <input id="freshrss-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_password" aria-describedby="freshrss-hint" required />
+        <span id="freshrss-hint" class="hint">@T["Sources_FreshRssHint"]</span>
+    </div>
+    <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_FreshRssConnect"]</button>
+</form>
+
+@if (_connected is { } connected)
+{
+    <form @onsubmit="AddAsync" class="field">
+        <fieldset class="field">
+            <legend class="label">@T["Sources_FreshRssPick"]</legend>
+            <div class="choices">
+                @foreach (var category in connected.Categories)
+                {
+                    <label class="checkbox" @key="category.Stream">
+                        <input type="checkbox" checked="@_picked.Contains(category.Stream)" @onchange="() => Pick(category.Stream)" /> @category.Name
+                    </label>
+                }
+            </div>
+            <span class="hint">@T["Sources_FreshRssPickHint"]</span>
+        </fieldset>
+        <button type="submit" class="button" disabled="@_busy">@T["Sources_FreshRssAdd"]</button>
+    </form>
+}
+
+@code {
+    private string _url = string.Empty;
+    private string _user = string.Empty;
+    private string _password = string.Empty;
+    private FreshRssConnection.Connected? _connected;
+    private HashSet<string> _picked = [];
+    private bool _busy;
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    [Parameter]
+    public EventCallback<AddOutcome> Finished { get; set; }
+
+    private async Task ConnectAsync()
+    {
+        _busy = true;
+        _connected = null;
+        _picked = [];
+        var connection = await Scopes.RunAsync<ConnectedSources, FreshRssConnection>(sources => sources.ConnectFreshRssAsync(_url, _user, _password, Cancellation));
+        _busy = false;
+        if (connection is FreshRssConnection.Connected connected)
+        {
+            _connected = connected;
+            await Finished.InvokeAsync(new AddOutcome(null));
+        }
+        else if (connection is FreshRssConnection.Failed { Failure: var failure })
+        {
+            await Finished.InvokeAsync(AddOutcome.Failed(T["Sources_FreshRssFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)], failure.BlockedHost));
+        }
+    }
+
+    private void Pick(string stream)
+    {
+        if (!_picked.Remove(stream))
+        {
+            _picked.Add(stream);
+        }
+    }
+
+    private async Task AddAsync()
+    {
+        if (_connected is not { } connected)
+        {
+            return;
+        }
+
+        _busy = true;
+        var chosen = connected.Categories.Where(c => _picked.Contains(c.Stream)).ToList();
+        var added = await Scopes.RunAsync<ConnectedSources, IReadOnlyList<Source>>(sources => sources.AddFreshRssAsync(UserId, connected.Api, _user, _password, chosen, Cancellation));
+        _busy = false;
+
+        // The password is not kept in the page once it is stored.
+        _connected = null;
+        _picked = [];
+        _password = string.Empty;
+        await Finished.InvokeAsync(new AddOutcome(T["Sources_FreshRssAdded", added.Count]));
+    }
+}
