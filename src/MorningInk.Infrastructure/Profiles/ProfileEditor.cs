@@ -16,7 +16,17 @@ namespace MorningInk.Infrastructure.Profiles;
 /// <param name="Country">ISO code, e.g. "DE"; empty searches worldwide.</param>
 /// <param name="Days">Weekdays with an issue; null keeps the current ones, all seven mean every day, none is an error.</param>
 /// <param name="LeadTime">How long before delivery to build the issue, up to half a day; null keeps the current one.</param>
-public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region, string? Country = null, IReadOnlyCollection<DayOfWeek>? Days = null, TimeSpan? LeadTime = null);
+/// <param name="SendByEmail">Off, issues are only stored to fetch, and the recipient may stay empty.</param>
+public sealed record ProfileSettings(
+    string Title,
+    string Recipient,
+    string DeliveryTime,
+    string TimeZoneId,
+    string? Region,
+    string? Country = null,
+    IReadOnlyCollection<DayOfWeek>? Days = null,
+    TimeSpan? LeadTime = null,
+    bool SendByEmail = true);
 
 /// <summary>Where an edition announces its issues; see <see cref="Profile.NotifyChannel"/>.</summary>
 /// <param name="Secret">Token for the channel; empty keeps the saved one, as with the mail password.</param>
@@ -120,7 +130,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
             errors.Add("Title");
         }
 
-        if (!IsSingleAddress(recipient))
+        if ((settings.SendByEmail || recipient.Length > 0) && !IsSingleAddress(recipient))
         {
             errors.Add("Recipient");
         }
@@ -169,6 +179,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         // ! is safe: a missing profile returned above
         profile!.Title = title;
         profile.Recipient = recipient;
+        profile.SendByEmail = settings.SendByEmail;
         profile.DeliveryTime = time;
         profile.TimeZoneId = settings.TimeZoneId;
         profile.Region = string.IsNullOrEmpty(region) ? null : region;

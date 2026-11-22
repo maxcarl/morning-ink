@@ -10,8 +10,17 @@ public class Profile
     /// <summary>Newspaper title on the cover, e.g. "Morning Ink" or "Die Frühstücksausgabe".</summary>
     public required string Title { get; set; }
 
-    /// <summary>Email address the issue is sent to, e.g. the Send-to-Kindle address.</summary>
+    /// <summary>Email address the issue is sent to, e.g. the Send-to-Kindle address; empty for an edition to fetch.</summary>
     public required string Recipient { get; set; }
+
+    /// <summary>
+    /// Whether issues go out by email. Off, they are only stored for the reader to fetch (OPDS, download), and no mail
+    /// server is needed.
+    /// </summary>
+    public bool SendByEmail { get; set; } = true;
+
+    /// <summary>Whether issues can go out: sections to fill, and a recipient when they are mailed.</summary>
+    public bool IsReady => Sections.Count > 0 && (!SendByEmail || !string.IsNullOrEmpty(Recipient));
 
     /// <summary>Postal code or town for local news and weather; null leaves both out.</summary>
     public string? Region { get; set; }

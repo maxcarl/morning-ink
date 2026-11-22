@@ -176,7 +176,7 @@
 
     private static string Language => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
-    private bool CanSend => _profile is { } profile && !string.IsNullOrEmpty(profile.Recipient) && profile.Sections.Count > 0 && _mailServerSet;
+    private bool CanSend => _profile is { IsReady: true } profile && (!profile.SendByEmail || _mailServerSet);
 
     protected override async Task LoadAsync()
     {

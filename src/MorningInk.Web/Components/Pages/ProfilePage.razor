@@ -19,7 +19,9 @@
         <a class="button button-secondary button-small" href="/preview?edition=@_profile.Id">@T["Preview_Open"]</a>
     </div>
     <p class="lede">
-        @(string.IsNullOrEmpty(_profile.Recipient)
+        @(!_profile.SendByEmail
+            ? T["Profile_LedeFetch", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId]
+            : string.IsNullOrEmpty(_profile.Recipient)
             ? T["Profile_LedeNoRecipient", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId]
             : T["Profile_Lede", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId, _profile.Recipient])
     </p>
@@ -195,12 +197,21 @@
                     <label for="title">@T["Profile_NewspaperTitle"]</label>
                     <input id="title" class="input" @bind="_title" required />
                 </div>
-                <div class="field">
-                    <label for="recipient">@T["Profile_Recipient"]</label>
-                    <input id="recipient" class="input" @bind="_recipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
-                    <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
+                <fieldset class="field">
+                    <legend class="label">@T["Profile_Delivery"]</legend>
+                    <label class="checkbox"><input id="delivery-email" type="radio" name="delivery" checked="@_sendByEmail" @onchange="() => _sendByEmail = true" /> @T["Profile_DeliveryEmail"]</label>
+                    <label class="checkbox"><input id="delivery-fetch" type="radio" name="delivery" checked="@(!_sendByEmail)" @onchange="() => _sendByEmail = false" aria-describedby="delivery-fetch-hint" /> @T["Profile_DeliveryFetch"]</label>
+                    <span id="delivery-fetch-hint" class="hint">@T["Profile_DeliveryFetchHint"]</span>
+                </fieldset>
                 </div>
-                </div>
+                @if (_sendByEmail)
+                {
+                    <div class="field">
+                        <label for="recipient">@T["Profile_Recipient"]</label>
+                        <input id="recipient" class="input" @bind="_recipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
+                        <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
+                    </div>
+                }
                 <div class="field-row">
                 <div class="field">
                     <label for="time">@T["Profile_DeliveryTime"]</label>
@@ -340,6 +351,7 @@
     // Settings
     private string _title = string.Empty;
     private string _recipient = string.Empty;
+    private bool _sendByEmail = true;
     private TimeOnly _time;
     private HashSet<DayOfWeek> _days = [];
     private List<InterestDraft> _interests = [];
@@ -365,6 +377,7 @@
         var profile = _profile!; // ! is safe: ReloadAsync just set it
         _title = profile.Title;
         _recipient = profile.Recipient;
+        _sendByEmail = profile.SendByEmail;
         _time = profile.DeliveryTime;
         _days = profile.Days.Count == 0 ? [.. Enum.GetValues<DayOfWeek>()] : [.. profile.Days];
         _leadMinutes = (int)profile.LeadTime.TotalMinutes;
@@ -602,7 +615,7 @@
     {
         Clear();
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(
-            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days], TimeSpan.FromMinutes(_leadMinutes)), Closed));
+            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days], TimeSpan.FromMinutes(_leadMinutes), _sendByEmail), Closed));
         _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
         if (_errors.Count == 0)
         {

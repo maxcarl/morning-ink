@@ -50,7 +50,10 @@
                         {
                             @* A plain link: the browser downloads it with the user's sign-in cookie. *@
                             <a class="link-button" href="/archive/@issue.Id/file" download>@T["Archive_Download"]<span class="visually-hidden"> – @name</span></a>
-                            <button type="button" class="link-button" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
+                            @if (item.Profile.SendByEmail)
+                            {
+                                <button type="button" class="link-button" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
+                            }
                         }
                         else
                         {

@@ -579,4 +579,11 @@
   <data name="Sources_SkipMedia" xml:space="preserve"><value>Keine Videos und Audios</value></data>
   <data name="Sources_SkipMediaHint" xml:space="preserve"><value>Lässt Sendungen weg, die ein E-Reader nicht abspielen kann, z. B. die Abendnachrichten als Video: erkannt an einem angehängten Video, einem Titel wie „Video:“ oder einem Medienbereich in der Adresse.</value></data>
   <data name="Sources_Reason_Media" xml:space="preserve"><value>Video oder Audio</value></data>
+  <data name="Profile_Delivery" xml:space="preserve"><value>Zustellung</value></data>
+  <data name="Profile_DeliveryEmail" xml:space="preserve"><value>Per E-Mail, z. B. an den Kindle</value></data>
+  <data name="Profile_DeliveryFetch" xml:space="preserve"><value>Nur bereitstellen</value></data>
+  <data name="Profile_DeliveryFetchHint" xml:space="preserve"><value>Der Reader holt sie aus dem OPDS-Katalog (siehe Konto), oder du lädst sie im Archiv herunter. Kein Mailserver nötig.</value></data>
+  <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} liegt {1} um {2} ({3}) für deinen Reader bereit.</value></data>
+  <data name="Dash_ToFetch" xml:space="preserve"><value>zum Abholen</value></data>
+  <data name="Log_Stored" xml:space="preserve"><value>Zum Abholen bereitgestellt</value></data>
 </root>

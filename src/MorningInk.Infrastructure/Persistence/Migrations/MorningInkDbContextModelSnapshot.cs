@@ -502,6 +502,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("SendByEmail")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("TimeZoneId")
                         .IsRequired()
                         .HasMaxLength(64)

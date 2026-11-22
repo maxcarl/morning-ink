@@ -48,6 +48,27 @@ public sealed class HomePageTests : IDisposable
     }
 
     [Fact]
+    public async Task An_edition_to_fetch_needs_neither_recipient_nor_mail_server()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            var editor = scope.ServiceProvider.GetRequiredService<ProfileEditor>();
+            var userId = await UserIdAsync(scope);
+            var profileId = (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id;
+            await editor.SaveSettingsAsync(userId, profileId, new ProfileSettings("Morning Ink", string.Empty, "06:00", "Europe/Berlin", null, SendByEmail: false), CancellationToken.None);
+            await editor.AddSectionAsync(userId, profileId, "Politik", CancellationToken.None);
+        }
+
+        var page = pages.Open<Home>("Next issue");
+
+        Assert.DoesNotContain("No recipient yet", page.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("No mail server yet", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("to fetch", page.Markup, StringComparison.Ordinal);
+        Assert.False(Pages.Button(page, "Send now").HasAttribute("disabled"));
+    }
+
+    [Fact]
     public async Task Send_now_builds_an_issue_that_appears_on_the_page()
     {
         using var app = new TestApp(new() { ["Smtp:Host"] = "127.0.0.1" }); // never reached: the issue below has nothing to send

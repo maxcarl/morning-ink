@@ -448,6 +448,10 @@ public sealed class IssuePublisher(
         CancellationToken cancellationToken)
     {
         var profile = loaded.Profile;
+        if (!profile.SendByEmail)
+        {
+            return await StoreAsync(issue, loaded, problems, cancellationToken);
+        }
 
         // ! is safe: DeliverAsync only runs after RenderAsync or for an issue with a rendered file.
         var path = files.PathFor(issue.FileName!);
@@ -474,13 +478,26 @@ public sealed class IssuePublisher(
         }
 
         issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = true });
-        issue.Status = IssueStatus.Delivered;
         issue.AddLog(now, "Delivered", profile.Recipient);
+        return await CompleteAsync(issue, loaded, now, problems, cancellationToken);
+    }
+
+    // An edition to fetch: the issue is out once it is stored, for the reader to pick up from the catalog.
+    private Task<PublishResult> StoreAsync(Issue issue, PublishingProfile loaded, IReadOnlyList<SourceProblem> problems, CancellationToken cancellationToken)
+    {
+        var now = time.GetUtcNow();
+        issue.AddLog(now, "Stored");
+        return CompleteAsync(issue, loaded, now, problems, cancellationToken);
+    }
+
+    private async Task<PublishResult> CompleteAsync(Issue issue, PublishingProfile loaded, DateTimeOffset now, IReadOnlyList<SourceProblem> problems, CancellationToken cancellationToken)
+    {
+        issue.Status = IssueStatus.Delivered;
         issue.DeliveredAt = now;
         issue.SetError(null, null, []);
 
         // Only now: had the delivery failed, the articles would have to come again.
-        await seen.MarkSeenAsync(profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);
+        await seen.MarkSeenAsync(loaded.Profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);
         await AcknowledgeAsync(issue, loaded, cancellationToken);
         await NotifyAsync(issue, loaded, null, cancellationToken);
         await store.SaveChangesAsync(cancellationToken);

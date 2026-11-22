@@ -61,6 +61,17 @@ public sealed class ProfileEditorTests : IDisposable
     }
 
     [Fact]
+    public async Task An_edition_to_fetch_needs_no_recipient()
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max");
+
+        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", string.Empty, "06:00", "Europe/Berlin", null, SendByEmail: false), CancellationToken.None));
+
+        Assert.Empty(errors);
+    }
+
+    [Fact]
     public async Task Sections_hold_the_users_sources_in_order()
     {
         await using var services = await _host.StartAsync();

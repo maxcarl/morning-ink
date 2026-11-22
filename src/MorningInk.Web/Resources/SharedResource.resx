@@ -579,4 +579,11 @@
   <data name="Sources_SkipMedia" xml:space="preserve"><value>No videos or audio</value></data>
   <data name="Sources_SkipMediaHint" xml:space="preserve"><value>Leaves out programmes an e-reader cannot play, e.g. the evening news as video: told by an attached video, a “Video:” title or a media section in the address.</value></data>
   <data name="Sources_Reason_Media" xml:space="preserve"><value>Video or audio</value></data>
+  <data name="Profile_Delivery" xml:space="preserve"><value>Delivery</value></data>
+  <data name="Profile_DeliveryEmail" xml:space="preserve"><value>By email, e.g. to the Kindle</value></data>
+  <data name="Profile_DeliveryFetch" xml:space="preserve"><value>Only make it available</value></data>
+  <data name="Profile_DeliveryFetchHint" xml:space="preserve"><value>The reader fetches it from the OPDS catalog (see Account), or you download it from the archive. No mail server needed.</value></data>
+  <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} is ready {1} at {2} ({3}) for your reader to fetch.</value></data>
+  <data name="Dash_ToFetch" xml:space="preserve"><value>to fetch</value></data>
+  <data name="Log_Stored" xml:space="preserve"><value>Made available to fetch</value></data>
 </root>

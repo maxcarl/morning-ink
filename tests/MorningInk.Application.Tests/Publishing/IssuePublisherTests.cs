@@ -472,6 +472,23 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task An_edition_to_fetch_is_stored_without_a_mail_and_its_articles_count_as_seen()
+    {
+        _profile.SendByEmail = false;
+        _profile.Recipient = string.Empty;
+
+        var result = await PublishAsync();
+
+        Assert.IsType<PublishResult.Delivered>(result);
+        Assert.Empty(_delivery.Requests);
+        var issue = Assert.Single(_store.Issues);
+        Assert.Equal(IssueStatus.Delivered, issue.Status);
+        Assert.Contains(issue.Log, e => e.Event == "Stored");
+        Assert.DoesNotContain(issue.Log, e => e.Event == "Delivered");
+        Assert.Contains("https://heise.de/x", _seen.Seen); // the reader fetches it: tomorrow brings new articles
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 

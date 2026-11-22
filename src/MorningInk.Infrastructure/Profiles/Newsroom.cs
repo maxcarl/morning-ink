@@ -17,7 +17,7 @@ public sealed record Edition(Profile Profile, DateTimeOffset NextIssue, int Next
     /// <summary>Without a recipient or a section, an issue cannot be built and sent.</summary>
     public bool CanSend => CanSendIssues(Profile);
 
-    internal static bool CanSendIssues(Profile profile) => !string.IsNullOrEmpty(profile.Recipient) && profile.Sections.Count > 0;
+    internal static bool CanSendIssues(Profile profile) => profile.IsReady;
 }
 
 /// <summary>What the dashboard shows.</summary>

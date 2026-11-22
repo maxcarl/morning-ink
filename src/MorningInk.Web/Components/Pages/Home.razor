@@ -48,7 +48,7 @@
             <a class="button button-secondary" href="/preview?edition=@lead.Profile.Id">@T["Preview_Open"]</a>
             @SendButton(lead, view, small: false)
         </div>
-        @if (!lead.CanSend || !view.MailServerSet)
+        @if (IsBlocked(lead, view))
         {
             @* Right at the button: on a phone the notes that explain it may be out of view. *@
             <p id="send-blocked-@lead.Profile.Id" class="hint next-issue-hint">@T["Dash_SendBlocked"]</p>
@@ -153,12 +153,16 @@
     // One per edition: the lead gets a big one, the others a small one in their row.
     private RenderFragment SendButton(Edition edition, NewsroomView view, bool small) => __builder =>
     {
-        var blocked = !edition.CanSend || !view.MailServerSet;
+        var blocked = IsBlocked(edition, view);
         <button type="button" class="button @(small ? "button-secondary button-small" : null)" disabled="@(blocked || _sending)"
                 aria-describedby="@(blocked && !small ? $"send-blocked-{edition.Profile.Id}" : null)" @onclick="() => SendNowAsync(edition.Profile.Id)">
             @T["Dash_SendNow"]<span class="visually-hidden"> – @edition.Profile.Title</span>
         </button>
     };
+
+    // Mailed editions need the mail server too; an edition to fetch only its sections.
+    private static bool IsBlocked(Edition edition, NewsroomView view) =>
+        !edition.CanSend || (edition.Profile.SendByEmail && !view.MailServerSet);
 
     // What is missing before issues can go out, each with where to fix it; with several editions, each says which.
     private IEnumerable<(string Text, string? Href)> Notes(NewsroomView view)
@@ -168,7 +172,7 @@
         {
             var prefix = several ? $"{edition.Profile.Title}: " : string.Empty;
             var href = $"/profile/{edition.Profile.Id}";
-            if (string.IsNullOrEmpty(edition.Profile.Recipient))
+            if (edition.Profile.SendByEmail && string.IsNullOrEmpty(edition.Profile.Recipient))
             {
                 yield return (prefix + T["Dash_NeedRecipient"], href);
             }
@@ -184,7 +188,7 @@
             yield return (T["Dash_Wizard"], "/welcome");
         }
 
-        if (!view.MailServerSet)
+        if (!view.MailServerSet && view.Editions.Any(e => e.Profile.SendByEmail))
         {
             yield return IsAdmin ? (T["Dash_NeedMailAdmin"], "/settings") : (T["Dash_NeedMail"], null);
         }
@@ -200,7 +204,11 @@
     {
         var profile = edition.Profile;
         var facts = new List<string> { $"{T["Quote_Open"]}{profile.Title}{T["Quote_Close"]}", T["Dash_IssueTitle", edition.NextNumber], profile.Sections.Count == 1 ? T["Dash_SectionCount_One"] : T["Dash_SectionCount", profile.Sections.Count] };
-        if (!string.IsNullOrEmpty(profile.Recipient))
+        if (!profile.SendByEmail)
+        {
+            facts.Add(T["Dash_ToFetch"]);
+        }
+        else if (!string.IsNullOrEmpty(profile.Recipient))
         {
             facts.Add(T["Dash_To", profile.Recipient]);
         }
