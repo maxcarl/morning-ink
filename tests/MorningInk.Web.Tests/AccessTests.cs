@@ -45,6 +45,29 @@ public sealed class AccessTests : IDisposable
     }
 
     [Fact]
+    public async Task App_manifest_and_icons_are_linked_and_served_without_sign_in()
+    {
+        // Browsers fetch the manifest without cookies, and the home screen icon is taken before anyone signs in.
+        using var app = new TestApp();
+        var browser = app.Browser();
+        var page = await browser.GetStringAsync("/setup");
+
+        var manifestHref = Href(page, "manifest");
+        var manifest = await browser.GetAsync("/" + manifestHref);
+        var touchIcon = await browser.GetAsync("/" + Href(page, "apple-touch-icon"));
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, manifest.StatusCode);
+        Assert.Equal("image/png", touchIcon.Content.Headers.ContentType?.MediaType);
+        using var json = System.Text.Json.JsonDocument.Parse(await manifest.Content.ReadAsStringAsync());
+        Assert.Equal("Morning Ink", json.RootElement.GetProperty("name").GetString());
+        foreach (var icon in json.RootElement.GetProperty("icons").EnumerateArray())
+        {
+            var response = await browser.GetAsync("/" + icon.GetProperty("src").GetString());
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        }
+    }
+
+    [Fact]
     public async Task Favicon_is_linked_and_served_without_sign_in()
     {
         using var app = new TestApp();
@@ -99,6 +122,9 @@ public sealed class AccessTests : IDisposable
         Assert.Equal(HttpStatusCode.Redirect, logout.StatusCode);
         Assert.Equal(HttpStatusCode.Redirect, after.StatusCode);
     }
+
+    private static string Href(string page, string rel) =>
+        System.Text.RegularExpressions.Regex.Match(page, $@"<link rel=""{rel}""[^>]*href=""([^""]+)""").Groups[1].Value;
 
     public void Dispose() => _app.Dispose();
 }

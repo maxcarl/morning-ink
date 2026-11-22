@@ -8,6 +8,13 @@
     <base href="/" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="icon" type="image/svg+xml" href="@Assets["favicon.svg"]" />
+    @* Installable as an app (home screen, dock); no service worker, since every page needs the server anyway. *@
+    <link rel="apple-touch-icon" href="@Assets["apple-touch-icon.png"]" />
+    <link rel="manifest" href="@Assets["manifest.webmanifest"]" />
+    <meta name="apple-mobile-web-app-title" content="Morning Ink" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#f5f0e8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171513" media="(prefers-color-scheme: dark)" />
     <HeadOutlet />
 </head>
 <body>
