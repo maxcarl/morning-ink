@@ -169,6 +169,26 @@ public sealed class ProfileEditorTests : IDisposable
     }
 
     [Fact]
+    public async Task Interests_are_saved_per_edition_and_checked()
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max");
+        var profileId = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Id;
+        Interest[] interests = [new() { Topic = "Homelab", Keywords = ["Proxmox", "NAS"], Weight = InterestWeight.StrongPrefer }];
+
+        var saved = await EditAsync(services, e => e.SaveInterestsAsync(user, profileId, interests, CancellationToken.None));
+        var withoutKeywords = await EditAsync(services, e => e.SaveInterestsAsync(user, profileId, [new() { Topic = "Leer", Keywords = [] }], CancellationToken.None));
+        var foreign = await EditAsync(services, e => e.SaveInterestsAsync(Guid.NewGuid(), profileId, interests, CancellationToken.None));
+
+        Assert.True(saved);
+        Assert.False(withoutKeywords);
+        Assert.False(foreign);
+        var stored = Assert.Single((await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Interests);
+        Assert.Equal(("Homelab", InterestWeight.StrongPrefer), (stored.Topic, stored.Weight));
+        Assert.Equal(["Proxmox", "NAS"], stored.Keywords);
+    }
+
+    [Fact]
     public async Task No_weekday_at_all_is_refused()
     {
         await using var services = await _host.StartAsync();

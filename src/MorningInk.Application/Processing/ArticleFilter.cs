@@ -13,9 +13,12 @@ public static partial class ArticleFilter
 {
     private static readonly TimeSpan MatchTimeout = TimeSpan.FromMilliseconds(100);
 
+    /// <summary>Whether the keyword appears in headline or teaser, as a whole word, ignoring case and ß/ss.</summary>
+    public static bool Mentions(FetchedArticle article, string keyword) => Contains(HeadlineAndTeaser(article), keyword);
+
     public static bool Admits(FetchedArticle article, Source source)
     {
-        var text = $"{article.Title} {PlainText(article.Summary)}";
+        var text = HeadlineAndTeaser(article);
         if (source.SkipLiveTickers && LiveTicker().IsMatch(article.Title))
         {
             return false;
@@ -32,6 +35,8 @@ public static partial class ArticleFilter
     public static bool IsLongEnough(FetchedArticle article, Source source) =>
         source.MinWords is not { } minimum
         || PlainText(article.Content ?? article.Summary).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length >= minimum;
+
+    private static string HeadlineAndTeaser(FetchedArticle article) => $"{article.Title} {PlainText(article.Summary)}";
 
     // A keyword counts as a whole word or phrase: "Promi" does not match "Promis". Case and ß/ss do not matter.
     private static bool Contains(string text, string keyword)

@@ -139,6 +139,40 @@
                 <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
             </div>
         </form>
+
+        <h2 class="department">@T["Interests_Title"]</h2>
+        <p class="hint">@T["Interests_Hint"]</p>
+        <form @onsubmit="SaveInterestsAsync">
+            @for (var i = 0; i < _interests.Count; i++)
+            {
+                var draft = _interests[i];
+                var index = i;
+                <div class="interest inline-form field" @key="draft">
+                    <div>
+                        <label class="label" for="interest-topic-@index">@T["Interests_Topic"]</label>
+                        <input id="interest-topic-@index" class="input" @bind="draft.Topic" placeholder="@T["Interests_TopicPlaceholder"]" />
+                    </div>
+                    <div class="row-main">
+                        <label class="label" for="interest-keywords-@index">@T["Interests_Keywords"]</label>
+                        <input id="interest-keywords-@index" class="input" @bind="draft.Keywords" placeholder="@T["Interests_KeywordsPlaceholder"]" />
+                    </div>
+                    <div>
+                        <label class="label" for="interest-weight-@index">@T["Interests_Weight"]</label>
+                        <select id="interest-weight-@index" class="input" @bind="draft.Weight">
+                            @foreach (var weight in new[] { InterestWeight.StrongPrefer, InterestWeight.Prefer, InterestWeight.Less, InterestWeight.Hide })
+                            {
+                                <option value="@weight">@T[$"Interests_Weight_{weight}"]</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="button" class="link-button link-danger" @onclick="() => _interests.RemoveAt(index)">@T["Interests_Remove"]<span class="visually-hidden"> – @draft.Topic</span></button>
+                </div>
+            }
+            <div class="row-actions">
+                <button type="button" class="button button-secondary button-small" @onclick="() => _interests.Add(new InterestDraft())">+ @T["Interests_Add"]</button>
+                <button type="submit" class="button button-small">@T["Interests_Save"]</button>
+            </div>
+        </form>
     </section>
 
     <aside class="sidebar" aria-labelledby="settings-heading">
@@ -249,6 +283,7 @@
     private string _recipient = string.Empty;
     private TimeOnly _time;
     private HashSet<DayOfWeek> _days = [];
+    private List<InterestDraft> _interests = [];
     private int _leadMinutes;
 
     // A slow AI on a CPU needs hours; more than four is not worth offering.
@@ -271,6 +306,7 @@
         _country = profile.Country;
         _confirmEdition = false;
         _shownFor = ProfileId;
+        _interests = profile.Interests.Select(i => new InterestDraft { Topic = i.Topic, Keywords = string.Join(", ", i.Keywords), Weight = i.Weight }).ToList();
         _region = profile.Region;
     }
 
@@ -315,6 +351,36 @@
         < 60 => T["Profile_LeadMinutes", minutes],
         _ => T["Profile_LeadHours", minutes / 60],
     };
+
+    private async Task SaveInterestsAsync()
+    {
+        Clear();
+
+        // Rows left empty are dropped, so adding one by mistake does not block saving.
+        var interests = _interests
+            .Where(d => !string.IsNullOrWhiteSpace(d.Topic) || !string.IsNullOrWhiteSpace(d.Keywords))
+            .Select(d => new Interest { Topic = d.Topic, Keywords = [.. SourceSettings.ParseKeywords(d.Keywords)], Weight = d.Weight })
+            .ToList();
+        var id = _profile!.Id; // ! is safe: the form only shows with a loaded edition
+        if (!await UseAsync<ProfileEditor, bool>(editor => editor.SaveInterestsAsync(UserId, id, interests, Closed)))
+        {
+            _errors = [T["Interests_Invalid"]];
+            return;
+        }
+
+        _notice = T["Profile_Saved"];
+        await ReloadAsync();
+    }
+
+    // An interest as edited: keywords as typed, separated by commas.
+    private sealed class InterestDraft
+    {
+        public string Topic { get; set; } = string.Empty;
+
+        public string Keywords { get; set; } = string.Empty;
+
+        public InterestWeight Weight { get; set; } = InterestWeight.Prefer;
+    }
 
     private void ToggleDay(DayOfWeek day)
     {

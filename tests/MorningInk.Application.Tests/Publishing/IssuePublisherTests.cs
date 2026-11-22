@@ -351,6 +351,25 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Interests_decide_which_articles_fit_into_a_tight_section()
+    {
+        _profile.Sections.Single(s => s.Name == "Nachrichten").MaxArticles = 1;
+        _profile.Interests = [new Interest { Topic = "Raumfahrt", Keywords = ["Raumfahrt"], Weight = InterestWeight.Prefer }];
+        Answer(_tagesschau, new SourceResult.Success(
+            [
+                new FetchedArticle(null, "Neues vom Wetter", new Uri("https://tagesschau.de/wetter"), Slot.AddHours(-1), null, null, "<p>Text</p>"),
+                new FetchedArticle(null, "Raumfahrt: Start geglückt", new Uri("https://tagesschau.de/start"), Slot.AddHours(-3), null, null, "<p>Text</p>"),
+            ],
+            ETag: null,
+            LastModified: null));
+
+        await PublishAsync();
+
+        var news = Assert.Single(_renderer.Rendered).Sections.Single(s => s.Name == "Nachrichten");
+        Assert.Equal("Raumfahrt: Start geglückt", Assert.Single(news.Articles).Article.Title); // older, but of interest
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 

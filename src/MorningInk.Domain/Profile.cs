@@ -34,6 +34,9 @@ public class Profile
     /// <summary>Weekdays with an issue, in <see cref="TimeZoneId"/>; empty means every day.</summary>
     public List<DayOfWeek> Days { get; set; } = [];
 
+    /// <summary>Topics to prefer or leave out when a section's limit cannot take every article.</summary>
+    public List<Interest> Interests { get; set; } = [];
+
     /// <summary>Sections of the issue, ordered by <see cref="Section.Position"/>.</summary>
     public ICollection<Section> Sections { get; } = [];
 }

@@ -315,4 +315,19 @@
   <data name="Preview_State" xml:space="preserve"><value>Stand {0} Uhr. Bis zur Lieferzeit kann sich die Ausgabe noch ändern: Neue Meldungen kommen dazu, ältere fallen weg.</value></data>
   <data name="Preview_Empty" xml:space="preserve"><value>Gerade gibt es keine neuen Meldungen; die Ausgabe würde nicht verschickt.</value></data>
   <data name="Preview_Open" xml:space="preserve"><value>Vorschau</value></data>
+  <data name="Interests_Title" xml:space="preserve"><value>Interessen</value></data>
+  <data name="Interests_Hint" xml:space="preserve"><value>Themen, die bevorzugt oder ausgelassen werden. Reicht das Limit einer Rubrik nicht für alle Artikel, entscheiden sie; „auslassen“ wirkt wie ein Filter. Erkannt an den Stichwörtern in Überschrift und Anriss.</value></data>
+  <data name="Interests_Topic" xml:space="preserve"><value>Thema</value></data>
+  <data name="Interests_TopicPlaceholder" xml:space="preserve"><value>z. B. Homelab</value></data>
+  <data name="Interests_Keywords" xml:space="preserve"><value>Stichwörter</value></data>
+  <data name="Interests_KeywordsPlaceholder" xml:space="preserve"><value>z. B. Proxmox, NAS, Raspberry Pi</value></data>
+  <data name="Interests_Weight" xml:space="preserve"><value>Gewicht</value></data>
+  <data name="Interests_Weight_StrongPrefer" xml:space="preserve"><value>stark bevorzugen</value></data>
+  <data name="Interests_Weight_Prefer" xml:space="preserve"><value>bevorzugen</value></data>
+  <data name="Interests_Weight_Less" xml:space="preserve"><value>weniger</value></data>
+  <data name="Interests_Weight_Hide" xml:space="preserve"><value>auslassen</value></data>
+  <data name="Interests_Remove" xml:space="preserve"><value>Entfernen</value></data>
+  <data name="Interests_Add" xml:space="preserve"><value>Interesse</value></data>
+  <data name="Interests_Save" xml:space="preserve"><value>Interessen speichern</value></data>
+  <data name="Interests_Invalid" xml:space="preserve"><value>Jedes Interesse braucht ein Thema und mindestens ein Stichwort.</value></data>
 </root>

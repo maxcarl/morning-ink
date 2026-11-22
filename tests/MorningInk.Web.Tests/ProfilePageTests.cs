@@ -168,6 +168,22 @@ public sealed class ProfilePageTests : IDisposable
         Assert.DoesNotContain("Delete this edition", first.Markup, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task Interest_is_added_and_saved()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+
+        Pages.Button(page, "+ Interest").Click();
+        page.Find("#interest-weight-0").Change("StrongPrefer");
+        Pages.Submit(page, ("#interest-topic-0", "Homelab"), ("#interest-keywords-0", "Proxmox, NAS"));
+
+        Pages.Shows(page, "Saved.");
+        var interest = Assert.Single((await ProfilesAsync())[0].Interests);
+        Assert.Equal(("Homelab", InterestWeight.StrongPrefer), (interest.Topic, interest.Weight));
+        Assert.Equal(["Proxmox", "NAS"], interest.Keywords);
+    }
+
     public void Dispose() => _app.Dispose();
 
     private async Task<Guid> CreateEditionAsync(string title)

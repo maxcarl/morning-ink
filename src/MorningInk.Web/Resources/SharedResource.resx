@@ -315,4 +315,19 @@
   <data name="Preview_State" xml:space="preserve"><value>State at {0}. The issue can still change until its delivery time: new articles come in, older ones drop out.</value></data>
   <data name="Preview_Empty" xml:space="preserve"><value>There are no new articles right now; the issue would not be sent.</value></data>
   <data name="Preview_Open" xml:space="preserve"><value>Preview</value></data>
+  <data name="Interests_Title" xml:space="preserve"><value>Interests</value></data>
+  <data name="Interests_Hint" xml:space="preserve"><value>Topics to prefer or leave out. When a section's limit cannot take every article, these decide; "leave out" works like a filter. Recognized by the keywords in headline and teaser.</value></data>
+  <data name="Interests_Topic" xml:space="preserve"><value>Topic</value></data>
+  <data name="Interests_TopicPlaceholder" xml:space="preserve"><value>e.g. Homelab</value></data>
+  <data name="Interests_Keywords" xml:space="preserve"><value>Keywords</value></data>
+  <data name="Interests_KeywordsPlaceholder" xml:space="preserve"><value>e.g. Proxmox, NAS, Raspberry Pi</value></data>
+  <data name="Interests_Weight" xml:space="preserve"><value>Weight</value></data>
+  <data name="Interests_Weight_StrongPrefer" xml:space="preserve"><value>strongly prefer</value></data>
+  <data name="Interests_Weight_Prefer" xml:space="preserve"><value>prefer</value></data>
+  <data name="Interests_Weight_Less" xml:space="preserve"><value>less</value></data>
+  <data name="Interests_Weight_Hide" xml:space="preserve"><value>leave out</value></data>
+  <data name="Interests_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Interests_Add" xml:space="preserve"><value>Interest</value></data>
+  <data name="Interests_Save" xml:space="preserve"><value>Save interests</value></data>
+  <data name="Interests_Invalid" xml:space="preserve"><value>Each interest needs a topic and at least one keyword.</value></data>
 </root>

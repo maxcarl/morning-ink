@@ -30,6 +30,8 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     private const int MaxSectionArticles = 100;
     private const string TimeFormat = "HH:mm";
     private static readonly TimeSpan MaxLeadTime = TimeSpan.FromHours(12);
+    private const int MaxInterests = 30;
+    private const int MaxKeywords = 30;
 
     /// <summary>The user's first profile with sections and sources; created with defaults when the user has none.</summary>
     public async Task<Profile> GetOrCreateAsync(Guid userId, CancellationToken cancellationToken)
@@ -181,6 +183,25 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         await db.SaveChangesAsync(cancellationToken);
         await RescheduleAsync(profile, cancellationToken);
         return [];
+    }
+
+    /// <summary>Replaces the edition's interests.</summary>
+    /// <returns>False when the edition is not the user's, or an interest lacks a topic or keywords or is too long.</returns>
+    public async Task<bool> SaveInterestsAsync(Guid userId, Guid profileId, IReadOnlyList<Interest> interests, CancellationToken cancellationToken)
+    {
+        var valid = interests.Count <= MaxInterests && interests.All(i =>
+            i.Topic.Trim().Length is > 0 and <= MaxNameLength
+            && i.Keywords.Count is > 0 and <= MaxKeywords
+            && i.Keywords.All(k => k.Trim().Length is > 0 and <= MaxNameLength)
+            && Enum.IsDefined(i.Weight));
+        if (!valid || await FindAsync(userId, profileId, cancellationToken) is not { } profile)
+        {
+            return false;
+        }
+
+        profile.Interests = interests.Select(i => new Interest { Topic = i.Topic.Trim(), Keywords = [.. i.Keywords.Select(k => k.Trim())], Weight = i.Weight }).ToList();
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task<bool> AddSectionAsync(Guid userId, Guid profileId, string name, CancellationToken cancellationToken)

@@ -182,8 +182,12 @@ public sealed class IssuePublisher(
             var picks = new List<(FetchedArticle, Source, List<AlsoReported>)>();
             var candidates = section.Sources
                 .SelectMany(source => bySource[source.Id].Select(article => (Article: article, Source: source)))
-                .Where(candidate => fresh.Contains(candidate.Article) && ArticleFilter.Admits(candidate.Article, candidate.Source))
-                .OrderByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue);
+                .Where(candidate => fresh.Contains(candidate.Article) && ArticleFilter.Admits(candidate.Article, candidate.Source)
+                    && !Interests.Hides(candidate.Article, profile.Interests))
+
+                // The edition's interests first, then the newest: when the limit is tight, its topics win.
+                .OrderByDescending(candidate => Interests.Score(candidate.Article, profile.Interests))
+                .ThenByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue);
             foreach (var (article, source) in candidates)
             {
                 if (picks.Count >= (section.MaxArticles ?? int.MaxValue))

@@ -84,6 +84,8 @@ public sealed class MorningInkDbContext(
                 location.Property(l => l.Name).HasMaxLength(NameLength);
                 location.Property(l => l.District).HasMaxLength(NameLength);
             });
+            // Interests belong to one edition and are always read with it: one JSON column, no table of their own.
+            profile.Property(p => p.Interests).HasConversion(JsonColumn.Converter<Interest>(), JsonColumn.Comparer<Interest>());
             profile.HasMany(p => p.Sections).WithOne().HasForeignKey(s => s.ProfileId).OnDelete(DeleteBehavior.Cascade);
         });
 

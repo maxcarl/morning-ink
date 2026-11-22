@@ -153,3 +153,10 @@
   border: 1px solid var(--color-ink);
   margin-bottom: var(--space-4);
 }
+
+/* Interests on the edition page: one row per topic */
+.interest {
+  align-items: flex-end;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-rule);
+}
