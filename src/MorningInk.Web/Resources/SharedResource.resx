@@ -29,13 +29,11 @@
   <data name="Nav_Label" xml:space="preserve"><value>Main navigation</value></data>
     <data name="Logout" xml:space="preserve"><value>Sign out</value></data>
   <data name="Home_Title" xml:space="preserve"><value>Overview</value></data>
-  <data name="Home_Welcome" xml:space="preserve"><value>Welcome, {0}.</value></data>
   <data name="NotFound_Title" xml:space="preserve"><value>Page not found</value></data>
   <data name="NotFound_Text" xml:space="preserve"><value>This page does not exist.</value></data>
   <data name="NotFound_Back" xml:space="preserve"><value>Back to the overview</value></data>
   <data name="Nav_Home" xml:space="preserve"><value>Newsroom</value></data>
   <data name="Nav_Sources" xml:space="preserve"><value>Sources</value></data>
-  <data name="Home_Kicker" xml:space="preserve"><value>Front desk</value></data>
   <data name="Sources_Kicker" xml:space="preserve"><value>Correspondents</value></data>
   <data name="Sources_Title" xml:space="preserve"><value>Sources</value></data>
   <data name="Sources_Count" xml:space="preserve"><value>{0} feeds · {1} local</value></data>
@@ -180,8 +178,6 @@
   <data name="Profile_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Settings_Sending" xml:space="preserve"><value>Sending…</value></data>
   <data name="Dash_Next" xml:space="preserve"><value>Next issue</value></data>
-  <data name="Dash_NextLede" xml:space="preserve"><value>“{0}”, no. {1} with {2} sections, sent to {3}.</value></data>
-  <data name="Dash_NextLedeNoRecipient" xml:space="preserve"><value>“{0}”, no. {1} with {2} sections.</value></data>
   <data name="Dash_SendNow" xml:space="preserve"><value>Send now</value></data>
   <data name="Dash_SendStarted" xml:space="preserve"><value>The issue is being built and sent. It shows up below in a moment.</value></data>
   <data name="Dash_Recent" xml:space="preserve"><value>Recent issues</value></data>
@@ -192,7 +188,6 @@
   <data name="Dash_Attempts" xml:space="preserve"><value>{0} delivery attempts</value></data>
   <data name="Dash_Unavailable" xml:space="preserve"><value>Not reachable while building:</value></data>
   <data name="Dash_Notes" xml:space="preserve"><value>Notes</value></data>
-  <data name="Dash_AllGood" xml:space="preserve"><value>No news is good news: everything is set up.</value></data>
   <data name="Dash_NeedRecipient" xml:space="preserve"><value>No recipient yet. Enter your Send-to-Kindle address under Edition.</value></data>
   <data name="Dash_NeedSections" xml:space="preserve"><value>No sections yet. Add one under Edition.</value></data>
   <data name="Dash_NeedMail" xml:space="preserve"><value>No mail server yet. Ask an admin to set it up.</value></data>
@@ -235,7 +230,7 @@
   <data name="Welcome_Help_Done" xml:space="preserve"><value>The first issue is built now and arrives on your Kindle in a few minutes. After that it comes every day at your delivery time.</value></data>
   <data name="Welcome_AmazonHint" xml:space="preserve"><value>Important: add {0} on Amazon under Personal Document Settings → Approved Personal Document E-mail List. Otherwise Amazon silently drops the newspaper.</value></data>
   <data name="Dash_Wizard" xml:space="preserve"><value>Continue the setup wizard.</value></data>
-  <data name="Dash_SendBlocked" xml:space="preserve"><value>Sending works once everything is set up, see Notes.</value></data>
+  <data name="Dash_SendBlocked" xml:space="preserve"><value>Sending works once everything above is set up.</value></data>
   <data name="Dash_Editions" xml:space="preserve"><value>Other editions</value></data>
   <data name="Profile_Editions" xml:space="preserve"><value>Editions</value></data>
   <data name="Profile_NewEdition" xml:space="preserve"><value>New edition</value></data>
@@ -411,4 +406,10 @@
   <data name="Interests_ExampleFootball" xml:space="preserve"><value>Football: football*, Premier League, Champions League, World Cup, penalty</value></data>
   <data name="Interests_ExampleCelebrities" xml:space="preserve"><value>Celebrity news: celebrit*, royals, reality TV, red carpet, gossip</value></data>
   <data name="Interests_HowSources" xml:space="preserve"><value>To filter a single source, use “Never with these words” at the source. Its “Test” then shows what is left out.</value></data>
+  <data name="Quote_Open" xml:space="preserve"><value>“</value></data>
+  <data name="Quote_Close" xml:space="preserve"><value>”</value></data>
+  <data name="Dash_SectionCount" xml:space="preserve"><value>{0} sections</value></data>
+  <data name="Dash_SectionCount_One" xml:space="preserve"><value>1 section</value></data>
+  <data name="Dash_To" xml:space="preserve"><value>to {0}</value></data>
+  <data name="Dash_ToArchive" xml:space="preserve"><value>All issues in the archive →</value></data>
 </root>

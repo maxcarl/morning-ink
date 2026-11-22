@@ -45,7 +45,7 @@ public sealed class SignInTests : IDisposable
         var home = await browser.GetAsync("/");
 
         Assert.Equal(HttpStatusCode.OK, home.StatusCode);
-        Assert.Contains("Welcome, max.", await home.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("Sign out", await home.Content.ReadAsStringAsync(), StringComparison.Ordinal); // only shown when signed in
     }
 
     [Fact]

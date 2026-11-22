@@ -9,133 +9,111 @@
 
 <PageTitle>@T["Home_Title"] – @T["Brand"]</PageTitle>
 
-<header class="page-header">
-    <span class="kicker">@T["Home_Kicker"]</span>
-    <h1>@T["Home_Title"]</h1>
-    <p class="lede">@T["Home_Welcome", UserName]</p>
-    @if (_notice is not null)
-    {
-        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
-    }
-</header>
+@* No page title block: the tab says where we are, and the next issue is what the page is about. *@
+<h1 class="visually-hidden">@T["Home_Title"]</h1>
+@if (_notice is not null)
+{
+    <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+}
 
 @if (_view is { } view)
 {
     var lead = view.Editions[0];
     var several = view.Editions.Count > 1;
-    <div class="with-sidebar">
-        <div>
-            @* The lead story: the next issue, big, like a front page's top headline. *@
-            <section class="lead" aria-labelledby="next-heading">
-                <span class="kicker">@T["Dash_Next"]</span>
-                <h2 id="next-heading" class="lead-headline">@Headline(lead.NextIssue, lead.Profile)</h2>
-                <p class="lede">
-                    @(string.IsNullOrEmpty(lead.Profile.Recipient)
-                        ? T["Dash_NextLedeNoRecipient", lead.Profile.Title, lead.NextNumber, lead.Profile.Sections.Count]
-                        : T["Dash_NextLede", lead.Profile.Title, lead.NextNumber, lead.Profile.Sections.Count, lead.Profile.Recipient])
-                </p>
-                @SendButton(lead, view, small: false)
-                <a class="link-button" href="/preview?edition=@lead.Profile.Id">@T["Preview_Open"]</a>
-            </section>
+    var notes = Notes(view).ToList();
 
-            @if (several)
-            {
-                <h2 class="department">@T["Dash_Editions"]</h2>
-                <ul class="rows">
-                    @foreach (var edition in view.Editions.Skip(1))
-                    {
-                        <li class="row" @key="edition.Profile.Id">
-                            <div class="row-main">
-                                <div class="row-title">@edition.Profile.Title</div>
-                                <div class="row-meta">@Headline(edition.NextIssue, edition.Profile) · @T["Dash_IssueTitle", edition.NextNumber]</div>
-                            </div>
-                            @SendButton(edition, view, small: true)
-                        </li>
-                    }
-                </ul>
-            }
-
-            <h2 class="department">@T["Dash_Recent"]</h2>
-            @if (view.Issues.Count == 0)
-            {
-                <p class="muted">@T["Dash_NoIssues"]</p>
-            }
-            <ul class="rows" aria-live="polite">
-                @foreach (var issue in view.Issues)
-                {
-                    var profile = ProfileOf(issue);
-                    <li class="row" @key="issue.Id">
-                        <div class="row-main">
-                            <div class="row-title">@(several ? $"{profile?.Title} · " : null)@T["Dash_IssueTitle", issue.Number] · @Clock.DateAndTime(T, Local(issue.ScheduledFor, profile))</div>
-                            <div class="row-meta">@Facts(issue, profile)</div>
-                            @if (issue.Error is not null && issue.Status == IssueStatus.Failed)
-                            {
-                                <p class="status status-error issue-error">@DeliveryTexts.Describe(T, issue.ErrorReason, issue.ErrorArguments, issue.Error)</p>
-                            }
-                            @if (issue.Problems.Count > 0)
-                            {
-                                <p class="row-meta">@T["Dash_Unavailable"] @string.Join(" · ", issue.Problems)</p>
-                            }
-                            @if (issue.Log.Count > 0)
-                            {
-                                var logOpen = _logId == issue.Id;
-                                <button type="button" class="link-button" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
-                                    @(logOpen ? T["Log_Hide"] : T["Log_Show"])
-                                </button>
-                                @if (logOpen)
-                                {
-                                    <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(profile?.TimeZoneId ?? TimeZoneInfo.Utc.Id)" /></div>
-                                }
-                            }
-                        </div>
-                        @* Status in words, colour only adds to it. *@
-                        <span class="status @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
-                    </li>
-                }
-            </ul>
-        </div>
-
-        <aside class="sidebar" aria-labelledby="notes-heading">
-            <h2 id="notes-heading" class="department">@T["Dash_Notes"]</h2>
+    @* What is missing comes first, but only when something is: a page that works stays quiet. *@
+    @if (notes.Count > 0)
+    {
+        <section class="alert alert-warn" aria-labelledby="notes-heading">
+            <h2 id="notes-heading" class="alert-title">@T["Dash_Notes"]</h2>
             <ul class="notes">
-                @foreach (var edition in view.Editions.Where(e => !e.CanSend))
+                @foreach (var (text, href) in notes)
                 {
-                    @* With several editions, each note says which one it is about. *@
-                    var prefix = several ? $"{edition.Profile.Title}: " : null;
-                    var href = $"/profile/{edition.Profile.Id}";
-                    @if (string.IsNullOrEmpty(edition.Profile.Recipient))
-                    {
-                        <li><a href="@href">@prefix@T["Dash_NeedRecipient"]</a></li>
-                    }
-                    @if (edition.Profile.Sections.Count == 0)
-                    {
-                        <li><a href="@href">@prefix@T["Dash_NeedSections"]</a></li>
-                    }
-                }
-                @if (!view.Editions[0].CanSend && !several)
-                {
-                    <li><a href="/welcome">@T["Dash_Wizard"]</a></li>
-                }
-                @if (!view.MailServerSet)
-                {
-                    <li>
-                        @if (IsAdmin)
-                        {
-                            <a href="/settings">@T["Dash_NeedMailAdmin"]</a>
-                        }
-                        else
-                        {
-                            @T["Dash_NeedMail"]
-                        }
-                    </li>
+                    <li>@if (href is null) { @text } else { <a href="@href">@text</a> }</li>
                 }
             </ul>
-            @if (view.Editions.All(e => e.CanSend) && view.MailServerSet)
+        </section>
+    }
+
+    @* The lead story: the next issue, with its two actions right beside it. *@
+    <section class="next-issue" aria-labelledby="next-heading">
+        <div class="next-issue-main">
+            <span class="kicker">@T["Dash_Next"]</span>
+            <h2 id="next-heading" class="lead-headline">@Headline(lead.NextIssue, lead.Profile)</h2>
+            <p class="next-issue-facts">@NextFacts(lead)</p>
+        </div>
+        <div class="next-issue-actions">
+            <a class="button button-secondary" href="/preview?edition=@lead.Profile.Id">@T["Preview_Open"]</a>
+            @SendButton(lead, view, small: false)
+        </div>
+        @if (!lead.CanSend || !view.MailServerSet)
+        {
+            @* Right at the button: on a phone the notes that explain it may be out of view. *@
+            <p id="send-blocked-@lead.Profile.Id" class="hint next-issue-hint">@T["Dash_SendBlocked"]</p>
+        }
+    </section>
+
+    @if (several)
+    {
+        <h2 class="department">@T["Dash_Editions"]</h2>
+        <ul class="rows">
+            @foreach (var edition in view.Editions.Skip(1))
             {
-                <p class="muted">@T["Dash_AllGood"]</p>
+                <li class="row" @key="edition.Profile.Id">
+                    <div class="row-main">
+                        <div class="row-title">@edition.Profile.Title</div>
+                        <div class="row-meta">@Headline(edition.NextIssue, edition.Profile) · @T["Dash_IssueTitle", edition.NextNumber]</div>
+                    </div>
+                    @SendButton(edition, view, small: true)
+                </li>
             }
-        </aside>
-    </div>
+        </ul>
+    }
+
+    <h2 class="department">@T["Dash_Recent"]</h2>
+    @if (view.Issues.Count == 0)
+    {
+        <p class="muted">@T["Dash_NoIssues"]</p>
+    }
+    <ul class="issues" aria-live="polite">
+        @foreach (var issue in view.Issues)
+        {
+            var profile = ProfileOf(issue);
+            var logOpen = _logId == issue.Id;
+            <li class="issue" @key="issue.Id">
+                @* Fixed columns: number and date, facts, status, log; the status has a word, colour only adds to it. *@
+                <div class="issue-line">
+                    <span class="issue-name">@(several ? $"{profile?.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
+                    <span class="issue-date">@Clock.DateAndTime(T, Local(issue.ScheduledFor, profile))</span>
+                    <span class="issue-facts">@Facts(issue, profile)</span>
+                    <span class="badge @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
+                    @if (issue.Log.Count > 0)
+                    {
+                        <button type="button" class="link-button issue-log-toggle" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
+                            @(logOpen ? T["Log_Hide"] : T["Log_Show"])<span class="visually-hidden"> – @T["Dash_IssueTitle", issue.Number]</span>
+                        </button>
+                    }
+                </div>
+                @if (issue.Error is not null && issue.Status == IssueStatus.Failed)
+                {
+                    <p class="issue-note issue-note-error">@DeliveryTexts.Describe(T, issue.ErrorReason, issue.ErrorArguments, issue.Error)</p>
+                }
+                @if (issue.Problems.Count > 0)
+                {
+                    <p class="issue-note">@T["Dash_Unavailable"] @string.Join(" · ", issue.Problems)</p>
+                }
+                @if (logOpen)
+                {
+                    <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(profile?.TimeZoneId ?? TimeZoneInfo.Utc.Id)" /></div>
+                }
+            </li>
+        }
+    </ul>
+    @if (view.Issues.Count > 0)
+    {
+        <p class="more"><a href="/archive">@T["Dash_ToArchive"]</a></p>
+    }
 }
 
 @code {
@@ -172,19 +150,54 @@
     private RenderFragment SendButton(Edition edition, NewsroomView view, bool small) => __builder =>
     {
         var blocked = !edition.CanSend || !view.MailServerSet;
-        var hint = $"send-blocked-{edition.Profile.Id}";
-        <div>
-            <button type="button" class="button @(small ? "button-secondary button-small" : null)" disabled="@(blocked || _sending)"
-                    aria-describedby="@(blocked ? hint : null)" @onclick="() => SendNowAsync(edition.Profile.Id)">
-                @T["Dash_SendNow"]<span class="visually-hidden"> – @edition.Profile.Title</span>
-            </button>
-            @if (blocked && !small)
-            {
-                @* Right at the button: on a phone the notes that explain it are far below. *@
-                <p id="@hint" class="hint">@T["Dash_SendBlocked"]</p>
-            }
-        </div>
+        <button type="button" class="button @(small ? "button-secondary button-small" : null)" disabled="@(blocked || _sending)"
+                aria-describedby="@(blocked && !small ? $"send-blocked-{edition.Profile.Id}" : null)" @onclick="() => SendNowAsync(edition.Profile.Id)">
+            @T["Dash_SendNow"]<span class="visually-hidden"> – @edition.Profile.Title</span>
+        </button>
     };
+
+    // What is missing before issues can go out, each with where to fix it; with several editions, each says which.
+    private IEnumerable<(string Text, string? Href)> Notes(NewsroomView view)
+    {
+        var several = view.Editions.Count > 1;
+        foreach (var edition in view.Editions.Where(e => !e.CanSend))
+        {
+            var prefix = several ? $"{edition.Profile.Title}: " : string.Empty;
+            var href = $"/profile/{edition.Profile.Id}";
+            if (string.IsNullOrEmpty(edition.Profile.Recipient))
+            {
+                yield return (prefix + T["Dash_NeedRecipient"], href);
+            }
+
+            if (edition.Profile.Sections.Count == 0)
+            {
+                yield return (prefix + T["Dash_NeedSections"], href);
+            }
+        }
+
+        if (!view.Editions[0].CanSend && !several)
+        {
+            yield return (T["Dash_Wizard"], "/welcome");
+        }
+
+        if (!view.MailServerSet)
+        {
+            yield return IsAdmin ? (T["Dash_NeedMailAdmin"], "/settings") : (T["Dash_NeedMail"], null);
+        }
+    }
+
+    // "„Morning Ink“ · No. 14 · 3 sections · to name_abc@kindle.com": facts in a line, not a sentence to read.
+    private string NextFacts(Edition edition)
+    {
+        var profile = edition.Profile;
+        var facts = new List<string> { $"{T["Quote_Open"]}{profile.Title}{T["Quote_Close"]}", T["Dash_IssueTitle", edition.NextNumber], profile.Sections.Count == 1 ? T["Dash_SectionCount_One"] : T["Dash_SectionCount", profile.Sections.Count] };
+        if (!string.IsNullOrEmpty(profile.Recipient))
+        {
+            facts.Add(T["Dash_To", profile.Recipient]);
+        }
+
+        return string.Join(" · ", facts);
+    }
 
     private async Task SendNowAsync(Guid profileId)
     {

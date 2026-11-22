@@ -95,7 +95,7 @@ public sealed class HomePageTests : IDisposable
         var page = pages.Open<Home>("Nächste Ausgabe", language: "de");
 
         Assert.Matches(@"<h2 id=""next-heading""[^>]*>\w+, \d{2}:\d{2} Uhr<", page.Markup);
-        Assert.Contains("„Morning Ink“, Nr. 1", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("„Morning Ink“ · Nr. 1", page.Markup, StringComparison.Ordinal);
     }
 
     public void Dispose() => _app.Dispose();

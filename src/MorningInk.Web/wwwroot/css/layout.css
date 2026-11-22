@@ -34,9 +34,9 @@
 
 .nameplate {
   display: block;
-  font-size: clamp(2.5rem, 8vw, 4.75rem);
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
   line-height: 1;
-  padding: var(--space-2) 0 var(--space-3);
+  padding: var(--space-1) 0 var(--space-2);
 }
 
 .folio {
@@ -128,7 +128,7 @@
 .page {
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6) var(--space-8);
+  padding: var(--space-6) var(--space-6) var(--space-8);
 }
 
 .page-header {

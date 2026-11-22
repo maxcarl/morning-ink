@@ -1,23 +1,113 @@
 /* What only single pages need. */
 
-/* Dashboard: the next issue as the lead story */
-.lead {
+/* Dashboard: the next issue as the lead story, its two actions beside it on wide screens */
+.next-issue {
+  display: grid;
+  gap: var(--space-4) var(--space-8);
+  align-items: end;
   padding-bottom: var(--space-6);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
   border-bottom: 1px solid var(--color-ink);
+}
+
+@media (min-width: 48rem) {
+  .next-issue {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 }
 
 .lead-headline {
   font-size: clamp(2rem, 5vw, var(--text-2xl));
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
-.lead .lede {
-  margin-bottom: var(--space-4);
+.next-issue-facts {
+  margin: 0;
+  color: var(--color-muted);
+  overflow-wrap: anywhere;
 }
 
-.issue-error {
-  margin: var(--space-1) 0 0;
+.next-issue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.next-issue-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+/* Dashboard: recent issues in one line each, the same order of facts in every row */
+.issues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.issue {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.issue-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-4);
+  min-height: var(--control-height);
+}
+
+.issue-name {
+  min-width: 4.5rem;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.issue-date {
+  font-size: var(--text-sm);
+}
+
+.issue-facts {
+  flex: 1 1 12rem;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.issue-log-toggle {
+  font-size: var(--text-sm);
+}
+
+/* Wide screens: real columns, so status and log line up even where a row has no log */
+@media (min-width: 48rem) {
+  .issue-line {
+    display: grid;
+    grid-template-columns: 4.5rem 11rem minmax(0, 1fr) auto 6.5rem;
+  }
+  .issue-line .badge {
+    grid-column: 4;
+    justify-self: end;
+  }
+  .issue-log-toggle {
+    grid-column: 5;
+    justify-self: end;
+  }
+}
+
+.issue-note {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.issue-note-error {
+  color: var(--color-error);
+}
+
+.more {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
 }
 
 /* Setup wizard: the steps as a folio line, the current one marked like the active tab */
@@ -54,16 +144,18 @@
   margin-top: var(--space-6);
 }
 
-/* Dashboard notes: what is missing, each with a link to fix it */
+/* Dashboard notes: what is missing, each with a link to fix it, inside the warning */
 .notes {
-  list-style: none;
-  margin: 0 0 var(--space-6);
-  padding: 0;
+  margin: 0;
+  padding-left: var(--space-6);
 }
 
 .notes li {
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-rule);
+  padding: var(--space-1) 0;
+}
+
+.notes a {
+  color: inherit;
 }
 
 /* Editions as tabs under the page title */
