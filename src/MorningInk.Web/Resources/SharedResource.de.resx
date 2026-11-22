@@ -330,4 +330,14 @@
   <data name="Interests_Add" xml:space="preserve"><value>Interesse</value></data>
   <data name="Interests_Save" xml:space="preserve"><value>Interessen speichern</value></data>
   <data name="Interests_Invalid" xml:space="preserve"><value>Jedes Interesse braucht ein Thema und mindestens ein Stichwort.</value></data>
+  <data name="Delivery_NoMailServer" xml:space="preserve"><value>Es ist noch kein Mailserver eingerichtet: Server und Absenderadresse fehlen.</value></data>
+  <data name="Delivery_InvalidRecipient" xml:space="preserve"><value>Der Empfänger ist keine einzelne gültige E-Mail-Adresse.</value></data>
+  <data name="Delivery_TooLarge" xml:space="preserve"><value>Die Ausgabe ist als E-Mail {0} MB groß; erlaubt sind {1} MB.</value></data>
+  <data name="Delivery_Refused" xml:space="preserve"><value>Der Mailserver hat die Ausgabe abgelehnt: {0}</value></data>
+  <data name="Delivery_LoginRejected" xml:space="preserve"><value>Der Mailserver hat die Anmeldung abgelehnt. Prüf Benutzername und Passwort.</value></data>
+  <data name="Delivery_TlsUntrusted" xml:space="preserve"><value>Der Mailserver {0} zeigt ein Zertifikat, dem nicht vertraut wird (selbst signiert oder von einer unbekannten Stelle).</value></data>
+  <data name="Delivery_TlsName" xml:space="preserve"><value>Das Zertifikat des Mailservers ist auf einen anderen Namen als {0} ausgestellt. Trag den Servernamen genau so ein, wie ihn dein Mailanbieter angibt, keine IP-Adresse.</value></data>
+  <data name="Delivery_TlsPort" xml:space="preserve"><value>Keine verschlüsselte Verbindung zu {0} auf Port {1}: Die Verschlüsselung passt vermutlich nicht zum Port. Port 587 nutzt meist STARTTLS, Port 465 SSL/TLS.</value></data>
+  <data name="Delivery_Unreachable" xml:space="preserve"><value>Der Mailserver {0} ist nicht erreichbar.</value></data>
+  <data name="Delivery_Busy" xml:space="preserve"><value>Gerade läuft schon eine Zustellung dieser Ausgabe. Versuch es in einer Minute noch einmal.</value></data>
 </root>

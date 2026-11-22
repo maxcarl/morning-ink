@@ -23,7 +23,12 @@ public abstract record DeliveryResult
 
     public sealed record Delivered : DeliveryResult;
 
-    /// <param name="Message">Explanation for the dashboard; never contains credentials.</param>
+    /// <param name="Message">Explanation in English, for logs and as a fallback; never contains credentials.</param>
     /// <param name="Retryable">True for temporary problems (server down, 4xx); false when retrying cannot help (too large, rejected).</param>
-    public sealed record Failure(string Message, bool Retryable) : DeliveryResult;
+    /// <param name="Reason">A stable code such as "Unreachable", which the UI turns into words in the user's language.</param>
+    /// <param name="Arguments">The values the words need, e.g. the server's name.</param>
+    public sealed record Failure(string Message, bool Retryable, string? Reason = null, IReadOnlyList<string>? Arguments = null) : DeliveryResult
+    {
+        public IReadOnlyList<string> Arguments { get; init; } = Arguments ?? [];
+    }
 }

@@ -125,7 +125,7 @@
                     _notice = T["Archive_Sent", recipient ?? string.Empty];
                     break;
                 case DeliveryResult.Failure failure:
-                    _error = T["Archive_SendFailed", failure.Message];
+                    _error = T["Archive_SendFailed", DeliveryTexts.Describe(T, failure)];
                     break;
                 default:
                     _error = T["Archive_FileGone"];

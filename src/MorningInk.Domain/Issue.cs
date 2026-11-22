@@ -28,8 +28,21 @@ public class Issue
     /// <summary>Pinned issues survive the cleanup job.</summary>
     public bool Pinned { get; set; }
 
-    /// <summary>Last delivery error, shown on the dashboard.</summary>
+    /// <summary>Last delivery error in English, for logs and as a fallback.</summary>
     public string? Error { get; set; }
+
+    /// <summary>Code of the last delivery error, e.g. "Unreachable"; the dashboard shows it in the user's language.</summary>
+    public string? ErrorReason { get; set; }
+
+    /// <summary>The values the error's words need, e.g. the mail server's name.</summary>
+    public List<string> ErrorArguments { get; set; } = [];
+
+    public void SetError(string? message, string? reason, IReadOnlyList<string> arguments)
+    {
+        Error = message;
+        ErrorReason = reason;
+        ErrorArguments = [.. arguments];
+    }
 
     public DateTimeOffset? DeliveredAt { get; set; }
 

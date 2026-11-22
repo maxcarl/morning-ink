@@ -264,6 +264,13 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<string>("Error")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ErrorArguments")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ErrorReason")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("FileName")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");

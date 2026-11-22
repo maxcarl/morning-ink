@@ -360,7 +360,7 @@ public sealed class IssuePublisher(
         {
             issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = false, Error = failure.Message });
             issue.Status = IssueStatus.Failed;
-            issue.Error = failure.Message;
+            issue.SetError(failure.Message, failure.Reason, failure.Arguments);
             await store.SaveChangesAsync(cancellationToken);
             return new PublishResult.DeliveryFailed(issue.Id, failure.Message, failure.Retryable, issue.Attempts.Count);
         }
@@ -368,7 +368,7 @@ public sealed class IssuePublisher(
         issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = true });
         issue.Status = IssueStatus.Delivered;
         issue.DeliveredAt = now;
-        issue.Error = null;
+        issue.SetError(null, null, []);
 
         // Only now: had the delivery failed, the articles would have to come again.
         await seen.MarkSeenAsync(profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);

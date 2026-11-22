@@ -70,7 +70,7 @@
                             <div class="row-meta">@Facts(issue, profile)</div>
                             @if (issue.Error is not null && issue.Status == IssueStatus.Failed)
                             {
-                                <p class="status status-error issue-error">@issue.Error</p>
+                                <p class="status status-error issue-error">@DeliveryTexts.Describe(T, issue.ErrorReason, issue.ErrorArguments, issue.Error)</p>
                             }
                             @if (issue.Problems.Count > 0)
                             {

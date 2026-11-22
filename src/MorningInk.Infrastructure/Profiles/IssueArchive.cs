@@ -93,7 +93,7 @@ public sealed class IssueArchive(
         // The same lock as the scheduler's: a retry of this very issue must not run at the same time.
         if (!locks.TryEnter(profile.Id, out var release))
         {
-            return new DeliveryResult.Failure("Another delivery of this edition is running. Try again in a minute.", Retryable: true);
+            return new DeliveryResult.Failure("Another delivery of this edition is running. Try again in a minute.", Retryable: true, "Busy");
         }
 
         using (release)
@@ -109,7 +109,7 @@ public sealed class IssueArchive(
                 // A delivered issue stays delivered; the failed resend shows in its attempts only.
                 if (issue.Status != IssueStatus.Delivered)
                 {
-                    issue.Error = failure.Message;
+                    issue.SetError(failure.Message, failure.Reason, failure.Arguments);
                 }
             }
             else
@@ -119,7 +119,7 @@ public sealed class IssueArchive(
                 {
                     issue.Status = IssueStatus.Delivered;
                     issue.DeliveredAt = now;
-                    issue.Error = null;
+                    issue.SetError(null, null, []);
                     await seen.MarkSeenAsync(profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);
                 }
             }

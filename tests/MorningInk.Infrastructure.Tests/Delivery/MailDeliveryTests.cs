@@ -104,7 +104,10 @@ public sealed class MailDeliveryTests : IDisposable
 
         var result = await DeliverAsync(port, new DeliveryRequest(Kindle, Title, WriteFile(10), ".epub", "application/epub+zip"));
 
-        Assert.True(Assert.IsType<DeliveryResult.Failure>(result).Retryable);
+        var failure = Assert.IsType<DeliveryResult.Failure>(result);
+        Assert.True(failure.Retryable);
+        Assert.Equal("Unreachable", failure.Reason);
+        Assert.Equal(["127.0.0.1"], failure.Arguments);
     }
 
     [Fact]
@@ -116,6 +119,8 @@ public sealed class MailDeliveryTests : IDisposable
 
         var failure = Assert.IsType<DeliveryResult.Failure>(result);
         Assert.Contains("Port 587 usually uses STARTTLS, port 465 SSL/TLS", failure.Message, StringComparison.Ordinal);
+        Assert.Equal("TlsPort", failure.Reason); // for the UI's own words
+        Assert.Equal(["127.0.0.1", server.Port.ToString(System.Globalization.CultureInfo.InvariantCulture)], failure.Arguments);
         Assert.False(failure.Retryable);
     }
 
@@ -126,7 +131,9 @@ public sealed class MailDeliveryTests : IDisposable
 
         var result = await DeliverAsync(server.Port, new DeliveryRequest(Kindle, Title, WriteFile(10), ".epub", "application/epub+zip"), security: "SslOnConnect");
 
-        Assert.Contains("not trusted", Assert.IsType<DeliveryResult.Failure>(result).Message, StringComparison.Ordinal);
+        var failure = Assert.IsType<DeliveryResult.Failure>(result);
+        Assert.Contains("not trusted", failure.Message, StringComparison.Ordinal);
+        Assert.Equal("TlsUntrusted", failure.Reason);
     }
 
     [Theory]

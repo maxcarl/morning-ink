@@ -255,7 +255,7 @@
         switch (await UseAsync<TestMail, DeliveryResult>(mail => mail.SendAsync(_recipient, Language, Closed)))
         {
             case DeliveryResult.Failure failure:
-                _errors = [T["Settings_TestFailed", failure.Message]];
+                _errors = [T["Settings_TestFailed", DeliveryTexts.Describe(T, failure)]];
                 break;
             default:
                 _notice = T["Settings_TestSent", _recipient];

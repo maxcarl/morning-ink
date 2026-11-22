@@ -133,6 +133,7 @@ public sealed class MorningInkDbContext(
 
             // One issue per profile and slot: the guard against sending twice, even across processes.
             issue.HasIndex(i => new { i.ProfileId, i.ScheduledFor }).IsUnique();
+            issue.Property(i => i.ErrorArguments).HasConversion(JsonColumn.Converter<string>(), JsonColumn.Comparer<string>());
             issue.HasMany(i => i.Entries).WithOne().HasForeignKey(e => e.IssueId).OnDelete(DeleteBehavior.Cascade);
             issue.HasMany(i => i.Attempts).WithOne().HasForeignKey(a => a.IssueId).OnDelete(DeleteBehavior.Cascade);
         });

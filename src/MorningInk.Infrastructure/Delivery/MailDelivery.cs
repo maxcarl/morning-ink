@@ -22,12 +22,12 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
         var smtp = await settings.EffectiveAsync(cancellationToken);
         if (string.IsNullOrWhiteSpace(smtp.Host) || !TryParseAddress(smtp.FromAddress, out var from))
         {
-            return new DeliveryResult.Failure("SMTP is not configured: server and sender address are needed.", Retryable: false);
+            return new DeliveryResult.Failure("SMTP is not configured: server and sender address are needed.", Retryable: false, "NoMailServer");
         }
 
         if (!TryParseAddress(request.Recipient, out var to))
         {
-            return new DeliveryResult.Failure("The recipient is not a single valid email address.", Retryable: false);
+            return new DeliveryResult.Failure("The recipient is not a single valid email address.", Retryable: false, "InvalidRecipient");
         }
 
         await using var file = File.OpenRead(request.FilePath);
@@ -37,7 +37,8 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
         var size = Measure(message);
         if (size > smtp.MaxMessageBytes)
         {
-            return new DeliveryResult.Failure($"The issue is {size / (1024 * 1024)} MB as email; the limit is {smtp.MaxMessageBytes / (1024 * 1024)} MB.", Retryable: false);
+            var (sizeMb, limitMb) = (size / (1024 * 1024), smtp.MaxMessageBytes / (1024 * 1024));
+            return new DeliveryResult.Failure($"The issue is {sizeMb} MB as email; the limit is {limitMb} MB.", Retryable: false, "TooLarge", [Number(sizeMb), Number(limitMb)]);
         }
 
         file.Position = 0;
@@ -75,19 +76,19 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
             // 4xx means "try again later", 5xx means "never".
             var retryable = (int)e.StatusCode is >= 400 and < 500;
             LogFailed(logger, (int)e.StatusCode);
-            return new DeliveryResult.Failure($"The mail server refused the issue: {e.Message}", retryable);
+            return new DeliveryResult.Failure($"The mail server refused the issue: {e.Message}", retryable, "Refused", [e.Message]);
         }
         catch (AuthenticationException)
         {
-            return new DeliveryResult.Failure("The mail server rejected the login. Check user name and password.", Retryable: false);
+            return new DeliveryResult.Failure("The mail server rejected the login. Check user name and password.", Retryable: false, "LoginRejected");
         }
         catch (SslHandshakeException)
         {
-            return new DeliveryResult.Failure(HandshakeProblem(host, smtp.Port, certificateErrors), Retryable: false);
+            return HandshakeProblem(host, smtp.Port, certificateErrors);
         }
         catch (Exception e) when (e is SocketException or IOException or TimeoutException or ServiceNotConnectedException or SmtpProtocolException)
         {
-            return new DeliveryResult.Failure($"The mail server {host} could not be reached.", Retryable: true);
+            return new DeliveryResult.Failure($"The mail server {host} could not be reached.", Retryable: true, "Unreachable", [host]);
         }
     }
 
@@ -133,16 +134,19 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
     }
 
     // Three causes with three different fixes, so the message names the one that happened.
-    private static string HandshakeProblem(string host, int port, SslPolicyErrors? certificateErrors) => certificateErrors switch
+    private static DeliveryResult.Failure HandshakeProblem(string host, int port, SslPolicyErrors? certificateErrors) => certificateErrors switch
     {
-        { } errors when errors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors) =>
-            $"The mail server {host} presents a certificate that is not trusted (self-signed or from an unknown authority).",
-        { } errors when errors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch) =>
-            $"The certificate of the mail server is issued for another name than {host}. Enter the server name exactly as your mail provider gives it, not an IP address.",
+        { } errors when errors.HasFlag(SslPolicyErrors.RemoteCertificateChainErrors) => new(
+            $"The mail server {host} presents a certificate that is not trusted (self-signed or from an unknown authority).", Retryable: false, "TlsUntrusted", [host]),
+        { } errors when errors.HasFlag(SslPolicyErrors.RemoteCertificateNameMismatch) => new(
+            $"The certificate of the mail server is issued for another name than {host}. Enter the server name exactly as your mail provider gives it, not an IP address.", Retryable: false, "TlsName", [host]),
 
         // No certificate was checked at all: the two sides did not even agree to encrypt.
-        _ => $"No encrypted connection to {host} on port {port}: the encryption setting probably does not fit the port. Port 587 usually uses STARTTLS, port 465 SSL/TLS.",
+        _ => new(
+            $"No encrypted connection to {host} on port {port}: the encryption setting probably does not fit the port. Port 587 usually uses STARTTLS, port 465 SSL/TLS.", Retryable: false, "TlsPort", [host, Number(port)]),
     };
+
+    private static string Number(long value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     private static SecureSocketOptions ToSocketOptions(MailSecurity security) => security switch
     {

@@ -330,4 +330,14 @@
   <data name="Interests_Add" xml:space="preserve"><value>Interest</value></data>
   <data name="Interests_Save" xml:space="preserve"><value>Save interests</value></data>
   <data name="Interests_Invalid" xml:space="preserve"><value>Each interest needs a topic and at least one keyword.</value></data>
+  <data name="Delivery_NoMailServer" xml:space="preserve"><value>No mail server is set up yet: a server and a sender address are needed.</value></data>
+  <data name="Delivery_InvalidRecipient" xml:space="preserve"><value>The recipient is not a single valid e-mail address.</value></data>
+  <data name="Delivery_TooLarge" xml:space="preserve"><value>The issue is {0} MB as e-mail; the limit is {1} MB.</value></data>
+  <data name="Delivery_Refused" xml:space="preserve"><value>The mail server refused the issue: {0}</value></data>
+  <data name="Delivery_LoginRejected" xml:space="preserve"><value>The mail server rejected the login. Check user name and password.</value></data>
+  <data name="Delivery_TlsUntrusted" xml:space="preserve"><value>The mail server {0} presents a certificate that is not trusted (self-signed or from an unknown authority).</value></data>
+  <data name="Delivery_TlsName" xml:space="preserve"><value>The certificate of the mail server is issued for another name than {0}. Enter the server name exactly as your mail provider gives it, not an IP address.</value></data>
+  <data name="Delivery_TlsPort" xml:space="preserve"><value>No encrypted connection to {0} on port {1}: the encryption probably does not fit the port. Port 587 usually uses STARTTLS, port 465 SSL/TLS.</value></data>
+  <data name="Delivery_Unreachable" xml:space="preserve"><value>The mail server {0} could not be reached.</value></data>
+  <data name="Delivery_Busy" xml:space="preserve"><value>Another delivery of this edition is running. Try again in a minute.</value></data>
 </root>
