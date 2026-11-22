@@ -16,14 +16,7 @@
     <h1>@T["Sources_Title"]</h1>
     <p class="lede">@T["Sources_Count", _sources.Count(s => s.Kind != SourceKind.Local), _sources.Count(s => s.Kind == SourceKind.Local)]</p>
 
-    @if (_notice is not null)
-    {
-        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
-    }
-    @if (_error is not null)
-    {
-        <div class="alert alert-error toast" role="alert"><p>@_error</p></div>
-    }
+    <Messages Notice="@_notice" Error="@_error" />
     @if (_blockedHost is not null)
     {
         <div class="alert alert-error" role="alert">

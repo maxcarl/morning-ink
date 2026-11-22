@@ -15,14 +15,7 @@
         <a class="button button-secondary button-small" href="/stats">@T["Stats_Title"]</a>
     </div>
     <p class="lede">@T["Archive_Lede"]</p>
-    @if (_notice is not null)
-    {
-        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
-    }
-    @if (_error is not null)
-    {
-        <div class="alert alert-error toast" role="alert"><p>@_error</p></div>
-    }
+    <Messages Notice="@_notice" Error="@_error" />
 </header>
 
 <div class="search">

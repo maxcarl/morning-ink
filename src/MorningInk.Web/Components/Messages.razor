@@ -1,0 +1,28 @@
+@* What the last action did: a success that fades, or errors that stay until the next action. *@
+@if (Notice is not null)
+{
+    <div class="alert alert-ok toast" role="status"><p>@Notice</p></div>
+}
+@if (AllErrors.Count > 0)
+{
+    <div class="alert alert-error toast" role="alert">
+        @foreach (var error in AllErrors)
+        {
+            <p>@error</p>
+        }
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Notice { get; set; }
+
+    [Parameter]
+    public IReadOnlyCollection<string>? Errors { get; set; }
+
+    /// <summary>For pages with one error at a time.</summary>
+    [Parameter]
+    public string? Error { get; set; }
+
+    private IReadOnlyCollection<string> AllErrors => Error is null ? Errors ?? [] : [Error, .. Errors ?? []];
+}

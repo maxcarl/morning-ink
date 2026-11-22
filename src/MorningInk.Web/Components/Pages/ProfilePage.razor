@@ -36,19 +36,7 @@
     {
         <h1>@T["Profile_Title"]</h1>
     }
-    @if (_notice is not null)
-    {
-        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
-    }
-    @if (_errors.Count > 0)
-    {
-        <div class="alert alert-error toast" role="alert">
-            @foreach (var error in _errors)
-            {
-                <p>@error</p>
-            }
-        </div>
-    }
+    <Messages Notice="@_notice" Errors="_errors" />
 </header>
 
 @* One column in reading order: what is in the paper, what it prefers, when and where it goes. *@

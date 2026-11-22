@@ -9,19 +9,7 @@
 <header class="page-header">
     <h1>@T["Account_Title"]</h1>
     <p class="lede">@T["Account_Lede", HttpContext.User.Identity?.Name ?? string.Empty]</p>
-    @if (_notice is not null)
-    {
-        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
-    }
-    @if (_errors.Count > 0)
-    {
-        <div class="alert alert-error toast" role="alert">
-            @foreach (var error in _errors)
-            {
-                <p>@error</p>
-            }
-        </div>
-    }
+    <Messages Notice="@_notice" Errors="_errors" />
 </header>
 
 <div class="columns">

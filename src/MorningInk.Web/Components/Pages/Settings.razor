@@ -17,19 +17,7 @@
 <header class="page-header">
     <h1>@T["Settings_Title"]</h1>
     <p class="lede">@T["Settings_Lede"]</p>
-    @if (_notice is not null)
-    {
-        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
-    }
-    @if (_errors.Count > 0)
-    {
-        <div class="alert alert-error toast" role="alert">
-            @foreach (var error in _errors)
-            {
-                <p>@error</p>
-            }
-        </div>
-    }
+    <Messages Notice="@_notice" Errors="_errors" />
 </header>
 
 @* Tabs, not one long page: every panel stays rendered, so a switch keeps what was typed in the others. *@
