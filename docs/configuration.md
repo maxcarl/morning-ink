@@ -42,11 +42,32 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 
 ## Behind a reverse proxy
 
-Set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` when Morning Ink runs behind a proxy such as Caddy, Traefik or nginx. It then takes the address the browser used from the proxy's `X-Forwarded-Proto` and `X-Forwarded-For` headers, so:
+A reverse proxy such as Nginx Proxy Manager, Caddy or Traefik takes the HTTPS connection and passes it on to Morning Ink as plain HTTP. Without further settings, Morning Ink sees every request as "HTTP from the proxy", so:
 
-- the OPDS address on the account page starts with `https://`,
-- the sign-in cookie is only ever sent over HTTPS,
-- the limit on sign-in attempts counts each client, not the proxy as one.
+- the OPDS address on the account page starts with `http://` instead of `https://`,
+- the sign-in cookie is not marked as HTTPS-only,
+- the limit on sign-in attempts counts all clients as one: someone guessing passwords from outside locks you out too, for a minute.
 
-Only set it when port 8080 is reachable by the proxy alone, e.g. not published in `compose.yaml` but shared over a Docker network: anyone who reaches the port directly could otherwise claim any address in these headers.
+Set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` to fix all three: Morning Ink then takes the browser's scheme and address from the headers the proxy adds (`X-Forwarded-Proto`, `X-Forwarded-For`).
 
+It trusts these headers from anyone who reaches its port. So let only the proxy reach it: put both containers in one Docker network and do not publish port 8080. For Nginx Proxy Manager:
+
+```yaml
+services:
+  morning-ink:
+    image: ghcr.io/maxcarl/morning-ink:latest
+    environment:
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+    networks: [proxy]          # the network Nginx Proxy Manager is in
+    # no "ports:": only the proxy reaches Morning Ink
+    volumes:
+      - morning-ink-data:/data
+
+networks:
+  proxy:
+    external: true
+```
+
+In Nginx Proxy Manager, forward to host `morning-ink`, port `8080`, and enable "Websockets Support" (the pages need it).
+
+If the proxy forwards to the host's published port 8080 instead, it works as well; then anyone in your home network who reaches port 8080 directly could pretend to come from another address. At home that is a small risk; the setup above avoids it.
