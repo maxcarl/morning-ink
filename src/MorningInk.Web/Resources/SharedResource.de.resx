@@ -573,4 +573,5 @@
   <data name="Stats_InIssues" xml:space="preserve"><value>In Ausgaben</value></data>
   <data name="Stats_Share" xml:space="preserve"><value>Anteil</value></data>
   <data name="Stats_FailedRuns" xml:space="preserve"><value>Fehler</value></data>
+  <data name="Error_SenderTooLong" xml:space="preserve"><value>Der Absender darf höchstens 200 Zeichen haben.</value></data>
 </root>

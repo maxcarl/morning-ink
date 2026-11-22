@@ -573,4 +573,5 @@
   <data name="Stats_InIssues" xml:space="preserve"><value>In issues</value></data>
   <data name="Stats_Share" xml:space="preserve"><value>Share</value></data>
   <data name="Stats_FailedRuns" xml:space="preserve"><value>Failures</value></data>
+  <data name="Error_SenderTooLong" xml:space="preserve"><value>The sender may have at most 200 characters.</value></data>
 </root>

@@ -100,6 +100,7 @@ public static class DependencyInjection
         services.AddTransient<NewsletterClient>();
         services.AddTransient<FeedDiscovery>();
         services.AddScoped<SourceCatalog>();
+        services.AddScoped<ConnectedSources>();
         services.AddScoped<Profiles.ProfileEditor>();
         services.AddScoped<Profiles.Newsroom>();
         services.AddScoped<Profiles.IssueStatistics>();

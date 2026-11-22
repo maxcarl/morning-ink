@@ -148,7 +148,7 @@ public sealed class FreshRssSourceTests : IDisposable
     private static async Task<FreshRssConnection> ConnectAsync(IServiceProvider services, string address, string password)
     {
         await using var scope = services.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<SourceCatalog>().ConnectFreshRssAsync(address, User, password, CancellationToken.None);
+        return await scope.ServiceProvider.GetRequiredService<ConnectedSources>().ConnectFreshRssAsync(address, User, password, CancellationToken.None);
     }
 
     // As the sources page adds it: one user, the "Technik" category.
@@ -159,8 +159,7 @@ public sealed class FreshRssSourceTests : IDisposable
         var user = new User { Name = "reader" };
         db.DomainUsers.Add(user);
         await db.SaveChangesAsync();
-        var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
-        var sources = await catalog.AddFreshRssAsync(user.Id, new Uri(Address), User, ApiPassword, [new FreshRssCategory("user/-/label/Technik", "Technik")], CancellationToken.None);
+        var sources = await scope.ServiceProvider.GetRequiredService<ConnectedSources>().AddFreshRssAsync(user.Id, new Uri(Address), User, ApiPassword, [new FreshRssCategory("user/-/label/Technik", "Technik")], CancellationToken.None);
         return Assert.Single(sources);
     }
 

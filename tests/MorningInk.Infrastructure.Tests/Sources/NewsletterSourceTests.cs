@@ -133,7 +133,7 @@ public sealed class NewsletterSourceTests : IDisposable
         var user = new User { Name = $"reader-{Guid.NewGuid():N}" };
         db.DomainUsers.Add(user);
         await db.SaveChangesAsync();
-        return await scope.ServiceProvider.GetRequiredService<SourceCatalog>().AddNewsletterAsync(user.Id, input, CancellationToken.None);
+        return await scope.ServiceProvider.GetRequiredService<ConnectedSources>().AddNewsletterAsync(user.Id, input, CancellationToken.None);
     }
 
     private static async Task<SourceResult> FetchAsync(IServiceProvider services, Source source)

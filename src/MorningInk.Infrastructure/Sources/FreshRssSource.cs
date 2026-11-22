@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using MorningInk.Application.Sources;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
@@ -47,9 +46,7 @@ internal sealed class FreshRssSource(FreshRssClient client, MorningInkDbContext 
     private async Task<(Uri? Api, string? Session, SourceResult.Failure? Failure)> SignInAsync(Source source, CancellationToken cancellationToken)
     {
         // Only the user's own login, and only for this source's own address.
-        var credential = source.CredentialId is { } id
-            ? await db.Credentials.AsNoTracking().SingleOrDefaultAsync(c => c.Id == id && c.UserId == source.UserId, cancellationToken)
-            : null;
+        var credential = await db.LoginOfAsync(source, cancellationToken);
         if (credential is null || !Uri.TryCreate(source.Url, UriKind.Absolute, out var api))
         {
             return (null, null, new SourceResult.Failure("This FreshRSS source has no login.", Reason: "FreshRssNoLogin"));

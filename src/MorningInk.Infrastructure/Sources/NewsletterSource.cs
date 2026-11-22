@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using MorningInk.Application.Sources;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
@@ -28,9 +27,7 @@ internal sealed class NewsletterSource(NewsletterClient client, MorningInkDbCont
     /// <summary>The source's mailbox with the user's own login; null when it is missing.</summary>
     internal async Task<NewsletterMailbox?> MailboxAsync(Source source, CancellationToken cancellationToken)
     {
-        var credential = source.CredentialId is { } id
-            ? await db.Credentials.AsNoTracking().SingleOrDefaultAsync(c => c.Id == id && c.UserId == source.UserId, cancellationToken)
-            : null;
+        var credential = await db.LoginOfAsync(source, cancellationToken);
         return credential is null || !Uri.TryCreate(source.Url, UriKind.Absolute, out var server)
             ? null
             : new NewsletterMailbox(server.Host, server.Port, credential.Username ?? string.Empty, credential.Secret, source.Stream ?? "INBOX", source.Sender);

@@ -19,24 +19,6 @@ public abstract record SourceSaveResult
     public sealed record Invalid(string Reason) : SourceSaveResult;
 }
 
-/// <summary>The outcome of connecting to FreshRSS on the sources page.</summary>
-public abstract record FreshRssConnection
-{
-    private FreshRssConnection()
-    {
-    }
-
-    /// <param name="Api">The API address found, to add sources with.</param>
-    public sealed record Connected(Uri Api, IReadOnlyList<FreshRssCategory> Categories) : FreshRssConnection;
-
-    public sealed record Failed(SourceResult.Failure Failure) : FreshRssConnection;
-}
-
-/// <summary>What the sources page enters for a newsletter source.</summary>
-/// <param name="Server">"host" or "host:port"; without a port, IMAP with TLS on 993.</param>
-/// <param name="Sender">Only mails whose sender address contains this, e.g. "substack.com"; empty takes all.</param>
-public sealed record NewsletterInput(string Name, string Server, string User, string Password, string Folder, string? Sender);
-
 /// <summary>What the sources page saves for a source; see <see cref="Source"/> for what each setting does.</summary>
 public sealed record SourceSettings(
     string Name,
@@ -61,18 +43,14 @@ public sealed record SourceSettings(
             .ToList();
 }
 
-/// <summary>A user's sources: list, add, delete and test. Every method only ever sees the given user's sources.</summary>
-public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> sources, FreshRssClient freshRss, NewsletterClient newsletters)
+/// <summary>
+/// A user's sources: list, add feeds and local news, import and export OPML, edit, delete and test. Every method only
+/// ever sees the given user's sources. FreshRSS and newsletters are added through <see cref="ConnectedSources"/>.
+/// </summary>
+public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> sources)
 {
-    // A weekly newsletter may wait a few days to be read; the seen articles keep it from coming twice.
-    private static readonly TimeSpan NewsletterMaxAge = TimeSpan.FromDays(7);
-    private const int MaxFolderLength = 200;
+    public const int MaxNameLength = 200;
 
-    // FreshRSS sources read unread articles, which may wait longer than a feed's day; read ones never come again.
-    private static readonly TimeSpan FreshRssMaxAge = TimeSpan.FromDays(7);
-    private const string FreshRssApiPath = "api/greader.php";
-
-    private const int MaxNameLength = 200;
     private const int MaxPlaceLength = 100;
     private const int LocalNewsMaxArticles = 10;
     private const int MaxArticlesLimit = 100;
@@ -94,82 +72,12 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     }
 
     /// <summary>
-    /// Adds a newsletter source after signing in and opening the folder once, so a typo shows now and not tomorrow.
-    /// The login is stored encrypted and reused for further folders or senders of the same mailbox.
-    /// </summary>
-    /// <returns>The new source, or why not: "NameRequired", "NewsletterServer", a connection failure or a login failure.</returns>
-    public async Task<(Source? Source, SourceResult.Failure? Failure)> AddNewsletterAsync(Guid userId, NewsletterInput input, CancellationToken cancellationToken)
-    {
-        var name = input.Name.Trim();
-        var folder = string.IsNullOrWhiteSpace(input.Folder) ? "INBOX" : input.Folder.Trim();
-        var sender = string.IsNullOrWhiteSpace(input.Sender) ? null : input.Sender.Trim();
-        if (name.Length is 0 or > MaxNameLength)
-        {
-            return (null, new SourceResult.Failure("A name is required.", Reason: "NameRequired"));
-        }
-
-        if (NewsletterClient.ParseServer(input.Server) is not var (host, port) || folder.Length > MaxFolderLength || sender?.Length > MaxNameLength)
-        {
-            return (null, new SourceResult.Failure("That is no mail server.", Reason: "NewsletterServer"));
-        }
-
-        var username = input.User.Trim();
-        if (await newsletters.CheckAsync(new NewsletterMailbox(host, port, username, input.Password, folder, sender), cancellationToken) is { } failure)
-        {
-            return (null, failure);
-        }
-
-        var credentialName = $"IMAP {host}";
-        var credential = await db.Credentials.SingleOrDefaultAsync(c => c.UserId == userId && c.Name == credentialName && c.Username == username, cancellationToken);
-        if (credential is null)
-        {
-            credential = new Credential { UserId = userId, Name = credentialName, Username = username, Secret = input.Password, Method = CredentialMethod.Basic };
-            db.Credentials.Add(credential);
-        }
-        else
-        {
-            credential.Secret = input.Password;
-        }
-
-        var source = new Source
-        {
-            UserId = userId,
-            Name = name,
-            Kind = SourceKind.Newsletter,
-            Url = $"imap://{(host.Contains(':', StringComparison.Ordinal) ? $"[{host}]" : host)}:{port}",
-            Stream = folder,
-            Sender = sender,
-            CredentialId = credential.Id,
-
-            // The mail is the article: there is no web page to fetch the text from.
-            FetchFullText = false,
-            MaxAge = NewsletterMaxAge,
-        };
-        db.Sources.Add(source);
-        await db.SaveChangesAsync(cancellationToken);
-        return (source, null);
-    }
-
-    /// <summary>
     /// Adds the feeds of an OPML file as feed sources; ones the user already has, by normalized address, are skipped,
     /// as are addresses that are not http or https. Null when the file is too big or no OPML.
     /// </summary>
     public async Task<OpmlImport?> ImportOpmlAsync(Guid userId, Stream file, CancellationToken cancellationToken)
     {
-        // Read one byte past the limit to know a file is too big without reading all of it.
-        using var buffer = new MemoryStream();
-        var chunk = new byte[81920];
-        int read;
-        while ((read = await file.ReadAsync(chunk, cancellationToken)) > 0)
-        {
-            buffer.Write(chunk, 0, read);
-            if (buffer.Length > Opml.MaxBytes)
-            {
-                return null;
-            }
-        }
-
-        if (Opml.Read(buffer.ToArray()) is not { } outlines)
+        if (await Opml.ReadAsync(file, cancellationToken) is not { } outlines)
         {
             return null;
         }
@@ -190,8 +98,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
             }
             else
             {
-                var title = string.IsNullOrEmpty(name) ? feed.Host : name;
-                db.Sources.Add(new Source { UserId = userId, Name = title.Length > MaxNameLength ? title[..MaxNameLength] : title, Url = feed.AbsoluteUri, FetchFullText = true });
+                db.Sources.Add(new Source { UserId = userId, Name = FitName(string.IsNullOrEmpty(name) ? feed.Host : name), Url = feed.AbsoluteUri });
             }
         }
 
@@ -231,7 +138,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
             : settings.MaxArticles is < 1 or > MaxArticlesLimit ? "MaxArticlesInvalid"
             : settings.MinWords is < 1 or > MaxMinWords ? "MinWordsInvalid"
             : new[] { settings.IncludeKeywords, settings.ExcludeKeywords }.Any(k => k.Count > MaxKeywords || k.Any(w => w.Length > MaxKeywordLength)) ? "KeywordsInvalid"
-            : settings.Sender?.Trim().Length > MaxNameLength ? "NameRequired"
+            : settings.Sender?.Trim().Length > MaxNameLength ? "SenderTooLong"
             : null;
         if (reason is not null)
         {
@@ -288,78 +195,8 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         return await PreviewAsync(source, cancellationToken);
     }
 
-    /// <summary>Signs in to FreshRSS and lists its categories, so the user can pick which become sources.</summary>
-    /// <param name="address">The instance ("https://freshrss.example.com") or its API ("…/api/greader.php").</param>
-    public async Task<FreshRssConnection> ConnectFreshRssAsync(string address, string user, string password, CancellationToken cancellationToken)
-    {
-        if (FreshRssApi(address) is not { } api)
-        {
-            return new FreshRssConnection.Failed(new SourceResult.Failure("This is not a valid address.", Reason: nameof(FetchError.InvalidUrl)));
-        }
-
-        var (session, failure) = await freshRss.SignInAsync(api, user.Trim(), password, cancellationToken);
-        if (failure is not null)
-        {
-            return new FreshRssConnection.Failed(failure);
-        }
-
-        var (categories, listFailure) = await freshRss.CategoriesAsync(api, session!, cancellationToken); // ! is safe: no failure means a session
-        return listFailure is null ? new FreshRssConnection.Connected(api, categories) : new FreshRssConnection.Failed(listFailure);
-    }
-
-    /// <summary>
-    /// Adds one source per chosen category, all sharing one login; an empty choice adds one source for everything unread.
-    /// The login is stored encrypted and reused when the same user connects again.
-    /// </summary>
-    public async Task<IReadOnlyList<Source>> AddFreshRssAsync(Guid userId, Uri api, string user, string password, IReadOnlyList<FreshRssCategory> categories, CancellationToken cancellationToken)
-    {
-        var name = $"FreshRSS {api.Host}";
-        var username = user.Trim();
-        var credential = await db.Credentials.SingleOrDefaultAsync(c => c.UserId == userId && c.Name == name && c.Username == username, cancellationToken);
-        if (credential is null)
-        {
-            credential = new Credential { UserId = userId, Name = name, Username = username, Secret = password, Method = CredentialMethod.Basic };
-            db.Credentials.Add(credential);
-        }
-        else
-        {
-            credential.Secret = password;
-        }
-
-        IEnumerable<(string? Stream, string Name)> chosen = categories.Count == 0
-            ? [(null, "FreshRSS")]
-            : categories.Select(c => ((string?)c.Stream, c.Name));
-        var added = chosen.Select(c => new Source
-        {
-            UserId = userId,
-            Name = c.Name.Length > MaxNameLength ? c.Name[..MaxNameLength] : c.Name,
-            Kind = SourceKind.FreshRss,
-            Url = api.AbsoluteUri,
-            Stream = c.Stream,
-            CredentialId = credential.Id,
-
-            // FreshRSS already holds the full text it fetched; asking the web page again would only cost time.
-            FetchFullText = false,
-            MaxAge = FreshRssMaxAge,
-        }).ToList();
-        db.Sources.AddRange(added);
-        await db.SaveChangesAsync(cancellationToken);
-        return added;
-    }
-
-    // The instance's address leads to its API; an address that already ends in the API is taken as it is.
-    private static Uri? FreshRssApi(string address)
-    {
-        if (!Uri.TryCreate(address.Trim(), UriKind.Absolute, out var uri) || UrlPolicy.Check(uri) is not null || !string.IsNullOrEmpty(uri.Query))
-        {
-            return null;
-        }
-
-        var path = uri.AbsolutePath.TrimEnd('/');
-        return path.EndsWith("greader.php", StringComparison.OrdinalIgnoreCase)
-            ? new Uri(uri.GetLeftPart(UriPartial.Authority) + path)
-            : new Uri(uri.GetLeftPart(UriPartial.Authority) + path + "/" + FreshRssApiPath);
-    }
+    /// <summary>A name from elsewhere (a feed, an OPML file, FreshRSS), cut to what a source name may be.</summary>
+    internal static string FitName(string name) => name.Length > MaxNameLength ? name[..MaxNameLength] : name;
 
     private async Task<SourceSaveResult> SaveAsync(Source source, CancellationToken cancellationToken)
     {

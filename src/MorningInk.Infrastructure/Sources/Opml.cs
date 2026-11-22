@@ -18,6 +18,21 @@ public static class Opml
     /// <summary>At most this many feeds per import, so one file cannot flood the sources.</summary>
     public const int MaxFeeds = 500;
 
+    /// <summary>Reads at most <see cref="MaxBytes"/>; null when the file is larger or no OPML.</summary>
+    public static async Task<IReadOnlyList<(string? Name, string? Url)>?> ReadAsync(Stream file, CancellationToken cancellationToken)
+    {
+        // Stops right past the limit: a huge upload is refused without reading all of it.
+        using var content = new MemoryStream();
+        var chunk = new byte[81920];
+        int read;
+        while (content.Length <= MaxBytes && (read = await file.ReadAsync(chunk, cancellationToken)) > 0)
+        {
+            content.Write(chunk, 0, read);
+        }
+
+        return content.Length > MaxBytes ? null : Read(content.ToArray());
+    }
+
     /// <summary>The feed outlines of the file, as (name, address as written); null when it is no OPML.</summary>
     /// <remarks>Folders are outlines with children; any other outline is meant as a feed, usable or not.</remarks>
     public static IReadOnlyList<(string? Name, string? Url)>? Read(byte[] content)
