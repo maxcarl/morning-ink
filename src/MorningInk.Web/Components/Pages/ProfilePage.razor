@@ -143,6 +143,18 @@
 
         <h2 class="department">@T["Interests_Title"]</h2>
         <p class="hint">@T["Interests_Hint"]</p>
+        <details class="explainer">
+            <summary>@T["Interests_How"]</summary>
+            <p>@T["Interests_HowTopic"]</p>
+            <p>@T["Interests_HowKeywords"]</p>
+            <p>@T["Interests_HowWeight"]</p>
+            <p>@T["Interests_HowExamples"]</p>
+            <ul>
+                <li>@T["Interests_ExampleFootball"]</li>
+                <li>@T["Interests_ExampleCelebrities"]</li>
+            </ul>
+            <p>@T["Interests_HowSources"]</p>
+        </details>
         <form @onsubmit="SaveInterestsAsync">
             @for (var i = 0; i < _interests.Count; i++)
             {

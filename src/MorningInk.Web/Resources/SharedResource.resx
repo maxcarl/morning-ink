@@ -267,8 +267,8 @@
   <data name="Sources_IncludePlaceholder" xml:space="preserve"><value>e.g. Police, City council</value></data>
   <data name="Sources_IncludeHint" xml:space="preserve"><value>Separated by commas. Empty takes every article.</value></data>
   <data name="Sources_Exclude" xml:space="preserve"><value>Never with these words</value></data>
-  <data name="Sources_ExcludePlaceholder" xml:space="preserve"><value>e.g. Football, Advert</value></data>
-  <data name="Sources_ExcludeHint" xml:space="preserve"><value>Looked for in headline and teaser, as whole words, upper or lower case.</value></data>
+  <data name="Sources_ExcludePlaceholder" xml:space="preserve"><value>e.g. Football*, Giveaway</value></data>
+  <data name="Sources_ExcludeHint" xml:space="preserve"><value>Looked for in headline and teaser, as whole words, upper or lower case. With a star at the end also word starts: “football*” finds “footballer”.</value></data>
   <data name="Sources_MinWords" xml:space="preserve"><value>At least (words)</value></data>
   <data name="Sources_NoMinimum" xml:space="preserve"><value>no minimum</value></data>
   <data name="Sources_SkipLive" xml:space="preserve"><value>No live tickers</value></data>
@@ -316,11 +316,11 @@
   <data name="Preview_Empty" xml:space="preserve"><value>There are no new articles right now; the issue would not be sent.</value></data>
   <data name="Preview_Open" xml:space="preserve"><value>Preview</value></data>
   <data name="Interests_Title" xml:space="preserve"><value>Interests</value></data>
-  <data name="Interests_Hint" xml:space="preserve"><value>Topics to prefer or leave out. When a section's limit cannot take every article, these decide; "leave out" works like a filter. Recognized by the keywords in headline and teaser.</value></data>
+  <data name="Interests_Hint" xml:space="preserve"><value>Topics this edition prefers, puts last or leaves out, across all sources.</value></data>
   <data name="Interests_Topic" xml:space="preserve"><value>Topic</value></data>
   <data name="Interests_TopicPlaceholder" xml:space="preserve"><value>e.g. Homelab</value></data>
   <data name="Interests_Keywords" xml:space="preserve"><value>Keywords</value></data>
-  <data name="Interests_KeywordsPlaceholder" xml:space="preserve"><value>e.g. Proxmox, NAS, Raspberry Pi</value></data>
+  <data name="Interests_KeywordsPlaceholder" xml:space="preserve"><value>e.g. Proxmox, NAS, Raspberry Pi*</value></data>
   <data name="Interests_Weight" xml:space="preserve"><value>Weight</value></data>
   <data name="Interests_Weight_StrongPrefer" xml:space="preserve"><value>strongly prefer</value></data>
   <data name="Interests_Weight_Prefer" xml:space="preserve"><value>prefer</value></data>
@@ -403,4 +403,12 @@
   <data name="Sources_Reason_Excluded" xml:space="preserve"><value>Contains “{0}”</value></data>
   <data name="Sources_Reason_NotIncluded" xml:space="preserve"><value>None of the required words</value></data>
   <data name="Sources_Reason_TooShort" xml:space="preserve"><value>Fewer than {0} words</value></data>
+  <data name="Interests_How" xml:space="preserve"><value>How it works</value></data>
+  <data name="Interests_HowTopic" xml:space="preserve"><value>The topic is just a name for you, e.g. “Football”. It is not searched for.</value></data>
+  <data name="Interests_HowKeywords" xml:space="preserve"><value>The keywords decide: if one of them is in the headline or teaser, the article belongs to the topic. Whole words count, upper or lower case: “football” finds “football-mad”, not “footballer”. A star at the end counts every word that starts so: “football*” also finds “footballer” and “footballers”.</value></data>
+  <data name="Interests_HowWeight" xml:space="preserve"><value>“Leave out” always removes matching articles. “Prefer” and “less” only change the order: when a section has more articles than its limit, preferred ones come first and “less” ones last, so those are dropped first.</value></data>
+  <data name="Interests_HowExamples" xml:space="preserve"><value>Examples to leave out:</value></data>
+  <data name="Interests_ExampleFootball" xml:space="preserve"><value>Football: football*, Premier League, Champions League, World Cup, penalty</value></data>
+  <data name="Interests_ExampleCelebrities" xml:space="preserve"><value>Celebrity news: celebrit*, royals, reality TV, red carpet, gossip</value></data>
+  <data name="Interests_HowSources" xml:space="preserve"><value>To filter a single source, use “Never with these words” at the source. Its “Test” then shows what is left out.</value></data>
 </root>

@@ -267,8 +267,8 @@
   <data name="Sources_IncludePlaceholder" xml:space="preserve"><value>z. B. Polizei, Stadtrat</value></data>
   <data name="Sources_IncludeHint" xml:space="preserve"><value>Mit Kommas getrennt. Leer nimmt jeden Artikel.</value></data>
   <data name="Sources_Exclude" xml:space="preserve"><value>Nie mit diesen Wörtern</value></data>
-  <data name="Sources_ExcludePlaceholder" xml:space="preserve"><value>z. B. Fußball, Anzeige</value></data>
-  <data name="Sources_ExcludeHint" xml:space="preserve"><value>Gesucht wird in Überschrift und Anriss, als ganze Wörter, egal ob groß oder klein.</value></data>
+  <data name="Sources_ExcludePlaceholder" xml:space="preserve"><value>z. B. Fußball*, Gewinnspiel</value></data>
+  <data name="Sources_ExcludeHint" xml:space="preserve"><value>Gesucht wird in Überschrift und Anriss, als ganze Wörter, egal ob groß oder klein. Mit Stern am Ende auch Wortanfänge: „Fußball*“ findet „Fußballer“.</value></data>
   <data name="Sources_MinWords" xml:space="preserve"><value>Mindestens (Wörter)</value></data>
   <data name="Sources_NoMinimum" xml:space="preserve"><value>kein Minimum</value></data>
   <data name="Sources_SkipLive" xml:space="preserve"><value>Keine Liveticker</value></data>
@@ -316,11 +316,11 @@
   <data name="Preview_Empty" xml:space="preserve"><value>Gerade gibt es keine neuen Meldungen; die Ausgabe würde nicht verschickt.</value></data>
   <data name="Preview_Open" xml:space="preserve"><value>Vorschau</value></data>
   <data name="Interests_Title" xml:space="preserve"><value>Interessen</value></data>
-  <data name="Interests_Hint" xml:space="preserve"><value>Themen, die bevorzugt oder ausgelassen werden. Reicht das Limit einer Rubrik nicht für alle Artikel, entscheiden sie; „auslassen“ wirkt wie ein Filter. Erkannt an den Stichwörtern in Überschrift und Anriss.</value></data>
+  <data name="Interests_Hint" xml:space="preserve"><value>Themen, die diese Ausgabe bevorzugt, nach hinten stellt oder auslässt, über alle Quellen hinweg.</value></data>
   <data name="Interests_Topic" xml:space="preserve"><value>Thema</value></data>
   <data name="Interests_TopicPlaceholder" xml:space="preserve"><value>z. B. Homelab</value></data>
   <data name="Interests_Keywords" xml:space="preserve"><value>Stichwörter</value></data>
-  <data name="Interests_KeywordsPlaceholder" xml:space="preserve"><value>z. B. Proxmox, NAS, Raspberry Pi</value></data>
+  <data name="Interests_KeywordsPlaceholder" xml:space="preserve"><value>z. B. Proxmox, NAS, Raspberry Pi*</value></data>
   <data name="Interests_Weight" xml:space="preserve"><value>Gewicht</value></data>
   <data name="Interests_Weight_StrongPrefer" xml:space="preserve"><value>stark bevorzugen</value></data>
   <data name="Interests_Weight_Prefer" xml:space="preserve"><value>bevorzugen</value></data>
@@ -403,4 +403,12 @@
   <data name="Sources_Reason_Excluded" xml:space="preserve"><value>Enthält „{0}“</value></data>
   <data name="Sources_Reason_NotIncluded" xml:space="preserve"><value>Keins der gewünschten Wörter</value></data>
   <data name="Sources_Reason_TooShort" xml:space="preserve"><value>Weniger als {0} Wörter</value></data>
+  <data name="Interests_How" xml:space="preserve"><value>So funktioniert’s</value></data>
+  <data name="Interests_HowTopic" xml:space="preserve"><value>Thema ist nur ein Name für dich, z. B. „Fußball“. Danach wird nicht gesucht.</value></data>
+  <data name="Interests_HowKeywords" xml:space="preserve"><value>Die Stichwörter entscheiden: Steht eins davon in Überschrift oder Anriss, gehört der Artikel zum Thema. Es zählen ganze Wörter, groß oder klein egal: „Fußball“ findet „Fußball-WM“, aber nicht „Fußballer“. Mit Stern am Ende zählt jedes Wort, das so anfängt: „Fußball*“ findet auch „Fußballer“ und „Fußballspiel“.</value></data>
+  <data name="Interests_HowWeight" xml:space="preserve"><value>„Auslassen“ nimmt passende Artikel immer heraus. „Bevorzugen“ und „weniger“ ändern nur die Reihenfolge: Hat eine Rubrik mehr Artikel als ihr Limit, kommen bevorzugte zuerst und „weniger“ zuletzt, sodass sie eher wegfallen.</value></data>
+  <data name="Interests_HowExamples" xml:space="preserve"><value>Beispiele zum Auslassen:</value></data>
+  <data name="Interests_ExampleFootball" xml:space="preserve"><value>Fußball: Fußball*, Bundesliga, Champions League, DFB, Elfmeter</value></data>
+  <data name="Interests_ExampleCelebrities" xml:space="preserve"><value>Promi-News: Promi*, Royals, Dschungelcamp, Reality-TV, Society</value></data>
+  <data name="Interests_HowSources" xml:space="preserve"><value>Soll nur eine Quelle gefiltert werden, geht das an der Quelle mit „Nie mit diesen Wörtern“. Dort zeigt „Testen“ auch gleich, was aussortiert wird.</value></data>
 </root>

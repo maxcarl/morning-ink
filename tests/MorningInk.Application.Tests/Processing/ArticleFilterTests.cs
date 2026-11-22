@@ -83,6 +83,16 @@ public class ArticleFilterTests
         Assert.False(ArticleFilter.Admits(Article("Raspberry Pi zum Sonderpreis"), source));
     }
 
+    [Theory]
+    [InlineData("Fußball", "Fußball-WM: Auslosung in Zürich", true)] // a hyphen ends the word
+    [InlineData("Fußball", "Fußballer des Jahres gewählt", false)] // whole words only
+    [InlineData("Fußball*", "Fußballer des Jahres gewählt", true)] // the star takes every word that starts so
+    [InlineData("Fußball*", "Frauenfußball wächst", false)] // only the start, not the middle
+    [InlineData("Promi*", "PROMIS feiern in Berlin", true)]
+    [InlineData("*", "Alles und nichts", false)] // a star alone is no keyword
+    public void Keywords_match_whole_words_or_word_starts_with_a_star(string keyword, string title, bool matches) =>
+        Assert.Equal(matches, ArticleFilter.Mentions(Article(title), keyword));
+
     [Fact]
     public void The_reason_names_the_rule_that_left_the_article_out()
     {

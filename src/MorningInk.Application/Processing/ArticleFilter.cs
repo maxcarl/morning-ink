@@ -68,13 +68,16 @@ public static partial class ArticleFilter
 
     private static string HeadlineAndTeaser(FetchedArticle article) => $"{article.Title} {PlainText(article.Summary)}";
 
-    // A keyword counts as a whole word or phrase: "Promi" does not match "Promis". Case and ß/ss do not matter.
+    // A keyword counts as a whole word or phrase: "Promi" does not match "Promis". A trailing "*" takes every word
+    // that starts so ("Fußball*" also finds "Fußballer"), which German compounds need. Case and ß/ss do not matter.
     private static bool Contains(string text, string keyword)
     {
         var word = keyword.Trim();
+        var wordStart = word.EndsWith('*');
+        word = word.TrimEnd('*').TrimEnd();
         return word.Length > 0 && Regex.IsMatch(
             Fold(text),
-            $@"(?<!\w){Regex.Escape(Fold(word))}(?!\w)",
+            $@"(?<!\w){Regex.Escape(Fold(word))}{(wordStart ? string.Empty : @"(?!\w)")}",
             RegexOptions.CultureInvariant,
             MatchTimeout);
     }

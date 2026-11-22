@@ -197,6 +197,22 @@ li[draggable="true"]:active {
   text-decoration: none;
 }
 
+/* A folded explanation under a hint: one click away, never in the way. */
+.explainer {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.explainer summary {
+  cursor: pointer;
+  color: var(--color-accent);
+}
+
+.explainer p,
+.explainer ul {
+  margin: var(--space-2) 0;
+}
+
 /* Articles the filters leave out: still readable, clearly second. */
 .headline-list-dropped a {
   font-weight: 400;
