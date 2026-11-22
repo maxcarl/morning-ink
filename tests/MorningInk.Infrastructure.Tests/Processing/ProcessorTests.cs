@@ -29,6 +29,55 @@ public sealed class ProcessorTests
         Assert.Contains("Das und mehr geht aus der", article.Content, StringComparison.Ordinal);
     }
 
+    // Golem sends readers without consent to /sonstiges/zustimmung/auswahl.html?from=<article>, a page asking for
+    // consent or a subscription; it is readable text, so only the redirect back to the article gives it away.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Feed_text_is_kept_when_the_site_redirects_to_a_consent_or_login_page(bool encoded)
+    {
+        var page = await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "TestData", "Pages", "netzpolitik-kids-act.html"));
+        using var server = new LocalServer(async context =>
+        {
+            if (context.Request.Url!.AbsolutePath == "/news/article.html") // ! is safe: HttpListener always sets the request URL
+            {
+                var back = context.Request.Url.AbsoluteUri;
+                context.Response.Redirect($"/sonstiges/zustimmung/auswahl.html?from={(encoded ? Uri.EscapeDataString(back) : back)}");
+                context.Response.Close();
+                return;
+            }
+
+            context.Response.ContentType = "text/html; charset=utf-8";
+            await context.Response.OutputStream.WriteAsync(page);
+        });
+
+        var article = await RunAsync(server, Article(server.Url("/news/article.html")), new Source { UserId = Guid.NewGuid(), Name = "n", Url = "https://example.com" });
+
+        Assert.Equal(FeedText, article.Content);
+    }
+
+    [Fact]
+    public async Task Redirect_to_the_articles_new_address_still_gives_the_full_text()
+    {
+        var page = await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "TestData", "Pages", "netzpolitik-kids-act.html"));
+        using var server = new LocalServer(async context =>
+        {
+            if (context.Request.Url!.AbsolutePath == "/old") // ! is safe: HttpListener always sets the request URL
+            {
+                context.Response.Redirect("/2026/kids-act?utm_source=feed");
+                context.Response.Close();
+                return;
+            }
+
+            context.Response.ContentType = "text/html; charset=utf-8";
+            await context.Response.OutputStream.WriteAsync(page);
+        });
+
+        var article = await RunAsync(server, Article(server.Url("/old")), new Source { UserId = Guid.NewGuid(), Name = "n", Url = "https://example.com" });
+
+        Assert.Contains("Das und mehr geht aus der", article.Content, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Feed_text_is_kept_when_the_page_cannot_be_fetched()
     {

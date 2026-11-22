@@ -23,6 +23,12 @@ internal sealed partial class FullTextProcessor(SafeHttpClient http, ILogger<Ful
             return article;
         }
 
+        if (IsGate(article.Url, page.FinalUri))
+        {
+            LogFallback(logger, article.Url.Host, "redirected to a consent, login or subscription page");
+            return article;
+        }
+
         var content = ArticleExtractor.Extract(page.Content, page.FinalUri);
         if (content is null)
         {
@@ -32,6 +38,13 @@ internal sealed partial class FullTextProcessor(SafeHttpClient http, ILogger<Ful
 
         return article with { Content = content };
     }
+
+    // Consent, login and paywall pages send the reader back afterwards, so they carry the article's address in
+    // their query ("?from=…", "?return=…"). Their text is readable, so the extractor alone would take it as the article.
+    private static bool IsGate(Uri requested, Uri landed) =>
+        requested.AbsolutePath.Length > 1 // "/" would appear in every query
+        && landed.AbsolutePath != requested.AbsolutePath
+        && Uri.UnescapeDataString(landed.Query).Contains(requested.AbsolutePath, StringComparison.Ordinal);
 
     // Servers without a content type get the benefit of the doubt; the extractor rejects non-articles anyway.
     private static bool IsHtml(string? mediaType) => mediaType is null or "text/html" or "application/xhtml+xml";
