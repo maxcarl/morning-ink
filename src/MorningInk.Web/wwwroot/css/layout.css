@@ -34,6 +34,11 @@
   display: inline;
 }
 
+/* Same weight as "Sign out" next to it, not the muted date */
+.masthead-account a {
+  color: var(--color-ink);
+}
+
 .brand {
   font-family: var(--font-serif);
   font-weight: 700;
