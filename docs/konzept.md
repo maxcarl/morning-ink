@@ -490,7 +490,7 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | Nr. | Bereich | Aufgabe | Fertig, wenn | Hängt ab von | Status |
 | --- | --- | --- | --- | --- | --- |
 | 26 | Ausgaben | Mehrere Ausgaben: mehrere Profile pro Benutzer mit eigenen Rubriken, Zeit und Empfänger; Wochentage pro Profil | Morgen- und Abendausgabe kommen getrennt, eine Wochenendausgabe nur samstags und sonntags | 20, 22 | ✅ erledigt |
-| 27 | Quellen | OPML-Import und -Export auf der Quellen-Seite | Ein Export aus FreshRSS oder Feedly wird übernommen, Dubletten werden übersprungen | 19 | – |
+| 27 | Quellen | OPML-Import und -Export auf der Quellen-Seite | Ein Export aus FreshRSS oder Feedly wird übernommen, Dubletten werden übersprungen | 19 |✅ erledigt; Ordner werden nicht übernommen, Rubriken wählt man pro Ausgabe |
 | 28 | Ausgaben | Archiv: alle Ausgaben, herunterladen, erneut senden, anheften | Eine alte Ausgabe lässt sich erneut an den Kindle schicken | 22 | ✅ erledigt; Titelseiten-Miniaturen kommen später |
 | 29 | Ausgaben | Vorschau: die nächste Ausgabe im Browser blättern (Sandbox-iframe) | Zeigt dieselben Artikel wie die Zustellung, ohne sie als gelesen zu markieren | 22 | ✅ erledigt; KI nur auf Wunsch |
 | 30 | Verarbeitung | Filter pro Quelle: Stichwörter ein- oder ausschließen, Mindestlänge, keine Liveticker, keine Werbung | Ausgeschlossene Artikel erscheinen nicht in der Ausgabe; „Testen“ an der Quelle zeigt, was aussortiert wird und warum | 19 | ✅ erledigt; Werbung an den Kennzeichen des Verlags erkannt, Wortanfänge mit Stern; Regex vorerst nicht |

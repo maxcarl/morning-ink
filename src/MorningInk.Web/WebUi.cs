@@ -71,6 +71,7 @@ public static class WebUi
         app.MapHealthChecks("/health").AllowAnonymous();
         app.MapThemeSwitch();
         app.MapIssueDownload();
+        app.MapSourcesExport();
         app.MapOpds();
         app.MapPreviewFiles();
         app.MapPost("/logout", async (HttpContext context, IAntiforgery antiforgery, SignInManager<AppUser> signIn) =>

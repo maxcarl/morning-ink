@@ -1,4 +1,6 @@
+using System.Net;
 using Bunit;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Domain;
@@ -183,6 +185,42 @@ public sealed class SourcesPageTests : IDisposable
     {
         await using var scope = app.Services.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Sources.OrderBy(s => s.Name).ToListAsync();
+    }
+
+    [Fact]
+    public async Task Opml_file_from_another_reader_adds_its_feeds()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        await AddSourcesAsync(app, "Schon da");
+        var page = pages.Open<Sources>("1 feed");
+        var opml = $"""
+            <opml version="2.0"><body><outline text="Technik">
+              <outline text="Beispiel Blog" type="rss" xmlUrl="https://blog.example.com/feed.xml"/>
+              <outline text="Schon da" type="rss" xmlUrl="{_feeds.FeedUrl}"/>
+            </outline></body></opml>
+            """;
+
+        page.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText(opml, "subscriptions.opml"));
+
+        Pages.Shows(page, "1 feed(s) added, 1 already there.");
+        Pages.Shows(page, "Beispiel Blog");
+    }
+
+    [Fact]
+    public async Task Export_has_the_own_feeds_as_opml_and_needs_a_sign_in()
+    {
+        using var app = AllowingFeeds();
+        var browser = await app.SignedInAdminAsync();
+        await AddSourcesAsync(app, "Beispiel News");
+
+        var response = await browser.GetAsync("/sources/export.opml");
+        var anonymous = await app.Browser().GetAsync("/sources/export.opml");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("attachment", response.Content.Headers.ContentDisposition?.DispositionType);
+        Assert.Contains("Beispiel News", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.Redirect, anonymous.StatusCode);
     }
 
     private async Task AddSourcesAsync(TestApp app, params string[] names)

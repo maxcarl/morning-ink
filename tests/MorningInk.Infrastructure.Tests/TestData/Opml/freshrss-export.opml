@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+	<head>
+		<title>FreshRSS</title>
+		<dateCreated>Sun, 22 Nov 2026 08:00:00 +0000</dateCreated>
+	</head>
+	<body>
+		<outline text="Technik">
+			<outline text="Beispiel Blog" type="rss" xmlUrl="https://blog.example.com/feed.xml" htmlUrl="https://blog.example.com/" description="Ein Blog"/>
+			<outline text="Technik-News" title="Technik-News" type="rss" xmlUrl="https://news.example.org/rss"/>
+			<outline text="Doppelt in der Datei" type="rss" xmlUrl="https://news.example.org/rss#again"/>
+		</outline>
+		<outline text="Wissenschaft">
+			<outline title="Nur mit Titel" type="rss" xmlUrl="https://science.example.net/atom"/>
+			<outline text="Schon vorhanden" type="rss" xmlUrl="https://existing.example.com/feed"/>
+			<outline text="Böse" type="rss" xmlUrl="javascript:alert(1)"/>
+			<outline text="Lokal" type="rss" xmlUrl="file:///etc/passwd"/>
+			<outline text="Ohne Adresse" type="rss"/>
+		</outline>
+		<outline type="rss" xmlUrl="https://noname.example.com/feed"/>
+	</body>
+</opml>

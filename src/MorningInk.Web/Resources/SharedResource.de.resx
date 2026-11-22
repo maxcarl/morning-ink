@@ -523,4 +523,10 @@
   <data name="Settings_AiUsageFailed" xml:space="preserve"><value>keine Antwort</value></data>
   <data name="Settings_Error_AiDailyLimit" xml:space="preserve"><value>Das Tageslimit muss eine ganze Zahl ab 1 sein, oder leer.</value></data>
   <data name="Settings_Error_AiSummaryPrompt" xml:space="preserve"><value>Die Anweisung darf höchstens 4.000 Zeichen haben.</value></data>
+  <data name="Sources_Opml" xml:space="preserve"><value>Aus einem anderen Reader (OPML)</value></data>
+  <data name="Sources_OpmlHint" xml:space="preserve"><value>Lade den OPML-Export von FreshRSS, Feedly oder einem anderen Reader hoch; vorhandene Feeds werden übersprungen. Ordner werden nicht übernommen: Rubriken wählst du in der Ausgabe.</value></data>
+  <data name="Sources_OpmlExport" xml:space="preserve"><value>Deine Feeds als OPML exportieren</value></data>
+  <data name="Sources_OpmlInvalid" xml:space="preserve"><value>Das ist keine OPML-Datei, oder sie ist größer als 1 MB.</value></data>
+  <data name="Sources_OpmlImported" xml:space="preserve"><value>{0} Feed(s) übernommen, {1} schon vorhanden.</value></data>
+  <data name="Sources_OpmlSkipped" xml:space="preserve"><value>{0} ohne brauchbare Adresse übersprungen.</value></data>
 </root>

@@ -523,4 +523,10 @@
   <data name="Settings_AiUsageFailed" xml:space="preserve"><value>no answer</value></data>
   <data name="Settings_Error_AiDailyLimit" xml:space="preserve"><value>The daily limit must be a whole number of at least 1, or empty.</value></data>
   <data name="Settings_Error_AiSummaryPrompt" xml:space="preserve"><value>The instructions may have at most 4,000 characters.</value></data>
+  <data name="Sources_Opml" xml:space="preserve"><value>From another reader (OPML)</value></data>
+  <data name="Sources_OpmlHint" xml:space="preserve"><value>Upload the OPML export of FreshRSS, Feedly or another reader; feeds you already have are skipped. Folders are not taken over: choose sections in the edition.</value></data>
+  <data name="Sources_OpmlExport" xml:space="preserve"><value>Export your feeds as OPML</value></data>
+  <data name="Sources_OpmlInvalid" xml:space="preserve"><value>That is no OPML file, or it is larger than 1 MB.</value></data>
+  <data name="Sources_OpmlImported" xml:space="preserve"><value>{0} feed(s) added, {1} already there.</value></data>
+  <data name="Sources_OpmlSkipped" xml:space="preserve"><value>{0} without a usable address skipped.</value></data>
 </root>

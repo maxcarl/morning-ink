@@ -348,6 +348,13 @@
                 <button type="submit" class="button" disabled="@_busy">@T["Sources_FreshRssAdd"]</button>
             </form>
         }
+
+        @* Moving from another reader: its OPML export in, our feeds out. *@
+        <div class="field">
+            <label class="label" for="opml-file">@T["Sources_Opml"]</label>
+            <InputFile id="opml-file" class="input" accept=".opml,.xml,text/x-opml,text/xml" OnChange="ImportOpmlAsync" disabled="@_busy" aria-describedby="opml-hint" />
+            <span id="opml-hint" class="hint">@T["Sources_OpmlHint"] <a href="/sources/export.opml" download>@T["Sources_OpmlExport"]</a></span>
+        </div>
     };
 
     protected override async Task LoadAsync()
@@ -401,6 +408,28 @@
         var place = _place.Trim();
         return RunAsync(() => SaveAsync(catalog => catalog.AddLocalAsync(UserId, $"{T["Sources_Local"]} {place}", place, _country, Closed)));
     }
+
+    private Task ImportOpmlAsync(InputFileChangeEventArgs e) => RunAsync(async () =>
+    {
+        // The browser streams at most one byte past the limit; the catalog refuses anything larger.
+        await using var file = e.File.OpenReadStream(Opml.MaxBytes + 1, Closed);
+        try
+        {
+            if (await UseAsync<SourceCatalog, OpmlImport?>(catalog => catalog.ImportOpmlAsync(UserId, file, Closed)) is not { } result)
+            {
+                _error = T["Sources_OpmlInvalid"];
+                return;
+            }
+
+            _notice = T["Sources_OpmlImported", result.Added, result.Duplicates] + (result.Invalid > 0 ? " " + T["Sources_OpmlSkipped", result.Invalid] : string.Empty);
+            await ReloadAsync();
+        }
+        catch (IOException)
+        {
+            // Thrown by the stream when the file is larger than allowed.
+            _error = T["Sources_OpmlInvalid"];
+        }
+    });
 
     private async Task SaveAsync(Func<SourceCatalog, Task<SourceSaveResult>> save)
     {

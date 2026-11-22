@@ -82,6 +82,60 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Url = feed.AbsoluteUri, FetchFullText = fetchFullText }, cancellationToken);
     }
 
+    /// <summary>
+    /// Adds the feeds of an OPML file as feed sources; ones the user already has, by normalized address, are skipped,
+    /// as are addresses that are not http or https. Null when the file is too big or no OPML.
+    /// </summary>
+    public async Task<OpmlImport?> ImportOpmlAsync(Guid userId, Stream file, CancellationToken cancellationToken)
+    {
+        // Read one byte past the limit to know a file is too big without reading all of it.
+        using var buffer = new MemoryStream();
+        var chunk = new byte[81920];
+        int read;
+        while ((read = await file.ReadAsync(chunk, cancellationToken)) > 0)
+        {
+            buffer.Write(chunk, 0, read);
+            if (buffer.Length > Opml.MaxBytes)
+            {
+                return null;
+            }
+        }
+
+        if (Opml.Read(buffer.ToArray()) is not { } outlines)
+        {
+            return null;
+        }
+
+        var known = (await db.Sources.Where(s => s.UserId == userId && s.Kind == SourceKind.Rss && s.Url != null).Select(s => s.Url!).ToListAsync(cancellationToken))
+            .Select(u => UrlNormalizer.Normalize(new Uri(u)))
+            .ToHashSet(StringComparer.Ordinal);
+        var (duplicates, invalid) = (0, 0);
+        foreach (var (name, url) in outlines)
+        {
+            if (!Uri.TryCreate(url?.Trim(), UriKind.Absolute, out var feed) || UrlPolicy.Check(feed) is not null)
+            {
+                invalid++;
+            }
+            else if (!known.Add(UrlNormalizer.Normalize(feed)))
+            {
+                duplicates++;
+            }
+            else
+            {
+                var title = string.IsNullOrEmpty(name) ? feed.Host : name;
+                db.Sources.Add(new Source { UserId = userId, Name = title.Length > MaxNameLength ? title[..MaxNameLength] : title, Url = feed.AbsoluteUri, FetchFullText = true });
+            }
+        }
+
+        var added = db.ChangeTracker.Entries<Source>().Count(e => e.State == EntityState.Added);
+        await db.SaveChangesAsync(cancellationToken);
+        return new OpmlImport(added, duplicates, invalid);
+    }
+
+    /// <summary>The user's feed sources as OPML; local news and FreshRSS categories are no feeds another reader could use.</summary>
+    public async Task<string> ExportOpmlAsync(Guid userId, CancellationToken cancellationToken) =>
+        Opml.Write(await db.Sources.Where(s => s.UserId == userId && s.Kind == SourceKind.Rss && s.Url != null).OrderBy(s => s.Name).AsNoTracking().ToListAsync(cancellationToken));
+
     /// <param name="country">ISO code the place is in, e.g. "AT"; empty searches worldwide.</param>
     public Task<SourceSaveResult> AddLocalAsync(Guid userId, string name, string place, string? country, CancellationToken cancellationToken)
     {
