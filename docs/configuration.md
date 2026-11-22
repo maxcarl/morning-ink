@@ -32,6 +32,7 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `NewsSearch__SearxngUrl` | – | Your own SearXNG, e.g. `https://searx.example.com`; also under Settings → Local news, where this variable shows read-only. Set, it replaces Bing for local news and the towns stay with your instance. It must allow JSON (`search.formats: [html, json]` in its `settings.yml`); saving it on the settings page allows its host in the home network; set by variable, allow it with `Http__AllowedHosts__0`. |
 | `NewsSearch__Language`, `NewsSearch__Country` | `de`, `DE` | News edition when a local source has no country; with a country, its own edition is used (e.g. `en`/`US`). |
 | `Notifications__TelegramApiUrl` | `https://api.telegram.org` | Telegram Bot API for edition notifications; can be a self-hosted Bot API server. ntfy, Gotify and Telegram tokens are set per edition in the UI and stored encrypted. |
+| `ReverseProxy__Addresses__0`, `__1`, … | – | IP addresses of reverse proxies whose `X-Forwarded-*` headers are believed, see [behind a reverse proxy](#behind-a-reverse-proxy). |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
 | `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |
 | `Images__MaxPixels` | `40000000` | Larger images are rejected before decoding. |
@@ -48,26 +49,24 @@ A reverse proxy such as Nginx Proxy Manager, Caddy or Traefik takes the HTTPS co
 - the sign-in cookie is not marked as HTTPS-only,
 - the limit on sign-in attempts counts all clients as one: someone guessing passwords from outside locks you out too, for a minute.
 
-Set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` to fix all three: Morning Ink then takes the browser's scheme and address from the headers the proxy adds (`X-Forwarded-Proto`, `X-Forwarded-For`).
+The proxy tells the browser's scheme and address in headers (`X-Forwarded-Proto`, `X-Forwarded-For`). Tell Morning Ink which proxy to believe:
 
-It trusts these headers from anyone who reaches its port. So let only the proxy reach it: put both containers in one Docker network and do not publish port 8080. For Nginx Proxy Manager:
+**Proxy on another computer** (e.g. Nginx Proxy Manager on a second host, forwarding to `host1:8080`): set its IP address.
 
 ```yaml
 services:
   morning-ink:
     image: ghcr.io/maxcarl/morning-ink:latest
+    ports:
+      - "8080:8080"
     environment:
-      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
-    networks: [proxy]          # the network Nginx Proxy Manager is in
-    # no "ports:": only the proxy reaches Morning Ink
+      ReverseProxy__Addresses__0: "192.168.1.20"   # the host running Nginx Proxy Manager
     volumes:
       - morning-ink-data:/data
-
-networks:
-  proxy:
-    external: true
 ```
 
-In Nginx Proxy Manager, forward to host `morning-ink`, port `8080`, and enable "Websockets Support" (the pages need it).
+Only requests from that address may set the headers; opening `host1:8080` directly in the home network still works, it just cannot pretend to be someone else. More than one proxy: `ReverseProxy__Addresses__1`, and so on. IP addresses only, no host names.
 
-If the proxy forwards to the host's published port 8080 instead, it works as well; then anyone in your home network who reaches port 8080 directly could pretend to come from another address. At home that is a small risk; the setup above avoids it.
+**Proxy in the same Docker network** (its container address may change): set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` and do not publish port 8080, so only the proxy reaches Morning Ink. This setting believes the headers from anyone who reaches the port.
+
+In Nginx Proxy Manager, enable "Websockets Support" for the host: the pages need it.

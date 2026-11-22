@@ -26,6 +26,7 @@ public static class WebUi
         services.AddCascadingAuthenticationState();
         services.AddLocalization(options => options.ResourcesPath = "Resources");
         services.AddSignInLimits();
+        services.AddReverseProxy();
 
         // Every endpoint needs a signed-in user unless it says otherwise ([AllowAnonymous]): new pages are safe by default.
         services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -45,6 +46,7 @@ public static class WebUi
 
     public static WebApplication UseWebUi(this WebApplication app)
     {
+        app.UseReverseProxy();
         app.Use(async (context, next) =>
         {
             var headers = context.Response.Headers;
