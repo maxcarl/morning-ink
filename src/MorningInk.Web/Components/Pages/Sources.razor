@@ -82,69 +82,7 @@
                         </div>
                         @if (source.Id == _editId)
                         {
-                            @* Name, limits and filters; the filters run before the full text is fetched (see ArticleFilter). *@
-                            <form id="edit-@source.Id" class="source-editor" @onsubmit="() => SaveSourceAsync(source.Id)">
-                                <div class="inline-form field">
-                                    <div class="row-main">
-                                        <label class="label" for="source-name">@T["Sources_Name"]</label>
-                                        <input id="source-name" class="input" @bind="_edit.Name" required />
-                                    </div>
-                                    <div>
-                                        <label class="label" for="source-max">@T["Sources_MaxArticles"]</label>
-                                        <input id="source-max" class="input" type="number" min="1" max="100" @bind="_edit.MaxArticles" />
-                                    </div>
-                                </div>
-                                <div class="field">
-                                    <label for="source-include">@T["Sources_Include"]</label>
-                                    <input id="source-include" class="input" @bind="_edit.Include" placeholder="@T["Sources_IncludePlaceholder"]" aria-describedby="source-include-hint" />
-                                    <span id="source-include-hint" class="hint">@T["Sources_IncludeHint"]</span>
-                                </div>
-                                <div class="field">
-                                    <label for="source-exclude">@T["Sources_Exclude"]</label>
-                                    <input id="source-exclude" class="input" @bind="_edit.Exclude" placeholder="@T["Sources_ExcludePlaceholder"]" aria-describedby="source-exclude-hint" />
-                                    <span id="source-exclude-hint" class="hint">@T["Sources_ExcludeHint"]</span>
-                                </div>
-                                <div class="inline-form field">
-                                    <div>
-                                        <label class="label" for="source-minwords">@T["Sources_MinWords"]</label>
-                                        <input id="source-minwords" class="input" type="number" min="1" @bind="_edit.MinWords" placeholder="@T["Sources_NoMinimum"]" />
-                                    </div>
-                                    <div class="row-main checks">
-                                        <label class="checkbox"><input id="source-live" type="checkbox" @bind="_edit.SkipLiveTickers" /> @T["Sources_SkipLive"]</label>
-                                        <label class="checkbox"><input id="source-ads" type="checkbox" @bind="_edit.SkipAds" aria-describedby="source-ads-hint" /> @T["Sources_SkipAds"]</label>
-                                        <span id="source-ads-hint" class="hint">@T["Sources_SkipAdsHint"]</span>
-                                        <label class="checkbox"><input id="source-media" type="checkbox" @bind="_edit.SkipMedia" aria-describedby="source-media-hint" /> @T["Sources_SkipMedia"]</label>
-                                        <span id="source-media-hint" class="hint">@T["Sources_SkipMediaHint"]</span>
-                                        <label class="checkbox"><input type="checkbox" @bind="_edit.FetchFullText" /> @T["Sources_FullText"]</label>
-                                    </div>
-                                </div>
-                                <div class="field">
-                                    <label class="checkbox"><input id="source-local-ai" type="checkbox" @bind="_edit.LocalAiOnly" aria-describedby="source-local-ai-hint" /> @T["Sources_LocalAiOnly"]</label>
-                                    <span id="source-local-ai-hint" class="hint">@T["Sources_LocalAiOnlyHint"]</span>
-                                </div>
-                                <div class="field">
-                                    <label class="checkbox"><input id="source-images" type="checkbox" @bind="_edit.LoadImages" aria-describedby="source-images-hint" /> @T["Sources_LoadImages"]</label>
-                                    <span id="source-images-hint" class="hint">@T["Sources_LoadImagesHint"]</span>
-                                </div>
-                                @if (source.Kind == SourceKind.FreshRss)
-                                {
-                                    <div class="field">
-                                        <label class="checkbox"><input id="source-mark-read" type="checkbox" @bind="_edit.MarkReadAfterDelivery" /> @T["Sources_MarkRead"]</label>
-                                    </div>
-                                }
-                                @if (source.Kind == SourceKind.Newsletter)
-                                {
-                                    <div class="field">
-                                        <label for="source-sender">@T["Sources_NewsletterSender"]</label>
-                                        <input id="source-sender" class="input" @bind="_edit.Sender" placeholder="substack.com" aria-describedby="source-sender-hint" />
-                                        <span id="source-sender-hint" class="hint">@T["Sources_NewsletterSenderHint"]</span>
-                                    </div>
-                                }
-                                <div class="row-actions">
-                                    <button type="submit" class="button button-small" disabled="@_busy">@T["Profile_Save"]<span class="visually-hidden"> – @source.Name</span></button>
-                                    <button type="button" class="link-button" @onclick="() => _editId = null">@T["Confirm_Cancel"]</button>
-                                </div>
-                            </form>
+                            <SourceEditor Source="source" UserId="UserId" Cancellation="Closed" Finished="EditFinishedAsync" Cancelled="() => _editId = null" />
                         }
                     </li>
                 }
@@ -164,82 +102,11 @@
 
     <aside class="sidebar" aria-labelledby="preview-label" aria-live="polite">
         <h2 id="preview-label" class="department">@T["Sources_Preview"]</h2>
-        @if (_preview is null)
-        {
-            <p class="muted">@(_busy ? T["Sources_Loading"] : T["Sources_PreviewHint"])</p>
-        }
-        else
-        {
-            <h2>@_preview.Name</h2>
-            <p class="row-meta">@(_preview.Url ?? _preview.Place)</p>
-            <dl class="facts">
-                <div><dt>@T["Sources_Type"]</dt><dd>@KindName(_preview.Kind)</dd></div>
-                <div><dt>@T["Sources_Limits"]</dt><dd>@T["Sources_LimitsValue", _preview.MaxArticles, (int)_preview.MaxAge.TotalHours]</dd></div>
-                <div><dt>@T["Sources_FullTextFact"]</dt><dd>@(_preview.FetchFullText ? T["Sources_On"] : T["Sources_Off"])</dd></div>
-                <div>
-                    <dt>@T["Sources_Status"]</dt>
-                    <dd class="status @(_previewResult is SourceResult.Failure ? "status-error" : "status-ok")">@(_previewResult is SourceResult.Failure ? T["Sources_Failed"] : T["Sources_Works"])</dd>
-                </div>
-            </dl>
-            @switch (_previewResult)
-            {
-                case SourceResult.Success { Articles.Count: > 0 } success:
-                    @* The same rules as the issue, so changed filters show their effect right here. *@
-                    var judged = success.Articles.Select(article => (Article: article, Verdict: Verdict(article, _preview))).ToList();
-                    var kept = judged.Where(j => j.Verdict is null).ToList();
-                    var dropped = judged.Where(j => j.Verdict is not null).ToList();
-                    @if (kept.Count > 0)
-                    {
-                        <span class="label">@T["Sources_LatestArticles"]</span>
-                        <ul class="headline-list">
-                            @foreach (var (article, _) in kept.Take(PreviewArticles))
-                            {
-                                <li>
-                                    <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer" target="_blank">@article.Title</a>
-                                    <div class="row-meta">@string.Join(" · ", new[] { article.Author, article.PublishedAt?.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture) }.Where(s => !string.IsNullOrEmpty(s)))</div>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="status status-warn">@T["Sources_AllFiltered"]</p>
-                    }
-                    @if (dropped.Count > 0)
-                    {
-                        <span class="label">@T["Sources_FilteredOut", dropped.Count, judged.Count]</span>
-                        <ul class="headline-list headline-list-dropped">
-                            @foreach (var (article, verdict) in dropped.Take(DroppedArticles))
-                            {
-                                <li>
-                                    <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer" target="_blank">@article.Title</a>
-                                    <div class="row-meta">@Reason(verdict!)</div> @* ! is safe: only dropped articles have a verdict *@
-                                </li>
-                            }
-                        </ul>
-                    }
-                    @if (_preview.FetchFullText && _preview.MinWords is not null)
-                    {
-                        <p class="hint">@T["Sources_MinWordsLater"]</p>
-                    }
-                    break;
-                case SourceResult.Failure failure:
-                    <p class="status status-error">@SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)</p>
-                    break;
-                default:
-                    <p class="muted">@T["Sources_NoArticles"]</p>
-                    break;
-            }
-        }
+        <SourcePreview Source="_preview" Result="_previewResult" Loading="_busy" />
     </aside>
 </div>
 
 @code {
-    private const int PreviewArticles = 5;
-
-    // Enough to see which rule hits too often, short enough for the sidebar.
-    private const int DroppedArticles = 10;
-
     private List<Source> _sources = [];
     private IReadOnlyList<FeedCandidate>? _found;
     private Source? _preview;
@@ -247,7 +114,6 @@
     private Guid? _selectedId;
     private Guid? _confirmId;
     private Guid? _editId;
-    private SourceDraft _edit = new();
     private string? _notice;
     private string? _error;
     private string? _blockedHost;
@@ -454,50 +320,18 @@
     {
         _confirmId = null;
         _editId = _editId == source.Id ? null : source.Id;
-        _edit = new SourceDraft
-        {
-            Name = source.Name,
-            MaxArticles = source.MaxArticles,
-            Include = string.Join(", ", source.IncludeKeywords),
-            Exclude = string.Join(", ", source.ExcludeKeywords),
-            MinWords = source.MinWords,
-            SkipLiveTickers = source.SkipLiveTickers,
-            FetchFullText = source.FetchFullText,
-            LocalAiOnly = source.LocalAiOnly,
-            MarkReadAfterDelivery = source.MarkReadAfterDelivery,
-            SkipAds = source.SkipAds,
-            SkipMedia = source.SkipMedia,
-            LoadImages = source.LoadImages,
-            Sender = source.Sender,
-        };
     }
 
-    private Task SaveSourceAsync(Guid id) => RunAsync(async () =>
+    private async Task EditFinishedAsync(FormOutcome outcome)
     {
-        var settings = new SourceSettings(
-            _edit.Name,
-            _edit.FetchFullText,
-            _edit.MaxArticles,
-            SourceSettings.ParseKeywords(_edit.Include),
-            SourceSettings.ParseKeywords(_edit.Exclude),
-            _edit.MinWords,
-            _edit.SkipLiveTickers,
-            _edit.LocalAiOnly,
-            _edit.SkipAds,
-            _edit.MarkReadAfterDelivery,
-            _edit.LoadImages,
-            _edit.Sender,
-            _edit.SkipMedia);
-        if (await UseAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, id, settings, Closed)) is SourceSaveResult.Invalid invalid)
+        _notice = outcome.Notice;
+        _error = outcome.Errors?.FirstOrDefault();
+        if (outcome.Notice is not null)
         {
-            _error = T[$"Error_{invalid.Reason}"];
-            return;
+            _editId = null;
+            await ReloadAsync();
         }
-
-        _notice = T["Profile_Saved"];
-        _editId = null;
-        await ReloadAsync();
-    });
+    }
 
     private Task DeleteAsync(Guid id) => RunAsync(() => DeleteCoreAsync(id));
 
@@ -543,18 +377,6 @@
 
     private async Task PreviewAsync(Source draft) => ShowPreview(draft, await UseAsync<SourceCatalog, SourceResult>(catalog => catalog.PreviewAsync(draft, Closed)));
 
-    // The word count needs the full text, which the test does not fetch; with full text on it is checked in the issue only.
-    private static FilterVerdict? Verdict(FetchedArticle article, Source source) =>
-        ArticleFilter.Reject(article, source)
-        ?? (!source.FetchFullText && !ArticleFilter.IsLongEnough(article, source) ? new FilterVerdict(FilterReason.TooShort) : null);
-
-    private string Reason(FilterVerdict verdict) => verdict.Reason switch
-    {
-        FilterReason.Excluded => T["Sources_Reason_Excluded", verdict.Keyword ?? string.Empty],
-        FilterReason.TooShort => T["Sources_Reason_TooShort", _preview?.MinWords ?? 0],
-        _ => T[$"Sources_Reason_{verdict.Reason}"],
-    };
-
     private void ShowPreview(Source source, SourceResult result)
     {
         _preview = source;
@@ -592,36 +414,6 @@
         {
             _busy = false;
         }
-    }
-
-    // The open editor's fields; only one source is edited at a time.
-    private sealed class SourceDraft
-    {
-        public string Name { get; set; } = string.Empty;
-
-        public int MaxArticles { get; set; }
-
-        public string Include { get; set; } = string.Empty;
-
-        public string Exclude { get; set; } = string.Empty;
-
-        public int? MinWords { get; set; }
-
-        public bool SkipLiveTickers { get; set; }
-
-        public bool FetchFullText { get; set; }
-
-        public bool LocalAiOnly { get; set; }
-
-        public bool MarkReadAfterDelivery { get; set; } = true;
-
-        public bool SkipAds { get; set; } = true;
-
-        public bool SkipMedia { get; set; } = true;
-
-        public bool LoadImages { get; set; } = true;
-
-        public string? Sender { get; set; }
     }
 
     private string Describe(Source source)
