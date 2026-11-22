@@ -1,27 +1,51 @@
-# Morning Ink
+<p align="center">
+  <img src="docs/images/logo.png" alt="" width="96" height="96">
+</p>
 
-**Your personal morning newspaper, delivered to your e-reader.**
+<h1 align="center">Morning Ink</h1>
 
-[![CI](https://github.com/maxcarl/morning-ink/actions/workflows/ci.yml/badge.svg)](https://github.com/maxcarl/morning-ink/actions/workflows/ci.yml)
-[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
-[![Container](https://img.shields.io/badge/ghcr.io-amd64%20%7C%20arm64-2496ED?logo=docker&logoColor=white)](https://github.com/maxcarl/morning-ink/pkgs/container/morning-ink)
+<p align="center">
+  <strong>Your personal morning newspaper, delivered to your e-reader.</strong><br>
+  A self-hosted service that turns your feeds and local news into a daily EPUB newspaper and sends it to your Kindle.<br>
+  One Docker container, a web UI, optional AI.
+</p>
 
-A self-hosted service that turns your RSS feeds into a daily EPUB newspaper and sends it to your Kindle. One Docker container, web UI, optional AI.
+<p align="center">
+  <a href="https://github.com/maxcarl/morning-ink/actions/workflows/ci.yml"><img src="https://github.com/maxcarl/morning-ink/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://dotnet.microsoft.com/download/dotnet/10.0"><img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet" alt=".NET 10"></a>
+  <a href="https://github.com/maxcarl/morning-ink/pkgs/container/morning-ink"><img src="https://img.shields.io/badge/ghcr.io-amd64%20%7C%20arm64-2496ED?logo=docker&amp;logoColor=white" alt="Container"></a>
+</p>
+
+<p align="center">
+  <img src="docs/images/dashboard.png" alt="The Morning Ink newsroom: the next issue as the lead story, recent issues with their delivery status" width="760">
+</p>
 
 > [!NOTE]
 > Morning Ink is young. The first release is feature-complete and in its trial run; expect rough edges and [tell us about them](https://github.com/maxcarl/morning-ink/issues).
 
 ## Features
 
-- **RSS and Atom feeds** with full-text extraction and clean, e-ink friendly formatting
-- **Local news and weather** for your region, by postal code or town
-- **EPUB newspaper** with cover page, table of contents and sections
-- **Send to Kindle** by email, every day at your time and in your time zone
-- **Web UI** for sources, sections and settings, with a setup wizard and sample sources in several languages
-- **One container, no other services:** SQLite and a built-in scheduler
-- **Safe by default:** blocks requests to your home network, encrypts stored passwords and cleans all HTML
+**Your newspaper**
 
-Later: more sources (newsletters, FreshRSS, Miniflux, Wallabag, YouTube), more readers (Kobo, KOReader, PocketBook, reMarkable), several issues per day and optional AI summaries. Morning Ink always works without AI.
+- **RSS and Atom feeds** with full text, cleaned up for e-ink
+- **Local news and weather** for your town, with the articles themselves, not just headlines
+- **EPUB with cover, contents and sections**, the same story from several sources merged into one
+- **Several editions:** morning, evening, weekend, each with its own sections, time and weekdays
+
+**Your control**
+
+- **Filters per source:** words to require or exclude, a minimum length, no live tickers
+- **Archive** to search, download, send again and keep issues
+- **Optional AI summaries** with your own Ollama or any OpenAI-compatible provider; private sources can stay local
+- **Setup wizard** with sample sources from several countries; first newspaper in minutes
+
+**Your server**
+
+- **One container, no other services:** SQLite and a built-in scheduler
+- **Safe by default:** blocks requests into your home network, encrypts stored passwords, cleans all HTML
+- **Installable as an app** on phone and desktop
+
+Later: newsletters, FreshRSS and Miniflux, more readers (Kobo, KOReader via OPDS, reMarkable) and more AI: a daily overview, neutral headlines, translation. Morning Ink always works without AI.
 
 Not a goal: replacing your RSS reader, running as a public service, or getting around paywalls.
 
@@ -109,8 +133,8 @@ The code follows Clean Architecture (`Domain`, `Application`, `Infrastructure`, 
 ## Roadmap
 
 1. **First release:** feeds, full text, local news, weather, EPUB, Kindle delivery, web UI, setup wizard. Done except the seven-day trial run. Progress: [concept](docs/konzept.md#mvp-aufgaben).
-2. **Comfort:** preview, archive, OPML import, filters, several issues per day, several users, OPDS and more readers.
-3. **AI:** summaries and topic weighting with Ollama or a cloud provider, always optional.
+2. **Comfort:** several editions, filters, merged duplicates and the archive are done. Next: preview, OPML import, interests, several users, OPDS and more readers.
+3. **AI:** article summaries are done. Next: an earlier start for slow models, a daily overview, neutral headlines, topic clusters, translation.
 
 ## Contributing
 
