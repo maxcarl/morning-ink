@@ -8,4 +8,7 @@ public enum SourceKind
 
     /// <summary>News about a place, found by a news search; one source per place.</summary>
     Local,
+
+    /// <summary>Unread articles of one category in one's own FreshRSS, through its Google Reader API.</summary>
+    FreshRss,
 }

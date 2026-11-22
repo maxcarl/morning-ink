@@ -37,6 +37,38 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Delivered_articles_are_reported_back_to_their_source_by_its_own_ids()
+    {
+        await PublishAsync();
+
+        var tagesschau = Assert.Single(_sources.Acknowledged, a => a.SourceId == _tagesschau.Id);
+        Assert.Equal(["id:https://tagesschau.de/a", "id:https://tagesschau.de/b"], tagesschau.ArticleIds.Order());
+        Assert.Equal(["id:https://heise.de/x"], Assert.Single(_sources.Acknowledged, a => a.SourceId == _heise.Id).ArticleIds);
+        Assert.Contains(Assert.Single(_store.Issues).Log, e => e.Event == "MarkedRead" && e.Arguments.SequenceEqual(["tagesschau", "2"]));
+    }
+
+    [Fact]
+    public async Task Nothing_is_reported_back_before_the_issue_is_delivered()
+    {
+        _delivery.Results.Enqueue(new DeliveryResult.Failure("Server down", Retryable: true));
+
+        await PublishAsync();
+
+        Assert.Empty(_sources.Acknowledged); // FreshRSS would show them read although they never arrived
+    }
+
+    [Fact]
+    public async Task A_source_that_cannot_be_told_never_costs_the_issue()
+    {
+        _sources.AcknowledgeProblem = "freshrss.lan could not be reached.";
+
+        var result = await PublishAsync();
+
+        Assert.IsType<PublishResult.Delivered>(result);
+        Assert.Contains(Assert.Single(_store.Issues).Log, e => e.Event == "MarkReadFailed" && e.Arguments[0] == "heise");
+    }
+
+    [Fact]
     public async Task Failed_source_still_delivers_the_issue_with_a_note()
     {
         Answer(_heise, new SourceResult.Failure("heise.de could not be reached.", Reason: "Unreachable", Arguments: ["heise.de"]));
@@ -384,7 +416,8 @@ public sealed class IssuePublisherTests : IDisposable
         Assert.Contains(log, e => e.Event == "SourceFailed" && e.Arguments[0] == "heise");
         Assert.Contains(log, e => e.Event == "Chosen" && e.Arguments[0] == "Nachrichten" && e.Arguments[1] == "2");
         Assert.Contains(log, e => e.Event == "Rendered");
-        Assert.Equal("Delivered", log[^1].Event);
+        // Delivery ends the building; only what follows from it (sources told, notification) comes after.
+        Assert.Equal("Delivered", log.Last(e => e.Event is not ("MarkedRead" or "MarkReadFailed" or "Notified" or "NotifyFailed")).Event);
         Assert.True(log.Zip(log.Skip(1)).All(pair => pair.First.At <= pair.Second.At)); // in the order it happened
     }
 
@@ -436,7 +469,7 @@ public sealed class IssuePublisherTests : IDisposable
 
     // Newest first, one hour apart, like a feed delivers them.
     private static SourceResult.Success Articles(params string[] urls) => new(
-        urls.Select((url, i) => new FetchedArticle(null, url, new Uri(url), Slot.AddHours(-1 - i), null, null, "<p>Text</p>")).ToList(),
+        urls.Select((url, i) => new FetchedArticle($"id:{url}", url, new Uri(url), Slot.AddHours(-1 - i), null, null, "<p>Text</p>")).ToList(),
         ETag: null,
         LastModified: null);
 

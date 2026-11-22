@@ -257,7 +257,7 @@ public sealed class IssuePublisher(
                     // Named under the kept one, unless it is the same source telling the story twice.
                     if (taken[same].SourceName != source.Name)
                     {
-                        taken[same].AlsoAt.Add(new AlsoReported(source.Name, article));
+                        taken[same].AlsoAt.Add(new AlsoReported(source.Name, article, source.Id));
                     }
 
                     continue;
@@ -288,7 +288,7 @@ public sealed class IssuePublisher(
                 // ponytail: an article too short after the full text leaves a gap in the limit; fetching spares would cost downloads.
                 if (await ProcessAsync(article, source, withAi, cancellationToken) is { } processed && ArticleFilter.IsLongEnough(processed, source))
                 {
-                    articles.Add(new IssueArticle(processed, source.Name, alsoAt));
+                    articles.Add(new IssueArticle(processed, source.Name, alsoAt, source.Id));
                 }
             }
 
@@ -407,12 +407,27 @@ public sealed class IssuePublisher(
         issue.AddLog(time.GetUtcNow(), "Rendered", issue.FileSize / 1024);
         foreach (var article in content.Sections.SelectMany(s => s.Articles))
         {
-            issue.Entries.Add(new IssueEntry { Url = article.Article.Url.AbsoluteUri, Title = article.Article.Title, SourceName = article.SourceName });
+            issue.Entries.Add(new IssueEntry
+            {
+                Url = article.Article.Url.AbsoluteUri,
+                Title = article.Article.Title,
+                SourceName = article.SourceName,
+                SourceId = article.SourceId,
+                ExternalId = article.Article.Id,
+            });
 
             // Kept as entries too, so they count as seen once the issue is out and do not come alone the next day.
             foreach (var other in article.AlsoAt)
             {
-                issue.Entries.Add(new IssueEntry { Url = other.Article.Url.AbsoluteUri, Title = other.Article.Title, SourceName = other.SourceName, Duplicate = true });
+                issue.Entries.Add(new IssueEntry
+                {
+                    Url = other.Article.Url.AbsoluteUri,
+                    Title = other.Article.Title,
+                    SourceName = other.SourceName,
+                    Duplicate = true,
+                    SourceId = other.SourceId,
+                    ExternalId = other.Article.Id,
+                });
             }
         }
 
@@ -461,8 +476,44 @@ public sealed class IssuePublisher(
 
         // Only now: had the delivery failed, the articles would have to come again.
         await seen.MarkSeenAsync(profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);
+        await AcknowledgeAsync(issue, loaded, cancellationToken);
         await NotifyAsync(issue, loaded, null, cancellationToken);
         await store.SaveChangesAsync(cancellationToken);
         return new PublishResult.Delivered(issue.Id, issue.Entries.Count(e => !e.Duplicate), problems);
+    }
+
+    // Each source hears which of its articles went out, e.g. so FreshRSS marks them read. Best effort, like the
+    // notification: the issue is delivered, and a source that cannot be told only shows in the log.
+    private async Task AcknowledgeAsync(Issue issue, PublishingProfile loaded, CancellationToken cancellationToken)
+    {
+        var byId = loaded.Profile.Sections.SelectMany(s => s.Sources).DistinctBy(s => s.Id).ToDictionary(s => s.Id);
+        var delivered = issue.Entries
+            .Where(e => e.SourceId is not null && e.ExternalId is not null)
+            .GroupBy(e => e.SourceId!.Value); // ! is safe: filtered just above
+        foreach (var group in delivered)
+        {
+            if (!byId.TryGetValue(group.Key, out var source) || sources.FirstOrDefault(s => s.Kind == source.Kind) is not { } implementation)
+            {
+                continue;
+            }
+
+            var ids = group.Select(e => e.ExternalId!).Distinct().ToList(); // ! is safe: filtered above
+            try
+            {
+                var result = await implementation.AcknowledgeAsync(source, ids, cancellationToken);
+                if (result.Problem is { } problem)
+                {
+                    issue.AddLog(time.GetUtcNow(), "MarkReadFailed", source.Name, problem);
+                }
+                else if (result.Marked > 0)
+                {
+                    issue.AddLog(time.GetUtcNow(), "MarkedRead", source.Name, result.Marked);
+                }
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                issue.AddLog(time.GetUtcNow(), "MarkReadFailed", source.Name, e.Message);
+            }
+        }
     }
 }

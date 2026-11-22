@@ -1,0 +1,34 @@
+{
+  "id": "user/-/label/Technik",
+  "updated": 1795330000,
+  "items": [
+    {
+      "id": "tag:google.com,2005:reader/item/0006299a1b2c3d4e",
+      "crawlTimeMsec": "1795329000000",
+      "timestampUsec": "1795329000000000",
+      "published": 1795328000,
+      "title": "Neuer Raspberry Pi vorgestellt",
+      "canonical": [{"href": "https://www.example.com/raspberry-pi-6"}],
+      "alternate": [{"href": "https://www.example.com/raspberry-pi-6", "type": "text/html"}],
+      "categories": ["user/-/state/com.google/reading-list", "user/-/label/Technik"],
+      "origin": {"streamId": "feed/3", "htmlUrl": "https://www.example.com/", "title": "Beispiel Technik"},
+      "summary": {"content": "<p>Der neue Rechner hat <b>mehr</b> Speicher.</p>"},
+      "author": "Erika Muster"
+    },
+    {
+      "id": "tag:google.com,2005:reader/item/0006299a1b2c3d4f",
+      "published": 1795320000,
+      "title": "Ohne Autor, mit Herkunft",
+      "alternate": [{"href": "https://blog.example.org/post", "type": "text/html"}],
+      "origin": {"streamId": "feed/4", "title": "Beispiel Blog"},
+      "summary": {"content": "<p>Text</p>"}
+    },
+    {
+      "id": "tag:google.com,2005:reader/item/0006299a1b2c3d50",
+      "published": 1795320000,
+      "title": "Must never reach an issue",
+      "canonical": [{"href": "javascript:alert(1)"}],
+      "summary": {"content": "<p>x</p>"}
+    }
+  ]
+}

@@ -103,6 +103,7 @@ public sealed class MorningInkDbContext(
             source.HasOne<User>().WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
             source.Property(s => s.Name).HasMaxLength(NameLength);
             source.Property(s => s.Url).HasMaxLength(UrlLength);
+            source.Property(s => s.Stream).HasMaxLength(UrlLength);
             source.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
             source.Property(s => s.ETag).HasMaxLength(ETagLength);
             source.Property(s => s.Place).HasMaxLength(RegionLength);
@@ -175,6 +176,9 @@ public sealed class MorningInkDbContext(
             entry.Property(e => e.Url).HasMaxLength(UrlLength);
             entry.Property(e => e.Title).HasMaxLength(UrlLength);
             entry.Property(e => e.SourceName).HasMaxLength(NameLength);
+
+            // No foreign key to the source: a deleted source must not take the archive's entries with it.
+            entry.Property(e => e.ExternalId).HasMaxLength(UrlLength);
         });
 
         builder.Entity<Credential>(credential =>

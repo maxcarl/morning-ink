@@ -318,7 +318,14 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Duplicate")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("IssueId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("SourceId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SourceName")
@@ -547,6 +554,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<bool>("LocalAiOnly")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("MarkReadAfterDelivery")
+                        .HasColumnType("INTEGER");
+
                     b.Property<TimeSpan>("MaxAge")
                         .HasColumnType("TEXT");
 
@@ -570,6 +580,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("SkipLiveTickers")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Stream")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Url")
                         .HasMaxLength(2048)

@@ -49,7 +49,6 @@
   <data name="Sources_Add" xml:space="preserve"><value>Add</value></data>
   <data name="Sources_Name" xml:space="preserve"><value>Name</value></data>
   <data name="Sources_FullText" xml:space="preserve"><value>Fetch full text</value></data>
-  <data name="Sources_Feeds" xml:space="preserve"><value>Feeds</value></data>
   <data name="Sources_Local" xml:space="preserve"><value>Local news</value></data>
   <data name="Sources_Test" xml:space="preserve"><value>Test</value></data>
   <data name="Sources_Delete" xml:space="preserve"><value>Delete</value></data>
@@ -482,4 +481,24 @@
   <data name="Settings_SearxngNotSet" xml:space="preserve"><value>Save a SearXNG address first.</value></data>
   <data name="Settings_SearxngOff" xml:space="preserve"><value>Saved. Local news come from Bing again.</value></data>
   <data name="Settings_Error_SearxngUrl" xml:space="preserve"><value>That is not a valid http or https address.</value></data>
+  <data name="Kind_FreshRss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_Group_Rss" xml:space="preserve"><value>Feeds</value></data>
+  <data name="Sources_Group_Local" xml:space="preserve"><value>Local news</value></data>
+  <data name="Sources_Group_FreshRss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_FreshRss" xml:space="preserve"><value>Your FreshRSS</value></data>
+  <data name="Sources_FreshRssUrl" xml:space="preserve"><value>Address</value></data>
+  <data name="Sources_FreshRssPassword" xml:space="preserve"><value>API password</value></data>
+  <data name="Sources_FreshRssHint" xml:space="preserve"><value>Not your login password: set an API password in FreshRSS under Profile → API management (an admin allows the API under Administration → Authentication).</value></data>
+  <data name="Sources_FreshRssConnect" xml:space="preserve"><value>Connect</value></data>
+  <data name="Sources_FreshRssPick" xml:space="preserve"><value>Which categories?</value></data>
+  <data name="Sources_FreshRssPickHint" xml:space="preserve"><value>Each category becomes a source of its own, with only its unread articles. Pick none to take everything unread as one source.</value></data>
+  <data name="Sources_FreshRssAdd" xml:space="preserve"><value>Add</value></data>
+  <data name="Sources_FreshRssAdded" xml:space="preserve"><value>{0} FreshRSS sources added.</value></data>
+  <data name="Sources_FreshRssFailed" xml:space="preserve"><value>FreshRSS could not be read: {0}</value></data>
+  <data name="Sources_MarkRead" xml:space="preserve"><value>Mark articles read in FreshRSS once the issue is out</value></data>
+  <data name="Source_FreshRssLogin" xml:space="preserve"><value>FreshRSS refused the sign-in. Check user name and API password, and that the API is allowed.</value></data>
+  <data name="Source_FreshRssNoLogin" xml:space="preserve"><value>This FreshRSS source has no login any more. Connect FreshRSS again.</value></data>
+  <data name="Source_FreshRssNoList" xml:space="preserve"><value>FreshRSS returned no readable list of articles.</value></data>
+  <data name="Log_MarkedRead" xml:space="preserve"><value>{0}: {1} articles marked read</value></data>
+  <data name="Log_MarkReadFailed" xml:space="preserve"><value>{0}: could not mark read: {1}</value></data>
 </root>

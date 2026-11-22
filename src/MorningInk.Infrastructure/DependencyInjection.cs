@@ -94,6 +94,8 @@ public static class DependencyInjection
     {
         services.AddTransient<ISource, FeedSource>();
         services.AddTransient<ISource, LocalNewsSource>();
+        services.AddTransient<ISource, FreshRssSource>();
+        services.AddTransient<FreshRssClient>();
         services.AddTransient<FeedDiscovery>();
         services.AddScoped<SourceCatalog>();
         services.AddScoped<Profiles.ProfileEditor>();
@@ -205,6 +207,21 @@ public static class DependencyInjection
 
     private static void AddSafeHttp(IServiceCollection services, IConfiguration configuration)
     {
+        // FreshRSS: the home-network check on every connection, and no redirects, so the password and the session only
+        // ever go to the address the user entered.
+        services.AddHttpClient(Sources.FreshRssClient.HttpClientName, client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.MaxResponseContentBufferSize = 20 * 1024 * 1024;
+            })
+            .ConfigurePrimaryHttpMessageHandler(provider => new SocketsHttpHandler
+            {
+                ConnectCallback = provider.GetRequiredService<SafeConnector>().ConnectAsync,
+                AllowAutoRedirect = false,
+                UseProxy = false,
+                UseCookies = false,
+            });
+
         // Notifications: the home-network check on every connection, short deadline, no redirects to follow.
         services.AddHttpClient(Notifications.Notifier.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(15))
             .ConfigurePrimaryHttpMessageHandler(provider => new SocketsHttpHandler

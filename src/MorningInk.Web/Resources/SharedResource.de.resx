@@ -49,7 +49,6 @@
   <data name="Sources_Add" xml:space="preserve"><value>Hinzufügen</value></data>
   <data name="Sources_Name" xml:space="preserve"><value>Name</value></data>
   <data name="Sources_FullText" xml:space="preserve"><value>Volltext holen</value></data>
-  <data name="Sources_Feeds" xml:space="preserve"><value>Feeds</value></data>
   <data name="Sources_Local" xml:space="preserve"><value>Lokales</value></data>
   <data name="Sources_Test" xml:space="preserve"><value>Testen</value></data>
   <data name="Sources_Delete" xml:space="preserve"><value>Löschen</value></data>
@@ -482,4 +481,24 @@
   <data name="Settings_SearxngNotSet" xml:space="preserve"><value>Speichere zuerst eine SearXNG-Adresse.</value></data>
   <data name="Settings_SearxngOff" xml:space="preserve"><value>Gespeichert. Lokale Nachrichten kommen wieder über Bing.</value></data>
   <data name="Settings_Error_SearxngUrl" xml:space="preserve"><value>Das ist keine gültige http- oder https-Adresse.</value></data>
+  <data name="Kind_FreshRss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_Group_Rss" xml:space="preserve"><value>Feeds</value></data>
+  <data name="Sources_Group_Local" xml:space="preserve"><value>Lokales</value></data>
+  <data name="Sources_Group_FreshRss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_FreshRss" xml:space="preserve"><value>Dein FreshRSS</value></data>
+  <data name="Sources_FreshRssUrl" xml:space="preserve"><value>Adresse</value></data>
+  <data name="Sources_FreshRssPassword" xml:space="preserve"><value>API-Passwort</value></data>
+  <data name="Sources_FreshRssHint" xml:space="preserve"><value>Nicht dein Login-Passwort: Leg in FreshRSS unter Profil → API-Verwaltung ein API-Passwort an (die API erlaubt ein Admin unter Administration → Authentifizierung).</value></data>
+  <data name="Sources_FreshRssConnect" xml:space="preserve"><value>Verbinden</value></data>
+  <data name="Sources_FreshRssPick" xml:space="preserve"><value>Welche Kategorien?</value></data>
+  <data name="Sources_FreshRssPickHint" xml:space="preserve"><value>Jede Kategorie wird eine eigene Quelle mit nur ihren ungelesenen Artikeln. Ohne Auswahl wird alles Ungelesene eine Quelle.</value></data>
+  <data name="Sources_FreshRssAdd" xml:space="preserve"><value>Hinzufügen</value></data>
+  <data name="Sources_FreshRssAdded" xml:space="preserve"><value>{0} FreshRSS-Quellen hinzugefügt.</value></data>
+  <data name="Sources_FreshRssFailed" xml:space="preserve"><value>FreshRSS ließ sich nicht lesen: {0}</value></data>
+  <data name="Sources_MarkRead" xml:space="preserve"><value>Artikel in FreshRSS als gelesen markieren, sobald die Ausgabe raus ist</value></data>
+  <data name="Source_FreshRssLogin" xml:space="preserve"><value>FreshRSS hat die Anmeldung abgelehnt. Prüf Benutzername und API-Passwort und ob die API erlaubt ist.</value></data>
+  <data name="Source_FreshRssNoLogin" xml:space="preserve"><value>Diese FreshRSS-Quelle hat keine Anmeldung mehr. Verbinde FreshRSS neu.</value></data>
+  <data name="Source_FreshRssNoList" xml:space="preserve"><value>FreshRSS lieferte keine lesbare Artikelliste.</value></data>
+  <data name="Log_MarkedRead" xml:space="preserve"><value>{0}: {1} Artikel als gelesen markiert</value></data>
+  <data name="Log_MarkReadFailed" xml:space="preserve"><value>{0}: konnte nicht als gelesen markieren: {1}</value></data>
 </root>

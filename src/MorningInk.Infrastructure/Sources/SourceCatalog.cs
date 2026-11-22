@@ -19,6 +19,19 @@ public abstract record SourceSaveResult
     public sealed record Invalid(string Reason) : SourceSaveResult;
 }
 
+/// <summary>The outcome of connecting to FreshRSS on the sources page.</summary>
+public abstract record FreshRssConnection
+{
+    private FreshRssConnection()
+    {
+    }
+
+    /// <param name="Api">The API address found, to add sources with.</param>
+    public sealed record Connected(Uri Api, IReadOnlyList<FreshRssCategory> Categories) : FreshRssConnection;
+
+    public sealed record Failed(SourceResult.Failure Failure) : FreshRssConnection;
+}
+
 /// <summary>What the sources page saves for a source; see <see cref="Source"/> for what each setting does.</summary>
 public sealed record SourceSettings(
     string Name,
@@ -29,7 +42,8 @@ public sealed record SourceSettings(
     int? MinWords,
     bool SkipLiveTickers,
     bool LocalAiOnly = false,
-    bool SkipAds = true)
+    bool SkipAds = true,
+    bool MarkReadAfterDelivery = true)
 {
     private static readonly char[] Separators = [',', ';', '\n', '\r'];
 
@@ -41,8 +55,12 @@ public sealed record SourceSettings(
 }
 
 /// <summary>A user's sources: list, add, delete and test. Every method only ever sees the given user's sources.</summary>
-public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> sources)
+public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> sources, FreshRssClient freshRss)
 {
+    // FreshRSS sources read unread articles, which may wait longer than a feed's day; read ones never come again.
+    private static readonly TimeSpan FreshRssMaxAge = TimeSpan.FromDays(7);
+    private const string FreshRssApiPath = "api/greader.php";
+
     private const int MaxNameLength = 200;
     private const int MaxPlaceLength = 100;
     private const int LocalNewsMaxArticles = 10;
@@ -111,6 +129,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         source.SkipLiveTickers = settings.SkipLiveTickers;
         source.LocalAiOnly = settings.LocalAiOnly;
         source.SkipAds = settings.SkipAds;
+        source.MarkReadAfterDelivery = settings.MarkReadAfterDelivery;
         await db.SaveChangesAsync(cancellationToken);
         return new SourceSaveResult.Saved(source);
     }
@@ -138,6 +157,79 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         source.ETag = null;
         source.LastModified = null;
         return await PreviewAsync(source, cancellationToken);
+    }
+
+    /// <summary>Signs in to FreshRSS and lists its categories, so the user can pick which become sources.</summary>
+    /// <param name="address">The instance ("https://freshrss.example.com") or its API ("…/api/greader.php").</param>
+    public async Task<FreshRssConnection> ConnectFreshRssAsync(string address, string user, string password, CancellationToken cancellationToken)
+    {
+        if (FreshRssApi(address) is not { } api)
+        {
+            return new FreshRssConnection.Failed(new SourceResult.Failure("This is not a valid address.", Reason: nameof(FetchError.InvalidUrl)));
+        }
+
+        var (session, failure) = await freshRss.SignInAsync(api, user.Trim(), password, cancellationToken);
+        if (failure is not null)
+        {
+            return new FreshRssConnection.Failed(failure);
+        }
+
+        var (categories, listFailure) = await freshRss.CategoriesAsync(api, session!, cancellationToken); // ! is safe: no failure means a session
+        return listFailure is null ? new FreshRssConnection.Connected(api, categories) : new FreshRssConnection.Failed(listFailure);
+    }
+
+    /// <summary>
+    /// Adds one source per chosen category, all sharing one login; an empty choice adds one source for everything unread.
+    /// The login is stored encrypted and reused when the same user connects again.
+    /// </summary>
+    public async Task<IReadOnlyList<Source>> AddFreshRssAsync(Guid userId, Uri api, string user, string password, IReadOnlyList<FreshRssCategory> categories, CancellationToken cancellationToken)
+    {
+        var name = $"FreshRSS {api.Host}";
+        var username = user.Trim();
+        var credential = await db.Credentials.SingleOrDefaultAsync(c => c.UserId == userId && c.Name == name && c.Username == username, cancellationToken);
+        if (credential is null)
+        {
+            credential = new Credential { UserId = userId, Name = name, Username = username, Secret = password, Method = CredentialMethod.Basic };
+            db.Credentials.Add(credential);
+        }
+        else
+        {
+            credential.Secret = password;
+        }
+
+        IEnumerable<(string? Stream, string Name)> chosen = categories.Count == 0
+            ? [(null, "FreshRSS")]
+            : categories.Select(c => ((string?)c.Stream, c.Name));
+        var added = chosen.Select(c => new Source
+        {
+            UserId = userId,
+            Name = c.Name.Length > MaxNameLength ? c.Name[..MaxNameLength] : c.Name,
+            Kind = SourceKind.FreshRss,
+            Url = api.AbsoluteUri,
+            Stream = c.Stream,
+            CredentialId = credential.Id,
+
+            // FreshRSS already holds the full text it fetched; asking the web page again would only cost time.
+            FetchFullText = false,
+            MaxAge = FreshRssMaxAge,
+        }).ToList();
+        db.Sources.AddRange(added);
+        await db.SaveChangesAsync(cancellationToken);
+        return added;
+    }
+
+    // The instance's address leads to its API; an address that already ends in the API is taken as it is.
+    private static Uri? FreshRssApi(string address)
+    {
+        if (!Uri.TryCreate(address.Trim(), UriKind.Absolute, out var uri) || UrlPolicy.Check(uri) is not null || !string.IsNullOrEmpty(uri.Query))
+        {
+            return null;
+        }
+
+        var path = uri.AbsolutePath.TrimEnd('/');
+        return path.EndsWith("greader.php", StringComparison.OrdinalIgnoreCase)
+            ? new Uri(uri.GetLeftPart(UriPartial.Authority) + path)
+            : new Uri(uri.GetLeftPart(UriPartial.Authority) + path + "/" + FreshRssApiPath);
     }
 
     private async Task<SourceSaveResult> SaveAsync(Source source, CancellationToken cancellationToken)

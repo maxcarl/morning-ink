@@ -28,6 +28,7 @@
 **Your newspaper**
 
 - **RSS and Atom feeds** with full text, cleaned up for e-ink
+- **Your FreshRSS:** its categories as sources, unread articles only, marked read once the issue is out
 - **Local news and weather** for your town, with the articles themselves, not just headlines
 - **EPUB with cover, contents and sections**, the same story from several sources merged into one
 - **Several editions:** morning, evening, weekend, each with its own sections, time and weekdays
@@ -49,7 +50,7 @@
 - **Safe by default:** blocks requests into your home network, encrypts stored passwords, cleans all HTML
 - **Installable as an app** on phone and desktop
 
-Later: newsletters, FreshRSS and Miniflux, more readers (Kobo, reMarkable) and more AI: a daily overview, neutral headlines, translation. Morning Ink always works without AI.
+Later: newsletters, Miniflux, more readers (Kobo, reMarkable) and more AI: a daily overview, neutral headlines, translation. Morning Ink always works without AI.
 
 Not a goal: replacing your RSS reader, running as a public service, or getting around paywalls.
 

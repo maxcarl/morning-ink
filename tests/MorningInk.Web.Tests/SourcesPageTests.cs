@@ -77,6 +77,43 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task FreshRss_that_refuses_the_sign_in_is_explained()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Sources>("0 feeds");
+
+        // The feed server is no FreshRSS: its answer to the sign-in carries no session.
+        Pages.Submit(page, ("#freshrss-url", _feeds.SiteUrl), ("#freshrss-user", "reader"), ("#freshrss-password", "api-password"));
+
+        Pages.Shows(page, "FreshRSS could not be read:");
+        Assert.Empty(await SourcesAsync(app));
+    }
+
+    [Fact]
+    public async Task FreshRss_sources_are_listed_on_their_own_and_can_keep_articles_unread()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            var admin = await db.DomainUsers.SingleAsync(u => u.Name == TestApp.AdminName);
+            db.Sources.Add(new Source { UserId = admin.Id, Name = "Technik", Kind = SourceKind.FreshRss, Url = "https://freshrss.example.com/api/greader.php", Stream = "user/-/label/Technik" });
+            await db.SaveChangesAsync();
+        }
+
+        var page = pages.Open<Sources>("Technik");
+        Assert.Contains(page.FindAll("h2.department"), h => h.TextContent == "FreshRSS");
+        Pages.Button(page, "Edit").Click();
+        page.Find("#source-mark-read").Change(false);
+        Pages.Submit(page, ("#source-name", "Technik"));
+
+        Pages.Shows(page, "Technik");
+        Assert.False(Assert.Single(await SourcesAsync(app)).MarkReadAfterDelivery);
+    }
+
+    [Fact]
     public async Task Source_is_renamed_and_gets_filters()
     {
         using var app = AllowingFeeds();

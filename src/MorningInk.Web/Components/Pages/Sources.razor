@@ -50,7 +50,7 @@
 
         @foreach (var group in _sources.GroupBy(s => s.Kind).OrderBy(g => g.Key))
         {
-            <h2 class="department">@(group.Key == SourceKind.Local ? T["Sources_Local"] : T["Sources_Feeds"])</h2>
+            <h2 class="department">@T[$"Sources_Group_{group.Key}"]</h2>
             <ul class="rows">
                 @foreach (var source in group)
                 {
@@ -119,6 +119,12 @@
                                     <label class="checkbox"><input id="source-local-ai" type="checkbox" @bind="_edit.LocalAiOnly" aria-describedby="source-local-ai-hint" /> @T["Sources_LocalAiOnly"]</label>
                                     <span id="source-local-ai-hint" class="hint">@T["Sources_LocalAiOnlyHint"]</span>
                                 </div>
+                                @if (source.Kind == SourceKind.FreshRss)
+                                {
+                                    <div class="field">
+                                        <label class="checkbox"><input id="source-mark-read" type="checkbox" @bind="_edit.MarkReadAfterDelivery" /> @T["Sources_MarkRead"]</label>
+                                    </div>
+                                }
                                 <div class="row-actions">
                                     <button type="submit" class="button button-small" disabled="@_busy">@T["Profile_Save"]<span class="visually-hidden"> – @source.Name</span></button>
                                     <button type="button" class="link-button" @onclick="() => _editId = null">@T["Confirm_Cancel"]</button>
@@ -232,6 +238,13 @@
     private string? _blockedHost;
     private bool _busy;
 
+    // FreshRSS: the password stays only until the sources are added, then it is stored encrypted with them.
+    private string _freshRssUrl = string.Empty;
+    private string _freshRssUser = string.Empty;
+    private string _freshRssPassword = string.Empty;
+    private FreshRssConnection.Connected? _freshRss;
+    private HashSet<string> _freshRssPicked = [];
+
     // Form fields
     private string _url = string.Empty;
     private string? _feedUrl;
@@ -295,6 +308,46 @@
             </div>
             <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
         </form>
+
+        @* One's own FreshRSS: sign in once, then pick the categories that become sources. *@
+        <form @onsubmit="ConnectFreshRssAsync" class="field" aria-labelledby="freshrss-label">
+            <span id="freshrss-label" class="label">@T["Sources_FreshRss"]</span>
+            <div class="field-row">
+                <div class="field">
+                    <label for="freshrss-url">@T["Sources_FreshRssUrl"]</label>
+                    <input id="freshrss-url" class="input" type="text" inputmode="url" spellcheck="false" @bind="_freshRssUrl" placeholder="https://freshrss.example.com" required />
+                </div>
+                <div class="field">
+                    <label for="freshrss-user">@T["Login_UserName"]</label>
+                    <input id="freshrss-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_freshRssUser" required />
+                </div>
+            </div>
+            <div class="field">
+                <label for="freshrss-password">@T["Sources_FreshRssPassword"]</label>
+                <input id="freshrss-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_freshRssPassword" aria-describedby="freshrss-hint" required />
+                <span id="freshrss-hint" class="hint">@T["Sources_FreshRssHint"]</span>
+            </div>
+            <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_FreshRssConnect"]</button>
+        </form>
+
+        @if (_freshRss is { } connected)
+        {
+            <form @onsubmit="AddFreshRssAsync" class="field">
+                <fieldset class="field">
+                    <legend class="label">@T["Sources_FreshRssPick"]</legend>
+                    <div class="choices">
+                        @foreach (var category in connected.Categories)
+                        {
+                            <label class="checkbox" @key="category.Stream">
+                                <input type="checkbox" checked="@_freshRssPicked.Contains(category.Stream)" @onchange="() => PickCategory(category.Stream)" /> @category.Name
+                            </label>
+                        }
+                    </div>
+                    <span class="hint">@T["Sources_FreshRssPickHint"]</span>
+                </fieldset>
+                <button type="submit" class="button" disabled="@_busy">@T["Sources_FreshRssAdd"]</button>
+            </form>
+        }
     };
 
     protected override async Task LoadAsync()
@@ -391,6 +444,7 @@
             SkipLiveTickers = source.SkipLiveTickers,
             FetchFullText = source.FetchFullText,
             LocalAiOnly = source.LocalAiOnly,
+            MarkReadAfterDelivery = source.MarkReadAfterDelivery,
             SkipAds = source.SkipAds,
         };
     }
@@ -406,7 +460,8 @@
             _edit.MinWords,
             _edit.SkipLiveTickers,
             _edit.LocalAiOnly,
-            _edit.SkipAds);
+            _edit.SkipAds,
+            _edit.MarkReadAfterDelivery);
         if (await UseAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, id, settings, Closed)) is SourceSaveResult.Invalid invalid)
         {
             _error = T[$"Error_{invalid.Reason}"];
@@ -484,6 +539,41 @@
         }
     }
 
+    private Task ConnectFreshRssAsync() => RunAsync(async () =>
+    {
+        _freshRss = null;
+        _freshRssPicked = [];
+        switch (await UseAsync<SourceCatalog, FreshRssConnection>(catalog => catalog.ConnectFreshRssAsync(_freshRssUrl, _freshRssUser, _freshRssPassword, Closed)))
+        {
+            case FreshRssConnection.Connected connected:
+                _freshRss = connected;
+                break;
+            case FreshRssConnection.Failed { Failure: var failure }:
+                _error = T["Sources_FreshRssFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)];
+                _blockedHost = failure.BlockedHost;
+                break;
+        }
+    });
+
+    private void PickCategory(string stream)
+    {
+        if (!_freshRssPicked.Remove(stream))
+        {
+            _freshRssPicked.Add(stream);
+        }
+    }
+
+    private Task AddFreshRssAsync() => RunAsync(async () =>
+    {
+        // ! is safe: the form only shows once connected
+        var connected = _freshRss!;
+        var chosen = connected.Categories.Where(c => _freshRssPicked.Contains(c.Stream)).ToList();
+        var added = await UseAsync<SourceCatalog, IReadOnlyList<Source>>(catalog => catalog.AddFreshRssAsync(UserId, connected.Api, _freshRssUser, _freshRssPassword, chosen, Closed));
+        _notice = T["Sources_FreshRssAdded", added.Count];
+        (_freshRss, _freshRssPicked, _freshRssPassword) = (null, [], string.Empty);
+        await ReloadAsync();
+    });
+
     // One action at a time: messages of the last one go, the buttons are disabled while it runs.
     private async Task RunAsync(Func<Task> action)
     {
@@ -520,6 +610,8 @@
 
         public bool LocalAiOnly { get; set; }
 
+        public bool MarkReadAfterDelivery { get; set; } = true;
+
         public bool SkipAds { get; set; } = true;
     }
 
@@ -534,5 +626,5 @@
         return string.Join(" · ", parts.Where(p => !string.IsNullOrEmpty(p)));
     }
 
-    private string KindName(SourceKind kind) => kind == SourceKind.Local ? T["Kind_Local"] : T["Kind_Rss"];
+    private string KindName(SourceKind kind) => T[$"Kind_{kind}"];
 }

@@ -46,6 +46,23 @@ internal sealed class FakeSource : ISource
 
     public SourceKind Kind => SourceKind.Rss;
 
+    /// <summary>What the publisher reported as delivered, per source.</summary>
+    public List<(Guid SourceId, IReadOnlyList<string> ArticleIds)> Acknowledged { get; } = [];
+
+    /// <summary>Set to make acknowledging fail, like a FreshRSS that is down.</summary>
+    public string? AcknowledgeProblem { get; set; }
+
+    public Task<SourceAcknowledgement> AcknowledgeAsync(Source source, IReadOnlyList<string> articleIds, CancellationToken cancellationToken)
+    {
+        if (AcknowledgeProblem is { } problem)
+        {
+            return Task.FromResult(new SourceAcknowledgement(0, problem));
+        }
+
+        Acknowledged.Add((source.Id, articleIds));
+        return Task.FromResult(new SourceAcknowledgement(articleIds.Count, null));
+    }
+
     public Task<SourceResult> FetchAsync(Source source, CancellationToken cancellationToken)
     {
         Fetched.Add(source);

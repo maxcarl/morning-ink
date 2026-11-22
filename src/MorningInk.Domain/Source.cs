@@ -23,6 +23,14 @@ public class Source
     /// <summary>Resolved <see cref="Place"/>; resolved again once <see cref="RegionLocation.Query"/> no longer matches.</summary>
     public RegionLocation? Location { get; set; }
 
+    /// <summary>
+    /// For FreshRSS: the stream to read, e.g. "user/-/label/Technik" for a category; null reads everything unread.
+    /// </summary>
+    public string? Stream { get; set; }
+
+    /// <summary>For FreshRSS: whether articles count as read there once the issue with them is delivered.</summary>
+    public bool MarkReadAfterDelivery { get; set; } = true;
+
     /// <summary>Login used to fetch the source; null for public sources.</summary>
     public Guid? CredentialId { get; set; }
 
