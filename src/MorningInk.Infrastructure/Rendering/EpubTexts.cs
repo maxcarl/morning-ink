@@ -29,6 +29,8 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string InShort => Get(nameof(InShort));
 
+    public string ArticleCount(int articles, int sections) => string.Format(Culture, Get(nameof(ArticleCount)), articles, sections);
+
     public string AlsoAt(string sources) => string.Format(Culture, Get(nameof(AlsoAt)), sources);
 
     public string IssueNumber(int number) => string.Format(Culture, Get(nameof(IssueNumber)), number);

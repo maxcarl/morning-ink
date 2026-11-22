@@ -121,6 +121,27 @@ internal static class EpubPages
                         articlesOf(index).Count == 0 ? null : new XElement(Xhtml + "ol", articlesOf(index).Select(a => new XElement(Xhtml + "li",
                             new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title)))))))));
 
+    /// <summary>What the cover shows: the first story of the first section as the lead, then the sections' stories in turn.</summary>
+    public static CoverPage Cover(IssueContent issue, EpubTexts texts)
+    {
+        // Round robin over the sections, so the cover shows the breadth of the issue, not just its first section.
+        var stories = Enumerable.Range(0, issue.Sections.Max(s => s.Articles.Count))
+            .SelectMany(i => issue.Sections.Where(s => s.Articles.Count > i).Select(s => new CoverStory(s.Name, s.Articles[i].Article.Title)))
+            .ToList();
+        var weather = issue.Weather is { Days.Count: > 0 } forecast
+            ? $"{texts.WeatherFor(forecast.Place)}: {Join(texts.Weather(forecast.Days[0].WeatherCode), texts.TemperatureRange(forecast.Days[0].MinTemperature, forecast.Days[0].MaxTemperature))}"
+            : null;
+        var articles = issue.Sections.Sum(s => s.Articles.Count);
+        return new CoverPage(
+            issue.Title,
+            issue.PublishedAt.ToString("D", texts.Culture),
+            texts.IssueNumber(issue.Number),
+            stories[0],
+            stories.Skip(1).ToList(),
+            weather,
+            texts.ArticleCount(articles, issue.Sections.Count));
+    }
+
     public static string DateLine(IssueContent issue, EpubTexts texts) =>
         $"{issue.PublishedAt.ToString("D", texts.Culture)} · {texts.IssueNumber(issue.Number)}";
 

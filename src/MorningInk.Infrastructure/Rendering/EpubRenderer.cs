@@ -86,8 +86,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
             new("nav", NavHref, XhtmlType, Properties: "nav", InSpine: true),
         };
 
-        var headlines = issue.Sections.SelectMany(s => s.Articles.Take(1)).Select(a => a.Article.Title).ToList();
-        await AddContentAsync(zip, "cover.jpg", CoverGenerator.Create(issue.Title, EpubPages.DateLine(issue, texts), headlines), stamp, cancellationToken);
+        await AddContentAsync(zip, "cover.jpg", CoverGenerator.Create(EpubPages.Cover(issue, texts)), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPages.StyleSheet, Encoding.UTF8.GetBytes(EpubPages.Css), stamp, cancellationToken);
         await AddContentAsync(zip, TitleHref, EpubPages.TitlePage(issue, texts, HrefOf), stamp, cancellationToken);
         await AddContentAsync(zip, NavHref, EpubPages.Navigation(issue, texts, TitleHref, SectionHrefOf, s => full[s], HrefOf), stamp, cancellationToken);

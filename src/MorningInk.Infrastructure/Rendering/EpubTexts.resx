@@ -35,4 +35,5 @@
   <data name="Briefs" xml:space="preserve"><value>In brief</value></data>
   <data name="AlsoAt" xml:space="preserve"><value>Also reported by: {0}</value></data>
   <data name="InShort" xml:space="preserve"><value>In short</value></data>
+  <data name="ArticleCount" xml:space="preserve"><value>{0} articles in {1} sections</value></data>
 </root>

@@ -35,4 +35,5 @@
   <data name="Briefs" xml:space="preserve"><value>Kurz notiert</value></data>
   <data name="AlsoAt" xml:space="preserve"><value>Auch bei: {0}</value></data>
   <data name="InShort" xml:space="preserve"><value>Kurz gefasst</value></data>
+  <data name="ArticleCount" xml:space="preserve"><value>{0} Artikel in {1} Rubriken</value></data>
 </root>
