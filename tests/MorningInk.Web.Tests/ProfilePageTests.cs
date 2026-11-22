@@ -26,7 +26,7 @@ public sealed class ProfilePageTests : IDisposable
         var page = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync()); // Blazor encodes umlauts and the narrow space before "AM"
 
         Assert.Contains("Saved. Changes apply from the next issue.", page, StringComparison.Ordinal);
-        Assert.Contains("Every day at 7:15", page, StringComparison.Ordinal);
+        Assert.Contains("every day at 7:15", page, StringComparison.Ordinal);
         Assert.Contains("(Europe/Berlin), sent to max_abc@kindle.com.", page, StringComparison.Ordinal);
         Assert.Contains("Die Frühstücksausgabe", page, StringComparison.Ordinal);
     }
@@ -85,7 +85,48 @@ public sealed class ProfilePageTests : IDisposable
         Assert.Equal([mine], sections[0].Sources.Select(s => s.Id));
     }
 
+    [Fact]
+    public async Task Section_is_deleted_only_after_confirmation()
+    {
+        var browser = await _app.SignedInAdminAsync();
+        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Politik" }, form: ("add-section", null));
+
+        var asked = await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "delete" }, form: ("section", null));
+        Assert.Contains("Delete Politik?", await asked.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        await SectionIdAsync("Politik"); // still there
+
+        await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "confirm-delete" }, form: ("section", null));
+        await using var scope = _app.Services.CreateAsyncScope();
+        Assert.False(await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles.SelectMany(p => p.Sections).AnyAsync());
+    }
+
+    [Fact]
+    public async Task Source_search_filters_the_choices_but_keeps_the_assigned_ones()
+    {
+        var browser = await _app.SignedInAdminAsync();
+        var (mine, _) = await CreateSourcesAsync();
+        await AddSourceAsync("golem");
+        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Technik" }, form: ("add-section", null));
+        var technik = await SectionIdAsync("Technik");
+        await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "save" }, form: ($"section-{technik}", null), sourceIds: [mine]);
+
+        var page = await browser.GetStringAsync($"/profile?edit={technik}&find=xyz");
+
+        Assert.Contains("> heise</label>", page, StringComparison.Ordinal); // assigned: always shown, so saving keeps it
+        Assert.DoesNotContain("> golem</label>", page, StringComparison.Ordinal);
+        Assert.Contains("> golem</label>", await browser.GetStringAsync($"/profile?edit={technik}&find=GOL"), StringComparison.Ordinal);
+    }
+
     public void Dispose() => _app.Dispose();
+
+    private async Task AddSourceAsync(string name)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+        var admin = await db.DomainUsers.SingleAsync(u => u.Name == TestApp.AdminName);
+        db.Add(new Source { UserId = admin.Id, Name = name, Url = $"https://{name}.example/rss" });
+        await db.SaveChangesAsync();
+    }
 
     private async Task<Guid> SectionIdAsync(string name)
     {

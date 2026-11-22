@@ -39,8 +39,8 @@
   <data name="Home_Kicker" xml:space="preserve"><value>Front desk</value></data>
   <data name="Sources_Kicker" xml:space="preserve"><value>Correspondents</value></data>
   <data name="Sources_Title" xml:space="preserve"><value>Sources</value></data>
-  <data name="Sources_Count" xml:space="preserve"><value>{0} sources.</value></data>
-  <data name="Sources_Empty" xml:space="preserve"><value>No sources yet. Enter a website or feed address above.</value></data>
+  <data name="Sources_Count" xml:space="preserve"><value>{0} feeds · {1} local</value></data>
+  <data name="Sources_Empty" xml:space="preserve"><value>No sources yet. Enter a website or feed address below.</value></data>
   <data name="Sources_NewLabel" xml:space="preserve"><value>New source: website or feed address</value></data>
   <data name="Sources_Find" xml:space="preserve"><value>Find feed</value></data>
   <data name="Sources_UrlHint" xml:space="preserve"><value>Only http and https. Addresses in your home network are blocked unless they are on the allow list.</value></data>
@@ -55,7 +55,7 @@
   <data name="Sources_FullText" xml:space="preserve"><value>Fetch full text</value></data>
   <data name="Sources_Feeds" xml:space="preserve"><value>Feeds</value></data>
   <data name="Sources_Local" xml:space="preserve"><value>Local news</value></data>
-  <data name="Sources_Test" xml:space="preserve"><value>Test now</value></data>
+  <data name="Sources_Test" xml:space="preserve"><value>Test</value></data>
   <data name="Sources_Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="Sources_Preview" xml:space="preserve"><value>Preview</value></data>
   <data name="Sources_PreviewHint" xml:space="preserve"><value>Test a source or find a feed to see its latest articles here.</value></data>
@@ -85,11 +85,11 @@
   <data name="Error_PlaceRequired" xml:space="preserve"><value>Please enter a postal code or town.</value></data>
   <data name="Error_AdminOnly" xml:space="preserve"><value>Only admins can do this.</value></data>
   <data name="Nav_Profile" xml:space="preserve"><value>Edition</value></data>
-  <data name="Profile_Kicker" xml:space="preserve"><value>Edition</value></data>
-  <data name="Profile_Title" xml:space="preserve"><value>Your newspaper</value></data>
-  <data name="Profile_Lede" xml:space="preserve"><value>Every day at {0} ({1}), sent to {2}.</value></data>
-  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>Every day at {0} ({1}). Set a recipient so it can be delivered.</value></data>
-  <data name="Profile_Settings" xml:space="preserve"><value>Issue</value></data>
+  <data name="Profile_Kicker" xml:space="preserve"><value>Planning</value></data>
+  <data name="Profile_Title" xml:space="preserve"><value>Edition</value></data>
+  <data name="Profile_Lede" xml:space="preserve"><value>{0} comes out every day at {1} ({2}), sent to {3}.</value></data>
+  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} comes out every day at {1} ({2}). Set a recipient so it can be delivered.</value></data>
+  <data name="Profile_Settings" xml:space="preserve"><value>Delivery</value></data>
   <data name="Profile_NewspaperTitle" xml:space="preserve"><value>Newspaper title</value></data>
   <data name="Profile_Recipient" xml:space="preserve"><value>Recipient</value></data>
   <data name="Profile_RecipientHint" xml:space="preserve"><value>Your Send-to-Kindle address, e.g. name_abc@kindle.com.</value></data>
@@ -105,7 +105,6 @@
   <data name="Profile_NoSources" xml:space="preserve"><value>Add sources first on the sources page.</value></data>
   <data name="Profile_SectionName" xml:space="preserve"><value>Section name</value></data>
   <data name="Profile_MaxArticles" xml:space="preserve"><value>At most (articles)</value></data>
-  <data name="Profile_MaxArticlesHint" xml:space="preserve"><value>Empty means no limit.</value></data>
   <data name="Profile_SectionSources" xml:space="preserve"><value>Sources</value></data>
   <data name="Profile_MoveUp" xml:space="preserve"><value>Up</value></data>
   <data name="Profile_MoveDown" xml:space="preserve"><value>Down</value></data>
@@ -164,4 +163,15 @@
   <data name="Settings_NetworkAdd" xml:space="preserve"><value>Allow host</value></data>
   <data name="Settings_NetworkAddHint" xml:space="preserve"><value>"host" for any port, or "host:port", e.g. freshrss.lan or 192.168.1.20:8080.</value></data>
   <data name="Settings_NetworkRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Sources_AddHeading" xml:space="preserve"><value>Add a source</value></data>
+  <data name="Confirm_Delete" xml:space="preserve"><value>Delete {0}?</value></data>
+  <data name="Confirm_Yes" xml:space="preserve"><value>Yes, delete</value></data>
+  <data name="Confirm_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Profile_Unlimited" xml:space="preserve"><value>unlimited</value></data>
+  <data name="Profile_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Profile_SectionMax" xml:space="preserve"><value>at most {0} articles</value></data>
+  <data name="Profile_SectionEmpty" xml:space="preserve"><value>no sources yet</value></data>
+  <data name="Masthead_Tagline" xml:space="preserve"><value>Your personal morning newspaper</value></data>
+  <data name="Profile_FindSource" xml:space="preserve"><value>Find a source</value></data>
+  <data name="Profile_Find" xml:space="preserve"><value>Search</value></data>
 </root>

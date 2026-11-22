@@ -36,14 +36,16 @@ public sealed class SourcesPageTests : IDisposable
         await TestApp.SubmitAsync(browser, "/sources", await found.Content.ReadAsStringAsync(), new() { ["FeedUrl"] = _feeds.FeedUrl }, form: ("add", null));
 
         var tested = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "test" }, form: ("row", null));
-        var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ("row", null));
+        var asked = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ("row", null));
+        var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "confirm-delete" }, form: ("row", null));
         var list = await browser.GetStringAsync("/sources");
 
         var testPage = await tested.Content.ReadAsStringAsync();
         Assert.Contains("works", testPage, StringComparison.Ordinal);
         Assert.Contains("Zweite Meldung", testPage, StringComparison.Ordinal);
+        Assert.Contains("Delete Beispiel?", await asked.Content.ReadAsStringAsync(), StringComparison.Ordinal); // asks first
         Assert.Equal("/sources?notice=deleted", TestApp.RedirectTarget(deleted));
-        Assert.Contains("0 sources.", list, StringComparison.Ordinal);
+        Assert.Contains("0 feeds", list, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -59,9 +61,12 @@ public sealed class SourcesPageTests : IDisposable
 
         var ids = await SourceIdsAsync(app);
         var tested = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "test" }, form: ($"row-{ids[1]}", null));
-        var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ($"row-{ids[0]}", null));
+        var asked = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ($"row-{ids[0]}", null));
+        Assert.Equal(2, (await SourceIdsAsync(app)).Count); // nothing deleted before the confirmation
+        var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "confirm-delete" }, form: ($"row-{ids[0]}", null));
 
         Assert.Equal(HttpStatusCode.OK, tested.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, asked.StatusCode);
         Assert.Contains("row-selected", await tested.Content.ReadAsStringAsync(), StringComparison.Ordinal);
         Assert.Equal("/sources?notice=deleted", TestApp.RedirectTarget(deleted));
         Assert.Equal([ids[1]], await SourceIdsAsync(app));

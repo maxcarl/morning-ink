@@ -3,29 +3,18 @@
 @inject TimeProvider Time
 @inject NavigationManager Navigation
 
-@* Masthead like a newspaper: name, dateline, double rule, tabs. *@
+@* Masthead like a front page: ears with date and sign-out, centered nameplate, folio line, section bar. *@
 <header class="masthead">
-    <div class="masthead-top">
-        <a class="brand" href="/">@T["Brand"]</a>
-        <div class="dateline">
-            <span>@Time.GetLocalNow().ToString("D", CultureInfo.CurrentCulture)</span>
-            <span aria-hidden="true">·</span>
-            <form method="post" action="/theme" class="theme-switch" aria-label="@T["Theme_Label"]">
-                <AntiforgeryToken />
-                <input type="hidden" name="returnUrl" value="@("/" + Navigation.ToBaseRelativePath(Navigation.Uri))" />
-                @foreach (var choice in Theme.Choices)
-                {
-                    <button type="submit" name="theme" value="@choice" class="link-button" aria-pressed="@((choice == _theme).ToString().ToLowerInvariant())">@T[$"Theme_{choice}"]</button>
-                }
-            </form>
-            <span aria-hidden="true">·</span>
-            @* POST with antiforgery token: a link or GET could be triggered by another site. *@
-            <form method="post" action="/logout">
-                <AntiforgeryToken />
-                <button type="submit" class="link-button">@T["Logout"]</button>
-            </form>
-        </div>
+    <div class="masthead-ears">
+        <span>@Time.GetLocalNow().ToString("D", CultureInfo.CurrentCulture)</span>
+        @* POST with antiforgery token: a link or GET could be triggered by another site. *@
+        <form method="post" action="/logout">
+            <AntiforgeryToken />
+            <button type="submit" class="link-button">@T["Logout"]</button>
+        </form>
     </div>
+    <a class="brand nameplate" href="/">@T["Brand"]</a>
+    <p class="folio">@T["Masthead_Tagline"]</p>
     <nav class="nav" aria-label="@T["Nav_Label"]">
         <NavLink href="/" Match="NavLinkMatch.All">@T["Nav_Home"]</NavLink>
         <NavLink href="/sources">@T["Nav_Sources"]</NavLink>
@@ -40,6 +29,21 @@
 <main class="page">
     @Body
 </main>
+
+@* The color scheme is set once and rarely changed: it sits at the foot, not in the masthead. *@
+<footer class="colophon">
+    <div class="colophon-inner">
+        <span id="theme-label">@T["Theme_Label"]:</span>
+        <form method="post" action="/theme" class="theme-switch" aria-labelledby="theme-label">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="@("/" + Navigation.ToBaseRelativePath(Navigation.Uri))" />
+            @foreach (var choice in Theme.Choices)
+            {
+                <button type="submit" name="theme" value="@choice" class="link-button" aria-pressed="@((choice == _theme).ToString().ToLowerInvariant())">@T[$"Theme_{choice}"]</button>
+            }
+        </form>
+    </div>
+</footer>
 
 @code {
     private string _theme = Theme.Auto;

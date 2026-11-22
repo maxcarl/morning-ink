@@ -14,7 +14,7 @@
 <header class="page-header">
     <span class="kicker">@T["Sources_Kicker"]</span>
     <h1>@T["Sources_Title"]</h1>
-    <p class="lede">@T["Sources_Count", _sources.Count]</p>
+    <p class="lede">@T["Sources_Count", _sources.Count(s => s.Kind != SourceKind.Local), _sources.Count(s => s.Kind == SourceKind.Local)]</p>
 
     @if (_notice is not null)
     {
@@ -45,62 +45,14 @@
         </div>
     }
 
-    <form method="post" @formname="discover" @onsubmit="DiscoverAsync" class="field">
-        <AntiforgeryToken />
-        <label class="label" for="url">@T["Sources_NewLabel"]</label>
-        <div class="inline-form">
-            <input id="url" name="Url" class="input" type="text" inputmode="url" value="@_lastUrl" placeholder="https://www.example.com" aria-describedby="url-hint" required />
-            <button type="submit" class="button">@T["Sources_Find"]</button>
-        </div>
-        <span id="url-hint" class="hint">@T["Sources_UrlHint"]</span>
-    </form>
-
-    <form method="post" @formname="local" @onsubmit="AddLocalAsync" class="field">
-        <AntiforgeryToken />
-        <label class="label" for="place">@T["Sources_LocalLabel"]</label>
-        <div class="inline-form">
-            <input id="place" name="Place" class="input" type="text" placeholder="52062" aria-describedby="place-hint" required />
-            <label class="visually-hidden" for="local-country">@T["Country"]</label>
-            <CountrySelect Id="local-country" Selected="@_defaultCountry" />
-            <button type="submit" class="button button-secondary">@T["Sources_LocalAdd"]</button>
-        </div>
-        <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
-    </form>
 </header>
 
 <div class="with-sidebar">
     <div>
-        @if (_found is not null)
+        @* While adding, the search and its results stand on top, where the page opens after the POST. *@
+        @if (Adding)
         {
-            <h2 class="department">@T["Sources_Found"]</h2>
-            @if (_found.Count == 0)
-            {
-                <p class="row muted">@T["Sources_NoneFound"]</p>
-            }
-            @if (_found.Count > 0)
-            {
-                @* One form for all feeds found: pick one, name it, add it. *@
-                <form method="post" @formname="add" @onsubmit="AddFeedAsync">
-                    <AntiforgeryToken />
-                    <fieldset class="rows">
-                        <legend class="visually-hidden">@T["Sources_Found"]</legend>
-                        @for (var i = 0; i < _found.Count; i++)
-                        {
-                            var feed = _found[i];
-                            <label class="row checkbox">
-                                <input type="radio" name="FeedUrl" value="@feed.Url.AbsoluteUri" checked="@(i == 0)" />
-                                <span class="row-main"><span class="row-title">@feed.Title</span><span class="row-meta"> · @feed.Url.AbsoluteUri</span></span>
-                            </label>
-                        }
-                    </fieldset>
-                    <div class="inline-form field">
-                        <label class="visually-hidden" for="feed-name">@T["Sources_Name"]</label>
-                        <input id="feed-name" name="Name" class="input" value="@_found[0].Title" required />
-                        <label class="checkbox"><input type="checkbox" name="FullText" value="true" checked /> @T["Sources_FullText"]</label>
-                        <button type="submit" class="button">@T["Sources_Add"]</button>
-                    </div>
-                </form>
-            }
+            @AddSection
         }
 
         @foreach (var group in _sources.GroupBy(s => s.Kind).OrderBy(g => g.Key))
@@ -121,8 +73,19 @@
                         @* A form name per row: Blazor needs it unique, and the handler knows the source from it. *@
                         <form method="post" @formname="@($"row-{source.Id}")" @onsubmit="() => RowAsync(source.Id)" class="row-actions">
                             <AntiforgeryToken />
-                            <button type="submit" name="RowAction" value="test" class="button button-small">@T["Sources_Test"]</button>
-                            <button type="submit" name="RowAction" value="delete" class="button button-secondary button-small">@T["Sources_Delete"]</button>
+                            @if (source.Id == _confirmId)
+                            {
+                                @* Deleting also drops the source from every section: ask once, without script. *@
+                                <p class="confirm" role="alert">@T["Confirm_Delete", source.Name]</p>
+                                <button type="submit" name="RowAction" value="confirm-delete" class="button button-small">@T["Confirm_Yes"]</button>
+                                <a href="/sources" class="link-button">@T["Confirm_Cancel"]</a>
+                            }
+                            else
+                            {
+                                @* The hidden name tells screen readers which of the many "Test" buttons this is. *@
+                                <button type="submit" name="RowAction" value="test" class="button button-secondary button-small">@T["Sources_Test"]<span class="visually-hidden"> – @source.Name</span></button>
+                                <button type="submit" name="RowAction" value="delete" class="link-button link-danger">@T["Sources_Delete"]<span class="visually-hidden"> – @source.Name</span></button>
+                            }
                         </form>
                     </li>
                 }
@@ -132,6 +95,11 @@
         @if (_sources.Count == 0 && _found is null)
         {
             <p class="muted">@T["Sources_Empty"]</p>
+        }
+
+        @if (!Adding)
+        {
+            @AddSection
         }
     </div>
 
@@ -182,11 +150,73 @@
 @code {
     private const int PreviewArticles = 5;
 
+    private bool Adding => _found is not null || _blockedHost is not null || _error is not null;
+
+    private RenderFragment AddSection => __builder =>
+    {
+        <h2 class="department">@T["Sources_AddHeading"]</h2>
+        <form method="post" @formname="discover" @onsubmit="DiscoverAsync" class="field">
+            <AntiforgeryToken />
+            <label class="label" for="url">@T["Sources_NewLabel"]</label>
+            <div class="inline-form">
+                <input id="url" name="Url" class="input" type="text" inputmode="url" value="@_lastUrl" placeholder="https://www.example.com" aria-describedby="url-hint" required />
+                <button type="submit" class="button">@T["Sources_Find"]</button>
+            </div>
+            <span id="url-hint" class="hint">@T["Sources_UrlHint"]</span>
+        </form>
+
+        @if (_found is not null)
+        {
+            <h2 class="department">@T["Sources_Found"]</h2>
+            @if (_found.Count == 0)
+            {
+                <p class="row muted">@T["Sources_NoneFound"]</p>
+            }
+            @if (_found.Count > 0)
+            {
+                @* One form for all feeds found: pick one, name it, add it. *@
+                <form method="post" @formname="add" @onsubmit="AddFeedAsync">
+                    <AntiforgeryToken />
+                    <fieldset class="rows">
+                        <legend class="visually-hidden">@T["Sources_Found"]</legend>
+                        @for (var i = 0; i < _found.Count; i++)
+                        {
+                            var feed = _found[i];
+                            <label class="row checkbox">
+                                <input type="radio" name="FeedUrl" value="@feed.Url.AbsoluteUri" checked="@(i == 0)" />
+                                <span class="row-main"><span class="row-title">@feed.Title</span><span class="row-meta"> · @feed.Url.AbsoluteUri</span></span>
+                            </label>
+                        }
+                    </fieldset>
+                    <div class="inline-form field">
+                        <label class="visually-hidden" for="feed-name">@T["Sources_Name"]</label>
+                        <input id="feed-name" name="Name" class="input" value="@_found[0].Title" required />
+                        <label class="checkbox"><input type="checkbox" name="FullText" value="true" checked /> @T["Sources_FullText"]</label>
+                        <button type="submit" class="button">@T["Sources_Add"]</button>
+                    </div>
+                </form>
+            }
+        }
+
+        <form method="post" @formname="local" @onsubmit="AddLocalAsync" class="field">
+            <AntiforgeryToken />
+            <label class="label" for="place">@T["Sources_LocalLabel"]</label>
+            <div class="inline-form">
+                <input id="place" name="Place" class="input" type="text" placeholder="52062" aria-describedby="place-hint" required />
+                <label class="visually-hidden" for="local-country">@T["Country"]</label>
+                <CountrySelect Id="local-country" Selected="@_defaultCountry" />
+                <button type="submit" class="button button-secondary">@T["Sources_LocalAdd"]</button>
+            </div>
+            <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
+        </form>
+    };
+
     private List<Source> _sources = [];
     private IReadOnlyList<FeedCandidate>? _found;
     private Source? _preview;
     private SourceResult? _previewResult;
     private Guid? _selectedId;
+    private Guid? _confirmId;
     private string? _notice;
     private string? _error;
     private string? _blockedHost;
@@ -299,7 +329,14 @@
 
     private async Task RowAsync(Guid id)
     {
-        if (HttpContext.Request.Form["RowAction"] == "delete")
+        var action = HttpContext.Request.Form["RowAction"].ToString();
+        if (action == "delete")
+        {
+            _confirmId = id;
+            return;
+        }
+
+        if (action == "confirm-delete")
         {
             if (await Catalog.DeleteAsync(UserId, id, Aborted))
             {
