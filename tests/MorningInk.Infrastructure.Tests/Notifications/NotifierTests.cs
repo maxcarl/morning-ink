@@ -90,6 +90,25 @@ public sealed class NotifierTests : IDisposable
         Assert.Contains("403", error, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task The_bot_token_in_the_address_never_reaches_the_log()
+    {
+        var log = new CapturingLogger();
+        await using var services = await _host.StartAsync(
+            new()
+            {
+                ["Http:AllowedHosts:0"] = $"127.0.0.1:{_server.Port}",
+                ["Notifications:TelegramApiUrl"] = Base,
+            },
+            services => services.AddSingleton<Microsoft.Extensions.Logging.ILoggerProvider>(log));
+        await using var scope = services.CreateAsyncScope();
+
+        await scope.ServiceProvider.GetRequiredService<INotifier>().NotifyAsync(new NotificationTarget(NotificationChannel.Telegram, "123456", "secret-bot-token"), Delivered, CancellationToken.None);
+
+        Assert.NotEmpty(log.Messages); // the logger did run
+        Assert.DoesNotContain(log.Messages, m => m.Contains("secret-bot-token", StringComparison.Ordinal));
+    }
+
     public void Dispose()
     {
         _server.Dispose();

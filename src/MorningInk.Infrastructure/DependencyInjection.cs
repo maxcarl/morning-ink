@@ -45,6 +45,10 @@ public static class DependencyInjection
         AddStorage(services, configuration);
         AddPersistence(services);
         AddSafeHttp(services, configuration);
+
+        // The factory would log every request's address: a Telegram bot token is part of one, and searches name the
+        // places a user reads about. Morning Ink logs hosts and reasons itself.
+        services.ConfigureHttpClientDefaults(client => client.RemoveAllLoggers());
         AddSources(services, configuration);
         AddProcessors(services, configuration);
         services.AddTransient<IRenderer, EpubRenderer>();
