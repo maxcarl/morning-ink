@@ -49,12 +49,13 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
     {
         using var client = new SmtpClient { Timeout = (int)smtp.Timeout.TotalMilliseconds };
 
-        // The usual check (trusted chain, matching name), but the outcome is kept to explain a failed handshake.
+        // Trusted chain and matching name (see CertificateCheck); the outcome is kept to explain a failed handshake.
         SslPolicyErrors? certificateErrors = null;
-        client.ServerCertificateValidationCallback = (_, _, _, errors) =>
+        client.ServerCertificateValidationCallback = (_, _, chain, errors) =>
         {
-            certificateErrors = errors;
-            return errors == SslPolicyErrors.None;
+            var trusted = CertificateCheck.IsTrusted(errors, chain);
+            certificateErrors = trusted ? SslPolicyErrors.None : errors;
+            return trusted;
         };
         try
         {
