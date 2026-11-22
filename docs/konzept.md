@@ -498,3 +498,4 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | 32 | Verarbeitung | Interessen mit Stichwörtern und Gewicht pro Profil | Bevorzugte Themen rücken bei knappem Limit nach vorn, „ausblenden“ wirkt als Filter | 26 | – |
 | 33 | Benutzer | Mehrere Benutzer (Familie und Freunde), vom Admin angelegt | Jeder sieht und bearbeitet nur die eigenen Quellen und Ausgaben | 18 | – |
 | 34 | Zustellung | OPDS-Katalog für KOReader und Reader-Apps | KOReader holt die Ausgabe mit Login selbst ab | 28 | – |
+| 35 | Quellen | SearXNG als Nachrichtensuche für „Lokales“, wählbar neben Bing (`INewsSearch`, Einstellung `NewsSearch__SearxngUrl`) | Mit gesetzter Adresse kommen lokale Meldungen über die eigene SearXNG-Instanz, mit Volltext vom Verlag; ohne bleibt Bing | 17 | – |
