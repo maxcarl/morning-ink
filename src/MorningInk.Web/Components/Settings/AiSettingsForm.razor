@@ -1,0 +1,131 @@
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Ai
+@inject ActionScopes Scopes
+@inject AiChat Chat
+
+<section aria-labelledby="ai-heading">
+    <h2 id="ai-heading" class="department">@T["Settings_Ai"]</h2>
+    <p class="hint">@T["Settings_AiHint"]</p>
+    <form @onsubmit="SaveAsync">
+        <div class="field">
+            <label class="checkbox"><input id="ai-enabled" type="checkbox" @bind="_enabled" aria-describedby="ai-enabled-hint" /> @T["Settings_AiEnabled"]</label>
+            <span id="ai-enabled-hint" class="hint">@T["Settings_AiEnabledHint"]</span>
+        </div>
+        <div class="inline-form field">
+            <div class="row-main">
+                <label class="label" for="ai-endpoint">@T["Settings_AiEndpoint"]</label>
+                <input id="ai-endpoint" class="input" @bind="_endpoint" placeholder="http://192.168.1.20:11434" aria-describedby="ai-endpoint-hint" />
+                <span id="ai-endpoint-hint" class="hint">@T["Settings_AiEndpointHint"]</span>
+            </div>
+            <div>
+                <label class="label" for="ai-model">@T["Settings_AiModel"]</label>
+                <input id="ai-model" class="input" @bind="_model" placeholder="qwen2.5:7b" />
+            </div>
+        </div>
+        <div class="field">
+            <label for="ai-key">@T["Settings_AiKey"]</label>
+            @* Never filled in from storage, like the mail password. *@
+            <input id="ai-key" class="input" type="password" @bind="_key" autocomplete="new-password" @attributes="PasswordManagers.Ignore" aria-describedby="ai-key-hint" />
+            <span id="ai-key-hint" class="hint">@(_keySaved ? T["Settings_AiKeySaved"] : T["Settings_AiKeyNone"])</span>
+        </div>
+        <div class="field">
+            <label class="checkbox"><input id="ai-local" type="checkbox" @bind="_local" /> @T["Settings_AiLocal"]</label>
+            <label class="checkbox"><input id="ai-summaries" type="checkbox" @bind="_summaries" /> @T["Settings_AiSummaries"]</label>
+        </div>
+        <div class="field">
+            <label for="ai-limit">@T["Settings_AiLimit"]</label>
+            <input id="ai-limit" class="input input-short" type="number" min="1" step="1" @bind="_limit" aria-describedby="ai-limit-hint" />
+            <span id="ai-limit-hint" class="hint">@T["Settings_AiLimitHint"]</span>
+        </div>
+        <div class="field">
+            <label for="ai-prompt">@T["Settings_AiPrompt"]</label>
+            <textarea id="ai-prompt" class="input" rows="7" maxlength="@AiSettingsStore.MaxPromptLength" @bind="_prompt" aria-describedby="ai-prompt-hint"></textarea>
+            <span id="ai-prompt-hint" class="hint">@T["Settings_AiPromptHint"]</span>
+            @if (_prompt?.Trim() != AiSettingsStore.DefaultSummaryPrompt)
+            {
+                <div><button type="button" class="link-button" @onclick="RestorePrompt">@T["Settings_AiPromptRestore"]</button></div>
+            }
+        </div>
+        <div class="row-actions">
+            <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
+            <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestAsync">@(_busy ? T["Settings_AiTesting"] : T["Settings_AiTest"])</button>
+        </div>
+    </form>
+</section>
+
+@code {
+    private string? _endpoint;
+    private string? _model;
+    private string? _key;
+    private bool _keySaved;
+    private bool _local = true;
+    private bool _summaries = true;
+    private bool _enabled = true;
+    private int? _limit;
+    private string? _prompt;
+    private bool _busy;
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    [Parameter]
+    public EventCallback<FormOutcome> Finished { get; set; }
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        var ai = await Scopes.RunAsync<AiSettingsStore, AiSettings>(store => store.LoadAsync(Cancellation));
+        _endpoint = ai.Endpoint;
+        _model = ai.Model;
+        _key = null;
+        _keySaved = ai.ApiKey is not null;
+        _local = ai.IsLocal;
+        _summaries = ai.Summaries;
+        _enabled = ai.Enabled;
+        _limit = ai.DailyLimit;
+        _prompt = ai.SummaryPrompt ?? AiSettingsStore.DefaultSummaryPrompt;
+    }
+
+    // Back to the versioned default; saved as "no own prompt", so later improvements to it arrive.
+    private void RestorePrompt() => _prompt = AiSettingsStore.DefaultSummaryPrompt;
+
+    private async Task SaveAsync()
+    {
+        var input = new AiSettingsInput(_endpoint, _model, _key, _local, _summaries, _enabled, _limit, _prompt);
+        var errors = await Scopes.RunAsync<AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Cancellation));
+        if (errors.Count > 0)
+        {
+            await Finished.InvokeAsync(new FormOutcome(null, [.. errors.Select(field => T[$"Settings_Error_Ai{field}"].Value)]));
+            return;
+        }
+
+        await LoadAsync();
+        await Finished.InvokeAsync(new FormOutcome(T["Settings_Saved"]));
+    }
+
+    // Tests what is saved, so a test right after typing asks the user to save first.
+    private async Task TestAsync()
+    {
+        _busy = true;
+        try
+        {
+            var ai = await Scopes.RunAsync<AiSettingsStore, AiSettings>(store => store.LoadAsync(Cancellation));
+            if (ai.Endpoint is null)
+            {
+                await Finished.InvokeAsync(FormOutcome.Failed(T["Settings_AiNotSet"]));
+                return;
+            }
+
+            var problem = await Chat.TestAsync(ai, Cancellation);
+            await Finished.InvokeAsync(problem is null ? new FormOutcome(T["Settings_AiWorks", ai.Model ?? string.Empty]) : FormOutcome.Failed(T["Settings_AiFailed", problem]));
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

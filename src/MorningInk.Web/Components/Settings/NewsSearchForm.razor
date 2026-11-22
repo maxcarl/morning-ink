@@ -1,0 +1,86 @@
+@using MorningInk.Application.Sources
+@using MorningInk.Infrastructure.Sources
+@inject ActionScopes Scopes
+
+<section aria-labelledby="news-heading">
+    <h2 id="news-heading" class="department">@T["Settings_News"]</h2>
+    <p class="hint">@T["Settings_NewsHint"]</p>
+    <form @onsubmit="SaveAsync">
+        <div class="field">
+            <label for="searxng-url">@T["Settings_SearxngUrl"]</label>
+            <input id="searxng-url" class="input" @bind="_url" placeholder="https://searx.example.com" readonly="@_locked" aria-describedby="searxng-hint" />
+            <span id="searxng-hint" class="hint">@(_locked ? T["Settings_SearxngLocked"] : T["Settings_SearxngHint"])</span>
+        </div>
+        <div class="row-actions">
+            @if (!_locked)
+            {
+                <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
+            }
+            <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestAsync">@T["Settings_SearxngTest"]</button>
+        </div>
+        @if (_request is not null)
+        {
+            <p class="hint">@T["Settings_SearxngRequest"] <a href="@_request" target="_blank" rel="noopener noreferrer">@_request</a></p>
+        }
+    </form>
+</section>
+
+@code {
+    private string? _url;
+    private Uri? _request;
+    private bool _locked;
+    private bool _busy;
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    [Parameter]
+    public EventCallback<FormOutcome> Finished { get; set; }
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _url = await Scopes.RunAsync<NewsSearchSettingsStore, string?>(store => store.SearxngUrlAsync(Cancellation));
+        _locked = await Scopes.RunAsync<NewsSearchSettingsStore, bool>(store => Task.FromResult(store.IsLocked));
+    }
+
+    private async Task SaveAsync()
+    {
+        if (!await Scopes.RunAsync<NewsSearchSettingsStore, bool>(store => store.SaveAsync(_url, UserId, Cancellation)))
+        {
+            await Finished.InvokeAsync(FormOutcome.Failed(T["Settings_Error_SearxngUrl"]));
+            return;
+        }
+
+        var off = string.IsNullOrWhiteSpace(_url);
+        await LoadAsync();
+        await Finished.InvokeAsync(new FormOutcome(off ? T["Settings_SearxngOff"] : T["Settings_Saved"]));
+    }
+
+    // Tests what is saved, like the AI test: one search for a well-known place.
+    private async Task TestAsync()
+    {
+        _busy = true;
+        try
+        {
+            var term = T["Settings_SearxngTestTerm"].Value;
+            var test = await Scopes.RunAsync<NewsSearchSettingsStore, (SourceResult Result, Uri Request)?>(store => store.TestAsync(term, Cancellation));
+            _request = test?.Request;
+            await Finished.InvokeAsync(test?.Result switch
+            {
+                null => FormOutcome.Failed(T["Settings_SearxngNotSet"]),
+                SourceResult.Failure failure => FormOutcome.Failed(T["Settings_SearxngFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)]),
+                SourceResult.Success success => new FormOutcome(T["Settings_SearxngWorks", success.Articles.Count, term]),
+                _ => new FormOutcome(null),
+            });
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

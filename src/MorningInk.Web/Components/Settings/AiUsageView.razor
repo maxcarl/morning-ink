@@ -1,0 +1,51 @@
+@using System.Globalization
+@using MorningInk.Infrastructure.Ai
+@inject ActionScopes Scopes
+
+<section aria-labelledby="usage-heading">
+    <h2 id="usage-heading" class="department">@T["Settings_AiUsage"]</h2>
+    <p class="hint">@T["Settings_AiUsageHint"]</p>
+    @if (_usage is null || _usage.Providers.Count == 0)
+    {
+        <p class="muted">@T["Settings_AiUsageNone"]</p>
+    }
+    else
+    {
+        <p>@(_limit is { } limit ? T["Settings_AiUsageDayLimit", _usage.Last24Hours, limit] : T[_usage.Last24Hours == 1 ? "Settings_AiUsageDayOne" : "Settings_AiUsageDay", _usage.Last24Hours])</p>
+        <dl class="facts">
+            @foreach (var provider in _usage.Providers)
+            {
+                <div>
+                    <dt>@provider.Provider · @provider.Model <span class="badge @(provider.IsLocal ? "status-ok" : "status-warn")">@(provider.IsLocal ? T["Settings_AiUsageLocal"] : T["Settings_AiUsageCloud"])</span></dt>
+                    <dd>@T["Settings_AiUsageCalls", provider.Calls, provider.Characters.ToString("N0", CultureInfo.CurrentCulture)]</dd>
+                </div>
+            }
+        </dl>
+        <h3 class="subhead">@T["Settings_AiUsageRecent"]</h3>
+        <ul class="headline-list">
+            @foreach (var call in _usage.Recent)
+            {
+                <li @key="call.Id">
+                    <a href="@call.ArticleUrl" rel="noopener noreferrer" target="_blank">@call.ArticleTitle</a>
+                    <div class="row-meta">
+                        @call.SourceName · @call.Provider · @call.At.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)@(call.Succeeded ? null : $" · {T["Settings_AiUsageFailed"]}")
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    private AiUsageReport? _usage;
+    private int? _limit;
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _usage = await Scopes.RunAsync<AiUsage, AiUsageReport>(usage => usage.ReportAsync(Cancellation));
+        _limit = (await Scopes.RunAsync<AiSettingsStore, MorningInk.Domain.AiSettings>(store => store.LoadAsync(Cancellation))).DailyLimit;
+    }
+}

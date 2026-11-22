@@ -1,6 +1,7 @@
 @page "/settings"
 @rendermode InteractiveServer
 @inherits InteractivePage
+@using MorningInk.Web.Components.Settings
 @attribute [Authorize(Roles = nameof(UserRole.Admin))]
 @using System.Globalization
 @using MorningInk.Application.Delivery
@@ -10,7 +11,6 @@
 @using MorningInk.Infrastructure.Profiles
 @using MorningInk.Infrastructure.Sources
 @inject HostAllowlist Allowlist
-@inject MorningInk.Infrastructure.Ai.AiChat AiChat
 
 <PageTitle>@T["Settings_Title"] – @T["Brand"]</PageTitle>
 
@@ -31,382 +31,162 @@
 <div id="panel-mail" role="tabpanel" aria-labelledby="tab-mail" hidden="@(_tab != "mail")">
     <div class="columns">
         <div>
-        <section aria-labelledby="mail-heading">
-            <h2 id="mail-heading" class="department">@T["Settings_Mail"]</h2>
-            <p class="hint">@T["Settings_MailHint"]</p>
-            <MailServerForm Saved="MailSaved" Cancellation="Closed" />
-        </section>
+            <section aria-labelledby="mail-heading">
+                <h2 id="mail-heading" class="department">@T["Settings_Mail"]</h2>
+                <p class="hint">@T["Settings_MailHint"]</p>
+                <MailServerForm Saved="MailSaved" Cancellation="Closed" />
+            </section>
         </div>
         <div>
-        <section aria-labelledby="test-heading">
-            <h2 id="test-heading" class="department">@T["Settings_TestMail"]</h2>
-            <p class="hint">@T["Settings_TestMailHint"]</p>
-            <form @onsubmit="SendTestAsync" aria-labelledby="test-heading">
-                <label class="label" for="test-recipient">@T["Settings_TestRecipient"]</label>
-                <div class="inline-form">
-                    <input id="test-recipient" class="input" @bind="_testRecipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" required />
-                    <button type="submit" class="button button-secondary" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
-                </div>
-            </form>
-        </section>        </div>
+            <section aria-labelledby="test-heading">
+                <h2 id="test-heading" class="department">@T["Settings_TestMail"]</h2>
+                <p class="hint">@T["Settings_TestMailHint"]</p>
+                <form @onsubmit="SendTestAsync" aria-labelledby="test-heading">
+                    <label class="label" for="test-recipient">@T["Settings_TestRecipient"]</label>
+                    <div class="inline-form">
+                        <input id="test-recipient" class="input" @bind="_testRecipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" required />
+                        <button type="submit" class="button button-secondary" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
+                    </div>
+                </form>
+            </section>
+        </div>
     </div>
 </div>
 
 <div id="panel-network" role="tabpanel" aria-labelledby="tab-network" hidden="@(_tab != "network")">
     <div class="columns">
         <div>
-        <section aria-labelledby="network-heading">
-            <h2 id="network-heading" class="department">@T["Settings_Network"]</h2>
-            <p class="hint">@T["Settings_NetworkHint"]</p>
-            <ul class="rows">
-                @foreach (var entry in Allowlist.Configured)
-                {
-                    <li class="row"><div class="row-main"><div class="row-title">@entry</div><div class="row-meta">@T["Settings_NetworkConfigured"]</div></div></li>
-                }
-                @foreach (var entry in Allowlist.Stored.Order(StringComparer.Ordinal))
-                {
-                    <li class="row" @key="entry">
-                        <div class="row-main"><div class="row-title">@entry</div></div>
-                        <button type="button" class="link-button link-danger" @onclick="() => RemoveHostAsync(entry)">@T["Settings_NetworkRemove"]<span class="visually-hidden"> – @entry</span></button>
-                    </li>
-                }
-                @if (Allowlist.Configured.Count == 0 && Allowlist.Stored.Count == 0)
-                {
-                    <li class="row muted">@T["Settings_NetworkNone"]</li>
-                }
-            </ul>
-        </section>
+            <section aria-labelledby="network-heading">
+                <h2 id="network-heading" class="department">@T["Settings_Network"]</h2>
+                <p class="hint">@T["Settings_NetworkHint"]</p>
+                <ul class="rows">
+                    @foreach (var entry in Allowlist.Configured)
+                    {
+                        <li class="row"><div class="row-main"><div class="row-title">@entry</div><div class="row-meta">@T["Settings_NetworkConfigured"]</div></div></li>
+                    }
+                    @foreach (var entry in Allowlist.Stored.Order(StringComparer.Ordinal))
+                    {
+                        <li class="row" @key="entry">
+                            <div class="row-main"><div class="row-title">@entry</div></div>
+                            <button type="button" class="link-button link-danger" @onclick="() => RemoveHostAsync(entry)">@T["Settings_NetworkRemove"]<span class="visually-hidden"> – @entry</span></button>
+                        </li>
+                    }
+                    @if (Allowlist.Configured.Count == 0 && Allowlist.Stored.Count == 0)
+                    {
+                        <li class="row muted">@T["Settings_NetworkNone"]</li>
+                    }
+                </ul>
+            </section>
         </div>
         <div>
-        <section aria-labelledby="new-host-heading">
-            <h2 id="new-host-heading" class="department">@T["Settings_NetworkAdd"]</h2>
-            <form @onsubmit="AddHostAsync" class="field">
-                <label class="label" for="new-host">@T["Settings_NetworkAdd"]</label>
-                <div class="inline-form">
-                    <input id="new-host" class="input" @bind="_newEntry" placeholder="freshrss.lan" aria-describedby="new-host-hint" required />
-                    <button type="submit" class="button button-secondary">@T["Settings_NetworkAdd"]</button>
-                </div>
-                <span id="new-host-hint" class="hint">@T["Settings_NetworkAddHint"]</span>
-            </form>
-        </section>        </div>
+            <section aria-labelledby="new-host-heading">
+                <h2 id="new-host-heading" class="department">@T["Settings_NetworkAdd"]</h2>
+                <form @onsubmit="AddHostAsync" class="field">
+                    <label class="label" for="new-host">@T["Settings_NetworkAdd"]</label>
+                    <div class="inline-form">
+                        <input id="new-host" class="input" @bind="_newEntry" placeholder="freshrss.lan" aria-describedby="new-host-hint" required />
+                        <button type="submit" class="button button-secondary">@T["Settings_NetworkAdd"]</button>
+                    </div>
+                    <span id="new-host-hint" class="hint">@T["Settings_NetworkAddHint"]</span>
+                </form>
+            </section>
+        </div>
     </div>
 </div>
 
 <div id="panel-ai" role="tabpanel" aria-labelledby="tab-ai" hidden="@(_tab != "ai")">
     <div class="columns">
         <div>
-        <section aria-labelledby="ai-heading">
-            <h2 id="ai-heading" class="department">@T["Settings_Ai"]</h2>
-            <p class="hint">@T["Settings_AiHint"]</p>
-            <form @onsubmit="SaveAiAsync">
-                <div class="field">
-                    <label class="checkbox"><input id="ai-enabled" type="checkbox" @bind="_aiEnabled" aria-describedby="ai-enabled-hint" /> @T["Settings_AiEnabled"]</label>
-                    <span id="ai-enabled-hint" class="hint">@T["Settings_AiEnabledHint"]</span>
-                </div>
-                <div class="inline-form field">
-                    <div class="row-main">
-                        <label class="label" for="ai-endpoint">@T["Settings_AiEndpoint"]</label>
-                        <input id="ai-endpoint" class="input" @bind="_aiEndpoint" placeholder="http://192.168.1.20:11434" aria-describedby="ai-endpoint-hint" />
-                        <span id="ai-endpoint-hint" class="hint">@T["Settings_AiEndpointHint"]</span>
-                    </div>
-                    <div>
-                        <label class="label" for="ai-model">@T["Settings_AiModel"]</label>
-                        <input id="ai-model" class="input" @bind="_aiModel" placeholder="qwen2.5:7b" />
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="ai-key">@T["Settings_AiKey"]</label>
-                    @* Never filled in from storage, like the mail password. *@
-                    <input id="ai-key" class="input" type="password" @bind="_aiKey" autocomplete="new-password" @attributes="PasswordManagers.Ignore" aria-describedby="ai-key-hint" />
-                    <span id="ai-key-hint" class="hint">@(_aiKeySaved ? T["Settings_AiKeySaved"] : T["Settings_AiKeyNone"])</span>
-                </div>
-                <div class="field">
-                    <label class="checkbox"><input id="ai-local" type="checkbox" @bind="_aiLocal" /> @T["Settings_AiLocal"]</label>
-                    <label class="checkbox"><input id="ai-summaries" type="checkbox" @bind="_aiSummaries" /> @T["Settings_AiSummaries"]</label>
-                </div>
-                <div class="field">
-                    <label for="ai-limit">@T["Settings_AiLimit"]</label>
-                    <input id="ai-limit" class="input input-short" type="number" min="1" step="1" @bind="_aiLimit" aria-describedby="ai-limit-hint" />
-                    <span id="ai-limit-hint" class="hint">@T["Settings_AiLimitHint"]</span>
-                </div>
-                <div class="field">
-                    <label for="ai-prompt">@T["Settings_AiPrompt"]</label>
-                    <textarea id="ai-prompt" class="input" rows="7" maxlength="@MorningInk.Infrastructure.Ai.AiSettingsStore.MaxPromptLength" @bind="_aiPrompt" aria-describedby="ai-prompt-hint"></textarea>
-                    <span id="ai-prompt-hint" class="hint">@T["Settings_AiPromptHint"]</span>
-                    @if (_aiPrompt?.Trim() != MorningInk.Infrastructure.Ai.AiSettingsStore.DefaultSummaryPrompt)
-                    {
-                        <div><button type="button" class="link-button" @onclick="RestorePrompt">@T["Settings_AiPromptRestore"]</button></div>
-                    }
-                </div>
-                <div class="row-actions">
-                    <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
-                    <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestAiAsync">@(_busy ? T["Settings_AiTesting"] : T["Settings_AiTest"])</button>
-                </div>
-            </form>
-        </section>        </div>
-        <div>
-        <section aria-labelledby="usage-heading">
-            <h2 id="usage-heading" class="department">@T["Settings_AiUsage"]</h2>
-            <p class="hint">@T["Settings_AiUsageHint"]</p>
-            @if (_usage is null || _usage.Providers.Count == 0)
-            {
-                <p class="muted">@T["Settings_AiUsageNone"]</p>
-            }
-            else
-            {
-                <p>@(_aiLimit is { } limit ? T["Settings_AiUsageDayLimit", _usage.Last24Hours, limit] : T[_usage.Last24Hours == 1 ? "Settings_AiUsageDayOne" : "Settings_AiUsageDay", _usage.Last24Hours])</p>
-                <dl class="facts">
-                    @foreach (var provider in _usage.Providers)
-                    {
-                        <div>
-                            <dt>@provider.Provider · @provider.Model <span class="badge @(provider.IsLocal ? "status-ok" : "status-warn")">@(provider.IsLocal ? T["Settings_AiUsageLocal"] : T["Settings_AiUsageCloud"])</span></dt>
-                            <dd>@T["Settings_AiUsageCalls", provider.Calls, provider.Characters.ToString("N0", CultureInfo.CurrentCulture)]</dd>
-                        </div>
-                    }
-                </dl>
-                <h3 class="subhead">@T["Settings_AiUsageRecent"]</h3>
-                <ul class="headline-list">
-                    @foreach (var call in _usage.Recent)
-                    {
-                        <li @key="call.Id">
-                            <a href="@call.ArticleUrl" rel="noopener noreferrer" target="_blank">@call.ArticleTitle</a>
-                            <div class="row-meta">
-                                @call.SourceName · @call.Provider · @call.At.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)@(call.Succeeded ? null : $" · {T["Settings_AiUsageFailed"]}")
-                            </div>
-                        </li>
-                    }
-                </ul>
-            }
-        </section>
+            <AiSettingsForm UserId="UserId" Cancellation="Closed" Finished="Show" />        </div>
+            <div>
+            <AiUsageView Cancellation="Closed" />
+            </div>
         </div>
     </div>
-</div>
 
-<div id="panel-news" role="tabpanel" aria-labelledby="tab-news" hidden="@(_tab != "news")">
-    <div class="columns">
-        <div>
-        <section aria-labelledby="news-heading">
-            <h2 id="news-heading" class="department">@T["Settings_News"]</h2>
-            <p class="hint">@T["Settings_NewsHint"]</p>
-            <form @onsubmit="SaveNewsAsync">
-                <div class="field">
-                    <label for="searxng-url">@T["Settings_SearxngUrl"]</label>
-                    <input id="searxng-url" class="input" @bind="_searxngUrl" placeholder="https://searx.example.com" readonly="@_searxngLocked" aria-describedby="searxng-hint" />
-                    <span id="searxng-hint" class="hint">@(_searxngLocked ? T["Settings_SearxngLocked"] : T["Settings_SearxngHint"])</span>
-                </div>
-                <div class="row-actions">
-                    @if (!_searxngLocked)
-                    {
-                        <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
-                    }
-                    <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestNewsAsync">@T["Settings_SearxngTest"]</button>
-                </div>
-                @if (_searxngRequest is not null)
+    <div id="panel-news" role="tabpanel" aria-labelledby="tab-news" hidden="@(_tab != "news")">
+        <div class="columns">
+            <div>
+            <NewsSearchForm UserId="UserId" Cancellation="Closed" Finished="Show" />        </div>
+            <div>
+            </div>
+        </div>
+    </div>
+
+    @code {
+        private List<string> _errors = [];
+        private string? _notice;
+        private bool _busy;
+
+        private string? _testRecipient;
+        private string? _newEntry;
+
+        private static readonly string[] Tabs = ["mail", "network", "ai", "news"];
+        private string _tab = "mail";
+
+        protected override async Task LoadAsync()
+        {
+            _testRecipient = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Recipient;
+        }
+
+        // A form of its own (AI, local news) is done: its message shows at the top like every other.
+        private void Show(FormOutcome outcome)
+        {
+            _notice = outcome.Notice;
+            _errors = [.. outcome.Errors ?? []];
+        }
+
+        private void MailSaved(IReadOnlyList<string> errors)
+        {
+            _errors = [.. errors];
+            _notice = errors.Count == 0 ? T["Settings_Saved"].Value : null;
+        }
+
+        private async Task SendTestAsync()
+        {
+            Clear();
+            var recipient = _testRecipient?.Trim() ?? string.Empty;
+            _busy = true;
+            try
+            {
+                var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+                switch (await UseAsync<TestMail, DeliveryResult>(mail => mail.SendAsync(recipient, language, Closed)))
                 {
-                    <p class="hint">@T["Settings_SearxngRequest"] <a href="@_searxngRequest" target="_blank" rel="noopener noreferrer">@_searxngRequest</a></p>
+                    case DeliveryResult.Failure failure:
+                        _errors = [T["Settings_TestFailed", DeliveryTexts.Describe(T, failure)]];
+                        break;
+                    default:
+                        _notice = T["Settings_TestSent", recipient];
+                        break;
                 }
-            </form>
-        </section>        </div>
-        <div>
-        </div>
-    </div>
-</div>
-
-@code {
-    private List<string> _errors = [];
-    private string? _notice;
-    private bool _busy;
-
-    private string? _testRecipient;
-    private string? _newEntry;
-
-    private static readonly string[] Tabs = ["mail", "network", "ai", "news"];
-    private string _tab = "mail";
-
-    // AI provider
-    private string? _aiEndpoint;
-    private string? _aiModel;
-    private string? _aiKey;
-    private bool _aiKeySaved;
-    private bool _aiLocal = true;
-    private bool _aiSummaries = true;
-    private bool _aiEnabled = true;
-    private int? _aiLimit;
-    private string? _aiPrompt;
-    private MorningInk.Infrastructure.Ai.AiUsageReport? _usage;
-
-    // Local news
-    private string? _searxngUrl;
-    private Uri? _searxngRequest;
-    private bool _searxngLocked;
-
-    protected override async Task LoadAsync()
-    {
-        _testRecipient = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Recipient;
-        await LoadAiAsync();
-        await LoadNewsAsync();
-    }
-
-    private async Task LoadNewsAsync()
-    {
-        _searxngUrl = await UseAsync<NewsSearchSettingsStore, string?>(store => store.SearxngUrlAsync(Closed));
-        _searxngLocked = await UseAsync<NewsSearchSettingsStore, bool>(store => Task.FromResult(store.IsLocked));
-    }
-
-    private async Task SaveNewsAsync()
-    {
-        Clear();
-        if (!await UseAsync<NewsSearchSettingsStore, bool>(store => store.SaveAsync(_searxngUrl, UserId, Closed)))
-        {
-            _errors = [T["Settings_Error_SearxngUrl"]];
-            return;
-        }
-
-        _notice = string.IsNullOrWhiteSpace(_searxngUrl) ? T["Settings_SearxngOff"] : T["Settings_Saved"];
-        await LoadNewsAsync();
-    }
-
-    // Tests what is saved, like the AI test: one search for a well-known place.
-    private async Task TestNewsAsync()
-    {
-        Clear();
-        _busy = true;
-        try
-        {
-            var term = T["Settings_SearxngTestTerm"].Value;
-            var test = await UseAsync<NewsSearchSettingsStore, (MorningInk.Application.Sources.SourceResult, Uri)?>(store => store.TestAsync(term, Closed));
-            _searxngRequest = test?.Item2;
-            switch (test?.Item1)
+            }
+            finally
             {
-                case null:
-                    _errors = [T["Settings_SearxngNotSet"]];
-                    break;
-                case MorningInk.Application.Sources.SourceResult.Failure failure:
-                    _errors = [T["Settings_SearxngFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)]];
-                    break;
-                case MorningInk.Application.Sources.SourceResult.Success success:
-                    _notice = T["Settings_SearxngWorks", success.Articles.Count, term];
-                    break;
+                _busy = false;
             }
         }
-        finally
+
+        private async Task AddHostAsync()
         {
-            _busy = false;
+            Clear();
+            if (!string.IsNullOrWhiteSpace(_newEntry))
+            {
+                await Allowlist.AddAsync(_newEntry, UserId, Closed);
+                _notice = T["Sources_Allowed", _newEntry.Trim().ToLowerInvariant()];
+                _newEntry = null;
+            }
         }
-    }
 
-    private async Task LoadAiAsync()
-    {
-        var ai = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, AiSettings>(store => store.LoadAsync(Closed));
-        _aiEndpoint = ai.Endpoint;
-        _aiModel = ai.Model;
-        _aiKey = null;
-        _aiKeySaved = ai.ApiKey is not null;
-        _aiLocal = ai.IsLocal;
-        _aiSummaries = ai.Summaries;
-        _aiEnabled = ai.Enabled;
-        _aiLimit = ai.DailyLimit;
-        _aiPrompt = ai.SummaryPrompt ?? MorningInk.Infrastructure.Ai.AiSettingsStore.DefaultSummaryPrompt;
-        _usage = await UseAsync<MorningInk.Infrastructure.Ai.AiUsage, MorningInk.Infrastructure.Ai.AiUsageReport>(usage => usage.ReportAsync(Closed));
-    }
-
-    // Back to the versioned default; saved as "no own prompt", so later improvements to it arrive.
-    private void RestorePrompt() => _aiPrompt = MorningInk.Infrastructure.Ai.AiSettingsStore.DefaultSummaryPrompt;
-
-    private async Task SaveAiAsync()
-    {
-        Clear();
-        var input = new MorningInk.Infrastructure.Ai.AiSettingsInput(_aiEndpoint, _aiModel, _aiKey, _aiLocal, _aiSummaries, _aiEnabled, _aiLimit, _aiPrompt);
-        var errors = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Closed));
-        _errors = errors.Select(field => T[$"Settings_Error_Ai{field}"].Value).ToList();
-        if (_errors.Count == 0)
+        private async Task RemoveHostAsync(string entry)
         {
+            Clear();
+            await Allowlist.RemoveAsync(entry, Closed);
             _notice = T["Settings_Saved"];
-            await LoadAiAsync();
         }
-    }
 
-    // Tests what is saved, so a test right after typing asks the user to save first.
-    private async Task TestAiAsync()
-    {
-        Clear();
-        _busy = true;
-        try
+        private void Clear()
         {
-            var ai = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, AiSettings>(store => store.LoadAsync(Closed));
-            if (ai.Endpoint is null)
-            {
-                _errors = [T["Settings_AiNotSet"]];
-                return;
-            }
-
-            var problem = await AiChat.TestAsync(ai, Closed);
-            if (problem is null)
-            {
-                _notice = T["Settings_AiWorks", ai.Model ?? string.Empty];
-            }
-            else
-            {
-                _errors = [T["Settings_AiFailed", problem]];
-            }
-        }
-        finally
-        {
-            _busy = false;
+            _notice = null;
+            _errors = [];
         }
     }
-
-    private void MailSaved(IReadOnlyList<string> errors)
-    {
-        _errors = [.. errors];
-        _notice = errors.Count == 0 ? T["Settings_Saved"].Value : null;
-    }
-
-    private async Task SendTestAsync()
-    {
-        Clear();
-        var recipient = _testRecipient?.Trim() ?? string.Empty;
-        _busy = true;
-        try
-        {
-            var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-            switch (await UseAsync<TestMail, DeliveryResult>(mail => mail.SendAsync(recipient, language, Closed)))
-            {
-                case DeliveryResult.Failure failure:
-                    _errors = [T["Settings_TestFailed", DeliveryTexts.Describe(T, failure)]];
-                    break;
-                default:
-                    _notice = T["Settings_TestSent", recipient];
-                    break;
-            }
-        }
-        finally
-        {
-            _busy = false;
-        }
-    }
-
-    private async Task AddHostAsync()
-    {
-        Clear();
-        if (!string.IsNullOrWhiteSpace(_newEntry))
-        {
-            await Allowlist.AddAsync(_newEntry, UserId, Closed);
-            _notice = T["Sources_Allowed", _newEntry.Trim().ToLowerInvariant()];
-            _newEntry = null;
-        }
-    }
-
-    private async Task RemoveHostAsync(string entry)
-    {
-        Clear();
-        await Allowlist.RemoveAsync(entry, Closed);
-        _notice = T["Settings_Saved"];
-    }
-
-    private void Clear()
-    {
-        _notice = null;
-        _errors = [];
-    }
-}
