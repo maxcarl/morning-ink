@@ -217,7 +217,7 @@
         }
 
         // Ids that are not the user's own sources are dropped by the editor.
-        if (!await Scopes.RunAsync<ProfileEditor, bool>(editor => editor.SaveSectionAsync(UserId, id, _name, limit, [.. _picked], Cancellation)))
+        if (!await Scopes.RunAsync<SectionEditor, bool>(editor => editor.SaveSectionAsync(UserId, id, _name, limit, [.. _picked], Cancellation)))
         {
             await Finished.InvokeAsync(FormOutcome.Failed(T["Profile_SectionInvalid"]));
             return;
@@ -240,13 +240,13 @@
 
     private async Task MoveAsync(Guid id, int index)
     {
-        await Scopes.RunAsync<ProfileEditor, bool>(editor => editor.MoveSectionAsync(UserId, id, index, Cancellation));
+        await Scopes.RunAsync<SectionEditor, bool>(editor => editor.MoveSectionAsync(UserId, id, index, Cancellation));
         await Finished.InvokeAsync(new FormOutcome(null));
     }
 
     private async Task DeleteAsync(Guid id)
     {
-        await Scopes.RunAsync<ProfileEditor, bool>(editor => editor.DeleteSectionAsync(UserId, id, Cancellation));
+        await Scopes.RunAsync<SectionEditor, bool>(editor => editor.DeleteSectionAsync(UserId, id, Cancellation));
         _confirmId = null;
         _openId = null;
         await Finished.InvokeAsync(new FormOutcome(T["Profile_Saved"]));
@@ -259,7 +259,7 @@
             return;
         }
 
-        if (!await Scopes.RunAsync<ProfileEditor, bool>(editor => editor.AddSectionAsync(UserId, profile.Id, _newSection, Cancellation)))
+        if (!await Scopes.RunAsync<SectionEditor, bool>(editor => editor.AddSectionAsync(UserId, profile.Id, _newSection, Cancellation)))
         {
             await Finished.InvokeAsync(FormOutcome.Failed(T["Profile_SectionInvalid"]));
             return;

@@ -78,11 +78,11 @@ public sealed class ProfileEditorTests : IDisposable
         var user = await CreateUserAsync(services, "max");
         var feed = await CreateSourceAsync(services, user, "heise");
 
-        await EditAsync(services, async e => await e.AddSectionAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, "Technik", CancellationToken.None));
-        await EditAsync(services, async e => await e.AddSectionAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, "Politik", CancellationToken.None));
+        await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), "Technik", CancellationToken.None));
+        await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), "Politik", CancellationToken.None));
         var tech = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single(s => s.Name == "Technik");
-        await EditAsync(services, e => e.SaveSectionAsync(user, tech.Id, "Tech", 5, [feed], CancellationToken.None));
-        await EditAsync(services, e => e.MoveSectionAsync(user, tech.Id, 1, CancellationToken.None));
+        await SectionsAsync(services, e => e.SaveSectionAsync(user, tech.Id, "Tech", 5, [feed], CancellationToken.None));
+        await SectionsAsync(services, e => e.MoveSectionAsync(user, tech.Id, 1, CancellationToken.None));
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
         Assert.Equal(["Politik", "Tech"], profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
@@ -102,11 +102,11 @@ public sealed class ProfileEditorTests : IDisposable
         var user = await CreateUserAsync(services, "max");
         foreach (var section in new[] { "A", "B", "C" })
         {
-            await EditAsync(services, async e => await e.AddSectionAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, section, CancellationToken.None));
+            await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), section, CancellationToken.None));
         }
 
         var id = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single(s => s.Name == name).Id;
-        await EditAsync(services, e => e.MoveSectionAsync(user, id, index, CancellationToken.None));
+        await SectionsAsync(services, e => e.MoveSectionAsync(user, id, index, CancellationToken.None));
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
         Assert.Equal(expected, profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
@@ -259,7 +259,7 @@ public sealed class ProfileEditorTests : IDisposable
         var alicesSecond = await EditAsync(services, e => e.CreateAsync(alice, "Abend", CancellationToken.None));
 
         var saved = await EditAsync(services, e => e.SaveSettingsAsync(bob, alicesSecond.Id, new ProfileSettings("Bob", "bob@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None));
-        var added = await EditAsync(services, e => e.AddSectionAsync(bob, alicesSecond.Id, "Bob", CancellationToken.None));
+        var added = await SectionsAsync(services, e => e.AddSectionAsync(bob, alicesSecond.Id, "Bob", CancellationToken.None));
         var deleted = await EditAsync(services, e => e.DeleteAsync(bob, alicesSecond.Id, CancellationToken.None));
 
         Assert.Contains("Profile", saved);
@@ -275,11 +275,11 @@ public sealed class ProfileEditorTests : IDisposable
         var alice = await CreateUserAsync(services, "alice");
         var bob = await CreateUserAsync(services, "bob");
         var bobsFeed = await CreateSourceAsync(services, bob, "bob's feed");
-        await EditAsync(services, async e => await e.AddSectionAsync(alice, (await e.GetOrCreateAsync(alice, CancellationToken.None)).Id, "News", CancellationToken.None));
+        await SectionsAsync(services, async e => await e.AddSectionAsync(alice, await ProfileIdAsync(services, alice), "News", CancellationToken.None));
         var section = (await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None))).Sections.Single();
 
-        await EditAsync(services, e => e.SaveSectionAsync(alice, section.Id, "News", null, [bobsFeed], CancellationToken.None));
-        var bobDeletes = await EditAsync(services, e => e.DeleteSectionAsync(bob, section.Id, CancellationToken.None));
+        await SectionsAsync(services, e => e.SaveSectionAsync(alice, section.Id, "News", null, [bobsFeed], CancellationToken.None));
+        var bobDeletes = await SectionsAsync(services, e => e.DeleteSectionAsync(bob, section.Id, CancellationToken.None));
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None));
         Assert.Empty(profile.Sections.Single().Sources);
@@ -293,6 +293,15 @@ public sealed class ProfileEditorTests : IDisposable
         await using var scope = services.CreateAsyncScope();
         return await action(scope.ServiceProvider.GetRequiredService<ProfileEditor>());
     }
+
+    private static async Task<T> SectionsAsync<T>(IServiceProvider services, Func<SectionEditor, Task<T>> action)
+    {
+        await using var scope = services.CreateAsyncScope();
+        return await action(scope.ServiceProvider.GetRequiredService<SectionEditor>());
+    }
+
+    private static Task<Guid> ProfileIdAsync(IServiceProvider services, Guid user) =>
+        EditAsync(services, async e => (await e.GetOrCreateAsync(user, CancellationToken.None)).Id);
 
     // An issue with a file of its own, as the publisher leaves it behind.
     private static async Task<string> AddIssueWithFileAsync(IServiceProvider services, Guid profileId)

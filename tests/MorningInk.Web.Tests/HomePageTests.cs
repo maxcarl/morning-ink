@@ -57,7 +57,7 @@ public sealed class HomePageTests : IDisposable
             var userId = await UserIdAsync(scope);
             var profileId = (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id;
             await editor.SaveSettingsAsync(userId, profileId, new ProfileSettings("Morning Ink", string.Empty, "06:00", "Europe/Berlin", null, SendByEmail: false), CancellationToken.None);
-            await editor.AddSectionAsync(userId, profileId, "Politik", CancellationToken.None);
+            await scope.ServiceProvider.GetRequiredService<SectionEditor>().AddSectionAsync(userId, profileId, "Politik", CancellationToken.None);
         }
 
         var page = pages.Open<Home>("Next issue");
@@ -78,7 +78,7 @@ public sealed class HomePageTests : IDisposable
             var editor = scope.ServiceProvider.GetRequiredService<ProfileEditor>();
             var userId = await UserIdAsync(scope);
             await editor.SaveSettingsAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None);
-            await editor.AddSectionAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, "Politik", CancellationToken.None);
+            await scope.ServiceProvider.GetRequiredService<SectionEditor>().AddSectionAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, "Politik", CancellationToken.None);
         }
 
         var page = pages.Open<Home>("Next issue");

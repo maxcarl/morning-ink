@@ -102,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<SourceCatalog>();
         services.AddScoped<ConnectedSources>();
         services.AddScoped<Profiles.ProfileEditor>();
+        services.AddScoped<Profiles.SectionEditor>();
         services.AddScoped<Profiles.Newsroom>();
         services.AddScoped<Profiles.IssueStatistics>();
         services.AddScoped<Profiles.Onboarding>();

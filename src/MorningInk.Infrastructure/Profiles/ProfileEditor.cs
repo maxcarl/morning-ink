@@ -34,15 +34,15 @@ public sealed record ProfileSettings(
 public sealed record NotificationSettings(NotificationChannel Channel, string? Target, string? Secret);
 
 /// <summary>
-/// Edits a user's issue profiles ("editions", e.g. morning and evening) and their sections. Every method only reaches the
-/// given user's profiles, and sections only ever get that user's sources. Schedule changes take effect with the next issue.
+/// Edits a user's issue profiles ("editions", e.g. morning and evening): settings, interests, notification. Every method
+/// only reaches the given user's profiles. Schedule changes take effect with the next issue. Sections are edited by
+/// <see cref="SectionEditor"/>.
 /// </summary>
 public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFactory schedulers, IssueScheduler issueScheduler, IIssueFiles files)
 {
     private const string DefaultTitle = "Morning Ink";
-    private const int MaxNameLength = 200;
+    internal const int MaxNameLength = 200;
     private const int MaxRegionLength = 100;
-    private const int MaxSectionArticles = 100;
     private const string TimeFormat = "HH:mm";
     private static readonly TimeSpan MaxLeadTime = TimeSpan.FromHours(12);
     private const int MaxInterests = 30;
@@ -172,13 +172,12 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
             errors.Add("Profile");
         }
 
-        if (errors.Count > 0)
+        if (errors.Count > 0 || profile is null)
         {
             return errors;
         }
 
-        // ! is safe: a missing profile returned above
-        profile!.Title = title;
+        profile.Title = title;
         profile.Recipient = recipient;
         profile.SendByEmail = settings.SendByEmail;
         profile.DeliveryTime = time;
@@ -255,84 +254,8 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         return [];
     }
 
-    public async Task<bool> AddSectionAsync(Guid userId, Guid profileId, string name, CancellationToken cancellationToken)
-    {
-        name = name.Trim();
-        if (name.Length is 0 or > MaxNameLength || await FindAsync(userId, profileId, cancellationToken) is not { } profile)
-        {
-            return false;
-        }
-
-        var position = profile.Sections.Select(s => s.Position).DefaultIfEmpty(0).Max() + 1;
-        profile.Sections.Add(new Section { Name = name, Position = position });
-        await db.SaveChangesAsync(cancellationToken);
-        return true;
-    }
-
-    /// <param name="sourceIds">Sources to put into the section; ids that are not the user's own are ignored.</param>
-    public async Task<bool> SaveSectionAsync(Guid userId, Guid sectionId, string name, int? maxArticles, IReadOnlyCollection<Guid> sourceIds, CancellationToken cancellationToken)
-    {
-        name = name.Trim();
-        var section = (await OwnerOfSectionAsync(userId, sectionId, cancellationToken))?.Sections.Single(s => s.Id == sectionId);
-        if (section is null || name.Length is 0 or > MaxNameLength || maxArticles is < 1 or > MaxSectionArticles)
-        {
-            return false;
-        }
-
-        // Only the user's own sources, whatever the form sent.
-        var ids = sourceIds.ToList();
-        var sources = await db.Sources.Where(s => s.UserId == userId && ids.Contains(s.Id)).ToListAsync(cancellationToken);
-        section.Name = name;
-        section.MaxArticles = maxArticles;
-        section.Sources.Clear();
-        sources.ForEach(section.Sources.Add);
-        await db.SaveChangesAsync(cancellationToken);
-        return true;
-    }
-
-    public async Task<bool> DeleteSectionAsync(Guid userId, Guid sectionId, CancellationToken cancellationToken)
-    {
-        if (await OwnerOfSectionAsync(userId, sectionId, cancellationToken) is not { } profile)
-        {
-            return false;
-        }
-
-        profile.Sections.Remove(profile.Sections.Single(s => s.Id == sectionId));
-        await db.SaveChangesAsync(cancellationToken);
-        return true;
-    }
-
-    /// <summary>Moves the section to the given place in the order (0 is the top), e.g. after drag and drop.</summary>
-    /// <remarks>An index outside the list puts it first or last, so a stale page can never lose a section.</remarks>
-    public async Task<bool> MoveSectionAsync(Guid userId, Guid sectionId, int index, CancellationToken cancellationToken)
-    {
-        if (await OwnerOfSectionAsync(userId, sectionId, cancellationToken) is not { } profile)
-        {
-            return false;
-        }
-
-        var ordered = profile.Sections.OrderBy(s => s.Position).ToList();
-        var section = ordered.Single(s => s.Id == sectionId);
-
-        ordered.Remove(section);
-        ordered.Insert(Math.Clamp(index, 0, ordered.Count), section);
-
-        // Renumbered from 1, so positions stay dense whatever happened before.
-        for (var i = 0; i < ordered.Count; i++)
-        {
-            ordered[i].Position = i + 1;
-        }
-
-        await db.SaveChangesAsync(cancellationToken);
-        return true;
-    }
-
-    private IQueryable<Profile> Query(Guid userId) =>
+    internal IQueryable<Profile> Query(Guid userId) =>
         db.Profiles.Where(p => p.UserId == userId).Include(p => p.Sections).ThenInclude(s => s.Sources).AsSplitQuery();
-
-    // The user's profile that holds the section; null when no profile of theirs does.
-    private Task<Profile?> OwnerOfSectionAsync(Guid userId, Guid sectionId, CancellationToken cancellationToken) =>
-        Query(userId).SingleOrDefaultAsync(p => p.Sections.Any(s => s.Id == sectionId), cancellationToken);
 
     private static bool IsValidTarget(NotificationChannel channel, string target) => channel switch
     {

@@ -12,7 +12,7 @@ public sealed record LocalStarter(string Name, string Place, string? Country, st
 
 /// <summary>Adds the sources picked in the setup wizard and puts them into sections, one per topic.</summary>
 /// <remarks>Safe to run again: sources the user already has and sections that already exist are reused.</remarks>
-public sealed class Onboarding(SourceCatalog catalog, ProfileEditor profiles)
+public sealed class Onboarding(SourceCatalog catalog, ProfileEditor profiles, SectionEditor sections)
 {
     public async Task AddStartersAsync(Guid userId, StarterChoice choice, CancellationToken cancellationToken)
     {
@@ -37,7 +37,7 @@ public sealed class Onboarding(SourceCatalog catalog, ProfileEditor profiles)
         {
             var section = await FindOrAddSectionAsync(userId, name, cancellationToken);
             var all = section.Sources.Select(s => s.Id).Union(sourceIds).ToList();
-            await profiles.SaveSectionAsync(userId, section.Id, section.Name, section.MaxArticles, all, cancellationToken);
+            await sections.SaveSectionAsync(userId, section.Id, section.Name, section.MaxArticles, all, cancellationToken);
         }
     }
 
@@ -67,7 +67,7 @@ public sealed class Onboarding(SourceCatalog catalog, ProfileEditor profiles)
             return section;
         }
 
-        await profiles.AddSectionAsync(userId, profile.Id, name, cancellationToken);
+        await sections.AddSectionAsync(userId, profile.Id, name, cancellationToken);
         return (await profiles.GetOrCreateAsync(userId, cancellationToken)).Sections.Single(s => s.Name == name);
     }
 }
