@@ -566,10 +566,10 @@
     }
 
     // A form of its own (FreshRSS, newsletter) is done: its message replaces the last one, and an added source shows.
-    private async Task FinishedAsync(AddOutcome outcome)
+    private async Task FinishedAsync(FormOutcome outcome)
     {
         _notice = outcome.Notice;
-        _error = outcome.Error;
+        _error = outcome.Errors?.FirstOrDefault();
         _blockedHost = outcome.BlockedHost;
         if (outcome.Notice is not null)
         {

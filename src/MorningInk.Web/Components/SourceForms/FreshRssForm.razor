@@ -57,7 +57,7 @@
     public CancellationToken Cancellation { get; set; }
 
     [Parameter]
-    public EventCallback<AddOutcome> Finished { get; set; }
+    public EventCallback<FormOutcome> Finished { get; set; }
 
     private async Task ConnectAsync()
     {
@@ -69,11 +69,11 @@
         if (connection is FreshRssConnection.Connected connected)
         {
             _connected = connected;
-            await Finished.InvokeAsync(new AddOutcome(null));
+            await Finished.InvokeAsync(new FormOutcome(null));
         }
         else if (connection is FreshRssConnection.Failed { Failure: var failure })
         {
-            await Finished.InvokeAsync(AddOutcome.Failed(T["Sources_FreshRssFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)], failure.BlockedHost));
+            await Finished.InvokeAsync(FormOutcome.Failed(T["Sources_FreshRssFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)], failure.BlockedHost));
         }
     }
 
@@ -101,6 +101,6 @@
         _connected = null;
         _picked = [];
         _password = string.Empty;
-        await Finished.InvokeAsync(new AddOutcome(T["Sources_FreshRssAdded", added.Count]));
+        await Finished.InvokeAsync(new FormOutcome(T["Sources_FreshRssAdded", added.Count]));
     }
 }

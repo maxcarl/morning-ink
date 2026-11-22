@@ -58,7 +58,7 @@
     public CancellationToken Cancellation { get; set; }
 
     [Parameter]
-    public EventCallback<AddOutcome> Finished { get; set; }
+    public EventCallback<FormOutcome> Finished { get; set; }
 
     private async Task AddAsync()
     {
@@ -68,7 +68,7 @@
         _busy = false;
         if (failure is not null)
         {
-            await Finished.InvokeAsync(AddOutcome.Failed(T["Sources_NewsletterFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)], failure.BlockedHost));
+            await Finished.InvokeAsync(FormOutcome.Failed(T["Sources_NewsletterFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)], failure.BlockedHost));
             return;
         }
 
@@ -76,6 +76,6 @@
         _password = string.Empty;
         _sender = null;
         _name = null;
-        await Finished.InvokeAsync(new AddOutcome(T["Sources_Added"]));
+        await Finished.InvokeAsync(new FormOutcome(T["Sources_Added"]));
     }
 }
