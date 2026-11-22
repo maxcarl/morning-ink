@@ -236,11 +236,21 @@
         var until = Time.GetUtcNow() + PollFor;
         try
         {
+            // Only the status is asked each time; the whole page is loaded again when it changes.
+            IssueStatus? shown = null;
             while (Time.GetUtcNow() < until && await timer.WaitForNextTickAsync(Closed))
             {
+                var status = await UseAsync<Newsroom, IssueStatus?>(newsroom => newsroom.LatestStatusAsync(UserId, since, Closed));
+                if (status == shown)
+                {
+                    continue;
+                }
+
+                shown = status;
                 await ReloadAsync();
                 StateHasChanged();
-                if (_view?.Issues.FirstOrDefault() is { } latest && latest.CreatedAt >= since && latest.Status is not IssueStatus.Building)
+                // Rendered comes between building and sending: done only once delivered, failed or empty.
+                if (status is IssueStatus.Delivered or IssueStatus.Failed or IssueStatus.Empty)
                 {
                     break;
                 }

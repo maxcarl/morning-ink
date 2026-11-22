@@ -75,6 +75,17 @@ public sealed class Newsroom(
         return new NewsroomView(editions, recent, mailServerSet, ailing);
     }
 
+    /// <summary>
+    /// The status of the user's newest issue created since the given time; null while none is there yet. Cheap enough
+    /// to ask every few seconds while the page follows an issue it started.
+    /// </summary>
+    public async Task<IssueStatus?> LatestStatusAsync(Guid userId, DateTimeOffset since, CancellationToken cancellationToken) =>
+        await db.Issues.AsNoTracking()
+            .Where(i => i.CreatedAt >= since && db.Profiles.Any(p => p.Id == i.ProfileId && p.UserId == userId))
+            .OrderByDescending(i => i.CreatedAt)
+            .Select(i => (IssueStatus?)i.Status)
+            .FirstOrDefaultAsync(cancellationToken);
+
     /// <summary>Starts building and sending an issue of the profile in the background; it then shows up in <see cref="LoadAsync"/>.</summary>
     /// <returns>False when the profile is not the user's or cannot be sent yet, see <see cref="Edition.CanSend"/>.</returns>
     public async Task<bool> SendNowAsync(Guid userId, Guid profileId, CancellationToken cancellationToken)
