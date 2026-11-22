@@ -71,13 +71,34 @@ public sealed class ProfileEditorTests : IDisposable
         await EditAsync(services, e => e.AddSectionAsync(user, "Politik", CancellationToken.None));
         var tech = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single(s => s.Name == "Technik");
         await EditAsync(services, e => e.SaveSectionAsync(user, tech.Id, "Tech", 5, [feed], CancellationToken.None));
-        await EditAsync(services, e => e.MoveSectionAsync(user, tech.Id, up: false, CancellationToken.None));
+        await EditAsync(services, e => e.MoveSectionAsync(user, tech.Id, 1, CancellationToken.None));
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
         Assert.Equal(["Politik", "Tech"], profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
         var saved = profile.Sections.Single(s => s.Name == "Tech");
         Assert.Equal(5, saved.MaxArticles);
         Assert.Equal("heise", Assert.Single(saved.Sources).Name);
+    }
+
+    [Theory]
+    [InlineData("C", 0, new[] { "C", "A", "B" })] // dragged to the top
+    [InlineData("A", 2, new[] { "B", "C", "A" })] // dragged to the bottom
+    [InlineData("A", 9, new[] { "B", "C", "A" })] // beyond the end: last
+    [InlineData("B", -1, new[] { "B", "A", "C" })] // before the start: first
+    public async Task Section_moves_to_any_position(string name, int index, string[] expected)
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max");
+        foreach (var section in new[] { "A", "B", "C" })
+        {
+            await EditAsync(services, e => e.AddSectionAsync(user, section, CancellationToken.None));
+        }
+
+        var id = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single(s => s.Name == name).Id;
+        await EditAsync(services, e => e.MoveSectionAsync(user, id, index, CancellationToken.None));
+
+        var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
+        Assert.Equal(expected, profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
     }
 
     [Fact]

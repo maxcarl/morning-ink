@@ -14,12 +14,14 @@ public static class WebUi
     private static readonly string[] Cultures = ["en", "de"];
 
     // Only what the app itself serves; no inline scripts, no foreign origins, no framing by other sites.
+    // 'self' in connect-src (via default-src) also covers the WebSocket of interactive pages on the same host.
     private const string ContentSecurityPolicy =
         "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'";
 
     public static IServiceCollection AddWebUi(this IServiceCollection services)
     {
-        services.AddRazorComponents();
+        services.AddRazorComponents().AddInteractiveServerComponents();
+        services.AddSingleton<ActionScopes>();
         services.AddCascadingAuthenticationState();
         services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -62,7 +64,9 @@ public static class WebUi
 
         // The app's own CSS: needed by the login page, holds no user data.
         app.MapStaticAssets().AllowAnonymous();
-        app.MapRazorComponents<App>();
+        // Interactive server pages talk over a WebSocket at /_blazor; it falls under the fallback policy, so only signed-in users get one.
+        // Our own policy already forbids framing (frame-ancestors 'none'); Blazor would add a second, laxer header.
+        app.MapRazorComponents<App>().AddInteractiveServerRenderMode(options => options.ContentSecurityFrameAncestorsPolicy = null);
         app.MapHealthChecks("/health").AllowAnonymous();
         app.MapThemeSwitch();
         app.MapPost("/logout", async (HttpContext context, IAntiforgery antiforgery, SignInManager<AppUser> signIn) =>

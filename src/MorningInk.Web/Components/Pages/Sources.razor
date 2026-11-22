@@ -1,13 +1,12 @@
 @page "/sources"
+@rendermode InteractiveServer
+@inherits InteractivePage
 @using MorningInk.Application.Sources
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Http
+@using MorningInk.Infrastructure.Profiles
 @using MorningInk.Infrastructure.Sources
-@inject SourceCatalog Catalog
-@inject FeedDiscovery Discovery
 @inject HostAllowlist Allowlist
-@inject NavigationManager Navigation
-@inject MorningInk.Infrastructure.Profiles.ProfileEditor Profiles
 
 <PageTitle>@T["Sources_Title"] – @T["Brand"]</PageTitle>
 
@@ -31,12 +30,7 @@
             @if (IsAdmin)
             {
                 <p>@T["Sources_AllowHint"]</p>
-                <form method="post" @formname="allow" @onsubmit="AllowAsync">
-                    <AntiforgeryToken />
-                    <input type="hidden" name="Host" value="@_blockedHost" />
-                    <input type="hidden" name="RetryUrl" value="@_lastUrl" />
-                    <button type="submit" class="button">@T["Sources_AllowHost", _blockedHost]</button>
-                </form>
+                <button type="button" class="button" disabled="@_busy" @onclick="AllowAsync">@T["Sources_AllowHost", _blockedHost]</button>
             }
             else
             {
@@ -44,12 +38,11 @@
             }
         </div>
     }
-
 </header>
 
 <div class="with-sidebar">
     <div>
-        @* While adding, the search and its results stand on top, where the page opens after the POST. *@
+        @* While adding, the search and its results stand on top, where the user is looking. *@
         @if (Adding)
         {
             @AddSection
@@ -61,7 +54,7 @@
             <ul class="rows">
                 @foreach (var source in group)
                 {
-                    <li class="row @(source.Id == _selectedId ? "row-selected" : null)">
+                    <li class="row @(source.Id == _selectedId ? "row-selected" : null)" @key="source.Id">
                         <div class="row-main">
                             <div class="row-title">@source.Name</div>
                             <div class="row-meta">@Describe(source)</div>
@@ -70,23 +63,21 @@
                         {
                             <span class="tag">@T["Sources_FullTextFact"]</span>
                         }
-                        @* A form name per row: Blazor needs it unique, and the handler knows the source from it. *@
-                        <form method="post" @formname="@($"row-{source.Id}")" @onsubmit="() => RowAsync(source.Id)" class="row-actions">
-                            <AntiforgeryToken />
+                        <div class="row-actions">
                             @if (source.Id == _confirmId)
                             {
-                                @* Deleting also drops the source from every section: ask once, without script. *@
+                                @* Deleting also drops the source from every section: ask once. *@
                                 <p class="confirm" role="alert">@T["Confirm_Delete", source.Name]</p>
-                                <button type="submit" name="RowAction" value="confirm-delete" class="button button-small">@T["Confirm_Yes"]</button>
-                                <a href="/sources" class="link-button">@T["Confirm_Cancel"]</a>
+                                <button type="button" class="button button-small" disabled="@_busy" @onclick="() => DeleteAsync(source.Id)">@T["Confirm_Yes"]</button>
+                                <button type="button" class="link-button" @onclick="() => _confirmId = null">@T["Confirm_Cancel"]</button>
                             }
                             else
                             {
                                 @* The hidden name tells screen readers which of the many "Test" buttons this is. *@
-                                <button type="submit" name="RowAction" value="test" class="button button-secondary button-small">@T["Sources_Test"]<span class="visually-hidden"> – @source.Name</span></button>
-                                <button type="submit" name="RowAction" value="delete" class="link-button link-danger">@T["Sources_Delete"]<span class="visually-hidden"> – @source.Name</span></button>
+                                <button type="button" class="button button-secondary button-small" disabled="@_busy" @onclick="() => TestAsync(source)">@T["Sources_Test"]<span class="visually-hidden"> – @source.Name</span></button>
+                                <button type="button" class="link-button link-danger" @onclick="() => _confirmId = source.Id">@T["Sources_Delete"]<span class="visually-hidden"> – @source.Name</span></button>
                             }
-                        </form>
+                        </div>
                     </li>
                 }
             </ul>
@@ -103,11 +94,11 @@
         }
     </div>
 
-    <aside class="sidebar" aria-labelledby="preview-label">
+    <aside class="sidebar" aria-labelledby="preview-label" aria-live="polite">
         <span id="preview-label" class="label muted">@T["Sources_Preview"]</span>
         @if (_preview is null)
         {
-            <p class="muted">@T["Sources_PreviewHint"]</p>
+            <p class="muted">@(_busy ? T["Sources_Loading"] : T["Sources_PreviewHint"])</p>
         }
         else
         {
@@ -130,7 +121,7 @@
                         @foreach (var article in success.Articles.Take(PreviewArticles))
                         {
                             <li>
-                                <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer">@article.Title</a>
+                                <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer" target="_blank">@article.Title</a>
                                 <div class="row-meta">@string.Join(" · ", new[] { article.Author, article.PublishedAt?.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture) }.Where(s => !string.IsNullOrEmpty(s)))</div>
                             </li>
                         }
@@ -150,17 +141,35 @@
 @code {
     private const int PreviewArticles = 5;
 
+    private List<Source> _sources = [];
+    private IReadOnlyList<FeedCandidate>? _found;
+    private Source? _preview;
+    private SourceResult? _previewResult;
+    private Guid? _selectedId;
+    private Guid? _confirmId;
+    private string? _notice;
+    private string? _error;
+    private string? _blockedHost;
+    private bool _busy;
+
+    // Form fields
+    private string _url = string.Empty;
+    private string? _feedUrl;
+    private string _feedName = string.Empty;
+    private bool _fullText = true;
+    private string _place = string.Empty;
+    private string? _country;
+
     private bool Adding => _found is not null || _blockedHost is not null || _error is not null;
 
     private RenderFragment AddSection => __builder =>
     {
         <h2 class="department">@T["Sources_AddHeading"]</h2>
-        <form method="post" @formname="discover" @onsubmit="DiscoverAsync" class="field">
-            <AntiforgeryToken />
+        <form @onsubmit="DiscoverAsync" class="field">
             <label class="label" for="url">@T["Sources_NewLabel"]</label>
             <div class="inline-form">
-                <input id="url" name="Url" class="input" type="text" inputmode="url" value="@_lastUrl" placeholder="https://www.example.com" aria-describedby="url-hint" required />
-                <button type="submit" class="button">@T["Sources_Find"]</button>
+                <input id="url" class="input" type="text" inputmode="url" @bind="_url" placeholder="https://www.example.com" aria-describedby="url-hint" required />
+                <button type="submit" class="button" disabled="@_busy">@(_busy ? T["Sources_Searching"] : T["Sources_Find"])</button>
             </div>
             <span id="url-hint" class="hint">@T["Sources_UrlHint"]</span>
         </form>
@@ -172,136 +181,66 @@
             {
                 <p class="row muted">@T["Sources_NoneFound"]</p>
             }
-            @if (_found.Count > 0)
+            else
             {
-                @* One form for all feeds found: pick one, name it, add it. *@
-                <form method="post" @formname="add" @onsubmit="AddFeedAsync">
-                    <AntiforgeryToken />
+                @* Pick one of the feeds found, name it, add it. *@
+                <form @onsubmit="AddFeedAsync">
                     <fieldset class="rows">
                         <legend class="visually-hidden">@T["Sources_Found"]</legend>
-                        @for (var i = 0; i < _found.Count; i++)
+                        @foreach (var feed in _found)
                         {
-                            var feed = _found[i];
-                            <label class="row checkbox">
-                                <input type="radio" name="FeedUrl" value="@feed.Url.AbsoluteUri" checked="@(i == 0)" />
+                            <label class="row checkbox" @key="feed.Url">
+                                <input type="radio" name="feed" checked="@(feed.Url.AbsoluteUri == _feedUrl)" @onchange="() => PickAsync(feed)" />
                                 <span class="row-main"><span class="row-title">@feed.Title</span><span class="row-meta"> · @feed.Url.AbsoluteUri</span></span>
                             </label>
                         }
                     </fieldset>
                     <div class="inline-form field">
                         <label class="visually-hidden" for="feed-name">@T["Sources_Name"]</label>
-                        <input id="feed-name" name="Name" class="input" value="@_found[0].Title" required />
-                        <label class="checkbox"><input type="checkbox" name="FullText" value="true" checked /> @T["Sources_FullText"]</label>
-                        <button type="submit" class="button">@T["Sources_Add"]</button>
+                        <input id="feed-name" class="input" @bind="_feedName" required />
+                        <label class="checkbox"><input type="checkbox" @bind="_fullText" /> @T["Sources_FullText"]</label>
+                        <button type="submit" class="button" disabled="@_busy">@T["Sources_Add"]</button>
                     </div>
                 </form>
             }
         }
 
-        <form method="post" @formname="local" @onsubmit="AddLocalAsync" class="field">
-            <AntiforgeryToken />
+        <form @onsubmit="AddLocalAsync" class="field">
             <label class="label" for="place">@T["Sources_LocalLabel"]</label>
             <div class="inline-form">
-                <input id="place" name="Place" class="input" type="text" placeholder="52062" aria-describedby="place-hint" required />
+                <input id="place" class="input" type="text" @bind="_place" placeholder="52062" aria-describedby="place-hint" required />
                 <label class="visually-hidden" for="local-country">@T["Country"]</label>
-                <CountrySelect Id="local-country" Selected="@_defaultCountry" />
-                <button type="submit" class="button button-secondary">@T["Sources_LocalAdd"]</button>
+                <CountrySelect Id="local-country" @bind-Selected="_country" />
+                <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_LocalAdd"]</button>
             </div>
             <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
         </form>
     };
 
-    private List<Source> _sources = [];
-    private IReadOnlyList<FeedCandidate>? _found;
-    private Source? _preview;
-    private SourceResult? _previewResult;
-    private Guid? _selectedId;
-    private Guid? _confirmId;
-    private string? _notice;
-    private string? _error;
-    private string? _blockedHost;
-    private string? _lastUrl;
-    private string? _defaultCountry;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
-
-    [SupplyParameterFromQuery(Name = "notice")]
-    private string? Notice { get; set; }
-
-    [SupplyParameterFromForm(FormName = "discover")]
-    private string? Url { get; set; }
-
-    [SupplyParameterFromForm(FormName = "add")]
-    private string? FeedUrl { get; set; }
-
-    [SupplyParameterFromForm(FormName = "add")]
-    private string? Name { get; set; }
-
-    [SupplyParameterFromForm(FormName = "add")]
-    private bool FullText { get; set; }
-
-    [SupplyParameterFromForm(FormName = "local")]
-    private string? Place { get; set; }
-
-    [SupplyParameterFromForm(FormName = "local")]
-    private string? Country { get; set; }
-
-    [SupplyParameterFromForm(FormName = "allow")]
-    private string? Host { get; set; }
-
-    [SupplyParameterFromForm(FormName = "allow")]
-    private string? RetryUrl { get; set; }
-
-    private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: every page requires a signed-in user
-
-    private bool IsAdmin => HttpContext.User.IsInRole(nameof(UserRole.Admin));
-
-    private CancellationToken Aborted => HttpContext.RequestAborted;
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task LoadAsync()
     {
-        _notice = Notice switch
-        {
-            "added" => T["Sources_Added"].Value,
-            "deleted" => T["Sources_Deleted"].Value,
-            _ => null,
-        };
-        await LoadAsync();
+        await ReloadAsync();
 
         // A new local source starts in the profile's country.
-        _defaultCountry = (await Profiles.GetOrCreateAsync(UserId, Aborted)).Country;
-
-        // Static rendering builds the page anew for every POST, and Blazor dispatches a submit only to a form that is
-        // on the page: forms that exist only after a search come back from the posted fields.
-        if (FeedUrl is not null && Uri.TryCreate(FeedUrl, UriKind.Absolute, out var feed))
-        {
-            _found = [new FeedCandidate(feed, Name ?? feed.Host)];
-        }
-
-        if (Host is not null)
-        {
-            _blockedHost = Host;
-            _lastUrl = RetryUrl;
-        }
+        _country = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Country;
     }
 
-    private async Task LoadAsync() => _sources = [.. await Catalog.ListAsync(UserId, Aborted)];
+    private async Task ReloadAsync() => _sources = [.. await UseAsync<SourceCatalog, IReadOnlyList<Source>>(catalog => catalog.ListAsync(UserId, Closed))];
 
-    private Task DiscoverAsync() => DiscoverAsync(Url ?? string.Empty);
+    private Task DiscoverAsync() => RunAsync(() => DiscoverAsync(_url));
 
     private async Task DiscoverAsync(string input)
     {
-        _lastUrl = input;
-        switch (await Discovery.DiscoverAsync(input, Aborted))
+        _found = null;
+        _preview = null;
+        switch (await UseAsync<FeedDiscovery, FeedDiscoveryResult>(discovery => discovery.DiscoverAsync(input, Closed)))
         {
             case FeedDiscoveryResult.Found found:
                 _found = found.Feeds;
                 if (found.Feeds.Count > 0)
                 {
                     // Preview the first feed right away, so the user sees what they are about to add.
-                    var first = found.Feeds[0];
-                    await PreviewAsync(new Source { UserId = UserId, Name = first.Title, Url = first.Url.AbsoluteUri });
+                    await PickAsync(found.Feeds[0]);
                 }
 
                 break;
@@ -314,69 +253,93 @@
         }
     }
 
-    private async Task AddFeedAsync()
+    private async Task PickAsync(FeedCandidate feed)
     {
-        var result = await Catalog.AddFeedAsync(UserId, Name ?? string.Empty, FeedUrl ?? string.Empty, FullText, Aborted);
-        Finish(result);
+        _feedUrl = feed.Url.AbsoluteUri;
+        _feedName = feed.Title;
+        _selectedId = null;
+        await PreviewAsync(new Source { UserId = UserId, Name = feed.Title, Url = feed.Url.AbsoluteUri });
     }
 
-    private async Task AddLocalAsync()
+    private Task AddFeedAsync() => RunAsync(() => SaveAsync(catalog => catalog.AddFeedAsync(UserId, _feedName, _feedUrl ?? string.Empty, _fullText, Closed)));
+
+    private Task AddLocalAsync()
     {
-        var place = Place?.Trim() ?? string.Empty;
-        var result = await Catalog.AddLocalAsync(UserId, $"{T["Sources_Local"]} {place}", place, Country, Aborted);
-        Finish(result);
+        var place = _place.Trim();
+        return RunAsync(() => SaveAsync(catalog => catalog.AddLocalAsync(UserId, $"{T["Sources_Local"]} {place}", place, _country, Closed)));
     }
 
-    private async Task RowAsync(Guid id)
+    private async Task SaveAsync(Func<SourceCatalog, Task<SourceSaveResult>> save)
     {
-        var action = HttpContext.Request.Form["RowAction"].ToString();
-        if (action == "delete")
+        if (await UseAsync(save) is SourceSaveResult.Invalid invalid)
         {
-            _confirmId = id;
+            _error = T[$"Error_{invalid.Reason}"];
             return;
         }
 
-        if (action == "confirm-delete")
-        {
-            if (await Catalog.DeleteAsync(UserId, id, Aborted))
-            {
-                Navigation.NavigateTo("/sources?notice=deleted");
-            }
+        _found = null;
+        _preview = null;
+        _url = string.Empty;
+        _place = string.Empty;
+        _notice = T["Sources_Added"];
+        await ReloadAsync();
+    }
 
-            return;
-        }
+    private Task TestAsync(Source source) => RunAsync(() => TestCoreAsync(source));
 
-        _selectedId = id;
-        var source = _sources.SingleOrDefault(s => s.Id == id);
-        if (source is not null && await Catalog.TestAsync(UserId, id, Aborted) is { } result)
+    private async Task TestCoreAsync(Source source)
+    {
+        _selectedId = source.Id;
+        _preview = null;
+        if (await UseAsync<SourceCatalog, SourceResult?>(catalog => catalog.TestAsync(UserId, source.Id, Closed)) is { } result)
         {
             ShowPreview(source, result);
         }
     }
 
-    private async Task AllowAsync()
+    private Task DeleteAsync(Guid id) => RunAsync(() => DeleteCoreAsync(id));
+
+    private async Task DeleteCoreAsync(Guid id)
     {
-        // Checked here, not only by hiding the button: a forged POST must not open the home network.
-        if (!IsAdmin)
+        if (await UseAsync<SourceCatalog, bool>(catalog => catalog.DeleteAsync(UserId, id, Closed)))
+        {
+            _notice = T["Sources_Deleted"];
+            if (_preview?.Id == id)
+            {
+                _preview = null;
+            }
+        }
+
+        _confirmId = null;
+        await ReloadAsync();
+    }
+
+    // The host is taken before RunAsync clears the messages, the blocked notice among them.
+    private Task AllowAsync()
+    {
+        var host = _blockedHost;
+        return RunAsync(() => AllowCoreAsync(host));
+    }
+
+    private async Task AllowCoreAsync(string? host)
+    {
+        // Checked here, not only by hiding the button: a handler must never trust what the page showed.
+        if (!IsAdmin || host is null)
         {
             _error = T["Error_AdminOnly"];
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(Host))
+        await Allowlist.AddAsync(host, UserId, Closed);
+        _notice = T["Sources_Allowed", host];
+        _blockedHost = null;
+        if (!string.IsNullOrWhiteSpace(_url))
         {
-            await Allowlist.AddAsync(Host, UserId, Aborted);
-            _notice = T["Sources_Allowed", Host];
-            _blockedHost = null;
-        }
-
-        if (!string.IsNullOrWhiteSpace(RetryUrl))
-        {
-            await DiscoverAsync(RetryUrl);
+            await DiscoverAsync(_url);
         }
     }
 
-    private async Task PreviewAsync(Source draft) => ShowPreview(draft, await Catalog.PreviewAsync(draft, Aborted));
+    private async Task PreviewAsync(Source draft) => ShowPreview(draft, await UseAsync<SourceCatalog, SourceResult>(catalog => catalog.PreviewAsync(draft, Closed)));
 
     private void ShowPreview(Source source, SourceResult result)
     {
@@ -388,16 +351,21 @@
         }
     }
 
-    // Post/redirect/get: a reload of the page must not add the source twice.
-    private void Finish(SourceSaveResult result)
+    // One action at a time: messages of the last one go, the buttons are disabled while it runs.
+    private async Task RunAsync(Func<Task> action)
     {
-        if (result is SourceSaveResult.Invalid invalid)
+        _notice = null;
+        _error = null;
+        _blockedHost = null;
+        _busy = true;
+        try
         {
-            _error = T[$"Error_{invalid.Reason}"];
-            return;
+            await action();
         }
-
-        Navigation.NavigateTo("/sources?notice=added");
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private string Describe(Source source) => source.Kind == SourceKind.Local

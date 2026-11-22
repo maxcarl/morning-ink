@@ -1,8 +1,9 @@
-using System.Net;
+using Bunit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
+using MorningInk.Web.Components.Pages;
 
 namespace MorningInk.Web.Tests;
 
@@ -13,139 +14,144 @@ public sealed class ProfilePageTests : IDisposable
     [Fact]
     public async Task Settings_are_saved_and_shown()
     {
-        var browser = await _app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
 
-        var response = await TestApp.SubmitAsync(browser, "/profile", new()
-        {
-            ["Title"] = "Die Frühstücksausgabe",
-            ["Recipient"] = "max_abc@kindle.com",
-            ["DeliveryTime"] = "07:15",
-            ["TimeZoneId"] = "Europe/Berlin",
-            ["Region"] = "52062",
-        }, form: ("settings", null));
-        var page = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync()); // Blazor encodes umlauts and the narrow space before "AM"
+        page.Find("#zone").Change("Europe/Berlin");
+        Pages.Submit(page, ("#title", "Die Frühstücksausgabe"), ("#recipient", "max_abc@kindle.com"), ("#time", "07:15"));
 
-        Assert.Contains("Saved. Changes apply from the next issue.", page, StringComparison.Ordinal);
-        Assert.Contains("every day at 7:15", page, StringComparison.Ordinal);
-        Assert.Contains("(Europe/Berlin), sent to max_abc@kindle.com.", page, StringComparison.Ordinal);
-        Assert.Contains("Die Frühstücksausgabe", page, StringComparison.Ordinal);
+        Pages.Shows(page, "Saved. Changes apply from the next issue.");
+        Assert.Matches("every day at 0?7:15", page.Markup);
+        Assert.Contains("(Europe/Berlin), sent to max_abc@kindle.com.", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("Die Frühstücksausgabe", page.Markup, StringComparison.Ordinal);
     }
 
     [Fact]
     public async Task Invalid_recipient_is_explained_and_not_saved()
     {
-        var browser = await _app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
 
-        var response = await TestApp.SubmitAsync(browser, "/profile", new()
-        {
-            ["Title"] = "Morning Ink",
-            ["Recipient"] = "a@b.de, c@d.de",
-            ["DeliveryTime"] = "06:00",
-            ["TimeZoneId"] = "Europe/Berlin",
-        }, form: ("settings", null));
+        Pages.Submit(page, ("#recipient", "a@b.de, c@d.de"));
 
-        Assert.Contains("Please enter one email address", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Pages.Shows(page, "Please enter one email address");
     }
 
     [Fact]
-    public async Task Section_gets_its_sources_but_never_another_users()
+    public async Task Section_offers_and_saves_only_the_users_own_sources()
     {
-        var browser = await _app.SignedInAdminAsync();
-        var (mine, foreign) = await CreateSourcesAsync();
+        using var pages = await Pages.AsAdminAsync(_app);
+        var mine = await AddSourceAsync(TestApp.AdminName, "heise");
+        await AddSourceAsync("erika", "fremd");
+        var page = pages.Open<ProfilePage>("comes out every day");
+        AddSection(page, "Technik");
 
-        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Technik" }, form: ("add-section", null));
-        var saved = await TestApp.SubmitAsync(browser, "/profile", [], form: ("section", null), sourceIds: [mine, foreign]);
+        Pages.Button(page, "Edit").Click();
+        Assert.DoesNotContain("fremd", page.Markup, StringComparison.Ordinal);
+        page.Find("input[type=checkbox]").Change(true);
+        page.Find("#name-" + await SectionIdAsync("Technik")).Closest("form")!.Submit();
 
-        var page = await saved.Content.ReadAsStringAsync();
-        Assert.Contains("Saved.", page, StringComparison.Ordinal);
-        await using var scope = _app.Services.CreateAsyncScope();
-        var section = await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles
-            .SelectMany(p => p.Sections).Include(s => s.Sources).SingleAsync();
+        Pages.Shows(page, "Saved.");
+        var section = (await SectionsAsync()).Single();
         Assert.Equal([mine], section.Sources.Select(s => s.Id));
     }
 
     [Fact]
-    public async Task Each_of_several_sections_can_be_saved_and_moved()
+    public async Task Sections_are_ordered_by_drag_and_drop_and_by_buttons()
     {
-        var browser = await _app.SignedInAdminAsync();
-        var (mine, _) = await CreateSourcesAsync();
-        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Politik" }, form: ("add-section", null));
-        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Technik" }, form: ("add-section", null));
-        var technik = await SectionIdAsync("Technik");
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+        AddSection(page, "A");
+        AddSection(page, "B");
+        AddSection(page, "C");
 
-        var saved = await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "save" }, form: ($"section-{technik}", null), sourceIds: [mine]);
-        var moved = await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "up" }, form: ($"section-{technik}", null));
+        // Drag C onto A: C moves to A's place.
+        var rows = page.FindAll("li[draggable]");
+        rows[2].DragStart();
+        page.FindAll("li[draggable]")[0].Drop();
+        page.WaitForAssertion(async () => Assert.Equal(["C", "A", "B"], (await SectionsAsync()).Select(s => s.Name)));
 
-        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
-        await using var scope = _app.Services.CreateAsyncScope();
-        var sections = await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles
-            .SelectMany(p => p.Sections).Include(s => s.Sources).OrderBy(s => s.Position).ToListAsync();
-        Assert.Equal(["Technik", "Politik"], sections.Select(s => s.Name));
-        Assert.Equal([mine], sections[0].Sources.Select(s => s.Id));
+        // The keyboard way: open A and move it down.
+        Pages.Button(page, "Edit", 1).Click();
+        Pages.Button(page, "Down").Click();
+        page.WaitForAssertion(async () => Assert.Equal(["C", "B", "A"], (await SectionsAsync()).Select(s => s.Name)));
     }
 
     [Fact]
     public async Task Section_is_deleted_only_after_confirmation()
     {
-        var browser = await _app.SignedInAdminAsync();
-        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Politik" }, form: ("add-section", null));
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+        AddSection(page, "Politik");
 
-        var asked = await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "delete" }, form: ("section", null));
-        Assert.Contains("Delete Politik?", await asked.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-        await SectionIdAsync("Politik"); // still there
+        Pages.Button(page, "Edit").Click();
+        Pages.Button(page, "Delete section").Click();
+        Assert.Contains("Delete Politik?", page.Markup, StringComparison.Ordinal);
+        Assert.Single(await SectionsAsync());
 
-        await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "confirm-delete" }, form: ("section", null));
-        await using var scope = _app.Services.CreateAsyncScope();
-        Assert.False(await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles.SelectMany(p => p.Sections).AnyAsync());
+        Pages.Button(page, "Yes, delete").Click();
+        page.WaitForAssertion(async () => Assert.Empty(await SectionsAsync()));
     }
 
     [Fact]
-    public async Task Source_search_filters_the_choices_but_keeps_the_assigned_ones()
+    public async Task Source_search_filters_the_choices_but_keeps_the_ticked_ones()
     {
-        var browser = await _app.SignedInAdminAsync();
-        var (mine, _) = await CreateSourcesAsync();
-        await AddSourceAsync("golem");
-        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Technik" }, form: ("add-section", null));
-        var technik = await SectionIdAsync("Technik");
-        await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "save" }, form: ($"section-{technik}", null), sourceIds: [mine]);
+        using var pages = await Pages.AsAdminAsync(_app);
+        var heise = await AddSourceAsync(TestApp.AdminName, "heise");
+        foreach (var name in new[] { "golem", "tagesschau", "spiegel", "zeit", "faz", "taz", "netzpolitik", "t3n" })
+        {
+            await AddSourceAsync(TestApp.AdminName, name);
+        }
 
-        var page = await browser.GetStringAsync($"/profile?edit={technik}&find=xyz");
+        var page = pages.Open<ProfilePage>("comes out every day");
+        AddSection(page, "Technik");
+        await TickAsync("Technik", heise);
+        page.Dispose();
+        page = pages.Open<ProfilePage>("heise");
 
-        Assert.Contains("> heise</label>", page, StringComparison.Ordinal); // assigned: always shown, so saving keeps it
-        Assert.DoesNotContain("> golem</label>", page, StringComparison.Ordinal);
-        Assert.Contains("> golem</label>", await browser.GetStringAsync($"/profile?edit={technik}&find=GOL"), StringComparison.Ordinal);
+        Pages.Button(page, "Edit").Click();
+        page.Find("input[type=search]").Input("GOL");
+
+        Assert.Contains("> heise</label>", page.Markup, StringComparison.Ordinal); // ticked: stays, so saving keeps it
+        Assert.Contains("> golem</label>", page.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("> zeit</label>", page.Markup, StringComparison.Ordinal);
     }
 
     public void Dispose() => _app.Dispose();
 
-    private async Task AddSourceAsync(string name)
+    private static void AddSection(IRenderedComponent<ProfilePage> page, string name)
     {
-        await using var scope = _app.Services.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var admin = await db.DomainUsers.SingleAsync(u => u.Name == TestApp.AdminName);
-        db.Add(new Source { UserId = admin.Id, Name = name, Url = $"https://{name}.example/rss" });
-        await db.SaveChangesAsync();
+        Pages.Submit(page, ("#new-section", name));
+        page.WaitForAssertion(() => Assert.Contains($">{name}</div>", page.Markup, StringComparison.Ordinal));
     }
 
-    private async Task<Guid> SectionIdAsync(string name)
+    private async Task<List<Section>> SectionsAsync()
     {
         await using var scope = _app.Services.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles
-            .SelectMany(p => p.Sections).Where(s => s.Name == name).Select(s => s.Id).SingleAsync();
+            .SelectMany(p => p.Sections).Include(s => s.Sources).OrderBy(s => s.Position).ToListAsync();
     }
 
-    // One source of the admin, one of another user.
-    private async Task<(Guid Mine, Guid Foreign)> CreateSourcesAsync()
+    private async Task<Guid> SectionIdAsync(string name) => (await SectionsAsync()).Single(s => s.Name == name).Id;
+
+    private async Task TickAsync(string section, Guid source)
     {
         await using var scope = _app.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var admin = await db.DomainUsers.SingleAsync(u => u.Name == TestApp.AdminName);
-        var other = new User { Name = "erika" };
-        var mine = new Source { UserId = admin.Id, Name = "heise", Url = "https://heise.de/rss" };
-        var foreign = new Source { UserId = other.Id, Name = "fremd", Url = "https://example.com/rss" };
-        db.AddRange(other, mine, foreign);
+        var target = await db.Profiles.SelectMany(p => p.Sections).Include(s => s.Sources).SingleAsync(s => s.Name == section);
+        target.Sources.Add(await db.Sources.SingleAsync(s => s.Id == source));
         await db.SaveChangesAsync();
-        return (mine.Id, foreign.Id);
+    }
+
+    // A source of the given user; a user who does not exist yet is created.
+    private async Task<Guid> AddSourceAsync(string userName, string name)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+        var user = await db.DomainUsers.SingleOrDefaultAsync(u => u.Name == userName) ?? db.DomainUsers.Add(new User { Name = userName }).Entity;
+        var source = new Source { UserId = user.Id, Name = name, Url = $"https://{name}.example/rss" };
+        db.Sources.Add(source);
+        await db.SaveChangesAsync();
+        return source.Id;
     }
 }

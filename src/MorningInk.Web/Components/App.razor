@@ -1,5 +1,5 @@
 @using System.Globalization
-@* Static rendering only, without blazor.web.js: every form is a plain POST, which also works in the Kindle browser. *@
+@* Pages render statically by default; pages that gain from it opt in to interactive server rendering (ADR 0002). *@
 <!DOCTYPE html>
 <html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" data-theme="@Theme.Of(HttpContext)">
 <head>
@@ -11,6 +11,12 @@
 </head>
 <body>
     <Routes />
+    @* Blazor shows this instead of its own dialog, whose inline styles the Content-Security-Policy would block. *@
+    <div id="components-reconnect-modal" class="reconnect" role="alert">
+        <p>@T["Reconnect_Lost"] <a href="">@T["Reconnect_Reload"]</a></p>
+    </div>
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["drag.js"]"></script>
 </body>
 </html>
 

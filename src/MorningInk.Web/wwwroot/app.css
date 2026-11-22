@@ -89,7 +89,8 @@
 
 /* Base */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+/* Room for the scrollbar is always kept, so the layout does not shift when a page grows long enough to scroll. */
+html { -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
 body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: var(--text-base)/1.5 var(--font-sans); }
 h1, h2, h3 { font-family: var(--font-serif); font-weight: 700; line-height: 1.15; margin: 0 0 var(--space-3); }
 h1 { font-size: var(--text-2xl); }
@@ -157,11 +158,10 @@ a { color: inherit; text-underline-offset: 0.15em; }
 .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .confirm { font-weight: 700; color: var(--color-error); margin: 0; }
 
-/* Sections: a compact row that opens into its editor (native details, no script) */
-.editor > summary { cursor: pointer; list-style: none; }
-.editor > summary::-webkit-details-marker { display: none; }
-.editor > summary .row-title, .editor > summary .row-meta { display: block; }
-.editor[open] > summary { border-bottom-color: transparent; }
+/* Sections: a compact row that opens into its editor, and can be dragged to another place */
+.drag-handle { cursor: grab; color: var(--color-muted); letter-spacing: -0.2em; user-select: none; }
+li[draggable="true"]:active { cursor: grabbing; }
+.drop-target > .row { box-shadow: inset 0 3px 0 var(--color-accent); }
 .editor-body { padding: 0 var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-rule); }
 .search { margin-bottom: var(--space-3); }
 
@@ -229,3 +229,8 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .department + form, .department + .hint { margin-top: var(--space-4); }
 .rows + form { margin-top: var(--space-6); }
 .sidebar > .label { margin-bottom: var(--space-4); }
+
+/* Lost connection of an interactive page: Blazor toggles these classes on #components-reconnect-modal */
+.reconnect { display: none; position: fixed; inset: auto 0 0; z-index: 10; margin: 0; padding: var(--space-3) var(--space-6); background: var(--color-ink); color: var(--color-paper); text-align: center; }
+.reconnect a { color: inherit; }
+.reconnect.components-reconnect-failed, .reconnect.components-reconnect-rejected { display: block; }

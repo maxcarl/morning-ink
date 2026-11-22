@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Net;
+using Bunit;
 using MorningInk.Infrastructure.Tests.Delivery;
+using MorningInk.Web.Components.Pages;
 
 namespace MorningInk.Web.Tests;
 
@@ -14,16 +16,24 @@ public sealed class SettingsPageTests : IDisposable
     public async Task Admin_saves_the_mail_server_and_the_test_mail_arrives()
     {
         using var app = new TestApp();
-        var browser = await app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("No password saved");
 
-        var saved = await TestApp.SubmitAsync(browser, "/settings", MailForm(), form: ("mail", null));
-        var savedPage = await saved.Content.ReadAsStringAsync();
-        var tested = await TestApp.SubmitAsync(browser, "/settings", new() { ["TestRecipient"] = "max_abc@kindle.com" }, form: ("test", null));
+        page.Find("#security").Change("None");
+        Pages.Submit(page,
+            ("#host", "127.0.0.1"),
+            ("#port", _smtp.Port.ToString(CultureInfo.InvariantCulture)),
+            ("#username", "max"),
+            ("#password", Password),
+            ("#from", "morning-ink@example.com"),
+            ("#from-name", "Morning Ink"));
+        Pages.Shows(page, "Saved.");
+        Assert.DoesNotContain(Password, page.Markup, StringComparison.Ordinal);
+        Assert.Contains("A password is saved.", page.Markup, StringComparison.Ordinal);
 
-        Assert.Contains("Saved.", savedPage, StringComparison.Ordinal);
-        Assert.DoesNotContain(Password, savedPage, StringComparison.Ordinal);
-        Assert.Contains("A password is saved.", savedPage, StringComparison.Ordinal);
-        Assert.Contains("Test mail sent to max_abc@kindle.com", await tested.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Pages.Submit(page, ("#test-recipient", "max_abc@kindle.com"));
+
+        Pages.Shows(page, "Test mail sent to max_abc@kindle.com");
         Assert.Equal("max\0" + Password, Assert.Single(_smtp.Logins));
         Assert.Single(Assert.Single(_smtp.Messages).Attachments);
     }
@@ -32,28 +42,28 @@ public sealed class SettingsPageTests : IDisposable
     public async Task Fields_set_by_the_environment_are_read_only()
     {
         using var app = new TestApp(new() { ["Smtp:Host"] = "smtp.from-env.example" });
-        var browser = await app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(app);
 
-        var page = await browser.GetStringAsync("/settings");
+        var page = pages.Open<Settings>("Set by the environment variable Smtp__Host.");
 
-        Assert.Contains("Set by the environment variable Smtp__Host.", page, StringComparison.Ordinal);
-        Assert.Matches("id=\"host\" name=\"Host\"[^>]*readonly", page);
+        Assert.True(page.Find("#host").HasAttribute("readonly"));
     }
 
     [Fact]
     public async Task Admin_allows_and_removes_a_home_network_host()
     {
         using var app = new TestApp();
-        var browser = await app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("No password saved");
 
-        var added = await TestApp.SubmitAsync(browser, "/settings", new() { ["NewEntry"] = "FreshRSS.lan:8080" }, form: ("allow-add", null));
-        await TestApp.SubmitAsync(browser, "/settings", new() { ["NewEntry"] = "nas.lan" }, form: ("allow-add", null));
-        var removed = await TestApp.SubmitAsync(browser, "/settings", [], form: ("allow-remove-freshrss.lan:8080", null));
-        var page = await removed.Content.ReadAsStringAsync();
+        Pages.Submit(page, ("#new-host", "FreshRSS.lan:8080"));
+        Pages.Shows(page, "freshrss.lan:8080 is allowed now.");
+        Pages.Submit(page, ("#new-host", "nas.lan"));
+        Pages.Shows(page, ">nas.lan<");
+        Pages.Button(page, "Remove", 0).Click(); // sorted: freshrss.lan:8080 comes first
 
-        Assert.Contains("freshrss.lan:8080 is allowed now.", await added.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-        Assert.DoesNotContain(">freshrss.lan:8080<", page, StringComparison.Ordinal);
-        Assert.Contains(">nas.lan<", page, StringComparison.Ordinal);
+        page.WaitForAssertion(() => Assert.DoesNotContain(">freshrss.lan:8080<", page.Markup, StringComparison.Ordinal));
+        Assert.Contains(">nas.lan<", page.Markup, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -71,15 +81,4 @@ public sealed class SettingsPageTests : IDisposable
     }
 
     public void Dispose() => _smtp.Dispose();
-
-    private Dictionary<string, string> MailForm() => new()
-    {
-        ["Host"] = "127.0.0.1",
-        ["Port"] = _smtp.Port.ToString(CultureInfo.InvariantCulture),
-        ["Security"] = "None",
-        ["Username"] = "max",
-        ["Password"] = Password,
-        ["FromAddress"] = "morning-ink@example.com",
-        ["FromName"] = "Morning Ink",
-    };
 }

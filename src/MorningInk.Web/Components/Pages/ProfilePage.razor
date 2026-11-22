@@ -1,21 +1,24 @@
 @page "/profile"
+@rendermode InteractiveServer
+@inherits InteractivePage
 @using System.Globalization
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Profiles
 @using MorningInk.Infrastructure.Sources
-@inject ProfileEditor Editor
-@inject SourceCatalog Catalog
 
 <PageTitle>@T["Profile_Title"] – @T["Brand"]</PageTitle>
 
 <header class="page-header">
     <span class="kicker">@T["Profile_Kicker"]</span>
     <h1>@T["Profile_Title"]</h1>
+    @if (_profile is not null)
+    {
     <p class="lede">
         @(string.IsNullOrEmpty(_profile.Recipient)
             ? T["Profile_LedeNoRecipient", _profile.Title, _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId]
             : T["Profile_Lede", _profile.Title, _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId, _profile.Recipient])
     </p>
+    }
     @if (_notice is not null)
     {
         <div class="alert alert-ok" role="status"><p>@_notice</p></div>
@@ -35,99 +38,93 @@
     <section aria-labelledby="sections-heading">
         <h2 id="sections-heading" class="department">@T["Profile_Sections"]</h2>
         <p class="hint">@T["Profile_SectionsHint"]</p>
-        @if (_profile.Sections.Count == 0)
+        @if (_sections.Count == 0)
         {
             <p class="muted">@T["Profile_NoSections"]</p>
         }
         <ul class="rows">
-            @{ var ordered = _profile.Sections.OrderBy(s => s.Position).ToList(); }
-            @for (var i = 0; i < ordered.Count; i++)
+            @for (var i = 0; i < _sections.Count; i++)
             {
-                var item = ordered[i];
-                var first = i == 0;
-                var last = i == ordered.Count - 1;
-                @* Closed, a section is one line like a table of contents; open, it is its editor. Native details, no script. *@
-                <li>
-                    <details class="editor" open="@(item.Id == _openId)">
-                        <summary class="row">
-                            <span class="row-main">
-                                <span class="row-title">@item.Name</span>
-                                <span class="row-meta">@Summary(item)</span>
-                            </span>
-                            <span class="link-button">@T["Profile_Edit"]<span class="visually-hidden"> – @item.Name</span></span>
-                        </summary>
-                        <div class="editor-body">
-                            @if (_sources.Count > SearchFrom || (item.Id == _openId && !string.IsNullOrEmpty(Find)))
-                            {
-                                @* A GET form of its own: forms cannot nest, and a search changes nothing. *@
-                                <form method="get" action="/profile" role="search" class="search">
-                                    <input type="hidden" name="edit" value="@item.Id" />
-                                    <label class="label" for="find-@item.Id">@T["Profile_FindSource"]</label>
-                                    <div class="inline-form">
-                                        <input id="find-@item.Id" name="find" class="input" type="search" value="@(item.Id == _openId ? Find : null)" />
-                                        <button type="submit" class="button button-secondary">@T["Profile_Find"]</button>
-                                    </div>
-                                </form>
-                            }
-                            @* A form name per section: Blazor needs it unique, and the handler knows the section from it. *@
-                            <form method="post" @formname="@($"section-{item.Id}")" @onsubmit="() => SectionAsync(item.Id)">
-                                <AntiforgeryToken />
-                                <fieldset class="field">
-                                    <legend class="label">@T["Profile_SectionSources"]</legend>
-                                    @if (_sources.Count == 0)
-                                    {
-                                        <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
-                                    }
-                                    <div class="choices">
-                                        @foreach (var source in Choices(item))
-                                        {
-                                            <label class="checkbox"><input type="checkbox" name="SourceIds" value="@source.Id" checked="@item.Sources.Any(s => s.Id == source.Id)" /> @source.Name</label>
-                                        }
-                                    </div>
-                                </fieldset>
-                                <div class="inline-form field">
-                                    <div class="row-main">
-                                        <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
-                                        <input id="name-@item.Id" name="SectionName" class="input" value="@item.Name" required />
-                                    </div>
-                                    <div>
-                                        <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
-                                        <input id="max-@item.Id" name="MaxArticles" class="input" value="@item.MaxArticles" inputmode="numeric" placeholder="@T["Profile_Unlimited"]" />
-                                    </div>
-                                </div>
-                                <div class="row-actions">
-                                    @if (item.Id == _confirmId)
-                                    {
-                                        <p class="confirm" role="alert">@T["Confirm_Delete", item.Name]</p>
-                                        <button type="submit" name="SectionAction" value="confirm-delete" class="button button-small">@T["Confirm_Yes"]</button>
-                                        <a href="/profile" class="link-button">@T["Confirm_Cancel"]</a>
-                                    }
-                                    else
-                                    {
-                                        <button type="submit" name="SectionAction" value="save" class="button button-small">@T["Profile_Save"]<span class="visually-hidden"> – @item.Name</span></button>
-                                        @* Moving the first one up or the last one down does nothing: no button for it. *@
-                                        @if (!first)
-                                        {
-                                            <button type="submit" name="SectionAction" value="up" class="button button-secondary button-small">@T["Profile_MoveUp"]<span class="visually-hidden"> – @item.Name</span></button>
-                                        }
-                                        @if (!last)
-                                        {
-                                            <button type="submit" name="SectionAction" value="down" class="button button-secondary button-small">@T["Profile_MoveDown"]<span class="visually-hidden"> – @item.Name</span></button>
-                                        }
-                                        <button type="submit" name="SectionAction" value="delete" class="link-button link-danger">@T["Profile_DeleteSection"]<span class="visually-hidden"> – @item.Name</span></button>
-                                    }
-                                </div>
-                            </form>
+                var index = i;
+                var item = _sections[i];
+                var open = item.Id == _openId;
+                @* Drag a row onto another to move it there. The arrows in the editor do the same by keyboard. *@
+                <li @key="item.Id" draggable="@(open ? "false" : "true")" class="@(item.Id == _overId ? "drop-target" : null)"
+                    @ondragstart="() => _dragId = item.Id" @ondragenter="() => _overId = item.Id" @ondragend="() => _overId = _dragId = null"
+                    @ondragover:preventDefault @ondrop="() => DropAsync(index)">
+                    <div class="row">
+                        <span class="drag-handle" aria-hidden="true">⋮⋮</span>
+                        <div class="row-main">
+                            <div class="row-title">@item.Name</div>
+                            <div class="row-meta">@Summary(item)</div>
                         </div>
-                    </details>
+                        <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="editor-@item.Id" @onclick="() => Toggle(item)">
+                            @(open ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @item.Name</span>
+                        </button>
+                    </div>
+                    @if (open)
+                    {
+                        <form id="editor-@item.Id" class="editor-body" @onsubmit="() => SaveSectionAsync(item.Id)">
+                            <fieldset class="field">
+                                <legend class="label">@T["Profile_SectionSources"]</legend>
+                                @if (_sources.Count == 0)
+                                {
+                                    <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
+                                }
+                                @if (_sources.Count > SearchFrom)
+                                {
+                                    <div class="search">
+                                        <label class="visually-hidden" for="find-@item.Id">@T["Profile_FindSource"]</label>
+                                        <input id="find-@item.Id" class="input" type="search" placeholder="@T["Profile_FindSource"]" @bind="_find" @bind:event="oninput" />
+                                    </div>
+                                }
+                                <div class="choices">
+                                    @foreach (var source in Choices())
+                                    {
+                                        <label class="checkbox" @key="source.Id"><input type="checkbox" checked="@_picked.Contains(source.Id)" @onchange="() => Pick(source.Id)" /> @source.Name</label>
+                                    }
+                                </div>
+                            </fieldset>
+                            <div class="inline-form field">
+                                <div class="row-main">
+                                    <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
+                                    <input id="name-@item.Id" class="input" @bind="_name" required />
+                                </div>
+                                <div>
+                                    <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
+                                    <input id="max-@item.Id" class="input" @bind="_max" inputmode="numeric" placeholder="@T["Profile_Unlimited"]" />
+                                </div>
+                            </div>
+                            <div class="row-actions">
+                                @if (item.Id == _confirmId)
+                                {
+                                    <p class="confirm" role="alert">@T["Confirm_Delete", item.Name]</p>
+                                    <button type="button" class="button button-small" @onclick="() => DeleteAsync(item.Id)">@T["Confirm_Yes"]</button>
+                                    <button type="button" class="link-button" @onclick="() => _confirmId = null">@T["Confirm_Cancel"]</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="button button-small">@T["Profile_Save"]<span class="visually-hidden"> – @item.Name</span></button>
+                                    @if (index > 0)
+                                    {
+                                        <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index - 1)">@T["Profile_MoveUp"]<span class="visually-hidden"> – @item.Name</span></button>
+                                    }
+                                    @if (index < _sections.Count - 1)
+                                    {
+                                        <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index + 1)">@T["Profile_MoveDown"]<span class="visually-hidden"> – @item.Name</span></button>
+                                    }
+                                    <button type="button" class="link-button link-danger" @onclick="() => _confirmId = item.Id">@T["Profile_DeleteSection"]<span class="visually-hidden"> – @item.Name</span></button>
+                                }
+                            </div>
+                        </form>
+                    }
                 </li>
             }
         </ul>
-        <form method="post" @formname="add-section" @onsubmit="AddSectionAsync" class="field">
-            <AntiforgeryToken />
+        <form @onsubmit="AddSectionAsync" class="field">
             <label class="label" for="new-section">@T["Profile_AddSection"]</label>
             <div class="inline-form">
-                <input id="new-section" name="NewSection" class="input" value="" required />
+                <input id="new-section" class="input" @bind="_newSection" required />
                 <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
             </div>
         </form>
@@ -135,38 +132,38 @@
 
     <aside class="sidebar" aria-labelledby="settings-heading">
         <h2 id="settings-heading" class="label muted">@T["Profile_Settings"]</h2>
-        <form method="post" @formname="settings" @onsubmit="SaveSettingsAsync">
-            <AntiforgeryToken />
+        <form @onsubmit="SaveSettingsAsync">
             <div class="field">
                 <label for="title">@T["Profile_NewspaperTitle"]</label>
-                <input id="title" name="Title" class="input" value="@_profile.Title" required />
+                <input id="title" class="input" @bind="_title" required />
             </div>
             <div class="field">
                 <label for="recipient">@T["Profile_Recipient"]</label>
-                <input id="recipient" name="Recipient" class="input" value="@_profile.Recipient" type="email" autocomplete="off" aria-describedby="recipient-hint" required />
+                <input id="recipient" class="input" @bind="_recipient" type="email" autocomplete="off" aria-describedby="recipient-hint" required />
                 <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
             </div>
             <div class="field">
                 <label for="time">@T["Profile_DeliveryTime"]</label>
-                <input id="time" name="DeliveryTime" class="input" value="@_profile.DeliveryTime.ToString("HH:mm", CultureInfo.InvariantCulture)" type="time" required />
+                @* Not @bind, which forces Blazor's own time parsing: browsers send "HH:mm", which it does not accept. The editor validates the text. *@
+                <input id="time" class="input" type="time" value="@_time" @onchange="e => _time = e.Value as string ?? string.Empty" required />
             </div>
             <div class="field">
                 <label for="zone">@T["Profile_TimeZone"]</label>
-                <select id="zone" name="TimeZoneId" class="input">
+                <select id="zone" class="input" @bind="_zone">
                     @foreach (var zone in TimeZones)
                     {
-                        <option value="@zone" selected="@(zone == _profile.TimeZoneId)">@zone</option>
+                        <option value="@zone">@zone</option>
                     }
                 </select>
             </div>
             <div class="field">
                 <label for="country">@T["Country"]</label>
-                <CountrySelect Id="country" Selected="@_profile.Country" DescribedBy="country-hint" />
+                <CountrySelect Id="country" @bind-Selected="_country" DescribedBy="country-hint" />
                 <span id="country-hint" class="hint">@T["Profile_CountryHint"]</span>
             </div>
             <div class="field">
                 <label for="region">@T["Profile_Region"]</label>
-                <input id="region" name="Region" class="input" value="@_profile.Region" aria-describedby="region-hint" />
+                <input id="region" class="input" @bind="_region" aria-describedby="region-hint" />
                 <span id="region-hint" class="hint">@T["Profile_RegionHint"]</span>
             </div>
             <button type="submit" class="button button-block">@T["Profile_Save"]</button>
@@ -183,68 +180,93 @@
         .Order(StringComparer.Ordinal)
         .ToList();
 
-    private Profile _profile = default!; // ! is safe: loaded in OnInitializedAsync before the first render
+    // Up to this many sources, the list is short enough to scan without a search field.
+    private const int SearchFrom = 8;
+
+    private Profile? _profile;
+    private List<Section> _sections = [];
     private IReadOnlyList<Source> _sources = [];
     private List<string> _errors = [];
     private string? _notice;
+
+    // Drag and drop
+    private Guid? _dragId;
+    private Guid? _overId;
+
+    // The open section editor: only one at a time, so one set of fields.
     private Guid? _openId;
     private Guid? _confirmId;
+    private string _name = string.Empty;
+    private string? _max;
+    private string _find = string.Empty;
+    private HashSet<Guid> _picked = [];
+    private HashSet<Guid> _pinned = [];
 
-    // Up to this many sources, ticking through the list is quicker than searching.
-    private const int SearchFrom = 12;
+    private string _newSection = string.Empty;
 
-    [SupplyParameterFromQuery(Name = "edit")]
-    private Guid? Edit { get; set; }
+    // Settings
+    private string _title = string.Empty;
+    private string _recipient = string.Empty;
+    private string _time = string.Empty;
+    private string _zone = string.Empty;
+    private string? _country;
+    private string? _region;
 
-    [SupplyParameterFromQuery(Name = "find")]
-    private string? Find { get; set; }
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
-
-    [SupplyParameterFromForm(FormName = "settings")]
-    private string? Title { get; set; }
-
-    [SupplyParameterFromForm(FormName = "settings")]
-    private string? Recipient { get; set; }
-
-    [SupplyParameterFromForm(FormName = "settings")]
-    private string? DeliveryTime { get; set; }
-
-    [SupplyParameterFromForm(FormName = "settings")]
-    private string? TimeZoneId { get; set; }
-
-    [SupplyParameterFromForm(FormName = "settings")]
-    private string? Region { get; set; }
-
-    [SupplyParameterFromForm(FormName = "settings")]
-    private string? Country { get; set; }
-
-    [SupplyParameterFromForm(FormName = "add-section")]
-    private string? NewSection { get; set; }
-
-    private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: every page requires a signed-in user
-
-    private CancellationToken Aborted => HttpContext.RequestAborted;
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task LoadAsync()
     {
-        _sources = await Catalog.ListAsync(UserId, Aborted);
-        _profile = await Editor.GetOrCreateAsync(UserId, Aborted);
-        _openId = Edit;
+        _sources = await UseAsync<SourceCatalog, IReadOnlyList<Source>>(catalog => catalog.ListAsync(UserId, Closed));
+        await ReloadAsync();
+        var profile = _profile!; // ! is safe: ReloadAsync just set it
+        _title = profile.Title;
+        _recipient = profile.Recipient;
+        _time = profile.DeliveryTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+        _zone = profile.TimeZoneId;
+        _country = profile.Country;
+        _region = profile.Region;
     }
 
-    // Ticked sources always come first and always stay: an unticked box that a search hid would be dropped on save.
-    private IEnumerable<Source> Choices(Section section)
+    private async Task ReloadAsync()
     {
-        var assigned = _sources.Where(s => section.Sources.Any(a => a.Id == s.Id));
-        var others = _sources.Except(assigned);
-        if (section.Id == _openId && !string.IsNullOrWhiteSpace(Find))
+        _profile = await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed));
+        _sections = [.. _profile.Sections.OrderBy(s => s.Position)];
+    }
+
+    private void Toggle(Section section)
+    {
+        _confirmId = null;
+        if (_openId == section.Id)
         {
-            others = others.Where(s => s.Name.Contains(Find.Trim(), StringComparison.CurrentCultureIgnoreCase));
+            _openId = null;
+            return;
         }
 
-        return assigned.Concat(others);
+        _openId = section.Id;
+        _name = section.Name;
+        _max = section.MaxArticles?.ToString(CultureInfo.InvariantCulture);
+        _find = string.Empty;
+        _picked = [.. section.Sources.Select(s => s.Id)];
+        _pinned = [.. _picked];
+    }
+
+    private void Pick(Guid id)
+    {
+        if (!_picked.Remove(id))
+        {
+            _picked.Add(id);
+        }
+    }
+
+    // Sources ticked when the editor opened stay on top and are never filtered away, so they do not jump while ticking.
+    private IEnumerable<Source> Choices()
+    {
+        var pinned = _sources.Where(s => _pinned.Contains(s.Id));
+        var others = _sources.Where(s => !_pinned.Contains(s.Id));
+        if (!string.IsNullOrWhiteSpace(_find))
+        {
+            others = others.Where(s => s.Name.Contains(_find.Trim(), StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        return pinned.Concat(others);
     }
 
     private string Summary(Section section)
@@ -261,68 +283,88 @@
         return string.Join(" · ", parts);
     }
 
-    private async Task SaveSettingsAsync()
+    private async Task SaveSectionAsync(Guid id)
     {
-        var errors = await Editor.SaveSettingsAsync(
-            UserId,
-            new ProfileSettings(Title ?? string.Empty, Recipient ?? string.Empty, DeliveryTime ?? string.Empty, TimeZoneId ?? string.Empty, Region, Country),
-            Aborted);
-        _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
-        _notice = _errors.Count == 0 ? T["Profile_Saved"].Value : null;
-    }
-
-    private async Task SectionAsync(Guid id)
-    {
-        var action = HttpContext.Request.Form["SectionAction"].ToString();
-        _openId = id;
-        if (action == "delete")
-        {
-            _confirmId = id;
-            return;
-        }
-
-        var done = action switch
-        {
-            "confirm-delete" => await Editor.DeleteSectionAsync(UserId, id, Aborted),
-            "up" => await Editor.MoveSectionAsync(UserId, id, up: true, Aborted),
-            "down" => await Editor.MoveSectionAsync(UserId, id, up: false, Aborted),
-            _ => await SaveSectionAsync(id),
-        };
-        _notice = done ? T["Profile_Saved"].Value : null;
-        if (!done && action is "" or "save")
-        {
-            _errors = [T["Profile_SectionInvalid"]];
-        }
-    }
-
-    private Task<bool> SaveSectionAsync(Guid id)
-    {
-        var form = HttpContext.Request.Form;
-        var maxArticles = form["MaxArticles"].ToString();
+        Clear();
         int? limit = null;
-        if (!string.IsNullOrWhiteSpace(maxArticles))
+        if (!string.IsNullOrWhiteSpace(_max))
         {
-            if (!int.TryParse(maxArticles, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
+            if (!int.TryParse(_max, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
             {
-                return Task.FromResult(false);
+                _errors = [T["Profile_SectionInvalid"]];
+                return;
             }
 
             limit = parsed;
         }
 
-        // Checkboxes arrive as a repeated field; ids that are not the user's own sources are dropped by the editor.
-        var sourceIds = form["SourceIds"]
-            .Select(value => Guid.TryParse(value, out var source) ? source : Guid.Empty)
-            .Where(source => source != Guid.Empty)
-            .ToList();
-        return Editor.SaveSectionAsync(UserId, id, form["SectionName"].ToString(), limit, sourceIds, Aborted);
+        // Ids that are not the user's own sources are dropped by the editor.
+        if (!await UseAsync<ProfileEditor, bool>(editor => editor.SaveSectionAsync(UserId, id, _name, limit, [.. _picked], Closed)))
+        {
+            _errors = [T["Profile_SectionInvalid"]];
+            return;
+        }
+
+        _notice = T["Profile_Saved"];
+        _openId = null;
+        await ReloadAsync();
+    }
+
+    private async Task DropAsync(int index)
+    {
+        if (_dragId is { } id)
+        {
+            await MoveAsync(id, index);
+        }
+
+        _dragId = _overId = null;
+    }
+
+    private async Task MoveAsync(Guid id, int index)
+    {
+        Clear();
+        await UseAsync<ProfileEditor, bool>(editor => editor.MoveSectionAsync(UserId, id, index, Closed));
+        await ReloadAsync();
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        Clear();
+        await UseAsync<ProfileEditor, bool>(editor => editor.DeleteSectionAsync(UserId, id, Closed));
+        _confirmId = _openId = null;
+        _notice = T["Profile_Saved"];
+        await ReloadAsync();
     }
 
     private async Task AddSectionAsync()
     {
-        if (!await Editor.AddSectionAsync(UserId, NewSection ?? string.Empty, Aborted))
+        Clear();
+        if (!await UseAsync<ProfileEditor, bool>(editor => editor.AddSectionAsync(UserId, _newSection, Closed)))
         {
             _errors = [T["Profile_SectionInvalid"]];
+            return;
         }
+
+        _newSection = string.Empty;
+        await ReloadAsync();
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        Clear();
+        var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(
+            UserId, new ProfileSettings(_title, _recipient, _time, _zone, _region, _country), Closed));
+        _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
+        if (_errors.Count == 0)
+        {
+            _notice = T["Profile_Saved"];
+            await ReloadAsync();
+        }
+    }
+
+    private void Clear()
+    {
+        _notice = null;
+        _errors = [];
     }
 }

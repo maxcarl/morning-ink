@@ -12,7 +12,7 @@ Das vollständige Konzept steht in `docs/konzept.md`. Lies den passenden Abschni
 - SmartReader (Volltext), AngleSharp und HtmlSanitizer (HTML), SkiaSharp (Bilder)
 - MailKit (SMTP/IMAP), eigener EPUB-Writer
 - Microsoft.Extensions.AI für KI-Anbieter (Ollama, OpenAI-kompatibel, Anthropic)
-- Tests: xUnit, Testcontainers, NetArchTest
+- Tests: xUnit, bUnit (interaktive Seiten), Testcontainers, NetArchTest
 - Docker-Image für amd64 und arm64
 
 ## Befehle

@@ -1,7 +1,10 @@
-using System.Net;
+using Bunit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using MorningInk.Domain;
 using MorningInk.Infrastructure.Http;
+using MorningInk.Infrastructure.Persistence;
+using MorningInk.Web.Components.Pages;
 
 namespace MorningInk.Web.Tests;
 
@@ -13,96 +16,69 @@ public sealed class SourcesPageTests : IDisposable
     public async Task Website_address_finds_the_feed_shows_a_preview_and_adds_it()
     {
         using var app = AllowingFeeds();
-        var browser = await app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Sources>("0 feeds");
 
-        var found = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = _feeds.SiteUrl }, form: ("discover", null));
-        var page = await found.Content.ReadAsStringAsync();
-        var added = await TestApp.SubmitAsync(browser, "/sources", page, new() { ["FeedUrl"] = _feeds.FeedUrl }, form: ("add", null));
-        var list = await browser.GetStringAsync(TestApp.RedirectTarget(added));
+        Pages.Submit(page, ("#url", _feeds.SiteUrl));
+        Pages.Shows(page, "Erste Meldung"); // preview before adding
+        Assert.Contains(_feeds.FeedUrl, page.Markup, StringComparison.Ordinal);
+        Pages.Submit(page, ("#feed-name", "Beispiel News"));
 
-        Assert.Contains(_feeds.FeedUrl, page, StringComparison.Ordinal);
-        Assert.Contains("Erste Meldung", page, StringComparison.Ordinal); // preview before adding
-        Assert.Equal("/sources?notice=added", TestApp.RedirectTarget(added));
-        Assert.Contains("Source added.", list, StringComparison.Ordinal);
-        Assert.Contains("Beispiel News", list, StringComparison.Ordinal);
+        Pages.Shows(page, "Source added.");
+        Assert.Contains("Beispiel News", page.Markup, StringComparison.Ordinal);
+        Assert.Equal(["Beispiel News"], (await SourcesAsync(app)).Select(s => s.Name));
     }
 
     [Fact]
-    public async Task Saved_source_can_be_tested_and_deleted()
+    public async Task Each_source_can_be_tested_and_is_deleted_only_after_confirmation()
     {
         using var app = AllowingFeeds();
-        var browser = await app.SignedInAdminAsync();
-        var found = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = _feeds.FeedUrl }, form: ("discover", null));
-        await TestApp.SubmitAsync(browser, "/sources", await found.Content.ReadAsStringAsync(), new() { ["FeedUrl"] = _feeds.FeedUrl }, form: ("add", null));
+        using var pages = await Pages.AsAdminAsync(app);
+        await AddSourcesAsync(app, "Erste", "Zweite");
+        var page = pages.Open<Sources>("2 feeds");
 
-        var tested = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "test" }, form: ("row", null));
-        var asked = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ("row", null));
-        var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "confirm-delete" }, form: ("row", null));
-        var list = await browser.GetStringAsync("/sources");
+        Pages.Button(page, "Test", 1).Click();
+        Pages.Shows(page, "Zweite Meldung");
+        Assert.Contains("works", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("row-selected", page.Markup, StringComparison.Ordinal);
 
-        var testPage = await tested.Content.ReadAsStringAsync();
-        Assert.Contains("works", testPage, StringComparison.Ordinal);
-        Assert.Contains("Zweite Meldung", testPage, StringComparison.Ordinal);
-        Assert.Contains("Delete Beispiel?", await asked.Content.ReadAsStringAsync(), StringComparison.Ordinal); // asks first
-        Assert.Equal("/sources?notice=deleted", TestApp.RedirectTarget(deleted));
-        Assert.Contains("0 feeds", list, StringComparison.Ordinal);
-    }
+        Pages.Button(page, "Delete", 0).Click();
+        Assert.Contains("Delete Erste?", page.Markup, StringComparison.Ordinal);
+        Assert.Equal(2, (await SourcesAsync(app)).Count); // nothing deleted before the confirmation
+        Pages.Button(page, "Yes, delete").Click();
 
-    [Fact]
-    public async Task Each_of_several_sources_can_be_tested_and_deleted()
-    {
-        using var app = AllowingFeeds();
-        var browser = await app.SignedInAdminAsync();
-        foreach (var name in new[] { "Erste", "Zweite" })
-        {
-            var found = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = _feeds.FeedUrl }, form: ("discover", null));
-            await TestApp.SubmitAsync(browser, "/sources", await found.Content.ReadAsStringAsync(), new() { ["FeedUrl"] = _feeds.FeedUrl, ["Name"] = name }, form: ("add", null));
-        }
-
-        var ids = await SourceIdsAsync(app);
-        var tested = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "test" }, form: ($"row-{ids[1]}", null));
-        var asked = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ($"row-{ids[0]}", null));
-        Assert.Equal(2, (await SourceIdsAsync(app)).Count); // nothing deleted before the confirmation
-        var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "confirm-delete" }, form: ($"row-{ids[0]}", null));
-
-        Assert.Equal(HttpStatusCode.OK, tested.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, asked.StatusCode);
-        Assert.Contains("row-selected", await tested.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-        Assert.Equal("/sources?notice=deleted", TestApp.RedirectTarget(deleted));
-        Assert.Equal([ids[1]], await SourceIdsAsync(app));
+        Pages.Shows(page, "Source deleted.");
+        Assert.Equal(["Zweite"], (await SourcesAsync(app)).Select(s => s.Name));
     }
 
     [Fact]
     public async Task Blocked_home_network_host_can_be_allowed_by_an_admin()
     {
         using var app = new TestApp(); // nothing allowed: the local feed server counts as home network
-        var browser = await app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(app);
         var entry = $"127.0.0.1:{_feeds.Port}";
+        var page = pages.Open<Sources>("0 feeds");
 
-        var blocked = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = _feeds.SiteUrl }, form: ("discover", null));
-        var blockedPage = await blocked.Content.ReadAsStringAsync();
-        var allowed = await TestApp.SubmitAsync(browser, "/sources", blockedPage, [], form: ("allow", null));
-        var allowedPage = await allowed.Content.ReadAsStringAsync();
+        Pages.Submit(page, ("#url", _feeds.SiteUrl));
+        Pages.Shows(page, $"{entry} is in your home network and blocked.");
+        Pages.Button(page, $"Allow {entry}").Click();
 
-        Assert.Contains($"{entry} is in your home network and blocked.", blockedPage, StringComparison.Ordinal);
-        Assert.Contains($"Allow {entry}", blockedPage, StringComparison.Ordinal);
-        Assert.Contains($"{entry} is allowed now.", allowedPage, StringComparison.Ordinal);
-        Assert.Contains("Erste Meldung", allowedPage, StringComparison.Ordinal);
+        Pages.Shows(page, $"{entry} is allowed now.");
+        Pages.Shows(page, "Erste Meldung"); // and the search runs again
     }
 
     [Fact]
-    public async Task Users_who_are_not_admins_cannot_allow_hosts_even_with_a_forged_request()
+    public async Task Users_who_are_not_admins_are_not_offered_to_allow_hosts()
     {
         using var app = new TestApp();
         await app.SignedInAdminAsync();
-        var user = await app.SignedInUserAsync("erika");
-        var entry = $"127.0.0.1:{_feeds.Port}";
+        using var pages = await Pages.AsUserAsync(app, "erika");
+        var page = pages.Open<Sources>("0 feeds");
 
-        // The allow form is never shown to them, so the request is built from another form's antiforgery token.
-        var forged = await TestApp.SubmitAsync(user, "/sources", new() { ["_handler"] = "allow", ["Host"] = entry, ["RetryUrl"] = _feeds.SiteUrl }, form: ("discover", null));
+        Pages.Submit(page, ("#url", _feeds.SiteUrl));
 
-        // Refused before the handler (the form is not on their page), and the handler checks the role as well.
-        Assert.DoesNotContain("is allowed now", await forged.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Pages.Shows(page, "Ask an admin to allow it.");
+        Assert.DoesNotContain("Allow 127.0.0.1", page.Markup, StringComparison.Ordinal);
         Assert.False(app.Services.GetRequiredService<HostAllowlist>().IsAllowed("127.0.0.1", _feeds.Port));
     }
 
@@ -110,21 +86,29 @@ public sealed class SourcesPageTests : IDisposable
     public async Task Invalid_address_is_explained()
     {
         using var app = AllowingFeeds();
-        var browser = await app.SignedInAdminAsync();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Sources>("0 feeds");
 
-        var response = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = "file:///etc/passwd" }, form: ("discover", null));
+        Pages.Submit(page, ("#url", "file:///etc/passwd"));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("could not be read", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Pages.Shows(page, "could not be read");
     }
 
     public void Dispose() => _feeds.Dispose();
 
-    private static async Task<List<Guid>> SourceIdsAsync(TestApp app)
+    private static async Task<List<Source>> SourcesAsync(TestApp app)
     {
         await using var scope = app.Services.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Persistence.MorningInkDbContext>().Sources
-            .OrderBy(s => s.Name).Select(s => s.Id).ToListAsync();
+        return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Sources.OrderBy(s => s.Name).ToListAsync();
+    }
+
+    private async Task AddSourcesAsync(TestApp app, params string[] names)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+        var admin = await db.DomainUsers.SingleAsync(u => u.Name == TestApp.AdminName);
+        db.Sources.AddRange(names.Select(name => new Source { UserId = admin.Id, Name = name, Url = _feeds.FeedUrl }));
+        await db.SaveChangesAsync();
     }
 
     private TestApp AllowingFeeds() => new(new() { ["Http:AllowedHosts:0"] = $"127.0.0.1:{_feeds.Port}" });

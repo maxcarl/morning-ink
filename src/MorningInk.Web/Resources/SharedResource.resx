@@ -174,4 +174,10 @@
   <data name="Masthead_Tagline" xml:space="preserve"><value>Your personal morning newspaper</value></data>
   <data name="Profile_FindSource" xml:space="preserve"><value>Find a source</value></data>
   <data name="Profile_Find" xml:space="preserve"><value>Search</value></data>
+  <data name="Reconnect_Lost" xml:space="preserve"><value>The connection to the server was lost.</value></data>
+  <data name="Reconnect_Reload" xml:space="preserve"><value>Reload the page</value></data>
+  <data name="Sources_Searching" xml:space="preserve"><value>Searching…</value></data>
+  <data name="Sources_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Profile_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Settings_Sending" xml:space="preserve"><value>Sending…</value></data>
 </root>

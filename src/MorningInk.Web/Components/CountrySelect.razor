@@ -1,7 +1,7 @@
 @using MorningInk.Infrastructure
-@* A select of all countries, names in the UI language; the empty choice searches worldwide. Posts as "Country". *@
+@* A select of all countries, names in the UI language; the empty choice searches worldwide. Use with @bind-Selected. *@
 
-<select id="@Id" name="Country" class="input" aria-describedby="@DescribedBy">
+<select id="@Id" class="input" aria-describedby="@DescribedBy" @onchange="ChangedAsync">
     <option value="" selected="@(Selected is null)">@T["Country_Worldwide"]</option>
     @foreach (var (iso, name) in Countries.ForDisplay())
     {
@@ -17,5 +17,14 @@
     public string? Selected { get; set; }
 
     [Parameter]
+    public EventCallback<string?> SelectedChanged { get; set; }
+
+    [Parameter]
     public string? DescribedBy { get; set; }
+
+    private Task ChangedAsync(ChangeEventArgs args)
+    {
+        var value = args.Value as string;
+        return SelectedChanged.InvokeAsync(string.IsNullOrEmpty(value) ? null : value);
+    }
 }

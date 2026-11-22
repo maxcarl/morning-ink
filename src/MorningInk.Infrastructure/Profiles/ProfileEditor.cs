@@ -153,18 +153,26 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         return true;
     }
 
-    /// <summary>Swaps the section with its neighbour above or below.</summary>
-    public async Task<bool> MoveSectionAsync(Guid userId, Guid sectionId, bool up, CancellationToken cancellationToken)
+    /// <summary>Moves the section to the given place in the order (0 is the top), e.g. after drag and drop.</summary>
+    /// <remarks>An index outside the list puts it first or last, so a stale page can never lose a section.</remarks>
+    public async Task<bool> MoveSectionAsync(Guid userId, Guid sectionId, int index, CancellationToken cancellationToken)
     {
         var ordered = (await GetOrCreateAsync(userId, cancellationToken)).Sections.OrderBy(s => s.Position).ToList();
-        var index = ordered.FindIndex(s => s.Id == sectionId);
-        var other = up ? index - 1 : index + 1;
-        if (index < 0 || other < 0 || other >= ordered.Count)
+        var section = ordered.SingleOrDefault(s => s.Id == sectionId);
+        if (section is null)
         {
             return false;
         }
 
-        (ordered[index].Position, ordered[other].Position) = (ordered[other].Position, ordered[index].Position);
+        ordered.Remove(section);
+        ordered.Insert(Math.Clamp(index, 0, ordered.Count), section);
+
+        // Renumbered from 1, so positions stay dense whatever happened before.
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            ordered[i].Position = i + 1;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }

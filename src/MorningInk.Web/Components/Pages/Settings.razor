@@ -1,14 +1,15 @@
 @page "/settings"
+@rendermode InteractiveServer
+@inherits InteractivePage
 @attribute [Authorize(Roles = nameof(UserRole.Admin))]
+@using System.Globalization
 @using MorningInk.Application.Delivery
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Delivery
 @using MorningInk.Infrastructure.Http
 @using MorningInk.Infrastructure.Profiles
-@inject MailSettingsStore Mail
-@inject TestMail TestMail
+@inject MailSettingsLocks Locks
 @inject HostAllowlist Allowlist
-@inject ProfileEditor Profiles
 
 <PageTitle>@T["Settings_Title"] – @T["Brand"]</PageTitle>
 
@@ -35,52 +36,51 @@
     <section aria-labelledby="mail-heading">
         <h2 id="mail-heading" class="department">@T["Settings_Mail"]</h2>
         <p class="hint">@T["Settings_MailHint"]</p>
-        <form method="post" @formname="mail" @onsubmit="SaveMailAsync">
-            <AntiforgeryToken />
+        <form @onsubmit="SaveMailAsync">
             <div class="inline-form field">
                 <div class="row-main">
                     <label class="label" for="host">@T["Settings_Host"]</label>
-                    <input id="host" name="Host" class="input" value="@_mail.Host" readonly="@IsLocked(MailSettingsStore.HostField)" aria-describedby="host-lock" />
-                    <LockHint Field="@MailSettingsStore.HostField" Id="host-lock" Locked="@Mail.Locked" />
+                    <input id="host" class="input" @bind="_host" readonly="@IsLocked(MailSettingsStore.HostField)" aria-describedby="host-lock" />
+                    <LockHint Field="@MailSettingsStore.HostField" Id="host-lock" Locked="@Locks.Fields" />
                 </div>
                 <div>
                     <label class="label" for="port">@T["Settings_Port"]</label>
-                    <input id="port" name="Port" class="input" value="@_mail.Port" inputmode="numeric" readonly="@IsLocked(MailSettingsStore.PortField)" />
+                    <input id="port" class="input" @bind="_port" inputmode="numeric" readonly="@IsLocked(MailSettingsStore.PortField)" />
                 </div>
             </div>
             <div class="field">
                 <label class="label" for="security">@T["Settings_Security"]</label>
-                <select id="security" name="Security" class="input" disabled="@IsLocked(MailSettingsStore.SecurityField)">
+                <select id="security" class="input" @bind="_security" disabled="@IsLocked(MailSettingsStore.SecurityField)">
                     @foreach (var option in Enum.GetValues<MailSecurity>())
                     {
-                        <option value="@option" selected="@(option == _mail.Security)">@T[$"Security_{option}"]</option>
+                        <option value="@option">@T[$"Security_{option}"]</option>
                     }
                 </select>
             </div>
             <div class="inline-form field">
                 <div class="row-main">
                     <label class="label" for="username">@T["Settings_Username"]</label>
-                    <input id="username" name="Username" class="input" value="@_mail.Username" autocomplete="off" readonly="@IsLocked(MailSettingsStore.UsernameField)" />
+                    <input id="username" class="input" @bind="_username" autocomplete="off" readonly="@IsLocked(MailSettingsStore.UsernameField)" />
                 </div>
                 <div class="row-main">
                     <label class="label" for="password">@T["Settings_Password"]</label>
-                    @* Never filled in: a saved password does not leave the server again. *@
-                    <input id="password" name="Password" class="input" type="password" autocomplete="new-password" readonly="@IsLocked(MailSettingsStore.PasswordField)" aria-describedby="password-hint" />
-                    <span id="password-hint" class="hint">@(_mail.Password is null ? T["Settings_PasswordNone"] : T["Settings_PasswordSaved"])</span>
+                    @* Never filled in from storage: a saved password does not leave the server again. *@
+                    <input id="password" class="input" type="password" @bind="_password" autocomplete="new-password" readonly="@IsLocked(MailSettingsStore.PasswordField)" aria-describedby="password-hint" />
+                    <span id="password-hint" class="hint">@(_passwordSaved ? T["Settings_PasswordSaved"] : T["Settings_PasswordNone"])</span>
                 </div>
             </div>
             <div class="inline-form field">
                 <div class="row-main">
                     <label class="label" for="from">@T["Settings_FromAddress"]</label>
-                    <input id="from" name="FromAddress" class="input" value="@_mail.FromAddress" type="email" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
-                    <LockHint Field="@MailSettingsStore.FromAddressField" Id="from-lock" Locked="@Mail.Locked" />
+                    <input id="from" class="input" @bind="_fromAddress" type="email" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
+                    <LockHint Field="@MailSettingsStore.FromAddressField" Id="from-lock" Locked="@Locks.Fields" />
                 </div>
                 <div class="row-main">
                     <label class="label" for="from-name">@T["Settings_FromName"]</label>
-                    <input id="from-name" name="FromName" class="input" value="@_mail.FromName" readonly="@IsLocked(MailSettingsStore.FromNameField)" />
+                    <input id="from-name" class="input" @bind="_fromName" readonly="@IsLocked(MailSettingsStore.FromNameField)" />
                 </div>
             </div>
-            <button type="submit" class="button">@T["Settings_Save"]</button>
+            <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
         </form>
 
         <h2 class="department">@T["Settings_Network"]</h2>
@@ -92,12 +92,9 @@
             }
             @foreach (var entry in Allowlist.Stored.Order(StringComparer.Ordinal))
             {
-                <li class="row">
+                <li class="row" @key="entry">
                     <div class="row-main"><div class="row-title">@entry</div></div>
-                    <form method="post" @formname="@($"allow-remove-{entry}")" @onsubmit="() => RemoveHostAsync(entry)">
-                        <AntiforgeryToken />
-                        <button type="submit" class="button button-secondary button-small">@T["Settings_NetworkRemove"]</button>
-                    </form>
+                    <button type="button" class="link-button link-danger" @onclick="() => RemoveHostAsync(entry)">@T["Settings_NetworkRemove"]<span class="visually-hidden"> – @entry</span></button>
                 </li>
             }
             @if (Allowlist.Configured.Count == 0 && Allowlist.Stored.Count == 0)
@@ -105,11 +102,10 @@
                 <li class="row muted">@T["Settings_NetworkNone"]</li>
             }
         </ul>
-        <form method="post" @formname="allow-add" @onsubmit="AddHostAsync" class="field">
-            <AntiforgeryToken />
+        <form @onsubmit="AddHostAsync" class="field">
             <label class="label" for="new-host">@T["Settings_NetworkAdd"]</label>
             <div class="inline-form">
-                <input id="new-host" name="NewEntry" class="input" value="" placeholder="freshrss.lan" aria-describedby="new-host-hint" required />
+                <input id="new-host" class="input" @bind="_newEntry" placeholder="freshrss.lan" aria-describedby="new-host-hint" required />
                 <button type="submit" class="button button-secondary">@T["Settings_NetworkAdd"]</button>
             </div>
             <span id="new-host-hint" class="hint">@T["Settings_NetworkAddHint"]</span>
@@ -119,100 +115,111 @@
     <aside class="sidebar" aria-labelledby="test-heading">
         <h2 id="test-heading" class="label muted">@T["Settings_TestMail"]</h2>
         <p class="hint">@T["Settings_TestMailHint"]</p>
-        <form method="post" @formname="test" @onsubmit="SendTestAsync">
-            <AntiforgeryToken />
+        <form @onsubmit="SendTestAsync">
             <div class="field">
                 <label for="test-recipient">@T["Settings_TestRecipient"]</label>
-                <input id="test-recipient" name="TestRecipient" class="input" value="@_testRecipient" type="email" required />
+                <input id="test-recipient" class="input" @bind="_testRecipient" type="email" required />
             </div>
-            <button type="submit" class="button button-block">@T["Settings_SendTest"]</button>
+            <button type="submit" class="button button-block" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
         </form>
     </aside>
 </div>
 
 @code {
-    private MailSettings _mail = new();
-    private string? _testRecipient;
     private List<string> _errors = [];
     private string? _notice;
+    private bool _busy;
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
+    private string? _host;
+    private string? _port;
+    private MailSecurity _security;
+    private string? _username;
+    private string? _password;
+    private bool _passwordSaved;
+    private string? _fromAddress;
+    private string? _fromName;
+    private string? _testRecipient;
+    private string? _newEntry;
 
-    [SupplyParameterFromForm(FormName = "mail")]
-    private string? Host { get; set; }
-
-    [SupplyParameterFromForm(FormName = "mail")]
-    private string? Port { get; set; }
-
-    [SupplyParameterFromForm(FormName = "mail")]
-    private MailSecurity? Security { get; set; }
-
-    [SupplyParameterFromForm(FormName = "mail")]
-    private string? Username { get; set; }
-
-    [SupplyParameterFromForm(FormName = "mail")]
-    private string? Password { get; set; }
-
-    [SupplyParameterFromForm(FormName = "mail")]
-    private string? FromAddress { get; set; }
-
-    [SupplyParameterFromForm(FormName = "mail")]
-    private string? FromName { get; set; }
-
-    [SupplyParameterFromForm(FormName = "test")]
-    private string? TestRecipient { get; set; }
-
-    [SupplyParameterFromForm(FormName = "allow-add")]
-    private string? NewEntry { get; set; }
-
-    private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: every page requires a signed-in user
-
-    private CancellationToken Aborted => HttpContext.RequestAborted;
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task LoadAsync()
     {
-        _mail = await Mail.LoadAsync(Aborted);
-        _testRecipient = (await Profiles.GetOrCreateAsync(UserId, Aborted)).Recipient;
+        await LoadMailAsync();
+        _testRecipient = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Recipient;
     }
 
-    private bool IsLocked(string field) => Mail.Locked.Contains(field);
+    private async Task LoadMailAsync()
+    {
+        var mail = await UseAsync<MailSettingsStore, MailSettings>(store => store.LoadAsync(Closed));
+        _host = mail.Host;
+        _port = mail.Port.ToString(CultureInfo.InvariantCulture);
+        _security = mail.Security;
+        _username = mail.Username;
+        _password = null;
+        _passwordSaved = mail.Password is not null;
+        _fromAddress = mail.FromAddress;
+        _fromName = mail.FromName;
+    }
+
+    private bool IsLocked(string field) => Locks.Fields.Contains(field);
 
     private async Task SaveMailAsync()
     {
-        var errors = await Mail.SaveAsync(new MailSettingsInput(Host, Port, Security ?? _mail.Security, Username, Password, FromAddress, FromName), Aborted);
+        Clear();
+        var input = new MailSettingsInput(_host, _port, _security, _username, _password, _fromAddress, _fromName);
+        var errors = await UseAsync<MailSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, Closed));
         _errors = errors.Select(field => T[$"Settings_Error_{field}"].Value).ToList();
-        _notice = _errors.Count == 0 ? T["Settings_Saved"].Value : null;
-        _mail = await Mail.LoadAsync(Aborted);
+        if (_errors.Count == 0)
+        {
+            _notice = T["Settings_Saved"];
+            await LoadMailAsync();
+        }
     }
 
     private async Task SendTestAsync()
     {
-        var recipient = TestRecipient?.Trim() ?? string.Empty;
-        _testRecipient = recipient;
-        switch (await TestMail.SendAsync(recipient, System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName, Aborted))
+        Clear();
+        var recipient = _testRecipient?.Trim() ?? string.Empty;
+        _busy = true;
+        try
         {
-            case DeliveryResult.Failure failure:
-                _errors = [T["Settings_TestFailed", failure.Message]];
-                break;
-            default:
-                _notice = T["Settings_TestSent", recipient];
-                break;
+            var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            switch (await UseAsync<TestMail, DeliveryResult>(mail => mail.SendAsync(recipient, language, Closed)))
+            {
+                case DeliveryResult.Failure failure:
+                    _errors = [T["Settings_TestFailed", failure.Message]];
+                    break;
+                default:
+                    _notice = T["Settings_TestSent", recipient];
+                    break;
+            }
+        }
+        finally
+        {
+            _busy = false;
         }
     }
 
     private async Task AddHostAsync()
     {
-        if (!string.IsNullOrWhiteSpace(NewEntry))
+        Clear();
+        if (!string.IsNullOrWhiteSpace(_newEntry))
         {
-            await Allowlist.AddAsync(NewEntry, UserId, Aborted);
-            _notice = T["Sources_Allowed", NewEntry.Trim().ToLowerInvariant()];
+            await Allowlist.AddAsync(_newEntry, UserId, Closed);
+            _notice = T["Sources_Allowed", _newEntry.Trim().ToLowerInvariant()];
+            _newEntry = null;
         }
     }
 
     private async Task RemoveHostAsync(string entry)
     {
-        await Allowlist.RemoveAsync(entry, Aborted);
+        Clear();
+        await Allowlist.RemoveAsync(entry, Closed);
         _notice = T["Settings_Saved"];
+    }
+
+    private void Clear()
+    {
+        _notice = null;
+        _errors = [];
     }
 }
