@@ -295,4 +295,5 @@
   <data name="Settings_Error_AiEndpoint" xml:space="preserve"><value>Das ist keine gültige http- oder https-Adresse.</value></data>
   <data name="Settings_Error_AiModel" xml:space="preserve"><value>Bitte gib den Modellnamen an, z. B. qwen2.5:7b.</value></data>
   <data name="Sources_LocalAiOnly" xml:space="preserve"><value>Nur lokale KI</value></data>
+  <data name="Sources_LocalAiOnlyHint" xml:space="preserve"><value>Für private Inhalte, z. B. ein Newsletter-Postfach oder eine Quelle mit deinem Login: Ihre Artikel gehen nur an eine KI auf eigener Hardware (Einstellungen → KI), nie an einen Cloud-Anbieter. Ist ein Cloud-Anbieter eingestellt, bekommen sie keine Zusammenfassung.</value></data>
 </root>

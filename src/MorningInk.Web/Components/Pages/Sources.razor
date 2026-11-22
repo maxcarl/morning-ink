@@ -111,8 +111,11 @@
                                     <div class="row-main checks">
                                         <label class="checkbox"><input id="source-live" type="checkbox" @bind="_edit.SkipLiveTickers" /> @T["Sources_SkipLive"]</label>
                                         <label class="checkbox"><input type="checkbox" @bind="_edit.FetchFullText" /> @T["Sources_FullText"]</label>
-                                        <label class="checkbox"><input id="source-local-ai" type="checkbox" @bind="_edit.LocalAiOnly" /> @T["Sources_LocalAiOnly"]</label>
                                     </div>
+                                </div>
+                                <div class="field">
+                                    <label class="checkbox"><input id="source-local-ai" type="checkbox" @bind="_edit.LocalAiOnly" aria-describedby="source-local-ai-hint" /> @T["Sources_LocalAiOnly"]</label>
+                                    <span id="source-local-ai-hint" class="hint">@T["Sources_LocalAiOnlyHint"]</span>
                                 </div>
                                 <div class="row-actions">
                                     <button type="submit" class="button button-small" disabled="@_busy">@T["Profile_Save"]<span class="visually-hidden"> – @source.Name</span></button>
