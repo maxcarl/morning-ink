@@ -7,6 +7,9 @@ public abstract record PreviewResult
     {
     }
 
+    /// <summary>How the preview was built, step by step, like an issue's log.</summary>
+    public IReadOnlyList<MorningInk.Domain.IssueLogEntry> Log { get; init; } = [];
+
     /// <param name="File">The issue as it would be sent now, e.g. an EPUB.</param>
     public sealed record Built(byte[] File, string FileExtension, string MediaType, IReadOnlyList<SourceProblem> UnavailableSources) : PreviewResult;
 

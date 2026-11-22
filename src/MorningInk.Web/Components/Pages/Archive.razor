@@ -54,6 +54,17 @@
                             @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", inIssue.Count])
                         </button>
                     }
+                    @if (issue.Log.Count > 0)
+                    {
+                        var logOpen = _logId == issue.Id;
+                        <button type="button" class="link-button" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
+                            @(logOpen ? T["Log_Hide"] : T["Log_Show"])
+                        </button>
+                        @if (logOpen)
+                        {
+                            <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(item.Profile.TimeZoneId)" /></div>
+                        }
+                    }
                     @if (open)
                     {
                         <ul id="entries-@issue.Id" class="headline-list">
@@ -97,6 +108,7 @@
     private string _search = string.Empty;
     private int _take = PageSize;
     private Guid? _openId;
+    private Guid? _logId;
     private Guid? _sendingId;
     private string? _notice;
     private string? _error;

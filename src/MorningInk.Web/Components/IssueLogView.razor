@@ -1,0 +1,33 @@
+@using System.Globalization
+@using MorningInk.Domain
+@* An issue's log, step by step, in the user's language and the edition's time zone. *@
+
+<ol class="issue-log">
+    @foreach (var entry in Entries)
+    {
+        <li><time datetime="@entry.At.ToString("O", CultureInfo.InvariantCulture)">@TimeZoneInfo.ConvertTime(entry.At, Zone).ToString("T", CultureInfo.CurrentCulture)</time> @Text(entry)</li>
+    }
+</ol>
+
+@code {
+    private const string DeliveryFailed = "DeliveryFailed";
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<IssueLogEntry> Entries { get; set; } = [];
+
+    [Parameter]
+    public TimeZoneInfo Zone { get; set; } = TimeZoneInfo.Utc;
+
+    private string Text(IssueLogEntry entry)
+    {
+        // A failed delivery carries its English text, reason code and values, like the dashboard's error line.
+        if (entry.Event == DeliveryFailed && entry.Arguments.Count >= 2)
+        {
+            var reason = entry.Arguments[1].Length == 0 ? null : entry.Arguments[1];
+            return T[$"Log_{DeliveryFailed}", DeliveryTexts.Describe(T, reason, entry.Arguments.Skip(2).ToList(), entry.Arguments[0])];
+        }
+
+        var text = T[$"Log_{entry.Event}", [.. entry.Arguments]];
+        return text.ResourceNotFound ? $"{entry.Event} {string.Join(", ", entry.Arguments)}" : text.Value;
+    }
+}

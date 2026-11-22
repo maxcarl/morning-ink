@@ -67,6 +67,23 @@ public sealed class ArchivePageTests : IDisposable
     }
 
     [Fact]
+    public async Task Log_shows_how_the_issue_was_built()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        await AddIssueAsync("Raumfahrt: Start geglückt", issue =>
+        {
+            issue.AddLog(DateTimeOffset.UtcNow, "Fetched", "tagesschau", 12);
+            issue.AddLog(DateTimeOffset.UtcNow, "DeliveryFailed", "The mail server smtp.example.com could not be reached.", "Unreachable", "smtp.example.com");
+        });
+        var page = pages.Open<Archive>("No. 1");
+
+        Pages.Button(page, "Log").Click();
+
+        Pages.Shows(page, "tagesschau: 12 articles fetched");
+        Assert.Contains("Delivery failed: The mail server smtp.example.com could not be reached.", page.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Issue_file_downloads_only_for_its_owner()
     {
         var admin = await _app.SignedInAdminAsync();
@@ -91,7 +108,7 @@ public sealed class ArchivePageTests : IDisposable
     }
 
     // A delivered issue of 2026-11-20 6:00 in Berlin for the admin's edition, with its file on disk.
-    private async Task<Guid> AddIssueAsync(string articleTitle)
+    private async Task<Guid> AddIssueAsync(string articleTitle, Action<Issue>? shape = null)
     {
         await using var scope = _app.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
@@ -103,6 +120,7 @@ public sealed class ArchivePageTests : IDisposable
         var issue = new Issue { ProfileId = profile.Id, Number = 1, ScheduledFor = slot, CreatedAt = slot, Status = IssueStatus.Delivered, DeliveredAt = slot };
         issue.FileName = $"{issue.Id}.epub";
         issue.Entries.Add(new IssueEntry { Url = "https://example.com/1", Title = articleTitle, SourceName = "Beispiel" });
+        shape?.Invoke(issue);
         await File.WriteAllTextAsync(scope.ServiceProvider.GetRequiredService<IIssueFiles>().PathFor(issue.FileName), "epub");
         db.Issues.Add(issue);
         await db.SaveChangesAsync();

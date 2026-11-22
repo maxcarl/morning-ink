@@ -340,4 +340,23 @@
   <data name="Delivery_TlsPort" xml:space="preserve"><value>No encrypted connection to {0} on port {1}: the encryption probably does not fit the port. Port 587 usually uses STARTTLS, port 465 SSL/TLS.</value></data>
   <data name="Delivery_Unreachable" xml:space="preserve"><value>The mail server {0} could not be reached.</value></data>
   <data name="Delivery_Busy" xml:space="preserve"><value>Another delivery of this edition is running. Try again in a minute.</value></data>
+  <data name="Log_Started" xml:space="preserve"><value>Building started</value></data>
+  <data name="Log_StartedAhead" xml:space="preserve"><value>Building started ahead of the delivery time</value></data>
+  <data name="Log_Fetched" xml:space="preserve"><value>{0}: {1} articles fetched</value></data>
+  <data name="Log_SourceFailed" xml:space="preserve"><value>{0} not reachable: {1}</value></data>
+  <data name="Log_Fresh" xml:space="preserve"><value>{0} of {1} articles are new</value></data>
+  <data name="Log_Filtered" xml:space="preserve"><value>{0}: {1} articles left out by filters or interests</value></data>
+  <data name="Log_Chosen" xml:space="preserve"><value>{0}: {1} of {2} articles chosen</value></data>
+  <data name="Log_Merged" xml:space="preserve"><value>{0} duplicates merged</value></data>
+  <data name="Log_Processed" xml:space="preserve"><value>{0} articles prepared in {1} s (full text, images, AI)</value></data>
+  <data name="Log_Dropped" xml:space="preserve"><value>{0} articles left out: too short or not readable</value></data>
+  <data name="Log_Summaries" xml:space="preserve"><value>{0} AI summaries</value></data>
+  <data name="Log_Rendered" xml:space="preserve"><value>Issue built: {0} KB</value></data>
+  <data name="Log_NoNewArticles" xml:space="preserve"><value>No new articles: nothing sent</value></data>
+  <data name="Log_Prepared" xml:space="preserve"><value>Ready, waiting for the delivery time</value></data>
+  <data name="Log_Delivered" xml:space="preserve"><value>Sent to {0}</value></data>
+  <data name="Log_SentAgain" xml:space="preserve"><value>Sent again to {0}</value></data>
+  <data name="Log_DeliveryFailed" xml:space="preserve"><value>Delivery failed: {0}</value></data>
+  <data name="Log_Show" xml:space="preserve"><value>Log</value></data>
+  <data name="Log_Hide" xml:space="preserve"><value>Hide log</value></data>
 </root>

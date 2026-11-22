@@ -37,6 +37,12 @@ public class Issue
     /// <summary>The values the error's words need, e.g. the mail server's name.</summary>
     public List<string> ErrorArguments { get; set; } = [];
 
+    /// <summary>How the issue was built and sent, step by step, for the archive and the dashboard.</summary>
+    public List<IssueLogEntry> Log { get; set; } = [];
+
+    public void AddLog(DateTimeOffset at, string @event, params IEnumerable<object> arguments) =>
+        Log.Add(new IssueLogEntry { At = at, Event = @event, Arguments = [.. arguments.Select(a => Convert.ToString(a, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty)] });
+
     public void SetError(string? message, string? reason, IReadOnlyList<string> arguments)
     {
         Error = message;

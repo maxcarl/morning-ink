@@ -370,6 +370,22 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Building_an_issue_is_logged_step_by_step()
+    {
+        Answer(_heise, new SourceResult.Failure("heise.de could not be reached."));
+
+        await PublishAsync();
+
+        var log = Assert.Single(_store.Issues).Log;
+        Assert.Contains(log, e => e.Event == "Fetched" && e.Arguments.SequenceEqual(["tagesschau", "2"]));
+        Assert.Contains(log, e => e.Event == "SourceFailed" && e.Arguments[0] == "heise");
+        Assert.Contains(log, e => e.Event == "Chosen" && e.Arguments[0] == "Nachrichten" && e.Arguments[1] == "2");
+        Assert.Contains(log, e => e.Event == "Rendered");
+        Assert.Equal("Delivered", log[^1].Event);
+        Assert.True(log.Zip(log.Skip(1)).All(pair => pair.First.At <= pair.Second.At)); // in the order it happened
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 

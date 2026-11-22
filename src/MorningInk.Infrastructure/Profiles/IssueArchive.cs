@@ -105,6 +105,7 @@ public sealed class IssueArchive(
             if (result is DeliveryResult.Failure failure)
             {
                 issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = false, Error = failure.Message });
+                issue.AddLog(now, "DeliveryFailed", [failure.Message, failure.Reason ?? string.Empty, .. failure.Arguments]);
 
                 // A delivered issue stays delivered; the failed resend shows in its attempts only.
                 if (issue.Status != IssueStatus.Delivered)
@@ -115,6 +116,7 @@ public sealed class IssueArchive(
             else
             {
                 issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = true });
+                issue.AddLog(now, "SentAgain", profile.Recipient);
                 if (issue.Status != IssueStatus.Delivered)
                 {
                     issue.Status = IssueStatus.Delivered;

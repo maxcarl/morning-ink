@@ -76,6 +76,17 @@
                             {
                                 <p class="row-meta">@T["Dash_Unavailable"] @string.Join(" · ", issue.Problems)</p>
                             }
+                            @if (issue.Log.Count > 0)
+                            {
+                                var logOpen = _logId == issue.Id;
+                                <button type="button" class="link-button" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
+                                    @(logOpen ? T["Log_Hide"] : T["Log_Show"])
+                                </button>
+                                @if (logOpen)
+                                {
+                                    <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(profile?.TimeZoneId ?? TimeZoneInfo.Utc.Id)" /></div>
+                                }
+                            }
                         </div>
                         @* Status in words, colour only adds to it. *@
                         <span class="status @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
@@ -136,6 +147,7 @@
     private static readonly TimeSpan FollowBack = TimeSpan.FromMinutes(1);
 
     private NewsroomView? _view;
+    private Guid? _logId;
     private string? _notice;
     private bool _sending;
 

@@ -78,13 +78,13 @@ public sealed class IssuePublisher(
         var content = await BuildAsync(loaded, draft, localTime, problems, cancellationToken, withAi);
         if (content is null)
         {
-            return new PreviewResult.Empty(problems);
+            return new PreviewResult.Empty(problems) { Log = draft.Log };
         }
 
         var renderer = renderers.First(r => r.FileExtension == Format);
         using var output = new MemoryStream();
         await renderer.RenderAsync(content, output, cancellationToken);
-        return new PreviewResult.Built(output.ToArray(), renderer.FileExtension, renderer.MediaType, problems);
+        return new PreviewResult.Built(output.ToArray(), renderer.FileExtension, renderer.MediaType, problems) { Log = draft.Log };
     }
 
     private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, bool prepareOnly, CancellationToken cancellationToken)
@@ -124,6 +124,7 @@ public sealed class IssuePublisher(
             // Saved before the slow part, so the unique slot is claimed and a crash leaves a visible "Building".
             issue.Status = IssueStatus.Building;
             issue.Entries.Clear();
+            issue.AddLog(time.GetUtcNow(), prepareOnly ? "StartedAhead" : "Started");
             await store.SaveChangesAsync(cancellationToken);
 
             var content = await BuildAsync(loaded, issue, localTime, problems, cancellationToken);
@@ -131,6 +132,7 @@ public sealed class IssuePublisher(
             if (content is null)
             {
                 issue.Status = IssueStatus.Empty;
+                issue.AddLog(time.GetUtcNow(), "NoNewArticles");
                 await store.SaveChangesAsync(cancellationToken);
                 return new PublishResult.NoNewArticles(issue.Id, problems);
             }
@@ -140,6 +142,8 @@ public sealed class IssuePublisher(
 
         if (prepareOnly)
         {
+            issue.AddLog(time.GetUtcNow(), "Prepared");
+            await store.SaveChangesAsync(cancellationToken);
             return new PublishResult.Prepared(issue.Id);
         }
 
@@ -166,13 +170,23 @@ public sealed class IssuePublisher(
         var bySource = new Dictionary<Guid, IReadOnlyList<FetchedArticle>>();
         foreach (var source in orderedSections.SelectMany(s => s.Sources).DistinctBy(s => s.Id))
         {
+            var before = problems.Count;
             bySource[source.Id] = await FetchAsync(source, problems, cancellationToken);
+            if (problems.Count > before)
+            {
+                issue.AddLog(time.GetUtcNow(), "SourceFailed", source.Name, problems[^1].Message);
+            }
+            else
+            {
+                issue.AddLog(time.GetUtcNow(), "Fetched", source.Name, bySource[source.Id].Count);
+            }
         }
 
         // By reference: the seen-filter hands back the very instances it keeps, one per article.
         var fresh = new HashSet<FetchedArticle>(
             await seen.FilterNewAsync(profile.UserId, bySource.Values.SelectMany(a => a).ToList(), cancellationToken),
             ReferenceEqualityComparer.Instance);
+        issue.AddLog(time.GetUtcNow(), "Fresh", fresh.Count, bySource.Values.Sum(a => a.Count));
 
         // First choose, across all sections, so a story another section already took is merged instead of repeated.
         var taken = new List<(FetchedArticle Article, string SourceName, List<AlsoReported> AlsoAt)>();
@@ -180,14 +194,22 @@ public sealed class IssuePublisher(
         foreach (var section in orderedSections)
         {
             var picks = new List<(FetchedArticle, Source, List<AlsoReported>)>();
-            var candidates = section.Sources
+            var unread = section.Sources
                 .SelectMany(source => bySource[source.Id].Select(article => (Article: article, Source: source)))
-                .Where(candidate => fresh.Contains(candidate.Article) && ArticleFilter.Admits(candidate.Article, candidate.Source)
-                    && !Interests.Hides(candidate.Article, profile.Interests))
+                .Where(candidate => fresh.Contains(candidate.Article))
+                .ToList();
+            var candidates = unread
+                .Where(candidate => ArticleFilter.Admits(candidate.Article, candidate.Source) && !Interests.Hides(candidate.Article, profile.Interests))
 
                 // The edition's interests first, then the newest: when the limit is tight, its topics win.
                 .OrderByDescending(candidate => Interests.Score(candidate.Article, profile.Interests))
-                .ThenByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue);
+                .ThenByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue)
+                .ToList();
+            if (unread.Count > candidates.Count)
+            {
+                issue.AddLog(time.GetUtcNow(), "Filtered", section.Name, unread.Count - candidates.Count);
+            }
+
             foreach (var (article, source) in candidates)
             {
                 if (picks.Count >= (section.MaxArticles ?? int.MaxValue))
@@ -214,7 +236,15 @@ public sealed class IssuePublisher(
             }
 
             plan.Add((section, picks));
+            issue.AddLog(time.GetUtcNow(), "Chosen", section.Name, picks.Count, candidates.Count);
         }
+
+        if (taken.Sum(t => t.AlsoAt.Count) is var merged and > 0)
+        {
+            issue.AddLog(time.GetUtcNow(), "Merged", merged);
+        }
+
+        var processingStarted = time.GetUtcNow();
 
         var sections = new List<IssueSection>();
         foreach (var (section, picks) in plan)
@@ -233,6 +263,20 @@ public sealed class IssuePublisher(
             {
                 sections.Add(new IssueSection(section.Name, articles));
             }
+        }
+
+        // Full text, cleaning, images and AI take most of the time; worth seeing when an issue comes late.
+        var kept = sections.Sum(s => s.Articles.Count);
+        var seconds = (int)(time.GetUtcNow() - processingStarted).TotalSeconds;
+        issue.AddLog(time.GetUtcNow(), "Processed", kept, seconds);
+        if (plan.Sum(p => p.Picks.Count) - kept is var dropped and > 0)
+        {
+            issue.AddLog(time.GetUtcNow(), "Dropped", dropped);
+        }
+
+        if (sections.Sum(s => s.Articles.Count(a => a.Article.AiSummary is not null)) is var summaries and > 0)
+        {
+            issue.AddLog(time.GetUtcNow(), "Summaries", summaries);
         }
 
         return sections.Count == 0
@@ -327,6 +371,7 @@ public sealed class IssuePublisher(
         issue.FileName = fileName;
         issue.FileSize = new FileInfo(path).Length;
         issue.Status = IssueStatus.Rendered;
+        issue.AddLog(time.GetUtcNow(), "Rendered", issue.FileSize / 1024);
         foreach (var article in content.Sections.SelectMany(s => s.Articles))
         {
             issue.Entries.Add(new IssueEntry { Url = article.Article.Url.AbsoluteUri, Title = article.Article.Title, SourceName = article.SourceName });
@@ -360,6 +405,7 @@ public sealed class IssuePublisher(
         {
             issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = false, Error = failure.Message });
             issue.Status = IssueStatus.Failed;
+            issue.AddLog(now, "DeliveryFailed", [failure.Message, failure.Reason ?? string.Empty, .. failure.Arguments]);
             issue.SetError(failure.Message, failure.Reason, failure.Arguments);
             await store.SaveChangesAsync(cancellationToken);
             return new PublishResult.DeliveryFailed(issue.Id, failure.Message, failure.Retryable, issue.Attempts.Count);
@@ -367,6 +413,7 @@ public sealed class IssuePublisher(
 
         issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = now, Succeeded = true });
         issue.Status = IssueStatus.Delivered;
+        issue.AddLog(now, "Delivered", profile.Recipient);
         issue.DeliveredAt = now;
         issue.SetError(null, null, []);
 

@@ -340,4 +340,23 @@
   <data name="Delivery_TlsPort" xml:space="preserve"><value>Keine verschlüsselte Verbindung zu {0} auf Port {1}: Die Verschlüsselung passt vermutlich nicht zum Port. Port 587 nutzt meist STARTTLS, Port 465 SSL/TLS.</value></data>
   <data name="Delivery_Unreachable" xml:space="preserve"><value>Der Mailserver {0} ist nicht erreichbar.</value></data>
   <data name="Delivery_Busy" xml:space="preserve"><value>Gerade läuft schon eine Zustellung dieser Ausgabe. Versuch es in einer Minute noch einmal.</value></data>
+  <data name="Log_Started" xml:space="preserve"><value>Bau gestartet</value></data>
+  <data name="Log_StartedAhead" xml:space="preserve"><value>Bau vorab gestartet (Vorlauf)</value></data>
+  <data name="Log_Fetched" xml:space="preserve"><value>{0}: {1} Artikel abgerufen</value></data>
+  <data name="Log_SourceFailed" xml:space="preserve"><value>{0} nicht erreichbar: {1}</value></data>
+  <data name="Log_Fresh" xml:space="preserve"><value>{0} von {1} Artikeln sind neu</value></data>
+  <data name="Log_Filtered" xml:space="preserve"><value>{0}: {1} Artikel durch Filter oder Interessen ausgelassen</value></data>
+  <data name="Log_Chosen" xml:space="preserve"><value>{0}: {1} von {2} Artikeln ausgewählt</value></data>
+  <data name="Log_Merged" xml:space="preserve"><value>{0} Duplikate zusammengelegt</value></data>
+  <data name="Log_Processed" xml:space="preserve"><value>{0} Artikel in {1} s aufbereitet (Volltext, Bilder, KI)</value></data>
+  <data name="Log_Dropped" xml:space="preserve"><value>{0} Artikel ausgelassen: zu kurz oder nicht lesbar</value></data>
+  <data name="Log_Summaries" xml:space="preserve"><value>{0} KI-Zusammenfassungen</value></data>
+  <data name="Log_Rendered" xml:space="preserve"><value>Ausgabe gebaut: {0} KB</value></data>
+  <data name="Log_NoNewArticles" xml:space="preserve"><value>Keine neuen Artikel: nichts verschickt</value></data>
+  <data name="Log_Prepared" xml:space="preserve"><value>Fertig, wartet auf die Lieferzeit</value></data>
+  <data name="Log_Delivered" xml:space="preserve"><value>Zugestellt an {0}</value></data>
+  <data name="Log_SentAgain" xml:space="preserve"><value>Erneut gesendet an {0}</value></data>
+  <data name="Log_DeliveryFailed" xml:space="preserve"><value>Zustellung fehlgeschlagen: {0}</value></data>
+  <data name="Log_Show" xml:space="preserve"><value>Protokoll</value></data>
+  <data name="Log_Hide" xml:space="preserve"><value>Protokoll ausblenden</value></data>
 </root>

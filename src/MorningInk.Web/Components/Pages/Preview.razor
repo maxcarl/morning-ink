@@ -3,6 +3,7 @@
 @inherits InteractivePage
 @using System.Globalization
 @using MorningInk.Application.Publishing
+@using MorningInk.Application.Scheduling
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Ai
 @using MorningInk.Infrastructure.Profiles
@@ -53,6 +54,10 @@
                 <button type="button" class="link-button" @onclick='() => _page = "title.xhtml"'>@T["Preview_FrontPage"]</button>
                 <button type="button" class="link-button" @onclick='() => _page = "nav.xhtml"'>@T["Preview_Contents"]</button>
             </div>
+            <details class="preview-log">
+                <summary class="link-button">@T["Log_Show"]</summary>
+                <IssueLogView Entries="built.Log" Zone="ProfileTimeZone.Find(_editions.Single(e => e.Id == _editionId).TimeZoneId)" />
+            </details>
             @if (built.UnavailableSources.Count > 0)
             {
                 <p class="hint">@T["Dash_Unavailable"] @string.Join(" · ", built.UnavailableSources.Select(p => p.SourceName))</p>
