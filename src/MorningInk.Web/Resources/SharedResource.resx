@@ -180,8 +180,8 @@
   <data name="Profile_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Settings_Sending" xml:space="preserve"><value>Sending…</value></data>
   <data name="Dash_Next" xml:space="preserve"><value>Next issue</value></data>
-  <data name="Dash_NextLede" xml:space="preserve"><value>Issue no. {0} with {1} sections, sent to {2}.</value></data>
-  <data name="Dash_NextLedeNoRecipient" xml:space="preserve"><value>Issue no. {0} with {1} sections.</value></data>
+  <data name="Dash_NextLede" xml:space="preserve"><value>“{0}”, no. {1} with {2} sections, sent to {3}.</value></data>
+  <data name="Dash_NextLedeNoRecipient" xml:space="preserve"><value>“{0}”, no. {1} with {2} sections.</value></data>
   <data name="Dash_SendNow" xml:space="preserve"><value>Send now</value></data>
   <data name="Dash_SendStarted" xml:space="preserve"><value>The issue is being built and sent. It shows up below in a moment.</value></data>
   <data name="Dash_Recent" xml:space="preserve"><value>Recent issues</value></data>
@@ -359,4 +359,6 @@
   <data name="Log_DeliveryFailed" xml:space="preserve"><value>Delivery failed: {0}</value></data>
   <data name="Log_Show" xml:space="preserve"><value>Log</value></data>
   <data name="Log_Hide" xml:space="preserve"><value>Hide log</value></data>
+  <data name="Clock_Time" xml:space="preserve"><value>{0}</value></data>
+  <data name="Clock_DateTime" xml:space="preserve"><value>{0} {1}</value></data>
 </root>

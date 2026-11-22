@@ -39,7 +39,7 @@
         @foreach (var item in page.Issues)
         {
             var issue = item.Issue;
-            var name = $"{T["Dash_IssueTitle", issue.Number]} · {Local(issue.ScheduledFor, item.Profile).ToString("g", CultureInfo.CurrentCulture)}";
+            var name = $"{T["Dash_IssueTitle", issue.Number]} · {Clock.DateAndTime(T, Local(issue.ScheduledFor, item.Profile))}";
             var open = _openId == issue.Id;
             <li class="row" @key="issue.Id">
                 <div class="row-main">

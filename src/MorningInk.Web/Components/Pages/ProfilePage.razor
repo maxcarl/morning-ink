@@ -17,8 +17,8 @@
     {
     <p class="lede">
         @(string.IsNullOrEmpty(_profile.Recipient)
-            ? T["Profile_LedeNoRecipient", _profile.Title, DaysText(_profile), _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId]
-            : T["Profile_Lede", _profile.Title, DaysText(_profile), _profile.DeliveryTime.ToString("t", CultureInfo.CurrentCulture), _profile.TimeZoneId, _profile.Recipient])
+            ? T["Profile_LedeNoRecipient", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId]
+            : T["Profile_Lede", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId, _profile.Recipient])
     </p>
     @* One tab per edition, like the sections of a paper; a new one starts as a copy of the first one's delivery. *@
     <nav class="editions" aria-label="@T["Profile_Editions"]">

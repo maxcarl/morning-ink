@@ -47,12 +47,12 @@ public sealed class Pages : BunitContext
     }
 
     /// <summary>Renders the page and waits until it has loaded its data.</summary>
-    public IRenderedComponent<TPage> Open<TPage>(string loadedWhen, Action<ComponentParameterCollectionBuilder<TPage>>? parameters = null)
+    public IRenderedComponent<TPage> Open<TPage>(string loadedWhen, Action<ComponentParameterCollectionBuilder<TPage>>? parameters = null, string language = "en")
         where TPage : IComponent
     {
-        // The texts the tests look for are the English ones. Set here, in a method that is not async: a culture set inside
+        // The texts the tests look for are the English ones, unless a test asks for another language. Set here, in a method that is not async: a culture set inside
         // an async method does not flow back to the caller, and the page renders on the caller's context.
-        CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+        CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(language);
         var page = Render(parameters);
         Shows(page, loadedWhen);
         return page;

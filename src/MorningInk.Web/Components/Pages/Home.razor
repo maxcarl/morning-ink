@@ -27,12 +27,12 @@
         <div>
             @* The lead story: the next issue, big, like a front page's top headline. *@
             <section class="lead" aria-labelledby="next-heading">
-                <span class="kicker">@T["Dash_Next"]@(several ? $" · {lead.Profile.Title}" : null)</span>
+                <span class="kicker">@T["Dash_Next"]</span>
                 <h2 id="next-heading" class="lead-headline">@Headline(lead.NextIssue, lead.Profile)</h2>
                 <p class="lede">
                     @(string.IsNullOrEmpty(lead.Profile.Recipient)
-                        ? T["Dash_NextLedeNoRecipient", lead.NextNumber, lead.Profile.Sections.Count]
-                        : T["Dash_NextLede", lead.NextNumber, lead.Profile.Sections.Count, lead.Profile.Recipient])
+                        ? T["Dash_NextLedeNoRecipient", lead.Profile.Title, lead.NextNumber, lead.Profile.Sections.Count]
+                        : T["Dash_NextLede", lead.Profile.Title, lead.NextNumber, lead.Profile.Sections.Count, lead.Profile.Recipient])
                 </p>
                 @SendButton(lead, view, small: false)
                 <a class="link-button" href="/preview?edition=@lead.Profile.Id">@T["Preview_Open"]</a>
@@ -66,7 +66,7 @@
                     var profile = ProfileOf(issue);
                     <li class="row" @key="issue.Id">
                         <div class="row-main">
-                            <div class="row-title">@(several ? $"{profile?.Title} · " : null)@T["Dash_IssueTitle", issue.Number] · @Local(issue.ScheduledFor, profile).ToString("g", CultureInfo.CurrentCulture)</div>
+                            <div class="row-title">@(several ? $"{profile?.Title} · " : null)@T["Dash_IssueTitle", issue.Number] · @Clock.DateAndTime(T, Local(issue.ScheduledFor, profile))</div>
                             <div class="row-meta">@Facts(issue, profile)</div>
                             @if (issue.Error is not null && issue.Status == IssueStatus.Failed)
                             {
@@ -228,10 +228,10 @@
     }
 
     // Weekday and short time; "t" inside a custom format would mean the AM/PM letter, so the two are formatted apart.
-    private static string Headline(DateTimeOffset utc, Profile profile)
+    private string Headline(DateTimeOffset utc, Profile profile)
     {
         var local = Local(utc, profile);
-        return $"{local.ToString("dddd", CultureInfo.CurrentCulture)}, {local.ToString("t", CultureInfo.CurrentCulture)}";
+        return $"{local.ToString("dddd", CultureInfo.CurrentCulture)}, {Clock.Time(T, local)}";
     }
 
     private Profile? ProfileOf(Issue issue) => _view?.Editions.FirstOrDefault(e => e.Profile.Id == issue.ProfileId)?.Profile;
@@ -255,7 +255,7 @@
 
         if (issue.DeliveredAt is { } delivered)
         {
-            facts.Add(T["Dash_DeliveredAt", Local(delivered, profile).ToString("t", CultureInfo.CurrentCulture)]);
+            facts.Add(T["Dash_DeliveredAt", Clock.Time(T, Local(delivered, profile))]);
         }
 
         if (issue.Attempts.Any(a => !a.Succeeded))

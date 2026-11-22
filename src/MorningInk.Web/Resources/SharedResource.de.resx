@@ -180,8 +180,8 @@
   <data name="Profile_Close" xml:space="preserve"><value>Schließen</value></data>
   <data name="Settings_Sending" xml:space="preserve"><value>Wird gesendet…</value></data>
   <data name="Dash_Next" xml:space="preserve"><value>Nächste Ausgabe</value></data>
-  <data name="Dash_NextLede" xml:space="preserve"><value>Ausgabe Nr. {0} mit {1} Rubriken, zugestellt an {2}.</value></data>
-  <data name="Dash_NextLedeNoRecipient" xml:space="preserve"><value>Ausgabe Nr. {0} mit {1} Rubriken.</value></data>
+  <data name="Dash_NextLede" xml:space="preserve"><value>„{0}“, Nr. {1} mit {2} Rubriken, geht an {3}.</value></data>
+  <data name="Dash_NextLedeNoRecipient" xml:space="preserve"><value>„{0}“, Nr. {1} mit {2} Rubriken.</value></data>
   <data name="Dash_SendNow" xml:space="preserve"><value>Jetzt senden</value></data>
   <data name="Dash_SendStarted" xml:space="preserve"><value>Die Ausgabe wird gebaut und verschickt. Sie erscheint gleich unten.</value></data>
   <data name="Dash_Recent" xml:space="preserve"><value>Letzte Ausgaben</value></data>
@@ -312,7 +312,7 @@
   <data name="Preview_Cover" xml:space="preserve"><value>Titelbild der Vorschau</value></data>
   <data name="Preview_FrontPage" xml:space="preserve"><value>Titelseite</value></data>
   <data name="Preview_Contents" xml:space="preserve"><value>Inhalt</value></data>
-  <data name="Preview_State" xml:space="preserve"><value>Stand {0} Uhr. Bis zur Lieferzeit kann sich die Ausgabe noch ändern: Neue Meldungen kommen dazu, ältere fallen weg.</value></data>
+  <data name="Preview_State" xml:space="preserve"><value>Stand {0}. Bis zur Lieferzeit kann sich die Ausgabe noch ändern: Neue Meldungen kommen dazu, ältere fallen weg.</value></data>
   <data name="Preview_Empty" xml:space="preserve"><value>Gerade gibt es keine neuen Meldungen; die Ausgabe würde nicht verschickt.</value></data>
   <data name="Preview_Open" xml:space="preserve"><value>Vorschau</value></data>
   <data name="Interests_Title" xml:space="preserve"><value>Interessen</value></data>
@@ -359,4 +359,6 @@
   <data name="Log_DeliveryFailed" xml:space="preserve"><value>Zustellung fehlgeschlagen: {0}</value></data>
   <data name="Log_Show" xml:space="preserve"><value>Protokoll</value></data>
   <data name="Log_Hide" xml:space="preserve"><value>Protokoll ausblenden</value></data>
+  <data name="Clock_Time" xml:space="preserve"><value>{0} Uhr</value></data>
+  <data name="Clock_DateTime" xml:space="preserve"><value>{0}, {1}</value></data>
 </root>

@@ -87,6 +87,17 @@ public sealed class HomePageTests : IDisposable
         Assert.Equal(2, page.FindAll("button").Count(b => b.TextContent.Trim().StartsWith("Send now", StringComparison.Ordinal)));
     }
 
+    [Fact]
+    public async Task Overview_names_the_next_edition_and_says_the_time_as_people_do()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+
+        var page = pages.Open<Home>("Nächste Ausgabe", language: "de");
+
+        Assert.Matches(@"<h2 id=""next-heading""[^>]*>\w+, \d{2}:\d{2} Uhr<", page.Markup);
+        Assert.Contains("„Morning Ink“, Nr. 1", page.Markup, StringComparison.Ordinal);
+    }
+
     public void Dispose() => _app.Dispose();
 
     private static Task<Guid> UserIdAsync(AsyncServiceScope scope) =>

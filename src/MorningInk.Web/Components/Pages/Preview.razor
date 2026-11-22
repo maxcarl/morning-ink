@@ -104,7 +104,7 @@
                     _built = built;
                     _page = "title.xhtml";
                     _stamp = Time.GetUtcNow().ToUnixTimeMilliseconds();
-                    _note = T["Preview_State", Time.GetLocalNow().ToString("t", CultureInfo.CurrentCulture)];
+                    _note = T["Preview_State", Clock.Time(T, Time.GetLocalNow())];
                     break;
                 case PreviewResult.Empty:
                     _built = null;
