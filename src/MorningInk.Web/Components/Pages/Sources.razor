@@ -8,6 +8,7 @@
 @using MorningInk.Infrastructure.Profiles
 @using MorningInk.Infrastructure.Sources
 @inject HostAllowlist Allowlist
+@inject TimeProvider Time
 
 <PageTitle>@T["Sources_Title"] – @T["Brand"]</PageTitle>
 
@@ -58,6 +59,10 @@
                         <div class="row-main">
                             <div class="row-title">@source.Name</div>
                             <div class="row-meta">@Describe(source)</div>
+                            @if (HealthNote(source) is { } note)
+                            {
+                                <div class="row-meta status @note.Class">@note.Text</div>
+                            }
                         </div>
                         @if (source.FetchFullText)
                         {
@@ -756,4 +761,16 @@
     }
 
     private string KindName(SourceKind kind) => T[$"Kind_{kind}"];
+
+    // A single failure shows quietly; days of failures, or a week without anything new, show as a problem.
+    private (string Text, string Class)? HealthNote(Source source) => source.Health(Time.GetUtcNow()) switch
+    {
+        SourceHealth.Failing failing => (
+            T["Sources_FailingSince", Day(failing.Since), SourceTexts.Describe(T, source.LastProblemReason, source.LastProblemArguments, source.LastProblem ?? string.Empty)],
+            failing.Warning ? "status-error" : "status-warn"),
+        SourceHealth.Empty { Warning: true } empty => (T["Sources_EmptySince", Day(empty.Since)], "status-warn"),
+        _ => null,
+    };
+
+    private static string Day(DateTimeOffset at) => at.ToLocalTime().ToString("d", System.Globalization.CultureInfo.CurrentCulture);
 }

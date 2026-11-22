@@ -98,6 +98,30 @@ public sealed class HomePageTests : IDisposable
         Assert.Contains("„Morning Ink“ · Nr. 1", page.Markup, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task Sources_failing_for_days_are_named_on_the_overview_and_explained_on_the_sources_page()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            var userId = await UserIdAsync(scope);
+            var broken = new Source { UserId = userId, Name = "heise", Url = "https://heise.de/rss" };
+            broken.RecordFailure(DateTimeOffset.UtcNow.AddDays(-3), "heise.de could not be reached.", "Unreachable", ["heise.de"]);
+            var once = new Source { UserId = userId, Name = "golem", Url = "https://golem.de/rss" };
+            once.RecordFailure(DateTimeOffset.UtcNow.AddHours(-1), "golem.de could not be reached.", "Unreachable", ["golem.de"]);
+            db.Sources.AddRange(broken, once);
+            await db.SaveChangesAsync();
+        }
+
+        var home = pages.Open<Home>("Next issue");
+        Assert.Contains("Not working for days: heise.", home.Markup, StringComparison.Ordinal); // one failure is no warning yet
+
+        var sources = pages.Open<Sources>("heise");
+        Assert.Contains("status-error\">Failing since", sources.Markup, StringComparison.Ordinal);
+        Assert.Contains("status-warn\">Failing since", sources.Markup, StringComparison.Ordinal);
+    }
+
     public void Dispose() => _app.Dispose();
 
     private static Task<Guid> UserIdAsync(AsyncServiceScope scope) =>

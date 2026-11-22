@@ -548,4 +548,7 @@
   <data name="Sources_NewsletterFrom" xml:space="preserve"><value>from {0}</value></data>
   <data name="Sources_LoadImages" xml:space="preserve"><value>Load images</value></data>
   <data name="Sources_LoadImagesHint" xml:space="preserve"><value>Off, no image is requested. For newsletters: their tracking pixels tell the sender the mail was opened.</value></data>
+  <data name="Dash_AilingSources" xml:space="preserve"><value>Not working for days: {0}. Have a look at the sources.</value></data>
+  <data name="Sources_FailingSince" xml:space="preserve"><value>Failing since {0}: {1}</value></data>
+  <data name="Sources_EmptySince" xml:space="preserve"><value>Nothing new since {0}. Has the feed moved?</value></data>
 </root>

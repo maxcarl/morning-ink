@@ -548,4 +548,7 @@
   <data name="Sources_NewsletterFrom" xml:space="preserve"><value>von {0}</value></data>
   <data name="Sources_LoadImages" xml:space="preserve"><value>Bilder laden</value></data>
   <data name="Sources_LoadImagesHint" xml:space="preserve"><value>Aus wird kein Bild abgerufen. Bei Newslettern verraten Tracking-Pixel dem Absender sonst, dass die Mail geöffnet wurde.</value></data>
+  <data name="Dash_AilingSources" xml:space="preserve"><value>Seit Tagen ohne Erfolg: {0}. Schau dir die Quellen an.</value></data>
+  <data name="Sources_FailingSince" xml:space="preserve"><value>Fehler seit {0}: {1}</value></data>
+  <data name="Sources_EmptySince" xml:space="preserve"><value>Seit {0} nichts Neues. Ist der Feed umgezogen?</value></data>
 </root>

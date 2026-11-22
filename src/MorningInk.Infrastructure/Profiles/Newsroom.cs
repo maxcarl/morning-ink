@@ -24,7 +24,8 @@ public sealed record Edition(Profile Profile, DateTimeOffset NextIssue, int Next
 /// <param name="Editions">The user's profiles, the one with the next issue first.</param>
 /// <param name="Issues">The latest issues of all of them, newest first, with their delivery attempts and entries.</param>
 /// <param name="MailServerSet">Whether a mail server is configured; without one nothing can be delivered.</param>
-public sealed record NewsroomView(IReadOnlyList<Edition> Editions, IReadOnlyList<Issue> Issues, bool MailServerSet);
+/// <param name="AilingSources">Names of the user's sources failing or empty for days, see <see cref="SourceHealth"/>.</param>
+public sealed record NewsroomView(IReadOnlyList<Edition> Editions, IReadOnlyList<Issue> Issues, bool MailServerSet, IReadOnlyList<string> AilingSources);
 
 /// <summary>The dashboard's data and its one action, "send now".</summary>
 public sealed class Newsroom(
@@ -63,7 +64,15 @@ public sealed class Newsroom(
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
         var mailServerSet = !string.IsNullOrWhiteSpace((await mail.EffectiveAsync(cancellationToken)).Host);
-        return new NewsroomView(editions, recent, mailServerSet);
+        var troubled = await db.Sources.AsNoTracking()
+            .Where(s => s.UserId == userId && (s.FailingSince != null || s.EmptySince != null))
+            .ToListAsync(cancellationToken);
+        var ailing = troubled
+            .Where(s => s.Health(now) is SourceHealth.Failing { Warning: true } or SourceHealth.Empty { Warning: true })
+            .Select(s => s.Name)
+            .Order(StringComparer.CurrentCulture)
+            .ToList();
+        return new NewsroomView(editions, recent, mailServerSet, ailing);
     }
 
     /// <summary>Starts building and sending an issue of the profile in the background; it then shows up in <see cref="LoadAsync"/>.</summary>

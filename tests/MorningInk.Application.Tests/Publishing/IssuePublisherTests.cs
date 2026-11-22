@@ -87,6 +87,18 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Each_run_keeps_track_of_whether_a_source_works()
+    {
+        Answer(_heise, new SourceResult.Failure("heise.de could not be reached.", Reason: "Unreachable", Arguments: ["heise.de"]));
+
+        await PublishAsync();
+
+        Assert.Equal(new SourceHealth.Failing(Slot, Warning: false), _heise.Health(Slot));
+        Assert.Equal("Unreachable", _heise.LastProblemReason);
+        Assert.Equal(new SourceHealth.Fine(), _tagesschau.Health(Slot));
+    }
+
+    [Fact]
     public async Task Source_that_throws_counts_as_unavailable()
     {
         _sources.Results.Remove(_heise.Id);

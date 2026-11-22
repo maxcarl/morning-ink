@@ -188,6 +188,11 @@
         {
             yield return IsAdmin ? (T["Dash_NeedMailAdmin"], "/settings") : (T["Dash_NeedMail"], null);
         }
+
+        if (view.AilingSources.Count > 0)
+        {
+            yield return (T["Dash_AilingSources", string.Join(", ", view.AilingSources)], "/sources");
+        }
     }
 
     // "„Morning Ink“ · No. 14 · 3 sections · to name_abc@kindle.com": facts in a line, not a sentence to read.

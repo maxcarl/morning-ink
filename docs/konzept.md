@@ -401,7 +401,7 @@ Das sind Ideen, die das Tool von einem Feed-Konverter zu einer echten persönlic
 
 **Betrieb**
 
-- Feed-Gesundheit: tote oder leere Feeds melden
+- Feed-Gesundheit: tote oder leere Feeds melden (erledigt, Aufgabe 47)
 - Statistik: Artikel pro Quelle, Größe der Ausgaben, KI-Kosten
 - REST-API und Webhooks, Home-Assistant-Integration
 - Synchronisieren: Gelesenes in FreshRSS oder Miniflux als gelesen markieren
@@ -515,3 +515,4 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | 44 | KI | Anzeige, welche Inhalte an welchen Anbieter gingen, und Tageslimit; Zusammenfassungs-Prompt in den Einstellungen anpassbar (die Abgrenzung des Artikeltexts bleibt fest im Code) | Das Dashboard zeigt Aufrufe und Inhalte pro Anbieter | 36 | ✅ erledigt; Anzeige unter Einstellungen → KI, Limit über rollierende 24 Stunden, Protokoll so lange wie Ausgaben |
 | 45 | KI | Interessen per KI erkennen: Thema als Beschreibung, das Modell ordnet Artikel anhand von Titel und Anriss zu (Ergebnis gegen ein Schema geprüft); Stichwörter bleiben Hinweis und Rückfall; „nur lokale KI“ der Quelle gilt | „Kane trifft doppelt für die Bayern“ fällt unter „Fußball – auslassen“, ohne dass ein Stichwort passt; ohne KI wirken nur die Stichwörter; das Log nennt, welches Interesse gegriffen hat | 32, 36, 38 | – |
 | 46 | Quellen | Newsletter per IMAP, nur lesend: Ordner und optional Absender, Bilder pro Quelle abschaltbar (Tracking-Pixel) | Das Postfach sieht danach aus wie vorher (EXAMINE, BODY.PEEK); dieselbe Mail kommt nie zweimal; unverschlüsselt nur zu einem im Heimnetz freigegebenen Server | 19 | ✅ erledigt; Artikel-Adresse ist die Message-ID (`mid:`), daher ohne „Original lesen“-Link |
+| 47 | Betrieb | Feed-Gesundheit: Fehler und leere Quellen über mehrere Läufe verfolgen | Die Quellen-Seite zeigt „Fehler seit …“ mit Grund; nach 2 Tagen Fehler oder 7 Tagen ohne Neues nennt die Übersicht die Quelle | 22 | ✅ erledigt |

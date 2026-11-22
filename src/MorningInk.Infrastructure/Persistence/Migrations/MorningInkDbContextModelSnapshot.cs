@@ -591,9 +591,15 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
+                    b.Property<long?>("EmptySince")
+                        .HasColumnType("INTEGER");
+
                     b.PrimitiveCollection<string>("ExcludeKeywords")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<long?>("FailingSince")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("FetchFullText")
                         .HasColumnType("INTEGER");
@@ -609,6 +615,18 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
 
                     b.Property<long?>("LastModified")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastProblem")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastProblemArguments")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastProblemReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LoadImages")
                         .HasColumnType("INTEGER");

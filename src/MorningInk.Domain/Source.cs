@@ -82,4 +82,42 @@ public class Source
 
     /// <summary>Cache validator from the last fetch, used when the server sends no ETag.</summary>
     public DateTimeOffset? LastModified { get; set; }
+
+    /// <summary>A run fails now and then; failing this long is worth a warning.</summary>
+    public static readonly TimeSpan FailingWarning = TimeSpan.FromDays(2);
+
+    /// <summary>A weekly newsletter is empty for six days; empty for longer, the source has likely moved or died.</summary>
+    public static readonly TimeSpan EmptyWarning = TimeSpan.FromDays(7);
+
+    /// <summary>Since when every issue run failed to fetch the source; null while it works.</summary>
+    public DateTimeOffset? FailingSince { get; private set; }
+
+    /// <summary>Since when every issue run got no article from the source; null while it brings some.</summary>
+    public DateTimeOffset? EmptySince { get; private set; }
+
+    /// <summary>The last failure in English, with its code and values for the user's language.</summary>
+    public string? LastProblem { get; private set; }
+
+    public string? LastProblemReason { get; private set; }
+
+    public List<string> LastProblemArguments { get; private set; } = [];
+
+    public void RecordSuccess(DateTimeOffset at, int articles)
+    {
+        (FailingSince, LastProblem, LastProblemReason, LastProblemArguments) = (null, null, null, []);
+        EmptySince = articles > 0 ? null : EmptySince ?? at;
+    }
+
+    public void RecordFailure(DateTimeOffset at, string problem, string? reason, IReadOnlyList<string> arguments)
+    {
+        FailingSince ??= at;
+        (LastProblem, LastProblemReason, LastProblemArguments) = (problem, reason, [.. arguments]);
+    }
+
+    public SourceHealth Health(DateTimeOffset now) => (FailingSince, EmptySince) switch
+    {
+        ({ } since, _) => new SourceHealth.Failing(since, now - since >= FailingWarning),
+        (_, { } since) => new SourceHealth.Empty(since, now - since >= EmptyWarning),
+        _ => new SourceHealth.Fine(),
+    };
 }

@@ -355,12 +355,14 @@ public sealed class IssuePublisher(
             switch (await implementation.FetchAsync(source, cancellationToken))
             {
                 case SourceResult.Success success:
-                    // Kept for the next conditional request; saved together with the issue.
+                    // Kept for the next conditional request; saved together with the issue, like the health.
                     source.ETag = success.ETag;
                     source.LastModified = success.LastModified;
+                    source.RecordSuccess(time.GetUtcNow(), success.Articles.Count);
                     return success.Articles;
                 case SourceResult.Failure failure:
                     problems.Add(new SourceProblem(source.Name, failure.Message, failure.Reason, failure.Arguments));
+                    source.RecordFailure(time.GetUtcNow(), failure.Message, failure.Reason, failure.Arguments ?? []);
                     return [];
                 default:
                     return [];
@@ -370,6 +372,7 @@ public sealed class IssuePublisher(
         {
             // A bug in one source must not stop the newspaper; the source shows up as unavailable instead.
             problems.Add(new SourceProblem(source.Name, e.Message));
+            source.RecordFailure(time.GetUtcNow(), e.Message, null, []);
             return [];
         }
     }
