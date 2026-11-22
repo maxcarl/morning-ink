@@ -55,96 +55,7 @@
             <section aria-labelledby="sections-heading">
                 <h2 id="sections-heading" class="department">@T["Profile_Sections"]</h2>
                 <p class="hint">@T["Profile_SectionsHint"]</p>
-                @if (_sections.Count == 0)
-                {
-                    <p class="muted">@T["Profile_NoSections"]</p>
-                }
-                <ul class="rows">
-                    @for (var i = 0; i < _sections.Count; i++)
-                    {
-                        var index = i;
-                        var item = _sections[i];
-                        var open = item.Id == _openId;
-                        @* Drag a row onto another to move it there. The arrows in the editor do the same by keyboard. *@
-                        <li @key="item.Id" draggable="@(open ? "false" : "true")" class="@(item.Id == _overId ? "drop-target" : null)"
-                            @ondragstart="() => _dragId = item.Id" @ondragenter="() => _overId = item.Id" @ondragend="() => _overId = _dragId = null"
-                            @ondragover:preventDefault @ondrop="() => DropAsync(index)">
-                            <div class="row">
-                                <span class="drag-handle" aria-hidden="true">⋮⋮</span>
-                                <div class="row-main">
-                                    <div class="row-title">@item.Name</div>
-                                    <div class="row-meta">@Summary(item)</div>
-                                </div>
-                                <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="editor-@item.Id" @onclick="() => Toggle(item)">
-                                    @(open ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @item.Name</span>
-                                </button>
-                            </div>
-                            @if (open)
-                            {
-                                <form id="editor-@item.Id" class="editor-body" @onsubmit="() => SaveSectionAsync(item.Id)">
-                                    <fieldset class="field">
-                                        <legend class="label">@T["Profile_SectionSources"]</legend>
-                                        @if (_sources.Count == 0)
-                                        {
-                                            <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
-                                        }
-                                        @if (_sources.Count > SearchFrom)
-                                        {
-                                            <div class="search">
-                                                <label class="visually-hidden" for="find-@item.Id">@T["Profile_FindSource"]</label>
-                                                <input id="find-@item.Id" class="input" type="search" placeholder="@T["Profile_FindSource"]" @bind="_find" @bind:event="oninput" />
-                                            </div>
-                                        }
-                                        <div class="choices">
-                                            @foreach (var source in Choices())
-                                            {
-                                                <label class="checkbox" @key="source.Id"><input type="checkbox" checked="@_picked.Contains(source.Id)" @onchange="() => Pick(source.Id)" /> @source.Name</label>
-                                            }
-                                        </div>
-                                    </fieldset>
-                                    <div class="inline-form field">
-                                        <div class="row-main">
-                                            <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
-                                            <input id="name-@item.Id" class="input" @bind="_name" required />
-                                        </div>
-                                        <div>
-                                            <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
-                                            <input id="max-@item.Id" class="input" @bind="_max" inputmode="numeric" placeholder="@T["Profile_Unlimited"]" />
-                                        </div>
-                                    </div>
-                                    <div class="row-actions">
-                                        @if (item.Id == _confirmId)
-                                        {
-                                            <p class="confirm" role="alert">@T["Confirm_Delete", item.Name]</p>
-                                            <button type="button" class="button button-small" @onclick="() => DeleteAsync(item.Id)">@T["Confirm_Yes"]</button>
-                                            <button type="button" class="link-button" @onclick="() => _confirmId = null">@T["Confirm_Cancel"]</button>
-                                        }
-                                        else
-                                        {
-                                            <button type="submit" class="button button-small">@T["Profile_Save"]<span class="visually-hidden"> – @item.Name</span></button>
-                                            @if (index > 0)
-                                            {
-                                                <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index - 1)">@T["Profile_MoveUp"]<span class="visually-hidden"> – @item.Name</span></button>
-                                            }
-                                            @if (index < _sections.Count - 1)
-                                            {
-                                                <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index + 1)">@T["Profile_MoveDown"]<span class="visually-hidden"> – @item.Name</span></button>
-                                            }
-                                            <button type="button" class="link-button link-danger" @onclick="() => _confirmId = item.Id">@T["Profile_DeleteSection"]<span class="visually-hidden"> – @item.Name</span></button>
-                                        }
-                                    </div>
-                                </form>
-                            }
-                        </li>
-                    }
-                </ul>
-                <form @onsubmit="AddSectionAsync" class="field">
-                    <label class="label" for="new-section">@T["Profile_AddSection"]</label>
-                    <div class="inline-form">
-                        <input id="new-section" class="input" @bind="_newSection" required />
-                        <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
-                    </div>
-                </form>
+                <SectionsEditor Profile="_profile" Sources="_sources" UserId="UserId" Cancellation="Closed" Finished="FormFinishedAsync" />
             </section>
         </div>
         <div>
@@ -163,37 +74,7 @@
                     </ul>
                     <p>@T["Interests_HowSources"]</p>
                 </details>
-                <form @onsubmit="SaveInterestsAsync">
-                    @for (var i = 0; i < _interests.Count; i++)
-                    {
-                        var draft = _interests[i];
-                        var index = i;
-                        <div class="interest inline-form field" @key="draft">
-                            <div>
-                                <label class="label" for="interest-topic-@index">@T["Interests_Topic"]</label>
-                                <input id="interest-topic-@index" class="input" @bind="draft.Topic" placeholder="@T["Interests_TopicPlaceholder"]" />
-                            </div>
-                            <div class="row-main">
-                                <label class="label" for="interest-keywords-@index">@T["Interests_Keywords"]</label>
-                                <input id="interest-keywords-@index" class="input" @bind="draft.Keywords" placeholder="@T["Interests_KeywordsPlaceholder"]" />
-                            </div>
-                            <div>
-                                <label class="label" for="interest-weight-@index">@T["Interests_Weight"]</label>
-                                <select id="interest-weight-@index" class="input" @bind="draft.Weight">
-                                    @foreach (var weight in new[] { InterestWeight.StrongPrefer, InterestWeight.Prefer, InterestWeight.Less, InterestWeight.Hide })
-                                    {
-                                        <option value="@weight">@T[$"Interests_Weight_{weight}"]</option>
-                                    }
-                                </select>
-                            </div>
-                            <button type="button" class="link-button link-danger" @onclick="() => _interests.RemoveAt(index)">@T["Interests_Remove"]<span class="visually-hidden"> – @draft.Topic</span></button>
-                        </div>
-                    }
-                    <div class="row-actions">
-                        <button type="button" class="button button-secondary button-small" @onclick="() => _interests.Add(new InterestDraft())">+ @T["Interests_Add"]</button>
-                        <button type="submit" class="button button-small">@T["Interests_Save"]</button>
-                    </div>
-                </form>
+                <InterestsEditor Profile="_profile" UserId="UserId" Cancellation="Closed" Finished="FormFinishedAsync" />
             </section>
         </div>
     </div>
@@ -291,7 +172,7 @@
             <section aria-labelledby="notify-heading">
                 <h2 id="notify-heading" class="department">@T["Notify_Title"]</h2>
                 <p class="hint">@T["Notify_Hint"]</p>
-                <NotificationForm UserId="UserId" Profile="_profile" Cancellation="Closed" Finished="NotificationFinishedAsync" />
+                <NotificationForm UserId="UserId" Profile="_profile" Cancellation="Closed" Finished="FormFinishedAsync" />
                 @if (_editions.Count > 1 && _profile is not null)
                 {
                     @* A user always keeps one edition, so the last one has no delete. *@
@@ -314,32 +195,13 @@
 </div>
 
 @code {
-    // Up to this many sources, the list is short enough to scan without a search field.
-    private const int SearchFrom = 8;
-
     private Profile? _profile;
     private IReadOnlyList<Profile> _editions = [];
     private Guid? _shownFor;
     private bool _confirmEdition;
-    private List<Section> _sections = [];
     private IReadOnlyList<Source> _sources = [];
     private List<string> _errors = [];
     private string? _notice;
-
-    // Drag and drop
-    private Guid? _dragId;
-    private Guid? _overId;
-
-    // The open section editor: only one at a time, so one set of fields.
-    private Guid? _openId;
-    private Guid? _confirmId;
-    private string _name = string.Empty;
-    private string? _max;
-    private string _find = string.Empty;
-    private HashSet<Guid> _picked = [];
-    private HashSet<Guid> _pinned = [];
-
-    private string _newSection = string.Empty;
 
     // Settings
     private string _title = string.Empty;
@@ -349,7 +211,6 @@
     private string _area = "content";
     private TimeOnly _time;
     private HashSet<DayOfWeek> _days = [];
-    private List<InterestDraft> _interests = [];
     private int _leadMinutes;
 
     // A slow AI on a CPU needs hours; more than four is not worth offering.
@@ -375,7 +236,6 @@
         _country = profile.Country;
         _confirmEdition = false;
         _shownFor = ProfileId;
-        _interests = profile.Interests.Select(i => new InterestDraft { Topic = i.Topic, Keywords = string.Join(", ", i.Keywords), Weight = i.Weight }).ToList();
         _region = profile.Region;
     }
 
@@ -391,7 +251,6 @@
     {
         if (_profile is not null && ProfileId != _shownFor)
         {
-            _openId = _confirmId = null;
             Clear();
             await LoadAsync();
         }
@@ -407,7 +266,6 @@
         }
 
         _profile = _editions.FirstOrDefault(p => p.Id == wanted) ?? _editions[0];
-        _sections = [.. _profile.Sections.OrderBy(s => s.Position)];
     }
 
     private string DaysText(Profile profile) => profile.Days.Count == 0
@@ -420,36 +278,6 @@
         < 60 => T["Profile_LeadMinutes", minutes],
         _ => T["Profile_LeadHours", minutes / 60],
     };
-
-    private async Task SaveInterestsAsync()
-    {
-        Clear();
-
-        // Rows left empty are dropped, so adding one by mistake does not block saving.
-        var interests = _interests
-            .Where(d => !string.IsNullOrWhiteSpace(d.Topic) || !string.IsNullOrWhiteSpace(d.Keywords))
-            .Select(d => new Interest { Topic = d.Topic, Keywords = [.. SourceSettings.ParseKeywords(d.Keywords)], Weight = d.Weight })
-            .ToList();
-        var id = _profile!.Id; // ! is safe: the form only shows with a loaded edition
-        if (!await UseAsync<ProfileEditor, bool>(editor => editor.SaveInterestsAsync(UserId, id, interests, Closed)))
-        {
-            _errors = [T["Interests_Invalid"]];
-            return;
-        }
-
-        _notice = T["Profile_Saved"];
-        await ReloadAsync();
-    }
-
-    // An interest as edited: keywords as typed, separated by commas.
-    private sealed class InterestDraft
-    {
-        public string Topic { get; set; } = string.Empty;
-
-        public string Keywords { get; set; } = string.Empty;
-
-        public InterestWeight Weight { get; set; } = InterestWeight.Prefer;
-    }
 
     private void ToggleDay(DayOfWeek day)
     {
@@ -474,124 +302,6 @@
         }
     }
 
-    private void Toggle(Section section)
-    {
-        _confirmId = null;
-        if (_openId == section.Id)
-        {
-            _openId = null;
-            return;
-        }
-
-        _openId = section.Id;
-        _name = section.Name;
-        _max = section.MaxArticles?.ToString(CultureInfo.InvariantCulture);
-        _find = string.Empty;
-        _picked = [.. section.Sources.Select(s => s.Id)];
-        _pinned = [.. _picked];
-    }
-
-    private void Pick(Guid id)
-    {
-        if (!_picked.Remove(id))
-        {
-            _picked.Add(id);
-        }
-    }
-
-    // Sources ticked when the editor opened stay on top and are never filtered away, so they do not jump while ticking.
-    private IEnumerable<Source> Choices()
-    {
-        var pinned = _sources.Where(s => _pinned.Contains(s.Id));
-        var others = _sources.Where(s => !_pinned.Contains(s.Id));
-        if (!string.IsNullOrWhiteSpace(_find))
-        {
-            others = others.Where(s => s.Name.Contains(_find.Trim(), StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        return pinned.Concat(others);
-    }
-
-    private string Summary(Section section)
-    {
-        var parts = new List<string>
-        {
-            section.Sources.Count == 0 ? T["Profile_SectionEmpty"] : string.Join(", ", section.Sources.Select(s => s.Name)),
-        };
-        if (section.MaxArticles is { } max)
-        {
-            parts.Add(T["Profile_SectionMax", max]);
-        }
-
-        return string.Join(" · ", parts);
-    }
-
-    private async Task SaveSectionAsync(Guid id)
-    {
-        Clear();
-        int? limit = null;
-        if (!string.IsNullOrWhiteSpace(_max))
-        {
-            if (!int.TryParse(_max, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
-            {
-                _errors = [T["Profile_SectionInvalid"]];
-                return;
-            }
-
-            limit = parsed;
-        }
-
-        // Ids that are not the user's own sources are dropped by the editor.
-        if (!await UseAsync<ProfileEditor, bool>(editor => editor.SaveSectionAsync(UserId, id, _name, limit, [.. _picked], Closed)))
-        {
-            _errors = [T["Profile_SectionInvalid"]];
-            return;
-        }
-
-        _notice = T["Profile_Saved"];
-        _openId = null;
-        await ReloadAsync();
-    }
-
-    private async Task DropAsync(int index)
-    {
-        if (_dragId is { } id)
-        {
-            await MoveAsync(id, index);
-        }
-
-        _dragId = _overId = null;
-    }
-
-    private async Task MoveAsync(Guid id, int index)
-    {
-        Clear();
-        await UseAsync<ProfileEditor, bool>(editor => editor.MoveSectionAsync(UserId, id, index, Closed));
-        await ReloadAsync();
-    }
-
-    private async Task DeleteAsync(Guid id)
-    {
-        Clear();
-        await UseAsync<ProfileEditor, bool>(editor => editor.DeleteSectionAsync(UserId, id, Closed));
-        _confirmId = _openId = null;
-        _notice = T["Profile_Saved"];
-        await ReloadAsync();
-    }
-
-    private async Task AddSectionAsync()
-    {
-        Clear();
-        if (!await UseAsync<ProfileEditor, bool>(editor => editor.AddSectionAsync(UserId, _profile!.Id, _newSection, Closed)))
-        {
-            _errors = [T["Profile_SectionInvalid"]];
-            return;
-        }
-
-        _newSection = string.Empty;
-        await ReloadAsync();
-    }
-
     private async Task SaveSettingsAsync()
     {
         Clear();
@@ -605,12 +315,13 @@
         }
     }
 
-    // The notification form saved or tested: its message shows here, and a saved channel is part of the edition now.
-    private async Task NotificationFinishedAsync(FormOutcome outcome)
+    // A form of its own (sections, interests, notification) is done: its message shows here, and unless it failed,
+    // the edition is loaded again with what it changed.
+    private async Task FormFinishedAsync(FormOutcome outcome)
     {
         _notice = outcome.Notice;
         _errors = [.. outcome.Errors ?? []];
-        if (outcome.Notice is not null)
+        if (_errors.Count == 0)
         {
             await ReloadAsync();
         }

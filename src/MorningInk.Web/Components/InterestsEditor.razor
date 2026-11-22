@@ -1,0 +1,93 @@
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Profiles
+@using MorningInk.Infrastructure.Sources
+@inject ActionScopes Scopes
+
+<form @onsubmit="SaveAsync">
+    @for (var i = 0; i < _drafts.Count; i++)
+    {
+        var draft = _drafts[i];
+        var index = i;
+        <div class="interest inline-form field" @key="draft">
+            <div>
+                <label class="label" for="interest-topic-@index">@T["Interests_Topic"]</label>
+                <input id="interest-topic-@index" class="input" @bind="draft.Topic" placeholder="@T["Interests_TopicPlaceholder"]" />
+            </div>
+            <div class="row-main">
+                <label class="label" for="interest-keywords-@index">@T["Interests_Keywords"]</label>
+                <input id="interest-keywords-@index" class="input" @bind="draft.Keywords" placeholder="@T["Interests_KeywordsPlaceholder"]" />
+            </div>
+            <div>
+                <label class="label" for="interest-weight-@index">@T["Interests_Weight"]</label>
+                <select id="interest-weight-@index" class="input" @bind="draft.Weight">
+                    @foreach (var weight in Weights)
+                    {
+                        <option value="@weight">@T[$"Interests_Weight_{weight}"]</option>
+                    }
+                </select>
+            </div>
+            <button type="button" class="link-button link-danger" @onclick="() => _drafts.RemoveAt(index)">@T["Interests_Remove"]<span class="visually-hidden"> – @draft.Topic</span></button>
+        </div>
+    }
+    <div class="row-actions">
+        <button type="button" class="button button-secondary button-small" @onclick="() => _drafts.Add(new InterestDraft())">+ @T["Interests_Add"]</button>
+        <button type="submit" class="button button-small">@T["Interests_Save"]</button>
+    </div>
+</form>
+
+@code {
+    private static readonly InterestWeight[] Weights = [InterestWeight.StrongPrefer, InterestWeight.Prefer, InterestWeight.Less, InterestWeight.Hide];
+
+    private List<InterestDraft> _drafts = [];
+    private Profile? _loaded;
+
+    [Parameter, EditorRequired]
+    public Profile? Profile { get; set; }
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    [Parameter]
+    public EventCallback<FormOutcome> Finished { get; set; }
+
+    // Filled from the edition whenever the page hands over another one, e.g. after saving or switching editions.
+    protected override void OnParametersSet()
+    {
+        if (Profile is null || ReferenceEquals(Profile, _loaded))
+        {
+            return;
+        }
+
+        _loaded = Profile;
+        _drafts = [.. Profile.Interests.Select(i => new InterestDraft { Topic = i.Topic, Keywords = string.Join(", ", i.Keywords), Weight = i.Weight })];
+    }
+
+    private async Task SaveAsync()
+    {
+        if (Profile is not { } profile)
+        {
+            return;
+        }
+
+        // Rows left empty are dropped, so adding one by mistake does not block saving.
+        var interests = _drafts
+            .Where(d => !string.IsNullOrWhiteSpace(d.Topic) || !string.IsNullOrWhiteSpace(d.Keywords))
+            .Select(d => new Interest { Topic = d.Topic, Keywords = [.. SourceSettings.ParseKeywords(d.Keywords)], Weight = d.Weight })
+            .ToList();
+        var saved = await Scopes.RunAsync<ProfileEditor, bool>(editor => editor.SaveInterestsAsync(UserId, profile.Id, interests, Cancellation));
+        await Finished.InvokeAsync(saved ? new FormOutcome(T["Profile_Saved"]) : FormOutcome.Failed(T["Interests_Invalid"]));
+    }
+
+    // An interest as edited: keywords as typed, separated by commas.
+    private sealed class InterestDraft
+    {
+        public string Topic { get; set; } = string.Empty;
+
+        public string Keywords { get; set; } = string.Empty;
+
+        public InterestWeight Weight { get; set; } = InterestWeight.Prefer;
+    }
+}

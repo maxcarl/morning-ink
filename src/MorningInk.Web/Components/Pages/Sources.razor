@@ -326,7 +326,7 @@
     {
         _notice = outcome.Notice;
         _error = outcome.Errors?.FirstOrDefault();
-        if (outcome.Notice is not null)
+        if (_error is null)
         {
             _editId = null;
             await ReloadAsync();
@@ -393,7 +393,7 @@
         _notice = outcome.Notice;
         _error = outcome.Errors?.FirstOrDefault();
         _blockedHost = outcome.BlockedHost;
-        if (outcome.Notice is not null)
+        if (_error is null)
         {
             await ReloadAsync();
         }
