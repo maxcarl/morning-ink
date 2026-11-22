@@ -83,7 +83,7 @@
   <data name="Profile_Title" xml:space="preserve"><value>Ausgabe</value></data>
   <data name="Profile_Lede" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}), zugestellt an {4}.</value></data>
   <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}). Trage einen Empfänger ein, damit sie zugestellt werden kann.</value></data>
-  <data name="Profile_Settings" xml:space="preserve"><value>Zustellung</value></data>
+  <data name="Profile_Settings" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="Profile_NewspaperTitle" xml:space="preserve"><value>Titel der Zeitung</value></data>
   <data name="Profile_Recipient" xml:space="preserve"><value>Empfänger</value></data>
   <data name="Profile_RecipientHint" xml:space="preserve"><value>Deine Send-to-Kindle-Adresse, z. B. name_abc@kindle.com.</value></data>
@@ -196,7 +196,7 @@
   <data name="Welcome_Title" xml:space="preserve"><value>Willkommen bei Morning Ink</value></data>
   <data name="Welcome_Lede" xml:space="preserve"><value>In fünf Schritten zur ersten Zeitung.</value></data>
   <data name="Welcome_StepOf" xml:space="preserve"><value>Schritt {0} von {1}</value></data>
-  <data name="Welcome_Step_Delivery" xml:space="preserve"><value>Dein Kindle</value></data>
+  <data name="Welcome_Step_Delivery" xml:space="preserve"><value>Dein Reader</value></data>
   <data name="Welcome_Step_Mail" xml:space="preserve"><value>Mailserver</value></data>
   <data name="Welcome_Step_Region" xml:space="preserve"><value>Deine Region</value></data>
   <data name="Welcome_Step_Sources" xml:space="preserve"><value>Quellen</value></data>
@@ -218,7 +218,7 @@
   <data name="Welcome_SendFirst" xml:space="preserve"><value>Erste Ausgabe senden</value></data>
   <data name="Welcome_Later" xml:space="preserve"><value>Später, zur Übersicht</value></data>
   <data name="Welcome_Help" xml:space="preserve"><value>Hilfe</value></data>
-  <data name="Welcome_Help_Delivery" xml:space="preserve"><value>Deine Send-to-Kindle-Adresse steht bei Amazon unter „Inhalte und Geräte → Einstellungen → Einstellungen für persönliche Dokumente“.</value></data>
+  <data name="Welcome_Help_Delivery" xml:space="preserve"><value>Ein Kindle bekommt die Ausgabe per E-Mail: Deine Send-to-Kindle-Adresse steht bei Amazon unter Inhalte und Geräte → Einstellungen → Einstellungen für persönliche Dokumente. Reader wie KOReader holen sie selbst aus dem OPDS-Katalog; dann braucht es keinen Mailserver.</value></data>
   <data name="Welcome_Help_Mail" xml:space="preserve"><value>Morning Ink verschickt die Zeitung über deinen eigenen Mailserver, z. B. den deines Mailanbieters. Server und Port stehen in dessen Hilfe.</value></data>
   <data name="Welcome_Help_Region" xml:space="preserve"><value>Eine Postleitzahl oder ein Ort bringt das Wetter auf die Titelseite und auf Wunsch lokale Nachrichten.</value></data>
   <data name="Welcome_Help_Sources" xml:space="preserve"><value>Die Vorschläge passen zu deinem Land und deiner Sprache. Weiter unten gibt es Feeds in anderen Sprachen.</value></data>
@@ -586,4 +586,12 @@
   <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} liegt {1} um {2} ({3}) für deinen Reader bereit.</value></data>
   <data name="Dash_ToFetch" xml:space="preserve"><value>zum Abholen</value></data>
   <data name="Log_Stored" xml:space="preserve"><value>Zum Abholen bereitgestellt</value></data>
+  <data name="Profile_GroupPaper" xml:space="preserve"><value>Zeitung</value></data>
+  <data name="Profile_GroupSchedule" xml:space="preserve"><value>Zeitplan</value></data>
+  <data name="Sources_AddTab_feed" xml:space="preserve"><value>Website oder Feed</value></data>
+  <data name="Sources_AddTab_local" xml:space="preserve"><value>Lokales</value></data>
+  <data name="Sources_AddTab_freshrss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_AddTab_newsletter" xml:space="preserve"><value>Newsletter</value></data>
+  <data name="Sources_AddTab_opml" xml:space="preserve"><value>Import / Export</value></data>
+  <data name="Welcome_DoneLedeFetch" xml:space="preserve"><value>Deine Zeitung hat {0} Rubriken und liegt für deinen Reader im OPDS-Katalog bereit (siehe Konto).</value></data>
 </root>

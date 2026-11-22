@@ -255,6 +255,8 @@
     private string _freshRssUser = string.Empty;
     private string _freshRssPassword = string.Empty;
     private NewsletterDraft _newsletter = new();
+    private static readonly string[] AddTabs = ["feed", "local", "freshrss", "newsletter", "opml"];
+    private string _addTab = "feed";
     private FreshRssConnection.Connected? _freshRss;
     private HashSet<string> _freshRssPicked = [];
 
@@ -271,141 +273,158 @@
     private RenderFragment AddSection => __builder =>
     {
         <h2 class="department">@T["Sources_AddHeading"]</h2>
-        <form @onsubmit="DiscoverAsync" class="field">
-            <label class="label" for="url">@T["Sources_NewLabel"]</label>
-            <div class="inline-form">
-                <input id="url" class="input" type="text" inputmode="url" @bind="_url" placeholder="https://www.example.com" aria-describedby="url-hint" required />
-                <button type="submit" class="button" disabled="@_busy">@(_busy ? T["Sources_Searching"] : T["Sources_Find"])</button>
-            </div>
-            <span id="url-hint" class="hint">@T["Sources_UrlHint"]</span>
-        </form>
-
-        @if (_found is not null)
-        {
-            <h2 class="department">@T["Sources_Found"]</h2>
-            @if (_found.Count == 0)
+        @* One way to add at a time: feed, local news, FreshRSS, newsletter or a file from another reader. *@
+        <div class="tabs" role="tablist" aria-label="@T["Sources_AddHeading"]">
+            @foreach (var tab in AddTabs)
             {
-                <p class="row muted">@T["Sources_NoneFound"]</p>
+                <button type="button" role="tab" id="add-tab-@tab" class="tab" aria-selected="@(tab == _addTab ? "true" : "false")" aria-controls="add-@tab" @onclick="() => _addTab = tab">@T[$"Sources_AddTab_{tab}"]</button>
             }
-            else
+        </div>
+        <div id="add-feed" role="tabpanel" aria-labelledby="add-tab-feed" hidden="@(_addTab != "feed")">
+            <form @onsubmit="DiscoverAsync" class="field">
+                <label class="label" for="url">@T["Sources_NewLabel"]</label>
+                <div class="inline-form">
+                    <input id="url" class="input" type="text" inputmode="url" @bind="_url" placeholder="https://www.example.com" aria-describedby="url-hint" required />
+                    <button type="submit" class="button" disabled="@_busy">@(_busy ? T["Sources_Searching"] : T["Sources_Find"])</button>
+                </div>
+                <span id="url-hint" class="hint">@T["Sources_UrlHint"]</span>
+            </form>
+
+            @if (_found is not null)
             {
-                @* Pick one of the feeds found, name it, add it. *@
-                <form @onsubmit="AddFeedAsync">
-                    <fieldset class="rows">
-                        <legend class="visually-hidden">@T["Sources_Found"]</legend>
-                        @foreach (var feed in _found)
-                        {
-                            <label class="row checkbox" @key="feed.Url">
-                                <input type="radio" name="feed" checked="@(feed.Url.AbsoluteUri == _feedUrl)" @onchange="() => PickAsync(feed)" />
-                                <span class="row-main"><span class="row-title">@feed.Title</span><span class="row-meta"> · @feed.Url.AbsoluteUri</span></span>
-                            </label>
-                        }
-                    </fieldset>
-                    <div class="inline-form field">
-                        <label class="visually-hidden" for="feed-name">@T["Sources_Name"]</label>
-                        <input id="feed-name" class="input" @bind="_feedName" required />
-                        <label class="checkbox"><input type="checkbox" @bind="_fullText" /> @T["Sources_FullText"]</label>
-                        <button type="submit" class="button" disabled="@_busy">@T["Sources_Add"]</button>
+                <h2 class="department">@T["Sources_Found"]</h2>
+                @if (_found.Count == 0)
+                {
+                    <p class="row muted">@T["Sources_NoneFound"]</p>
+                }
+                else
+                {
+                    @* Pick one of the feeds found, name it, add it. *@
+                    <form @onsubmit="AddFeedAsync">
+                        <fieldset class="rows">
+                            <legend class="visually-hidden">@T["Sources_Found"]</legend>
+                            @foreach (var feed in _found)
+                            {
+                                <label class="row checkbox" @key="feed.Url">
+                                    <input type="radio" name="feed" checked="@(feed.Url.AbsoluteUri == _feedUrl)" @onchange="() => PickAsync(feed)" />
+                                    <span class="row-main"><span class="row-title">@feed.Title</span><span class="row-meta"> · @feed.Url.AbsoluteUri</span></span>
+                                </label>
+                            }
+                        </fieldset>
+                        <div class="inline-form field">
+                            <label class="visually-hidden" for="feed-name">@T["Sources_Name"]</label>
+                            <input id="feed-name" class="input" @bind="_feedName" required />
+                            <label class="checkbox"><input type="checkbox" @bind="_fullText" /> @T["Sources_FullText"]</label>
+                            <button type="submit" class="button" disabled="@_busy">@T["Sources_Add"]</button>
+                        </div>
+                    </form>
+                }
+            }
+
+        </div>
+        <div id="add-local" role="tabpanel" aria-labelledby="add-tab-local" hidden="@(_addTab != "local")">
+            <form @onsubmit="AddLocalAsync" class="field">
+                <label class="label" for="place">@T["Sources_LocalLabel"]</label>
+                <div class="inline-form">
+                    <input id="place" class="input" type="text" @bind="_place" placeholder="52062" aria-describedby="place-hint" required />
+                    <label class="visually-hidden" for="local-country">@T["Country"]</label>
+                    <CountrySelect Id="local-country" @bind-Selected="_country" />
+                    <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_LocalAdd"]</button>
+                </div>
+                <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
+            </form>
+
+        </div>
+        <div id="add-freshrss" role="tabpanel" aria-labelledby="add-tab-freshrss" hidden="@(_addTab != "freshrss")">
+            @* One's own FreshRSS: sign in once, then pick the categories that become sources. *@
+            <form @onsubmit="ConnectFreshRssAsync" class="field" aria-labelledby="freshrss-label">
+                <span id="freshrss-label" class="label">@T["Sources_FreshRss"]</span>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="freshrss-url">@T["Sources_FreshRssUrl"]</label>
+                        <input id="freshrss-url" class="input" type="text" inputmode="url" spellcheck="false" @bind="_freshRssUrl" placeholder="https://freshrss.example.com" required />
                     </div>
+                    <div class="field">
+                        <label for="freshrss-user">@T["Login_UserName"]</label>
+                        <input id="freshrss-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_freshRssUser" required />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="freshrss-password">@T["Sources_FreshRssPassword"]</label>
+                    <input id="freshrss-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_freshRssPassword" aria-describedby="freshrss-hint" required />
+                    <span id="freshrss-hint" class="hint">@T["Sources_FreshRssHint"]</span>
+                </div>
+                <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_FreshRssConnect"]</button>
+            </form>
+
+            @if (_freshRss is { } connected)
+            {
+                <form @onsubmit="AddFreshRssAsync" class="field">
+                    <fieldset class="field">
+                        <legend class="label">@T["Sources_FreshRssPick"]</legend>
+                        <div class="choices">
+                            @foreach (var category in connected.Categories)
+                            {
+                                <label class="checkbox" @key="category.Stream">
+                                    <input type="checkbox" checked="@_freshRssPicked.Contains(category.Stream)" @onchange="() => PickCategory(category.Stream)" /> @category.Name
+                                </label>
+                            }
+                        </div>
+                        <span class="hint">@T["Sources_FreshRssPickHint"]</span>
+                    </fieldset>
+                    <button type="submit" class="button" disabled="@_busy">@T["Sources_FreshRssAdd"]</button>
                 </form>
             }
-        }
 
-        <form @onsubmit="AddLocalAsync" class="field">
-            <label class="label" for="place">@T["Sources_LocalLabel"]</label>
-            <div class="inline-form">
-                <input id="place" class="input" type="text" @bind="_place" placeholder="52062" aria-describedby="place-hint" required />
-                <label class="visually-hidden" for="local-country">@T["Country"]</label>
-                <CountrySelect Id="local-country" @bind-Selected="_country" />
-                <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_LocalAdd"]</button>
-            </div>
-            <span id="place-hint" class="hint">@T["Sources_LocalHint"]</span>
-        </form>
-
-        @* One's own FreshRSS: sign in once, then pick the categories that become sources. *@
-        <form @onsubmit="ConnectFreshRssAsync" class="field" aria-labelledby="freshrss-label">
-            <span id="freshrss-label" class="label">@T["Sources_FreshRss"]</span>
-            <div class="field-row">
-                <div class="field">
-                    <label for="freshrss-url">@T["Sources_FreshRssUrl"]</label>
-                    <input id="freshrss-url" class="input" type="text" inputmode="url" spellcheck="false" @bind="_freshRssUrl" placeholder="https://freshrss.example.com" required />
-                </div>
-                <div class="field">
-                    <label for="freshrss-user">@T["Login_UserName"]</label>
-                    <input id="freshrss-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_freshRssUser" required />
-                </div>
-            </div>
-            <div class="field">
-                <label for="freshrss-password">@T["Sources_FreshRssPassword"]</label>
-                <input id="freshrss-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_freshRssPassword" aria-describedby="freshrss-hint" required />
-                <span id="freshrss-hint" class="hint">@T["Sources_FreshRssHint"]</span>
-            </div>
-            <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_FreshRssConnect"]</button>
-        </form>
-
-        @if (_freshRss is { } connected)
-        {
-            <form @onsubmit="AddFreshRssAsync" class="field">
-                <fieldset class="field">
-                    <legend class="label">@T["Sources_FreshRssPick"]</legend>
-                    <div class="choices">
-                        @foreach (var category in connected.Categories)
-                        {
-                            <label class="checkbox" @key="category.Stream">
-                                <input type="checkbox" checked="@_freshRssPicked.Contains(category.Stream)" @onchange="() => PickCategory(category.Stream)" /> @category.Name
-                            </label>
-                        }
+        </div>
+        <div id="add-newsletter" role="tabpanel" aria-labelledby="add-tab-newsletter" hidden="@(_addTab != "newsletter")">
+            @* Newsletters from one's own mailbox, read only: a dedicated folder or address keeps them apart from other mail. *@
+            <form @onsubmit="AddNewsletterAsync" class="field" aria-labelledby="newsletter-label">
+                <span id="newsletter-label" class="label">@T["Sources_Newsletter"]</span>
+                <span class="hint">@T["Sources_NewsletterHint"]</span>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="newsletter-server">@T["Sources_NewsletterServer"]</label>
+                        <input id="newsletter-server" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Server" placeholder="imap.example.com" aria-describedby="newsletter-server-hint" required />
+                        <span id="newsletter-server-hint" class="hint">@T["Sources_NewsletterServerHint"]</span>
                     </div>
-                    <span class="hint">@T["Sources_FreshRssPickHint"]</span>
-                </fieldset>
-                <button type="submit" class="button" disabled="@_busy">@T["Sources_FreshRssAdd"]</button>
+                    <div class="field">
+                        <label for="newsletter-user">@T["Login_UserName"]</label>
+                        <input id="newsletter-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_newsletter.User" required />
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="newsletter-password">@T["Settings_Password"]</label>
+                        <input id="newsletter-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_newsletter.Password" required />
+                    </div>
+                    <div class="field">
+                        <label for="newsletter-folder">@T["Sources_NewsletterFolder"]</label>
+                        <input id="newsletter-folder" class="input" spellcheck="false" @bind="_newsletter.Folder" placeholder="INBOX" />
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="newsletter-sender">@T["Sources_NewsletterSender"]</label>
+                        <input id="newsletter-sender" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Sender" placeholder="substack.com" aria-describedby="newsletter-sender-hint" />
+                        <span id="newsletter-sender-hint" class="hint">@T["Sources_NewsletterSenderHint"]</span>
+                    </div>
+                    <div class="field">
+                        <label for="newsletter-name">@T["Sources_Name"]</label>
+                        <input id="newsletter-name" class="input" @bind="_newsletter.Name" placeholder="@T["Kind_Newsletter"]" />
+                    </div>
+                </div>
+                <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_NewsletterAdd"]</button>
             </form>
-        }
 
-        @* Newsletters from one's own mailbox, read only: a dedicated folder or address keeps them apart from other mail. *@
-        <form @onsubmit="AddNewsletterAsync" class="field" aria-labelledby="newsletter-label">
-            <span id="newsletter-label" class="label">@T["Sources_Newsletter"]</span>
-            <span class="hint">@T["Sources_NewsletterHint"]</span>
-            <div class="field-row">
-                <div class="field">
-                    <label for="newsletter-server">@T["Sources_NewsletterServer"]</label>
-                    <input id="newsletter-server" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Server" placeholder="imap.example.com" aria-describedby="newsletter-server-hint" required />
-                    <span id="newsletter-server-hint" class="hint">@T["Sources_NewsletterServerHint"]</span>
-                </div>
-                <div class="field">
-                    <label for="newsletter-user">@T["Login_UserName"]</label>
-                    <input id="newsletter-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_newsletter.User" required />
-                </div>
+        </div>
+        <div id="add-opml" role="tabpanel" aria-labelledby="add-tab-opml" hidden="@(_addTab != "opml")">
+            @* Moving from another reader: its OPML export in, our feeds out. *@
+            <div class="field">
+                <label class="label" for="opml-file">@T["Sources_Opml"]</label>
+                <InputFile id="opml-file" class="input" accept=".opml,.xml,text/x-opml,text/xml" OnChange="ImportOpmlAsync" disabled="@_busy" aria-describedby="opml-hint" />
+                <span id="opml-hint" class="hint">@T["Sources_OpmlHint"] <a href="/sources/export.opml" download>@T["Sources_OpmlExport"]</a></span>
             </div>
-            <div class="field-row">
-                <div class="field">
-                    <label for="newsletter-password">@T["Settings_Password"]</label>
-                    <input id="newsletter-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_newsletter.Password" required />
-                </div>
-                <div class="field">
-                    <label for="newsletter-folder">@T["Sources_NewsletterFolder"]</label>
-                    <input id="newsletter-folder" class="input" spellcheck="false" @bind="_newsletter.Folder" placeholder="INBOX" />
-                </div>
-            </div>
-            <div class="field-row">
-                <div class="field">
-                    <label for="newsletter-sender">@T["Sources_NewsletterSender"]</label>
-                    <input id="newsletter-sender" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Sender" placeholder="substack.com" aria-describedby="newsletter-sender-hint" />
-                    <span id="newsletter-sender-hint" class="hint">@T["Sources_NewsletterSenderHint"]</span>
-                </div>
-                <div class="field">
-                    <label for="newsletter-name">@T["Sources_Name"]</label>
-                    <input id="newsletter-name" class="input" @bind="_newsletter.Name" placeholder="@T["Kind_Newsletter"]" />
-                </div>
-            </div>
-            <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_NewsletterAdd"]</button>
-        </form>
-
-        @* Moving from another reader: its OPML export in, our feeds out. *@
-        <div class="field">
-            <label class="label" for="opml-file">@T["Sources_Opml"]</label>
-            <InputFile id="opml-file" class="input" accept=".opml,.xml,text/x-opml,text/xml" OnChange="ImportOpmlAsync" disabled="@_busy" aria-describedby="opml-hint" />
-            <span id="opml-hint" class="hint">@T["Sources_OpmlHint"] <a href="/sources/export.opml" download>@T["Sources_OpmlExport"]</a></span>
         </div>
     };
 

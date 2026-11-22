@@ -16,6 +16,27 @@ public sealed class WelcomePageTests : IDisposable
     private readonly FeedServer _feeds = new();
 
     [Fact]
+    public async Task A_reader_that_fetches_its_issues_needs_neither_kindle_address_nor_mail_server()
+    {
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Welcome>("Step 1");
+
+        page.Find("#delivery-fetch").Change(true);
+        Assert.Empty(page.FindAll("#recipient"));
+        Pages.Submit(page, ("#time", Pages.BrowserTime("06:00")));
+
+        // Straight on to the region: there is no mail to set up.
+        Pages.Shows(page, "Your region");
+        Pages.Button(page, "Back").Click();
+        Pages.Shows(page, "Step 1");
+        await using var scope = app.Services.CreateAsyncScope();
+        var editor = scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Profiles.ProfileEditor>();
+        var userId = await scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Persistence.MorningInkDbContext>().DomainUsers.Where(u => u.Name == TestApp.AdminName).Select(u => u.Id).SingleAsync();
+        Assert.False((await editor.GetOrCreateAsync(userId, CancellationToken.None)).SendByEmail);
+    }
+
+    [Fact]
     public async Task From_an_empty_install_to_the_first_newspaper()
     {
         using var app = new TestApp(new() { ["Http:AllowedHosts:0"] = $"127.0.0.1:{_feeds.Port}" });

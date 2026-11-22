@@ -190,43 +190,41 @@
 
     <div>
         <section aria-labelledby="settings-heading">
-            <h2 id="settings-heading" class="department">@T["Profile_Settings"]</h2>
+            <h2 id="settings-heading" class="visually-hidden">@T["Profile_Settings"]</h2>
             <form @onsubmit="SaveSettingsAsync">
+                <h3 class="department">@T["Profile_GroupPaper"]</h3>
                 <div class="field-row">
-                <div class="field">
-                    <label for="title">@T["Profile_NewspaperTitle"]</label>
-                    <input id="title" class="input" @bind="_title" required />
-                </div>
-                <fieldset class="field">
-                    <legend class="label">@T["Profile_Delivery"]</legend>
-                    <label class="checkbox"><input id="delivery-email" type="radio" name="delivery" checked="@_sendByEmail" @onchange="() => _sendByEmail = true" /> @T["Profile_DeliveryEmail"]</label>
-                    <label class="checkbox"><input id="delivery-fetch" type="radio" name="delivery" checked="@(!_sendByEmail)" @onchange="() => _sendByEmail = false" aria-describedby="delivery-fetch-hint" /> @T["Profile_DeliveryFetch"]</label>
-                    <span id="delivery-fetch-hint" class="hint">@T["Profile_DeliveryFetchHint"]</span>
-                </fieldset>
-                </div>
-                @if (_sendByEmail)
-                {
                     <div class="field">
-                        <label for="recipient">@T["Profile_Recipient"]</label>
-                        <input id="recipient" class="input" @bind="_recipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
-                        <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
+                        <label for="title">@T["Profile_NewspaperTitle"]</label>
+                        <input id="title" class="input" @bind="_title" required />
                     </div>
-                }
+                    <div class="field">
+                        <label for="country">@T["Country"]</label>
+                        <CountrySelect Id="country" @bind-Selected="_country" DescribedBy="country-hint" />
+                        <span id="country-hint" class="hint">@T["Profile_CountryHint"]</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="region">@T["Profile_Region"]</label>
+                    <input id="region" class="input" @bind="_region" aria-describedby="region-hint" />
+                    <span id="region-hint" class="hint">@T["Profile_RegionHint"]</span>
+                </div>
+
+                <h3 class="department form-group">@T["Profile_GroupSchedule"]</h3>
                 <div class="field-row">
-                <div class="field">
-                    <label for="time">@T["Profile_DeliveryTime"]</label>
-                    <input id="time" class="input" type="time" @bind="_time" required />
-                </div>
-                <div class="field">
-                    <label for="lead">@T["Profile_LeadTime"]</label>
-                    <select id="lead" class="input" @bind="_leadMinutes" aria-describedby="lead-hint">
-                        @foreach (var minutes in LeadChoices)
-                        {
-                            <option value="@minutes">@LeadText(minutes)</option>
-                        }
-                    </select>
-                    <span id="lead-hint" class="hint">@T["Profile_LeadTimeHint"]</span>
-                </div>
+                    <div class="field">
+                        <label for="time">@T["Profile_DeliveryTime"]</label>
+                        <input id="time" class="input" type="time" @bind="_time" required />
+                    </div>
+                    <div class="field">
+                        <label for="zone">@T["Profile_TimeZone"]</label>
+                        <select id="zone" class="input" @bind="_zone">
+                            @foreach (var zone in TimeZones.All)
+                            {
+                                <option value="@zone">@zone</option>
+                            }
+                        </select>
+                    </div>
                 </div>
                 <fieldset class="field">
                     <legend class="label">@T["Profile_Days"]</legend>
@@ -237,27 +235,34 @@
                         }
                     </div>
                 </fieldset>
-                <div class="field-row">
                 <div class="field">
-                    <label for="zone">@T["Profile_TimeZone"]</label>
-                    <select id="zone" class="input" @bind="_zone">
-                        @foreach (var zone in TimeZones.All)
+                    <label for="lead">@T["Profile_LeadTime"]</label>
+                    <select id="lead" class="input" @bind="_leadMinutes" aria-describedby="lead-hint">
+                        @foreach (var minutes in LeadChoices)
                         {
-                            <option value="@zone">@zone</option>
+                            <option value="@minutes">@LeadText(minutes)</option>
                         }
                     </select>
+                    <span id="lead-hint" class="hint">@T["Profile_LeadTimeHint"]</span>
                 </div>
-                <div class="field">
-                    <label for="country">@T["Country"]</label>
-                    <CountrySelect Id="country" @bind-Selected="_country" DescribedBy="country-hint" />
-                    <span id="country-hint" class="hint">@T["Profile_CountryHint"]</span>
-                </div>
-                </div>
-                <div class="field">
-                    <label for="region">@T["Profile_Region"]</label>
-                    <input id="region" class="input" @bind="_region" aria-describedby="region-hint" />
-                    <span id="region-hint" class="hint">@T["Profile_RegionHint"]</span>
-                </div>
+
+                <h3 class="department form-group">@T["Profile_Delivery"]</h3>
+                <fieldset class="field">
+                    <legend class="visually-hidden">@T["Profile_Delivery"]</legend>
+                    <div class="choices">
+                        <label class="checkbox"><input id="delivery-email" type="radio" name="delivery" checked="@_sendByEmail" @onchange="() => _sendByEmail = true" /> @T["Profile_DeliveryEmail"]</label>
+                        <label class="checkbox"><input id="delivery-fetch" type="radio" name="delivery" checked="@(!_sendByEmail)" @onchange="() => _sendByEmail = false" aria-describedby="delivery-fetch-hint" /> @T["Profile_DeliveryFetch"]</label>
+                    </div>
+                    <span id="delivery-fetch-hint" class="hint">@T["Profile_DeliveryFetchHint"]</span>
+                </fieldset>
+                @if (_sendByEmail)
+                {
+                    <div class="field">
+                        <label for="recipient">@T["Profile_Recipient"]</label>
+                        <input id="recipient" class="input" @bind="_recipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
+                        <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
+                    </div>
+                }
                 <button type="submit" class="button">@T["Profile_Save"]</button>
             </form>
         </section>

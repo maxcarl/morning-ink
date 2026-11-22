@@ -559,3 +559,8 @@ textarea.input {
 .table-wrap {
   overflow-x: auto;
 }
+
+/* A further group of the same form, spaced like a section of its own */
+.form-group {
+  margin-top: var(--space-12);
+}

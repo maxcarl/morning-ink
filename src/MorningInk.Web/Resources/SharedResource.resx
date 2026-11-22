@@ -83,7 +83,7 @@
   <data name="Profile_Title" xml:space="preserve"><value>Edition</value></data>
   <data name="Profile_Lede" xml:space="preserve"><value>{0} comes out {1} at {2} ({3}), sent to {4}.</value></data>
   <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} comes out {1} at {2} ({3}). Set a recipient so it can be delivered.</value></data>
-  <data name="Profile_Settings" xml:space="preserve"><value>Delivery</value></data>
+  <data name="Profile_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Profile_NewspaperTitle" xml:space="preserve"><value>Newspaper title</value></data>
   <data name="Profile_Recipient" xml:space="preserve"><value>Recipient</value></data>
   <data name="Profile_RecipientHint" xml:space="preserve"><value>Your Send-to-Kindle address, e.g. name_abc@kindle.com.</value></data>
@@ -196,7 +196,7 @@
   <data name="Welcome_Title" xml:space="preserve"><value>Welcome to Morning Ink</value></data>
   <data name="Welcome_Lede" xml:space="preserve"><value>Five steps to your first newspaper.</value></data>
   <data name="Welcome_StepOf" xml:space="preserve"><value>Step {0} of {1}</value></data>
-  <data name="Welcome_Step_Delivery" xml:space="preserve"><value>Your Kindle</value></data>
+  <data name="Welcome_Step_Delivery" xml:space="preserve"><value>Your reader</value></data>
   <data name="Welcome_Step_Mail" xml:space="preserve"><value>Mail server</value></data>
   <data name="Welcome_Step_Region" xml:space="preserve"><value>Your region</value></data>
   <data name="Welcome_Step_Sources" xml:space="preserve"><value>Sources</value></data>
@@ -218,7 +218,7 @@
   <data name="Welcome_SendFirst" xml:space="preserve"><value>Send the first issue</value></data>
   <data name="Welcome_Later" xml:space="preserve"><value>Later, to the overview</value></data>
   <data name="Welcome_Help" xml:space="preserve"><value>Help</value></data>
-  <data name="Welcome_Help_Delivery" xml:space="preserve"><value>Your Send-to-Kindle address is on Amazon under Content &amp; Devices → Preferences → Personal Document Settings.</value></data>
+  <data name="Welcome_Help_Delivery" xml:space="preserve"><value>A Kindle gets its issue by email: your Send-to-Kindle address is on Amazon under Content &amp; Devices → Preferences → Personal Document Settings. Readers like KOReader fetch it themselves from the OPDS catalog; then no mail server is needed.</value></data>
   <data name="Welcome_Help_Mail" xml:space="preserve"><value>Morning Ink sends the newspaper through your own mail server, e.g. that of your mail provider. Its help pages list the server and port.</value></data>
   <data name="Welcome_Help_Region" xml:space="preserve"><value>A postal code or town gives the weather on the front page and, if you like, local news.</value></data>
   <data name="Welcome_Help_Sources" xml:space="preserve"><value>The suggestions fit your country and language. Readers abroad find feeds in other languages further down.</value></data>
@@ -586,4 +586,12 @@
   <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} is ready {1} at {2} ({3}) for your reader to fetch.</value></data>
   <data name="Dash_ToFetch" xml:space="preserve"><value>to fetch</value></data>
   <data name="Log_Stored" xml:space="preserve"><value>Made available to fetch</value></data>
+  <data name="Profile_GroupPaper" xml:space="preserve"><value>Newspaper</value></data>
+  <data name="Profile_GroupSchedule" xml:space="preserve"><value>Schedule</value></data>
+  <data name="Sources_AddTab_feed" xml:space="preserve"><value>Website or feed</value></data>
+  <data name="Sources_AddTab_local" xml:space="preserve"><value>Local news</value></data>
+  <data name="Sources_AddTab_freshrss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_AddTab_newsletter" xml:space="preserve"><value>Newsletters</value></data>
+  <data name="Sources_AddTab_opml" xml:space="preserve"><value>Import / export</value></data>
+  <data name="Welcome_DoneLedeFetch" xml:space="preserve"><value>Your newspaper has {0} sections and is ready for your reader to fetch from the OPDS catalog (see Account).</value></data>
 </root>

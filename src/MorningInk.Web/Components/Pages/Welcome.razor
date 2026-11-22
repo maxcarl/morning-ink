@@ -33,11 +33,20 @@
             {
                 case Step.Delivery:
                     <form @onsubmit="SaveDeliveryAsync">
-                        <div class="field">
-                            <label for="recipient">@T["Profile_Recipient"]</label>
-                            <input id="recipient" class="input" type="text" inputmode="email" spellcheck="false" autocapitalize="none" @bind="_recipient" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
-                            <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
-                        </div>
+                        <fieldset class="field">
+                            <legend class="label">@T["Profile_Delivery"]</legend>
+                            <label class="checkbox"><input id="delivery-email" type="radio" name="delivery" checked="@_sendByEmail" @onchange="() => _sendByEmail = true" /> @T["Profile_DeliveryEmail"]</label>
+                            <label class="checkbox"><input id="delivery-fetch" type="radio" name="delivery" checked="@(!_sendByEmail)" @onchange="() => _sendByEmail = false" aria-describedby="delivery-fetch-hint" /> @T["Profile_DeliveryFetch"]</label>
+                            <span id="delivery-fetch-hint" class="hint">@T["Profile_DeliveryFetchHint"]</span>
+                        </fieldset>
+                        @if (_sendByEmail)
+                        {
+                            <div class="field">
+                                <label for="recipient">@T["Profile_Recipient"]</label>
+                                <input id="recipient" class="input" type="text" inputmode="email" spellcheck="false" autocapitalize="none" @bind="_recipient" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
+                                <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
+                            </div>
+                        }
                         <div class="inline-form field">
                             <div>
                                 <label class="label" for="time">@T["Profile_DeliveryTime"]</label>
@@ -89,7 +98,7 @@
                             <label class="checkbox"><input id="local" type="checkbox" @bind="_local" /> @T["Welcome_LocalNews"]</label>
                         </div>
                         <div class="row-actions wizard-nav">
-                            <button type="button" class="link-button" @onclick="() => Go(Step.Mail)">@T["Welcome_Back"]</button>
+                            <button type="button" class="link-button" @onclick="() => Go(_sendByEmail ? Step.Mail : Step.Delivery)">@T["Welcome_Back"]</button>
                             <button type="submit" class="button">@T["Welcome_Next"]</button>
                         </div>
                     </form>
@@ -120,7 +129,7 @@
                     break;
 
                 case Step.Done:
-                    <p>@T["Welcome_DoneLede", _profile.Sections.Count, _profile.Recipient]</p>
+                    <p>@(_profile.SendByEmail ? T["Welcome_DoneLede", _profile.Sections.Count, _profile.Recipient] : T["Welcome_DoneLedeFetch", _profile.Sections.Count])</p>
                     @if (!CanSend)
                     {
                         <p class="status status-warn">@(_mailServerSet ? T["Welcome_DoneMissingSetup"] : T["Dash_NeedMail"])</p>
@@ -167,6 +176,7 @@
     private string? _fromAddress;
 
     private string _recipient = string.Empty;
+    private bool _sendByEmail = true;
     private TimeOnly _time;
     private string _zone = string.Empty;
     private string? _country;
@@ -183,6 +193,7 @@
         await ReloadAsync();
         var profile = _profile!; // ! is safe: ReloadAsync just set it
         _recipient = profile.Recipient;
+        _sendByEmail = profile.SendByEmail;
         _time = profile.DeliveryTime;
         _zone = profile.TimeZoneId;
         _country = profile.Country;
@@ -210,13 +221,15 @@
         _step = step;
     }
 
-    private Task SaveDeliveryAsync() => SaveSettingsAsync(Step.Mail);
+    // An edition to fetch needs no mail server: its step is skipped.
+    private Task SaveDeliveryAsync() => SaveSettingsAsync(_sendByEmail ? Step.Mail : Step.Region);
 
     private Task SaveRegionAsync() => SaveSettingsAsync(Step.Sources);
 
     private async Task SaveSettingsAsync(Step next)
     {
-        var settings = new ProfileSettings(_profile!.Title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country); // ! is safe: the form only shows once the profile is loaded
+        // ! is safe: the form only shows once the profile is loaded
+        var settings = new ProfileSettings(_profile!.Title, _sendByEmail ? _recipient : string.Empty, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, SendByEmail: _sendByEmail);
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(UserId, _profile.Id, settings, Closed));
         if (errors.Count > 0)
         {
