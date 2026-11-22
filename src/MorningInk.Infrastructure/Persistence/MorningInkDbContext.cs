@@ -221,4 +221,10 @@ public sealed class MorningInkDbContext(
             }
         }
     }
+
+    /// <summary>The one row of an instance-wide settings table, added when there is none yet.</summary>
+    /// <remarks>Single, not First: a second row would be a bug worth seeing.</remarks>
+    public async Task<T> SettingsRowAsync<T>(CancellationToken cancellationToken)
+        where T : class, new() =>
+        await Set<T>().SingleOrDefaultAsync(cancellationToken) ?? Add(new T()).Entity;
 }

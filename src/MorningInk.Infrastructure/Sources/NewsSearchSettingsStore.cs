@@ -47,22 +47,15 @@ public sealed class NewsSearchSettingsStore(MorningInkDbContext db, IOptions<New
             return false;
         }
 
-        // Single, not First: the table holds at most one row.
-        var settings = await db.NewsSearchSettings.SingleOrDefaultAsync(cancellationToken);
-        if (settings is null)
-        {
-            settings = new NewsSearchSettings();
-            db.NewsSearchSettings.Add(settings);
-        }
+        var settings = await db.SettingsRowAsync<NewsSearchSettings>(cancellationToken);
 
         settings.SearxngUrl = url?.AbsoluteUri.TrimEnd('/');
         await db.SaveChangesAsync(cancellationToken);
 
-        // One's own SearXNG usually runs in the home network, which is blocked otherwise. Only an admin reaches this,
-        // and naming the instance is the same decision as allowing its host, as with the AI provider.
+        // One's own SearXNG usually runs in the home network, which is blocked otherwise.
         if (url is not null)
         {
-            await allowlist.AddAsync($"{url.Host}:{url.Port}", adminId, cancellationToken);
+            await allowlist.AllowServiceAsync(url, adminId, cancellationToken);
         }
 
         return true;

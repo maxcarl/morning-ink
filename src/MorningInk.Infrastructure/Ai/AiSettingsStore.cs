@@ -59,13 +59,7 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
             return errors;
         }
 
-        // Single, not First: the table holds at most one row.
-        var settings = await db.AiSettings.SingleOrDefaultAsync(cancellationToken);
-        if (settings is null)
-        {
-            settings = new AiSettings();
-            db.AiSettings.Add(settings);
-        }
+        var settings = await db.SettingsRowAsync<AiSettings>(cancellationToken);
 
         settings.Endpoint = endpoint?.AbsoluteUri.TrimEnd('/');
         settings.Model = endpoint is null ? null : model;
@@ -84,10 +78,9 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
         await db.SaveChangesAsync(cancellationToken);
 
         // A provider on the user's own hardware usually sits in the home network, which is blocked otherwise.
-        // Only an admin reaches this page, and naming the endpoint is the same decision as allowing its host.
         if (endpoint is not null && input.IsLocal)
         {
-            await allowlist.AddAsync($"{endpoint.Host}:{endpoint.Port}", adminId, cancellationToken);
+            await allowlist.AllowServiceAsync(endpoint, adminId, cancellationToken);
         }
 
         return [];

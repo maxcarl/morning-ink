@@ -43,6 +43,13 @@ public sealed class HostAllowlist(IOptions<SafeHttpOptions> options, IServiceSco
         ImmutableInterlocked.Update(ref _stored, set => set.Remove(normalized));
     }
 
+    /// <summary>
+    /// Allows the host and port of a service the admin just configured, e.g. their Ollama or SearXNG: naming one's
+    /// own service is the same decision as allowing it in the home network.
+    /// </summary>
+    public Task AllowServiceAsync(Uri service, Guid adminId, CancellationToken cancellationToken) =>
+        AddAsync($"{service.Host}:{service.Port}", adminId, cancellationToken);
+
     /// <summary>Allows an entry from now on. Only call for admins; the caller checks the role.</summary>
     public async Task AddAsync(string entry, Guid adminId, CancellationToken cancellationToken)
     {

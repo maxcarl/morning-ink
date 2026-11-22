@@ -85,13 +85,7 @@ public sealed class MailSettingsStore(MorningInkDbContext db, IOptions<SmtpOptio
             return errors;
         }
 
-        // Single, not First: the table holds at most one row, and a second one would be a bug worth seeing.
-        var settings = await db.MailSettings.SingleOrDefaultAsync(cancellationToken);
-        if (settings is null)
-        {
-            settings = new MailSettings();
-            db.MailSettings.Add(settings);
-        }
+        var settings = await db.SettingsRowAsync<MailSettings>(cancellationToken);
 
         // Locked fields belong to the configuration; the form shows them read-only and their values are ignored here.
         Set(HostField, () => settings.Host = Empty(host));
