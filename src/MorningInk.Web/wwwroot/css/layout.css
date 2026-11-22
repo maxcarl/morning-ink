@@ -168,12 +168,23 @@
   margin: var(--space-4) 0 0;
 }
 
-/* Forms read best at a measure, not across the whole page */
-.form-column {
-  max-width: 48rem;
+/*
+  Form pages: two columns of equal width on wide screens, so a form keeps a readable measure without half the page
+  staying empty; one column on narrow screens, in reading order.
+*/
+.columns {
+  display: grid;
+  gap: var(--space-12);
+  align-items: start;
 }
 
-.form-column > section + section {
+@media (min-width: 64rem) {
+  .columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.columns section + section {
   margin-top: var(--space-12);
 }
 

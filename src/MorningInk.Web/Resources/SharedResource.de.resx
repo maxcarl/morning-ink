@@ -122,7 +122,7 @@
   <data name="Theme_dark" xml:space="preserve"><value>Dunkel</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="Settings_Title" xml:space="preserve"><value>Einstellungen</value></data>
-  <data name="Settings_Lede" xml:space="preserve"><value>Mailserver und Heimnetz für die ganze Instanz. Nur Admins sehen diese Seite.</value></data>
+  <data name="Settings_Lede" xml:space="preserve"><value>Mailserver, KI, lokale Nachrichten und Heimnetz für die ganze Instanz. Nur Admins sehen diese Seite.</value></data>
   <data name="Settings_Mail" xml:space="preserve"><value>Mailserver (SMTP)</value></data>
   <data name="Settings_MailHint" xml:space="preserve"><value>Ausgaben gehen per E-Mail raus. Trag die Absenderadresse in deinem Amazon-Konto in die Liste der genehmigten Absender ein, sonst verwirft Amazon die Mail.</value></data>
   <data name="Settings_Host" xml:space="preserve"><value>Server</value></data>

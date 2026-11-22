@@ -24,63 +24,67 @@
     }
 </header>
 
-<div class="form-column">
-    <section aria-labelledby="password-heading">
-        <h2 id="password-heading" class="department">@T["Account_ChangePassword"]</h2>
-        <EditForm Model="Input" FormName="password" OnSubmit="ChangeAsync" method="post">
-            <div class="field-row">
-                <div class="field">
-                    <label for="current-password">@T["Account_CurrentPassword"]</label>
-                    <InputText id="current-password" type="password" class="input" @bind-Value="Input.Current" autocomplete="current-password" required />
+<div class="columns">
+    <div>
+        <section aria-labelledby="password-heading">
+            <h2 id="password-heading" class="department">@T["Account_ChangePassword"]</h2>
+            <EditForm Model="Input" FormName="password" OnSubmit="ChangeAsync" method="post">
+                <div class="field-row">
+                    <div class="field">
+                        <label for="current-password">@T["Account_CurrentPassword"]</label>
+                        <InputText id="current-password" type="password" class="input" @bind-Value="Input.Current" autocomplete="current-password" required />
+                    </div>
+                    <div class="field">
+                        <label for="new-password">@T["Account_NewPassword"]</label>
+                        <InputText id="new-password" type="password" class="input" @bind-Value="Input.New" autocomplete="new-password" aria-describedby="new-password-hint" required />
+                        <span id="new-password-hint" class="hint">@T["Users_StartPasswordHint"]</span>
+                    </div>
                 </div>
-                <div class="field">
-                    <label for="new-password">@T["Account_NewPassword"]</label>
-                    <InputText id="new-password" type="password" class="input" @bind-Value="Input.New" autocomplete="new-password" aria-describedby="new-password-hint" required />
-                    <span id="new-password-hint" class="hint">@T["Users_StartPasswordHint"]</span>
-                </div>
-            </div>
-            <button type="submit" class="button">@T["Account_Save"]</button>
-        </EditForm>
-    </section>
+                <button type="submit" class="button">@T["Account_Save"]</button>
+            </EditForm>
+        </section>
+    </div>
 
-    <section aria-labelledby="reader-heading">
-        <h2 id="reader-heading" class="department">@T["Account_Reader"]</h2>
-        <p class="hint">@T["Account_ReaderHint"]</p>
-        <dl class="facts">
-            <div><dt>@T["Account_ReaderCatalog"]</dt><dd><code>@CatalogUrl</code></dd></div>
-            <div><dt>@T["Login_UserName"]</dt><dd><code>@HttpContext.User.Identity?.Name</code></dd></div>
-            <div>
-                <dt>@T["Account_ReaderPassword"]</dt>
-                <dd>
-                    @if (_readerPassword is not null)
-                    {
-                        <code id="reader-password">@_readerPassword</code>
-                    }
-                    else
-                    {
-                        @(_hasReaderPassword ? T["Account_ReaderPasswordSet"] : T["Account_ReaderPasswordNone"])
-                    }
-                </dd>
-            </div>
-        </dl>
-        @if (_readerPassword is not null)
-        {
-            <p class="status status-warn">@T["Account_ReaderPasswordOnce"]</p>
-        }
-        <div class="row-actions">
-            <form method="post" @formname="reader" @onsubmit="CreateReaderPasswordAsync">
-                <AntiforgeryToken />
-                <button type="submit" class="button button-secondary">@(_hasReaderPassword ? T["Account_ReaderRenew"] : T["Account_ReaderCreate"])</button>
-            </form>
-            @if (_hasReaderPassword)
+    <div>
+        <section aria-labelledby="reader-heading">
+            <h2 id="reader-heading" class="department">@T["Account_Reader"]</h2>
+            <p class="hint">@T["Account_ReaderHint"]</p>
+            <dl class="facts">
+                <div><dt>@T["Account_ReaderCatalog"]</dt><dd><code>@CatalogUrl</code></dd></div>
+                <div><dt>@T["Login_UserName"]</dt><dd><code>@HttpContext.User.Identity?.Name</code></dd></div>
+                <div>
+                    <dt>@T["Account_ReaderPassword"]</dt>
+                    <dd>
+                        @if (_readerPassword is not null)
+                        {
+                            <code id="reader-password">@_readerPassword</code>
+                        }
+                        else
+                        {
+                            @(_hasReaderPassword ? T["Account_ReaderPasswordSet"] : T["Account_ReaderPasswordNone"])
+                        }
+                    </dd>
+                </div>
+            </dl>
+            @if (_readerPassword is not null)
             {
-                <form method="post" @formname="reader-revoke" @onsubmit="RevokeReaderPasswordAsync">
-                    <AntiforgeryToken />
-                    <button type="submit" class="link-button link-danger">@T["Account_ReaderRevoke"]</button>
-                </form>
+                <p class="status status-warn">@T["Account_ReaderPasswordOnce"]</p>
             }
-        </div>
-    </section>
+            <div class="row-actions">
+                <form method="post" @formname="reader" @onsubmit="CreateReaderPasswordAsync">
+                    <AntiforgeryToken />
+                    <button type="submit" class="button button-secondary">@(_hasReaderPassword ? T["Account_ReaderRenew"] : T["Account_ReaderCreate"])</button>
+                </form>
+                @if (_hasReaderPassword)
+                {
+                    <form method="post" @formname="reader-revoke" @onsubmit="RevokeReaderPasswordAsync">
+                        <AntiforgeryToken />
+                        <button type="submit" class="link-button link-danger">@T["Account_ReaderRevoke"]</button>
+                    </form>
+                }
+            </div>
+        </section>
+    </div>
 </div>
 
 @code {
