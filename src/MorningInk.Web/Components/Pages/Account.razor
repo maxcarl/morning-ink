@@ -1,0 +1,93 @@
+@page "/account"
+@inject UserDirectory Users
+@inject SignInManager<AppUser> SignInManager
+
+@* A plain form, not an interactive page: after the change the sign-in cookie must be issued anew, which needs a real request. *@
+<PageTitle>@T["Account_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <h1>@T["Account_Title"]</h1>
+    <p class="lede">@T["Account_Lede", HttpContext.User.Identity?.Name ?? string.Empty]</p>
+    @if (_notice is not null)
+    {
+        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
+    }
+    @if (_errors.Count > 0)
+    {
+        <div class="alert alert-error toast" role="alert">
+            @foreach (var error in _errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+</header>
+
+<div class="form-column">
+    <section aria-labelledby="password-heading">
+        <h2 id="password-heading" class="department">@T["Account_ChangePassword"]</h2>
+        <EditForm Model="Input" FormName="password" OnSubmit="ChangeAsync" method="post">
+            <div class="field-row">
+                <div class="field">
+                    <label for="current-password">@T["Account_CurrentPassword"]</label>
+                    <InputText id="current-password" type="password" class="input" @bind-Value="Input.Current" autocomplete="current-password" required />
+                </div>
+                <div class="field">
+                    <label for="new-password">@T["Account_NewPassword"]</label>
+                    <InputText id="new-password" type="password" class="input" @bind-Value="Input.New" autocomplete="new-password" aria-describedby="new-password-hint" required />
+                    <span id="new-password-hint" class="hint">@T["Users_StartPasswordHint"]</span>
+                </div>
+            </div>
+            <button type="submit" class="button">@T["Account_Save"]</button>
+        </EditForm>
+    </section>
+</div>
+
+@code {
+    private string? _notice;
+    private List<string> _errors = [];
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
+
+    [SupplyParameterFromForm]
+    private PasswordInput Input { get; set; } = default!; // ! is safe: set in OnInitialized before rendering
+
+    // Set here, not as initializer: form binding assigns the property on POST.
+    protected override void OnInitialized() => Input ??= new();
+
+    private async Task ChangeAsync()
+    {
+        // ! is safe: the page needs a signed-in user, whose cookie always carries the id
+        var userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var errors = await Users.ChangeOwnPasswordAsync(userId, Input.Current, Input.New, HttpContext.RequestAborted);
+        (Input.Current, Input.New) = (string.Empty, string.Empty);
+        if (errors.Count > 0)
+        {
+            _errors = errors.Select(ErrorText).Distinct().ToList();
+            return;
+        }
+
+        // The change renewed the security stamp; a fresh cookie keeps this session, while all others end.
+        if (await SignInManager.UserManager.FindByIdAsync(userId.ToString()) is { } login)
+        {
+            await SignInManager.RefreshSignInAsync(login);
+        }
+
+        _notice = T["Account_Changed"];
+    }
+
+    private string ErrorText(string code) => code switch
+    {
+        // Identity's code for a wrong current password.
+        "PasswordMismatch" => T["Account_WrongCurrent"],
+        _ => T[$"Error_{code}"] is { ResourceNotFound: false } text ? text.Value : T["Error_Unknown"],
+    };
+
+    private sealed class PasswordInput
+    {
+        public string Current { get; set; } = string.Empty;
+
+        public string New { get; set; } = string.Empty;
+    }
+}

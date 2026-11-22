@@ -8,10 +8,13 @@
     <div class="masthead-ears">
         <span>@Time.GetLocalNow().ToString("D", CultureInfo.CurrentCulture)</span>
         @* POST with antiforgery token: a link or GET could be triggered by another site. *@
+        <span class="masthead-account">
+        <a href="/account">@T["Nav_Account"]</a>
         <form method="post" action="/logout">
             <AntiforgeryToken />
             <button type="submit" class="link-button">@T["Logout"]</button>
         </form>
+        </span>
     </div>
     <a class="brand nameplate" href="/">@T["Brand"]</a>
     <p class="folio">@T["Masthead_Tagline"]</p>
@@ -22,6 +25,7 @@
         <NavLink href="/archive">@T["Nav_Archive"]</NavLink>
         @if (HttpContext?.User.IsInRole(nameof(MorningInk.Domain.UserRole.Admin)) == true)
         {
+            <NavLink href="/users">@T["Nav_Users"]</NavLink>
             <NavLink href="/settings">@T["Nav_Settings"]</NavLink>
         }
     </nav>

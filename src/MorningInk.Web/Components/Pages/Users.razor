@@ -1,0 +1,179 @@
+@page "/users"
+@rendermode InteractiveServer
+@inherits InteractivePage
+@attribute [Authorize(Roles = nameof(UserRole.Admin))]
+@using System.Globalization
+@using MorningInk.Domain
+
+<PageTitle>@T["Users_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <h1>@T["Users_Title"]</h1>
+    <p class="lede">@T["Users_Lede"]</p>
+    @if (_notice is not null)
+    {
+        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
+    }
+    @if (_errors.Count > 0)
+    {
+        <div class="alert alert-error toast" role="alert">
+            @foreach (var error in _errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+</header>
+
+<div class="form-column">
+    <section aria-labelledby="list-heading">
+        <h2 id="list-heading" class="department">@T["Users_List"]</h2>
+        <ul class="rows">
+            @foreach (var user in _users)
+            {
+                <li class="row" @key="user.Id">
+                    <div class="row-main">
+                        <div class="row-title">@user.Name</div>
+                        <div class="row-meta">@T[$"Users_Role_{user.Role}"] · @(user.Editions == 1 ? T["Users_Editions_One"] : T["Users_Editions", user.Editions])</div>
+                    </div>
+                    <div class="row-actions">
+                        @if (_confirmId == user.Id)
+                        {
+                            @* Everything of theirs goes with them: ask once. *@
+                            <p class="confirm" role="alert">@T["Confirm_Delete", user.Name] @T["Users_DeleteHint"]</p>
+                            <button type="button" class="button button-small" @onclick="() => DeleteAsync(user)">@T["Confirm_Yes"]</button>
+                            <button type="button" class="link-button" @onclick="() => _confirmId = null">@T["Confirm_Cancel"]</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="link-button" aria-expanded="@(_resetId == user.Id ? "true" : "false")" aria-controls="reset-@user.Id" @onclick="() => ToggleReset(user.Id)">@T["Users_ResetPassword"]<span class="visually-hidden"> – @user.Name</span></button>
+                            @* Nobody deletes themselves: an instance without its admin could not be managed any more. *@
+                            @if (user.Id != UserId)
+                            {
+                                <button type="button" class="link-button link-danger" @onclick="() => _confirmId = user.Id">@T["Users_Delete"]<span class="visually-hidden"> – @user.Name</span></button>
+                            }
+                        }
+                    </div>
+                    @if (_resetId == user.Id)
+                    {
+                        <form id="reset-@user.Id" class="source-editor" @onsubmit="() => ResetAsync(user)">
+                            <label class="label" for="reset-password">@T["Users_NewPassword"]</label>
+                            <div class="inline-form">
+                                @* Shown in plain text: the admin passes it on, and the user changes it under "Account". *@
+                                <input id="reset-password" class="input" type="text" spellcheck="false" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_resetPassword" aria-describedby="reset-hint" required />
+                                <button type="submit" class="button button-secondary">@T["Users_SetPassword"]</button>
+                            </div>
+                            <span id="reset-hint" class="hint">@T["Users_ResetHint"]</span>
+                        </form>
+                    }
+                </li>
+            }
+        </ul>
+    </section>
+
+    <section aria-labelledby="add-heading">
+        <h2 id="add-heading" class="department">@T["Users_Add"]</h2>
+        <p class="hint">@T["Users_AddHint"]</p>
+        <form @onsubmit="AddAsync">
+            <div class="field-row">
+                <div class="field">
+                    <label for="new-name">@T["Login_UserName"]</label>
+                    <input id="new-name" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_name" required />
+                </div>
+                <div class="field">
+                    <label for="new-password">@T["Users_StartPassword"]</label>
+                    <input id="new-password" class="input" type="text" spellcheck="false" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_password" aria-describedby="new-password-hint" required />
+                    <span id="new-password-hint" class="hint">@T["Users_StartPasswordHint"]</span>
+                </div>
+            </div>
+            <div class="field">
+                <label class="checkbox"><input id="new-admin" type="checkbox" @bind="_admin" aria-describedby="new-admin-hint" /> @T["Users_MakeAdmin"]</label>
+                <span id="new-admin-hint" class="hint">@T["Users_MakeAdminHint"]</span>
+            </div>
+            <button type="submit" class="button">@T["Users_AddButton"]</button>
+        </form>
+    </section>
+</div>
+
+@code {
+    private IReadOnlyList<UserSummary> _users = [];
+    private List<string> _errors = [];
+    private string? _notice;
+    private Guid? _confirmId;
+    private Guid? _resetId;
+    private string _resetPassword = string.Empty;
+
+    // New user
+    private string _name = string.Empty;
+    private string _password = string.Empty;
+    private bool _admin;
+
+    protected override async Task LoadAsync() =>
+        _users = await UseAsync<UserDirectory, IReadOnlyList<UserSummary>>(users => users.ListAsync(Closed));
+
+    private async Task AddAsync()
+    {
+        Clear();
+        var name = _name.Trim();
+        var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName; // until their first sign-in sets their own
+        var (id, errors) = await UseAsync<UserDirectory, (Guid? Id, IReadOnlyList<string> Errors)>(
+            users => users.CreateAsync(name, _password, _admin ? UserRole.Admin : UserRole.User, language, Closed));
+        if (id is null)
+        {
+            _errors = errors.Select(ErrorText).Distinct().ToList();
+            return;
+        }
+
+        _notice = T["Users_Added", name];
+        (_name, _password, _admin) = (string.Empty, string.Empty, false);
+        await LoadAsync();
+    }
+
+    private void ToggleReset(Guid id)
+    {
+        Clear();
+        _resetId = _resetId == id ? null : id;
+        _resetPassword = string.Empty;
+    }
+
+    private async Task ResetAsync(UserSummary user)
+    {
+        Clear();
+        var errors = await UseAsync<UserDirectory, IReadOnlyList<string>>(users => users.ResetPasswordAsync(user.Id, _resetPassword, Closed));
+        if (errors.Count > 0)
+        {
+            _errors = errors.Select(ErrorText).Distinct().ToList();
+            return;
+        }
+
+        _notice = T["Users_PasswordSet", user.Name];
+        (_resetId, _resetPassword) = (null, string.Empty);
+    }
+
+    private async Task DeleteAsync(UserSummary user)
+    {
+        Clear();
+        _confirmId = null;
+        if (await UseAsync<UserDirectory, string?>(users => users.DeleteAsync(UserId, user.Id, Closed)) is { } error)
+        {
+            _errors = [ErrorText(error)];
+            return;
+        }
+
+        _notice = T["Users_Deleted", user.Name];
+        await LoadAsync();
+    }
+
+    // Identity's codes and the directory's own; anything else gets the general text rather than an English code.
+    private string ErrorText(string code)
+    {
+        var text = T[code == "NotFound" ? "Users_NotFound" : $"Error_{code}"];
+        return text.ResourceNotFound ? T["Error_Unknown"] : text.Value;
+    }
+
+    private void Clear()
+    {
+        _notice = null;
+        _errors = [];
+    }
+}

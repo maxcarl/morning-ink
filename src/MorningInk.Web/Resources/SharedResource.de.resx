@@ -422,4 +422,40 @@
   <data name="Source_KindUnavailable" xml:space="preserve"><value>Der Quellentyp {0} ist nicht verfügbar.</value></data>
   <data name="Source_EnterAddress" xml:space="preserve"><value>Bitte gib eine Adresse ein.</value></data>
   <data name="Source_NoAnswer" xml:space="preserve"><value>Die Adresse hat nicht geantwortet.</value></data>
+  <data name="Nav_Users" xml:space="preserve"><value>Benutzer</value></data>
+  <data name="Nav_Account" xml:space="preserve"><value>Konto</value></data>
+  <data name="Users_Title" xml:space="preserve"><value>Benutzer</value></data>
+  <data name="Users_Lede" xml:space="preserve"><value>Familie und Freunde: Jeder hat eigene Quellen, Ausgaben und ein eigenes Archiv und sieht nichts von den anderen.</value></data>
+  <data name="Users_List" xml:space="preserve"><value>Alle hier</value></data>
+  <data name="Users_Role_Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Users_Role_User" xml:space="preserve"><value>Benutzer</value></data>
+  <data name="Users_Editions" xml:space="preserve"><value>{0} Ausgaben</value></data>
+  <data name="Users_Editions_One" xml:space="preserve"><value>1 Ausgabe</value></data>
+  <data name="Users_ResetPassword" xml:space="preserve"><value>Passwort zurücksetzen</value></data>
+  <data name="Users_Delete" xml:space="preserve"><value>Löschen</value></data>
+  <data name="Users_DeleteHint" xml:space="preserve"><value>Quellen, Ausgaben und Archiv gehen mit.</value></data>
+  <data name="Users_NewPassword" xml:space="preserve"><value>Neues Passwort</value></data>
+  <data name="Users_SetPassword" xml:space="preserve"><value>Passwort setzen</value></data>
+  <data name="Users_ResetHint" xml:space="preserve"><value>Gib es weiter; unter „Konto“ lässt es sich ändern. Offene Sitzungen enden innerhalb einer Minute.</value></data>
+  <data name="Users_Add" xml:space="preserve"><value>Benutzer anlegen</value></data>
+  <data name="Users_AddButton" xml:space="preserve"><value>Benutzer anlegen</value></data>
+  <data name="Users_AddHint" xml:space="preserve"><value>Mailserver und KI sind gemeinsam; alles andere richtet jeder für sich ein.</value></data>
+  <data name="Users_StartPassword" xml:space="preserve"><value>Startpasswort</value></data>
+  <data name="Users_StartPasswordHint" xml:space="preserve"><value>Mindestens 12 Zeichen; ein Satz aus ein paar Wörtern merkt sich am leichtesten.</value></data>
+  <data name="Users_MakeAdmin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Users_MakeAdminHint" xml:space="preserve"><value>Admins verwalten zusätzlich Benutzer, Mailserver, KI und Heimnetz.</value></data>
+  <data name="Users_Added" xml:space="preserve"><value>{0} wurde angelegt.</value></data>
+  <data name="Users_Deleted" xml:space="preserve"><value>{0} wurde gelöscht.</value></data>
+  <data name="Users_PasswordSet" xml:space="preserve"><value>Neues Passwort für {0} gesetzt.</value></data>
+  <data name="Error_Self" xml:space="preserve"><value>Dich selbst kannst du nicht löschen.</value></data>
+  <data name="Error_LastAdmin" xml:space="preserve"><value>Der letzte Admin bleibt.</value></data>
+  <data name="Account_Title" xml:space="preserve"><value>Konto</value></data>
+  <data name="Account_Lede" xml:space="preserve"><value>Angemeldet als {0}.</value></data>
+  <data name="Account_ChangePassword" xml:space="preserve"><value>Passwort ändern</value></data>
+  <data name="Account_CurrentPassword" xml:space="preserve"><value>Aktuelles Passwort</value></data>
+  <data name="Account_NewPassword" xml:space="preserve"><value>Neues Passwort</value></data>
+  <data name="Account_Save" xml:space="preserve"><value>Passwort ändern</value></data>
+  <data name="Account_Changed" xml:space="preserve"><value>Dein Passwort wurde geändert. Andere Sitzungen enden innerhalb einer Minute.</value></data>
+  <data name="Account_WrongCurrent" xml:space="preserve"><value>Das aktuelle Passwort stimmt nicht.</value></data>
+  <data name="Users_NotFound" xml:space="preserve"><value>Diesen Benutzer gibt es nicht mehr.</value></data>
 </root>

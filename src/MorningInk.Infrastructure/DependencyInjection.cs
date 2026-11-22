@@ -168,6 +168,10 @@ public static class DependencyInjection
 
         services.AddSingleton<SetupCode>();
         services.AddScoped<AdminSetup>();
+        services.AddScoped<UserDirectory>();
+
+        // Old sessions of a deleted user or one with a reset password end within a minute instead of the default 30.
+        services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.FromMinutes(1));
         services.AddScoped<UserLanguages>();
         services.AddHostedService<SetupCodeAnnouncer>();
     }

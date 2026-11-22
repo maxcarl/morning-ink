@@ -6,7 +6,7 @@ using MorningInk.Infrastructure.Persistence;
 namespace MorningInk.Infrastructure.Identity;
 
 /// <summary>Creates the first admin on an empty instance, guarded by the <see cref="SetupCode"/>.</summary>
-public sealed class AdminSetup(MorningInkDbContext db, UserManager<AppUser> logins, SetupCode code)
+public sealed class AdminSetup(MorningInkDbContext db, UserManager<AppUser> logins, UserDirectory users, SetupCode code)
 {
     /// <summary>True while no user exists; then every page leads to the setup.</summary>
     public async Task<bool> IsNeededAsync(CancellationToken cancellationToken) => !await db.DomainUsers.AnyAsync(cancellationToken);
@@ -31,23 +31,13 @@ public sealed class AdminSetup(MorningInkDbContext db, UserManager<AppUser> logi
             return (null, ["InvalidSetupCode"]);
         }
 
-        var user = new User { Name = name.Trim(), Role = UserRole.Admin, Language = language };
-        var login = new AppUser { Id = user.Id, UserName = user.Name };
-
-        // Domain user and login together or not at all, e.g. when the password is too short.
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        db.DomainUsers.Add(user);
-        await db.SaveChangesAsync(cancellationToken);
-        var created = await logins.CreateAsync(login, password);
-        if (!created.Succeeded)
+        var (id, errors) = await users.CreateAsync(name, password, UserRole.Admin, language, cancellationToken);
+        if (id is null)
         {
-            await transaction.RollbackAsync(cancellationToken);
-            db.ChangeTracker.Clear();
-            return (null, created.Errors.Select(e => e.Code).ToList());
+            return (null, errors);
         }
 
-        await transaction.CommitAsync(cancellationToken);
         code.Invalidate();
-        return (login, []);
+        return (await logins.FindByIdAsync(id.Value.ToString()), []);
     }
 }

@@ -496,7 +496,7 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | 30 | Verarbeitung | Filter pro Quelle: Stichwörter ein- oder ausschließen, Mindestlänge, keine Liveticker, keine Werbung | Ausgeschlossene Artikel erscheinen nicht in der Ausgabe; „Testen“ an der Quelle zeigt, was aussortiert wird und warum | 19 | ✅ erledigt; Werbung an den Kennzeichen des Verlags erkannt, Wortanfänge mit Stern; Regex vorerst nicht |
 | 31 | Verarbeitung | Duplikate über Quellen hinweg erkennen, mit „auch bei: …“ | Dieselbe Meldung aus zwei Quellen steht nur einmal im Heft | 13 | ✅ erledigt |
 | 32 | Verarbeitung | Interessen mit Stichwörtern und Gewicht pro Profil | Bevorzugte Themen rücken bei knappem Limit nach vorn, „ausblenden“ wirkt als Filter | 26 | ✅ erledigt; Erkennung per KI kommt später |
-| 33 | Benutzer | Mehrere Benutzer (Familie und Freunde), vom Admin angelegt | Jeder sieht und bearbeitet nur die eigenen Quellen und Ausgaben | 18 | – |
+| 33 | Benutzer | Mehrere Benutzer (Familie und Freunde), vom Admin angelegt | Jeder sieht und bearbeitet nur die eigenen Quellen und Ausgaben | 18 | ✅ erledigt; Seite „Benutzer“ (anlegen, Passwort zurücksetzen, löschen mit allen Daten), „Konto“ zum eigenen Passwortwechsel; Rollenwechsel später |
 | 34 | Zustellung | OPDS-Katalog für KOReader und Reader-Apps | KOReader holt die Ausgabe mit Login selbst ab | 28 | – |
 | 35 | Quellen | SearXNG als Nachrichtensuche für „Lokales“, wählbar neben Bing (`INewsSearch`, Einstellung `NewsSearch__SearxngUrl`) | Mit gesetzter Adresse kommen lokale Meldungen über die eigene SearXNG-Instanz, mit Volltext vom Verlag; ohne bleibt Bing | 17 | – |
 
