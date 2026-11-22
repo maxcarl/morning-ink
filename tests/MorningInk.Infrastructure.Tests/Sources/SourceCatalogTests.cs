@@ -55,7 +55,9 @@ public sealed class SourceCatalogTests : IDisposable
 
         var result = await Discovery(services).DiscoverAsync(_site.Url("/news.xml").ToString(), CancellationToken.None);
 
-        Assert.Equal(_site.Url("/news.xml"), Assert.Single(Assert.IsType<FeedDiscoveryResult.Found>(result).Feeds).Url);
+        var feed = Assert.Single(Assert.IsType<FeedDiscoveryResult.Found>(result).Feeds);
+        Assert.Equal(_site.Url("/news.xml"), feed.Url);
+        Assert.Equal("Edge cases", feed.Title); // the feed's own title, not the host
     }
 
     [Fact]

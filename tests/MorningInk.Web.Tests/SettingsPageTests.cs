@@ -47,10 +47,13 @@ public sealed class SettingsPageTests : IDisposable
         var browser = await app.SignedInAdminAsync();
 
         var added = await TestApp.SubmitAsync(browser, "/settings", new() { ["NewEntry"] = "FreshRSS.lan:8080" }, form: ("allow-add", null));
-        var removed = await TestApp.SubmitAsync(browser, "/settings", [], form: ("allow-remove", "freshrss.lan:8080"));
+        await TestApp.SubmitAsync(browser, "/settings", new() { ["NewEntry"] = "nas.lan" }, form: ("allow-add", null));
+        var removed = await TestApp.SubmitAsync(browser, "/settings", [], form: ("allow-remove-freshrss.lan:8080", null));
+        var page = await removed.Content.ReadAsStringAsync();
 
         Assert.Contains("freshrss.lan:8080 is allowed now.", await added.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-        Assert.Contains("Nothing allowed.", await removed.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.DoesNotContain(">freshrss.lan:8080<", page, StringComparison.Ordinal);
+        Assert.Contains(">nas.lan<", page, StringComparison.Ordinal);
     }
 
     [Fact]

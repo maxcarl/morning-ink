@@ -31,6 +31,8 @@ public sealed class FeedDiscovery(SafeHttpClient http)
         ["application/rss+xml", "application/atom+xml", "application/feed+json", "application/rdf+xml"],
         StringComparer.OrdinalIgnoreCase);
 
+    private static readonly HashSet<string> FormatNames = new(["rss", "atom", "feed", "rdf", "json", "rss feed", "atom feed", "rss 2.0"], StringComparer.OrdinalIgnoreCase);
+
     private static readonly string[] CommonPaths = ["/feed", "/rss", "/feed.xml", "/rss.xml", "/atom.xml", "/index.xml"];
 
     /// <param name="input">What the user typed, e.g. "heise.de" or "https://www.heise.de/rss/heise.rdf". Untrusted.</param>
@@ -64,7 +66,7 @@ public sealed class FeedDiscovery(SafeHttpClient http)
 
         if (IsFeed(site))
         {
-            return new FeedDiscoveryResult.Found([new FeedCandidate(site.FinalUri, site.FinalUri.Host)]);
+            return new FeedDiscoveryResult.Found([new FeedCandidate(site.FinalUri, FeedParser.ReadTitle(site.Content) ?? site.FinalUri.Host)]);
         }
 
         var linked = LinkedFeeds(site);
@@ -82,10 +84,14 @@ public sealed class FeedDiscovery(SafeHttpClient http)
             .Where(link => FeedTypes.Contains(link.GetAttribute("type") ?? string.Empty))
             .Select(link => (Link: link, Ok: Uri.TryCreate(site.FinalUri, link.GetAttribute("href"), out var feed), Url: feed))
             .Where(candidate => candidate.Ok && UrlPolicy.Check(candidate.Url!) is null) // ! is safe: Ok means TryCreate set it
-            .Select(candidate => new FeedCandidate(candidate.Url!, candidate.Link.GetAttribute("title")?.Trim() is { Length: > 0 } title ? title : pageTitle ?? candidate.Url!.Host))
+            .Select(candidate => new FeedCandidate(candidate.Url!, Describes(candidate.Link.GetAttribute("title")) ?? pageTitle ?? candidate.Url!.Host))
             .DistinctBy(candidate => candidate.Url)
             .ToList();
     }
+
+    // A link title like "RSS" or "Atom" only names the format; then the page title says more.
+    private static string? Describes(string? linkTitle) =>
+        linkTitle?.Trim() is { Length: > 0 } title && !FormatNames.Contains(title) ? title : null;
 
     // Many sites have a feed without linking it; the first of the usual paths that is a feed wins.
     private async Task<List<FeedCandidate>> UsualPathsAsync(Uri site, CancellationToken cancellationToken)
@@ -95,7 +101,7 @@ public sealed class FeedDiscovery(SafeHttpClient http)
             var candidate = new Uri(site, path);
             if (await http.GetAsync(candidate, cancellationToken: cancellationToken) is FetchResult.Success response && IsFeed(response))
             {
-                return [new FeedCandidate(response.FinalUri, site.Host)];
+                return [new FeedCandidate(response.FinalUri, FeedParser.ReadTitle(response.Content) ?? site.Host)];
             }
         }
 

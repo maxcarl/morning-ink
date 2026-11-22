@@ -94,9 +94,8 @@
             {
                 <li class="row">
                     <div class="row-main"><div class="row-title">@entry</div></div>
-                    <form method="post" @formname="allow-remove" @onsubmit="RemoveHostAsync">
+                    <form method="post" @formname="@($"allow-remove-{entry}")" @onsubmit="() => RemoveHostAsync(entry)">
                         <AntiforgeryToken />
-                        <input type="hidden" name="RemoveEntry" value="@entry" />
                         <button type="submit" class="button button-secondary button-small">@T["Settings_NetworkRemove"]</button>
                     </form>
                 </li>
@@ -167,9 +166,6 @@
     [SupplyParameterFromForm(FormName = "allow-add")]
     private string? NewEntry { get; set; }
 
-    [SupplyParameterFromForm(FormName = "allow-remove")]
-    private string? RemoveEntry { get; set; }
-
     private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: every page requires a signed-in user
 
     private CancellationToken Aborted => HttpContext.RequestAborted;
@@ -214,12 +210,9 @@
         }
     }
 
-    private async Task RemoveHostAsync()
+    private async Task RemoveHostAsync(string entry)
     {
-        if (!string.IsNullOrWhiteSpace(RemoveEntry))
-        {
-            await Allowlist.RemoveAsync(RemoveEntry, Aborted);
-            _notice = T["Settings_Saved"];
-        }
+        await Allowlist.RemoveAsync(entry, Aborted);
+        _notice = T["Settings_Saved"];
     }
 }

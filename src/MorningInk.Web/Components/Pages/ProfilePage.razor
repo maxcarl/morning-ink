@@ -43,9 +43,9 @@
             @foreach (var item in _profile.Sections.OrderBy(s => s.Position))
             {
                 <li class="row">
-                    <form method="post" @formname="section" @onsubmit="SectionAsync" class="row-main">
+                    @* A form name per section: Blazor needs it unique, and the handler knows the section from it. *@
+                    <form method="post" @formname="@($"section-{item.Id}")" @onsubmit="() => SectionAsync(item.Id)" class="row-main">
                         <AntiforgeryToken />
-                        <input type="hidden" name="SectionId" value="@item.Id" />
                         <div class="inline-form field">
                             <div class="row-main">
                                 <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
@@ -164,18 +164,6 @@
     [SupplyParameterFromForm(FormName = "settings")]
     private string? Country { get; set; }
 
-    [SupplyParameterFromForm(FormName = "section")]
-    private Guid? SectionId { get; set; }
-
-    [SupplyParameterFromForm(FormName = "section")]
-    private string? SectionName { get; set; }
-
-    [SupplyParameterFromForm(FormName = "section")]
-    private string? MaxArticles { get; set; }
-
-    [SupplyParameterFromForm(FormName = "section")]
-    private string? SectionAction { get; set; }
-
     [SupplyParameterFromForm(FormName = "add-section")]
     private string? NewSection { get; set; }
 
@@ -199,14 +187,10 @@
         _notice = _errors.Count == 0 ? T["Profile_Saved"].Value : null;
     }
 
-    private async Task SectionAsync()
+    private async Task SectionAsync(Guid id)
     {
-        if (SectionId is not { } id)
-        {
-            return;
-        }
-
-        var done = SectionAction switch
+        var action = HttpContext.Request.Form["SectionAction"].ToString();
+        var done = action switch
         {
             "delete" => await Editor.DeleteSectionAsync(UserId, id, Aborted),
             "up" => await Editor.MoveSectionAsync(UserId, id, up: true, Aborted),
@@ -214,7 +198,7 @@
             _ => await SaveSectionAsync(id),
         };
         _notice = done ? T["Profile_Saved"].Value : null;
-        if (!done && SectionAction is null or "save")
+        if (!done && action is "" or "save")
         {
             _errors = [T["Profile_SectionInvalid"]];
         }
@@ -222,10 +206,12 @@
 
     private Task<bool> SaveSectionAsync(Guid id)
     {
+        var form = HttpContext.Request.Form;
+        var maxArticles = form["MaxArticles"].ToString();
         int? limit = null;
-        if (!string.IsNullOrWhiteSpace(MaxArticles))
+        if (!string.IsNullOrWhiteSpace(maxArticles))
         {
-            if (!int.TryParse(MaxArticles, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
+            if (!int.TryParse(maxArticles, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
             {
                 return Task.FromResult(false);
             }
@@ -234,11 +220,11 @@
         }
 
         // Checkboxes arrive as a repeated field; ids that are not the user's own sources are dropped by the editor.
-        var sourceIds = HttpContext.Request.Form["SourceIds"]
+        var sourceIds = form["SourceIds"]
             .Select(value => Guid.TryParse(value, out var source) ? source : Guid.Empty)
             .Where(source => source != Guid.Empty)
             .ToList();
-        return Editor.SaveSectionAsync(UserId, id, SectionName ?? string.Empty, limit, sourceIds, Aborted);
+        return Editor.SaveSectionAsync(UserId, id, form["SectionName"].ToString(), limit, sourceIds, Aborted);
     }
 
     private async Task AddSectionAsync()

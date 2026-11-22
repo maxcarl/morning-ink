@@ -96,7 +96,7 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
         if (form is { } wanted)
         {
             page = Forms().Matches(page).Select(m => m.Value).First(f =>
-                f.Contains($"name=\"_handler\" value=\"{wanted.Name}\"", StringComparison.Ordinal)
+                f.Contains($"name=\"_handler\" value=\"{wanted.Name}", StringComparison.Ordinal)
                 && (wanted.Containing is null || f.Contains(wanted.Containing, StringComparison.Ordinal)));
         }
 

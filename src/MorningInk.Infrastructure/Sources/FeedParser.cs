@@ -58,6 +58,23 @@ internal static partial class FeedParser
             : new SourceResult.Success(articles.OfType<FetchedArticle>().ToList(), ETag: null, LastModified: null);
     }
 
+    /// <summary>The feed's own title (RSS channel, RDF channel or Atom feed), or null if it has none or is no feed.</summary>
+    public static string? ReadTitle(byte[] content)
+    {
+        try
+        {
+            using var stream = new MemoryStream(content);
+            using var reader = XmlReader.Create(stream, ReaderSettings);
+            var root = XDocument.Load(reader).Root;
+            var title = root?.Element("channel")?.Element("title") ?? root?.Element(Rss1 + "channel")?.Element(Rss1 + "title") ?? root?.Element(Atom + "title");
+            return Text(title);
+        }
+        catch (XmlException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Reads RFC 822 dates (RSS) and ISO 8601 dates (Atom, Dublin Core); null if unreadable.</summary>
     public static DateTimeOffset? ParseDate(string? text)
     {

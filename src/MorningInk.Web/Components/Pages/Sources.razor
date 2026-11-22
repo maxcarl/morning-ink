@@ -77,24 +77,30 @@
             {
                 <p class="row muted">@T["Sources_NoneFound"]</p>
             }
-            <ul class="rows">
-                @foreach (var feed in _found)
-                {
-                    <li class="row">
-                        <form method="post" @formname="add" @onsubmit="AddFeedAsync" class="row-main inline-form">
-                            <AntiforgeryToken />
-                            <input type="hidden" name="FeedUrl" value="@feed.Url.AbsoluteUri" />
-                            <div class="row-main">
-                                <label class="visually-hidden" for="name-@feed.GetHashCode()">@T["Sources_Name"]</label>
-                                <input id="name-@feed.GetHashCode()" name="Name" class="input" value="@feed.Title" required />
-                                <span class="row-meta">@feed.Url.AbsoluteUri</span>
-                            </div>
-                            <label class="checkbox"><input type="checkbox" name="FullText" value="true" checked /> @T["Sources_FullText"]</label>
-                            <button type="submit" class="button">@T["Sources_Add"]</button>
-                        </form>
-                    </li>
-                }
-            </ul>
+            @if (_found.Count > 0)
+            {
+                @* One form for all feeds found: pick one, name it, add it. *@
+                <form method="post" @formname="add" @onsubmit="AddFeedAsync">
+                    <AntiforgeryToken />
+                    <fieldset class="rows">
+                        <legend class="visually-hidden">@T["Sources_Found"]</legend>
+                        @for (var i = 0; i < _found.Count; i++)
+                        {
+                            var feed = _found[i];
+                            <label class="row checkbox">
+                                <input type="radio" name="FeedUrl" value="@feed.Url.AbsoluteUri" checked="@(i == 0)" />
+                                <span class="row-main"><span class="row-title">@feed.Title</span><span class="row-meta"> · @feed.Url.AbsoluteUri</span></span>
+                            </label>
+                        }
+                    </fieldset>
+                    <div class="inline-form field">
+                        <label class="visually-hidden" for="feed-name">@T["Sources_Name"]</label>
+                        <input id="feed-name" name="Name" class="input" value="@_found[0].Title" required />
+                        <label class="checkbox"><input type="checkbox" name="FullText" value="true" checked /> @T["Sources_FullText"]</label>
+                        <button type="submit" class="button">@T["Sources_Add"]</button>
+                    </div>
+                </form>
+            }
         }
 
         @foreach (var group in _sources.GroupBy(s => s.Kind).OrderBy(g => g.Key))
@@ -112,9 +118,9 @@
                         {
                             <span class="tag">@T["Sources_FullTextFact"]</span>
                         }
-                        <form method="post" @formname="row" @onsubmit="RowAsync" class="row-actions">
+                        @* A form name per row: Blazor needs it unique, and the handler knows the source from it. *@
+                        <form method="post" @formname="@($"row-{source.Id}")" @onsubmit="() => RowAsync(source.Id)" class="row-actions">
                             <AntiforgeryToken />
-                            <input type="hidden" name="SourceId" value="@source.Id" />
                             <button type="submit" name="RowAction" value="test" class="button button-small">@T["Sources_Test"]</button>
                             <button type="submit" name="RowAction" value="delete" class="button button-secondary button-small">@T["Sources_Delete"]</button>
                         </form>
@@ -211,12 +217,6 @@
     [SupplyParameterFromForm(FormName = "local")]
     private string? Country { get; set; }
 
-    [SupplyParameterFromForm(FormName = "row")]
-    private Guid? SourceId { get; set; }
-
-    [SupplyParameterFromForm(FormName = "row")]
-    private string? RowAction { get; set; }
-
     [SupplyParameterFromForm(FormName = "allow")]
     private string? Host { get; set; }
 
@@ -297,14 +297,9 @@
         Finish(result);
     }
 
-    private async Task RowAsync()
+    private async Task RowAsync(Guid id)
     {
-        if (SourceId is not { } id)
-        {
-            return;
-        }
-
-        if (RowAction == "delete")
+        if (HttpContext.Request.Form["RowAction"] == "delete")
         {
             if (await Catalog.DeleteAsync(UserId, id, Aborted))
             {

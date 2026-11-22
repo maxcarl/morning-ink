@@ -64,7 +64,35 @@ public sealed class ProfilePageTests : IDisposable
         Assert.Equal([mine], section.Sources.Select(s => s.Id));
     }
 
+    [Fact]
+    public async Task Each_of_several_sections_can_be_saved_and_moved()
+    {
+        var browser = await _app.SignedInAdminAsync();
+        var (mine, _) = await CreateSourcesAsync();
+        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Politik" }, form: ("add-section", null));
+        await TestApp.SubmitAsync(browser, "/profile", new() { ["NewSection"] = "Technik" }, form: ("add-section", null));
+        var technik = await SectionIdAsync("Technik");
+
+        var saved = await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "save" }, form: ($"section-{technik}", null), sourceIds: [mine]);
+        var moved = await TestApp.SubmitAsync(browser, "/profile", new() { ["SectionAction"] = "up" }, form: ($"section-{technik}", null));
+
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
+        await using var scope = _app.Services.CreateAsyncScope();
+        var sections = await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles
+            .SelectMany(p => p.Sections).Include(s => s.Sources).OrderBy(s => s.Position).ToListAsync();
+        Assert.Equal(["Technik", "Politik"], sections.Select(s => s.Name));
+        Assert.Equal([mine], sections[0].Sources.Select(s => s.Id));
+    }
+
     public void Dispose() => _app.Dispose();
+
+    private async Task<Guid> SectionIdAsync(string name)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles
+            .SelectMany(p => p.Sections).Where(s => s.Name == name).Select(s => s.Id).SingleAsync();
+    }
 
     // One source of the admin, one of another user.
     private async Task<(Guid Mine, Guid Foreign)> CreateSourcesAsync()

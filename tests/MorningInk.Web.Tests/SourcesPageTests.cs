@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Infrastructure.Http;
 
@@ -16,7 +17,7 @@ public sealed class SourcesPageTests : IDisposable
 
         var found = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = _feeds.SiteUrl }, form: ("discover", null));
         var page = await found.Content.ReadAsStringAsync();
-        var added = await TestApp.SubmitAsync(browser, "/sources", page, [], form: ("add", null));
+        var added = await TestApp.SubmitAsync(browser, "/sources", page, new() { ["FeedUrl"] = _feeds.FeedUrl }, form: ("add", null));
         var list = await browser.GetStringAsync(TestApp.RedirectTarget(added));
 
         Assert.Contains(_feeds.FeedUrl, page, StringComparison.Ordinal);
@@ -32,7 +33,7 @@ public sealed class SourcesPageTests : IDisposable
         using var app = AllowingFeeds();
         var browser = await app.SignedInAdminAsync();
         var found = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = _feeds.FeedUrl }, form: ("discover", null));
-        await TestApp.SubmitAsync(browser, "/sources", await found.Content.ReadAsStringAsync(), [], form: ("add", null));
+        await TestApp.SubmitAsync(browser, "/sources", await found.Content.ReadAsStringAsync(), new() { ["FeedUrl"] = _feeds.FeedUrl }, form: ("add", null));
 
         var tested = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "test" }, form: ("row", null));
         var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ("row", null));
@@ -43,6 +44,27 @@ public sealed class SourcesPageTests : IDisposable
         Assert.Contains("Zweite Meldung", testPage, StringComparison.Ordinal);
         Assert.Equal("/sources?notice=deleted", TestApp.RedirectTarget(deleted));
         Assert.Contains("0 sources.", list, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Each_of_several_sources_can_be_tested_and_deleted()
+    {
+        using var app = AllowingFeeds();
+        var browser = await app.SignedInAdminAsync();
+        foreach (var name in new[] { "Erste", "Zweite" })
+        {
+            var found = await TestApp.SubmitAsync(browser, "/sources", new() { ["Url"] = _feeds.FeedUrl }, form: ("discover", null));
+            await TestApp.SubmitAsync(browser, "/sources", await found.Content.ReadAsStringAsync(), new() { ["FeedUrl"] = _feeds.FeedUrl, ["Name"] = name }, form: ("add", null));
+        }
+
+        var ids = await SourceIdsAsync(app);
+        var tested = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "test" }, form: ($"row-{ids[1]}", null));
+        var deleted = await TestApp.SubmitAsync(browser, "/sources", new() { ["RowAction"] = "delete" }, form: ($"row-{ids[0]}", null));
+
+        Assert.Equal(HttpStatusCode.OK, tested.StatusCode);
+        Assert.Contains("row-selected", await tested.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal("/sources?notice=deleted", TestApp.RedirectTarget(deleted));
+        Assert.Equal([ids[1]], await SourceIdsAsync(app));
     }
 
     [Fact]
@@ -92,6 +114,13 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     public void Dispose() => _feeds.Dispose();
+
+    private static async Task<List<Guid>> SourceIdsAsync(TestApp app)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Persistence.MorningInkDbContext>().Sources
+            .OrderBy(s => s.Name).Select(s => s.Id).ToListAsync();
+    }
 
     private TestApp AllowingFeeds() => new(new() { ["Http:AllowedHosts:0"] = $"127.0.0.1:{_feeds.Port}" });
 }
