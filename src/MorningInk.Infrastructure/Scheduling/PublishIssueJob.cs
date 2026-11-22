@@ -13,13 +13,22 @@ internal sealed partial class PublishIssueJob(IssuePublisher publisher, IssueSch
         var data = context.MergedJobDataMap;
         var profileId = Guid.Parse(data.GetString(IssueScheduler.ProfileIdKey)!); // ! is safe: every job is built with the profile id
 
-        // Catch-up and retry triggers carry their slot; the daily trigger's slot is its scheduled time.
-        var slot = data.ContainsKey(IssueScheduler.SlotKey)
-            ? DateTimeOffset.FromUnixTimeMilliseconds(data.GetLong(IssueScheduler.SlotKey))
-            : context.ScheduledFireTimeUtc ?? context.FireTimeUtc;
+        // Catch-up and retry triggers carry their slot; the daily trigger's slot is its scheduled time, and the build
+        // trigger's slot lies its lead time after its own.
+        var fired = context.ScheduledFireTimeUtc ?? context.FireTimeUtc;
+        var prepareOnly = data.ContainsKey(IssueScheduler.LeadMinutesKey);
+        var slot = data.ContainsKey(IssueScheduler.SlotKey) ? DateTimeOffset.FromUnixTimeMilliseconds(data.GetLong(IssueScheduler.SlotKey))
+            : prepareOnly ? fired + TimeSpan.FromMinutes(data.GetLong(IssueScheduler.LeadMinutesKey))
+            : fired;
 
-        var result = await publisher.PublishAsync(profileId, slot, cancellationToken);
+        var result = await publisher.PublishAsync(profileId, slot, cancellationToken, prepareOnly);
         LogResult(logger, profileId, slot, result.GetType().Name);
+
+        // The early build still runs at delivery time: send as soon as it is done instead of skipping the day.
+        if (result is PublishResult.AlreadyRunning && !prepareOnly)
+        {
+            await scheduler.ScheduleAfterBuildAsync(context.Scheduler, profileId, slot, cancellationToken);
+        }
 
         if (result is PublishResult.DeliveryFailed { Retryable: true } failed)
         {

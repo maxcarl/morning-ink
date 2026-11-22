@@ -296,4 +296,10 @@
   <data name="Settings_Error_AiModel" xml:space="preserve"><value>Bitte gib den Modellnamen an, z. B. qwen2.5:7b.</value></data>
   <data name="Sources_LocalAiOnly" xml:space="preserve"><value>Nur lokale KI</value></data>
   <data name="Sources_LocalAiOnlyHint" xml:space="preserve"><value>Für private Inhalte, z. B. ein Newsletter-Postfach oder eine Quelle mit deinem Login: Ihre Artikel gehen nur an eine KI auf eigener Hardware (Einstellungen → KI), nie an einen Cloud-Anbieter. Ist ein Cloud-Anbieter eingestellt, bekommen sie keine Zusammenfassung.</value></data>
+  <data name="Profile_LeadTime" xml:space="preserve"><value>Vorlauf</value></data>
+  <data name="Profile_LeadTimeHint" xml:space="preserve"><value>Baut die Ausgabe so lange vor der Lieferzeit und schickt sie pünktlich. Sinnvoll, wenn KI-Zusammenfassungen eine Weile brauchen.</value></data>
+  <data name="Profile_LeadNone" xml:space="preserve"><value>keiner, zur Lieferzeit bauen</value></data>
+  <data name="Profile_LeadMinutes" xml:space="preserve"><value>{0} Minuten vorher</value></data>
+  <data name="Profile_LeadHours" xml:space="preserve"><value>{0} Std. vorher</value></data>
+  <data name="Profile_Error_LeadTime" xml:space="preserve"><value>Wähl einen Vorlauf von höchstens 12 Stunden.</value></data>
 </root>

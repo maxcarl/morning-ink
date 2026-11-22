@@ -387,6 +387,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<TimeOnly>("DeliveryTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<TimeSpan>("LeadTime")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Recipient")
                         .IsRequired()
                         .HasMaxLength(320)

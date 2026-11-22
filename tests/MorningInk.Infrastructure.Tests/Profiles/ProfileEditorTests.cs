@@ -152,6 +152,22 @@ public sealed class ProfileEditorTests : IDisposable
         Assert.Equal(stored, (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Days);
     }
 
+    [Theory]
+    [InlineData(90, true)]
+    [InlineData(0, true)]
+    [InlineData(13 * 60, false)] // more than half a day ahead is no lead time but a mistake
+    [InlineData(-30, false)]
+    public async Task Lead_time_is_saved_within_half_a_day(int minutes, bool valid)
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max");
+
+        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null, null, null, TimeSpan.FromMinutes(minutes)), CancellationToken.None));
+
+        Assert.Equal(valid, errors.Count == 0);
+        Assert.Equal(valid ? TimeSpan.FromMinutes(minutes) : TimeSpan.Zero, (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).LeadTime);
+    }
+
     [Fact]
     public async Task No_weekday_at_all_is_refused()
     {

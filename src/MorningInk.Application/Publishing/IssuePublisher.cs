@@ -32,7 +32,8 @@ public sealed class IssuePublisher(
     /// <param name="profileId">Profile to publish.</param>
     /// <param name="scheduledFor">The slot, e.g. today 6:00 in the profile's time zone; one issue per slot.</param>
     /// <param name="cancellationToken">Cancels the run; a later run picks up where it stopped.</param>
-    public async Task<PublishResult> PublishAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken)
+    /// <param name="prepareOnly">Build and render, but do not send: the run at the delivery time sends the file (lead time).</param>
+    public async Task<PublishResult> PublishAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken, bool prepareOnly = false)
     {
         if (!locks.TryEnter(profileId, out var release))
         {
@@ -41,11 +42,11 @@ public sealed class IssuePublisher(
 
         using (release)
         {
-            return await PublishLockedAsync(profileId, scheduledFor.ToUniversalTime(), cancellationToken);
+            return await PublishLockedAsync(profileId, scheduledFor.ToUniversalTime(), prepareOnly, cancellationToken);
         }
     }
 
-    private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, CancellationToken cancellationToken)
+    private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, bool prepareOnly, CancellationToken cancellationToken)
     {
         if (await store.LoadProfileAsync(profileId, cancellationToken) is not { } loaded)
         {
@@ -94,6 +95,11 @@ public sealed class IssuePublisher(
             }
 
             await RenderAsync(issue, content, renderer, cancellationToken);
+        }
+
+        if (prepareOnly)
+        {
+            return new PublishResult.Prepared(issue.Id);
         }
 
         return await DeliverAsync(issue, loaded.Profile, renderer, IssueContent.BookTitleFor(profile.Title, localTime), problems, cancellationToken);

@@ -296,4 +296,10 @@
   <data name="Settings_Error_AiModel" xml:space="preserve"><value>Please enter the model name, e.g. qwen2.5:7b.</value></data>
   <data name="Sources_LocalAiOnly" xml:space="preserve"><value>Local AI only</value></data>
   <data name="Sources_LocalAiOnlyHint" xml:space="preserve"><value>For private content, e.g. a newsletter inbox or a source with your login: its articles only go to an AI running on your own hardware (Settings → AI), never to a cloud provider. With a cloud provider, they get no summary.</value></data>
+  <data name="Profile_LeadTime" xml:space="preserve"><value>Build ahead</value></data>
+  <data name="Profile_LeadTimeHint" xml:space="preserve"><value>Builds the issue this long before the delivery time and sends it on time. Useful when AI summaries take a while.</value></data>
+  <data name="Profile_LeadNone" xml:space="preserve"><value>no, build at delivery time</value></data>
+  <data name="Profile_LeadMinutes" xml:space="preserve"><value>{0} minutes before</value></data>
+  <data name="Profile_LeadHours" xml:space="preserve"><value>{0} h before</value></data>
+  <data name="Profile_Error_LeadTime" xml:space="preserve"><value>Choose a lead time of at most 12 hours.</value></data>
 </root>

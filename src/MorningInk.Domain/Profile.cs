@@ -28,6 +28,9 @@ public class Profile
     /// <summary>IANA time zone the delivery time refers to.</summary>
     public string TimeZoneId { get; set; } = "Europe/Berlin";
 
+    /// <summary>How long before <see cref="DeliveryTime"/> the issue is built, so a slow AI is done in time; zero builds at delivery.</summary>
+    public TimeSpan LeadTime { get; set; } = TimeSpan.Zero;
+
     /// <summary>Weekdays with an issue, in <see cref="TimeZoneId"/>; empty means every day.</summary>
     public List<DayOfWeek> Days { get; set; } = [];
 

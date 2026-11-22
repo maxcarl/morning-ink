@@ -24,6 +24,12 @@ public sealed partial class IssueScheduler(
 {
     internal const string ProfileIdKey = "profileId";
     internal const string SlotKey = "slotUnixMs";
+
+    /// <summary>On the build trigger: the lead time in minutes; the run builds the issue for its fire time plus this.</summary>
+    internal const string LeadMinutesKey = "leadMinutes";
+
+    // How soon a delivery tries again while the early build of the same issue still runs.
+    private static readonly TimeSpan BusyRetryDelay = TimeSpan.FromMinutes(2);
     private const int RetryGrowthFactor = 3;
 
     public static JobKey JobKeyFor(Guid profileId) => new($"publish-{profileId}");
@@ -68,6 +74,21 @@ public sealed partial class IssueScheduler(
         await scheduler.UnscheduleJob(daily.Key, cancellationToken);
         await scheduler.ScheduleJob(daily, default, cancellationToken);
 
+        // With a lead time, a second trigger builds the issue early; the daily one then only sends it.
+        var buildKey = new TriggerKey($"build-{schedule.ProfileId}");
+        await scheduler.UnscheduleJob(buildKey, cancellationToken);
+        if (schedule.LeadTime > TimeSpan.Zero)
+        {
+            var build = TriggerBuilder.Create(time)
+                .WithIdentity(buildKey)
+                .ForJob(job)
+                .UsingJobData(LeadMinutesKey, (long)schedule.LeadTime.TotalMinutes)
+                .WithSchedule(CronScheduleBuilder.Create(BuildCronFor(schedule)).InTimeZone(zone)
+                    .WithMisfireInstruction(CronTriggerMisfireInstruction.FireAndProceed))
+                .Build();
+            await scheduler.ScheduleJob(build, default, cancellationToken);
+        }
+
         var now = time.GetUtcNow();
         var lastSlot = DeliverySlots.LastAtOrBefore(now, schedule.DeliveryTime, zone, schedule.Days);
         if (catchUp && now - lastSlot <= options.Value.CatchUpWindow)
@@ -103,6 +124,22 @@ public sealed partial class IssueScheduler(
         var at = time.GetUtcNow() + RetryDelay(attempts, options.Value.FirstRetryDelay);
         await scheduler.ScheduleJob(OneOff(JobKeyFor(profileId), $"retry-{profileId}-{attempts}", slot, at), ScheduleJobOptions.Replacing, cancellationToken);
         LogRetry(logger, profileId, at);
+    }
+
+    /// <summary>Tries a delivery again shortly, because the early build of its issue still holds the profile.</summary>
+    public async Task ScheduleAfterBuildAsync(IScheduler scheduler, Guid profileId, DateTimeOffset slot, CancellationToken cancellationToken) =>
+        await scheduler.ScheduleJob(OneOff(JobKeyFor(profileId), $"after-build-{profileId}", slot, time.GetUtcNow() + BusyRetryDelay), ScheduleJobOptions.Replacing, cancellationToken);
+
+    /// <summary>Quartz cron for the build ahead of delivery; across midnight, the build falls on the day before.</summary>
+    internal static string BuildCronFor(ProfileSchedule schedule)
+    {
+        var start = schedule.DeliveryTime.ToTimeSpan() - schedule.LeadTime;
+        var dayBefore = start < TimeSpan.Zero;
+        var buildTime = TimeOnly.FromTimeSpan(dayBefore ? start + TimeSpan.FromDays(1) : start);
+        var days = schedule.Days is { Count: > 0 } chosen && dayBefore
+            ? chosen.Select(d => (DayOfWeek)(((int)d + 6) % 7)).ToList()
+            : schedule.Days;
+        return CronFor(schedule with { DeliveryTime = buildTime, Days = days });
     }
 
     /// <summary>Quartz cron for the delivery time: every day, or only on the chosen weekdays.</summary>

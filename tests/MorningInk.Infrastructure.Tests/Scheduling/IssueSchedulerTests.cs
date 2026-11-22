@@ -91,6 +91,36 @@ public sealed class IssueSchedulerTests : IDisposable
     }
 
     [Fact]
+    public async Task Lead_time_builds_the_issue_before_its_delivery_time()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(6, 30), leadTime: TimeSpan.FromHours(2));
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        var build = (ICronTrigger)(await scheduler.GetTrigger(new TriggerKey($"build-{profileId}")))!; // ! is safe: a lead time plans this trigger
+        var next = TimeZoneInfo.ConvertTime(build.GetFireTimeAfter(DateTimeOffset.Parse("2026-11-21T06:00:00Z", System.Globalization.CultureInfo.InvariantCulture))!.Value, build.TimeZone); // ! is safe: a daily trigger fires again
+        Assert.Equal((4, 30), (next.Hour, next.Minute));
+    }
+
+    [Fact]
+    public async Task Lead_time_across_midnight_builds_the_day_before()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(1, 0), [DayOfWeek.Saturday, DayOfWeek.Sunday], TimeSpan.FromHours(2));
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        var build = (ICronTrigger)(await scheduler.GetTrigger(new TriggerKey($"build-{profileId}")))!; // ! is safe: a lead time plans this trigger
+        var first = build.GetFireTimeAfter(DateTimeOffset.Parse("2026-11-21T06:00:00Z", System.Globalization.CultureInfo.InvariantCulture))!.Value; // ! is safe: a weekly trigger fires again
+        var second = build.GetFireTimeAfter(first)!.Value; // ! is safe: as above
+        Assert.All(new[] { first, second }, t => Assert.Equal(23, TimeZoneInfo.ConvertTime(t, build.TimeZone).Hour));
+        Assert.Equal([DayOfWeek.Saturday, DayOfWeek.Friday], new[] { first, second }.Select(t => TimeZoneInfo.ConvertTime(t, build.TimeZone).DayOfWeek));
+    }
+
+    [Fact]
     public async Task Rescheduling_does_not_add_a_second_daily_trigger()
     {
         await using var services = await StartAsync();
@@ -149,13 +179,13 @@ public sealed class IssueSchedulerTests : IDisposable
         },
         services => services.AddSingleton<ProfileLocks>().AddScoped<IssuePublisher>());
 
-    private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime, List<DayOfWeek>? days = null)
+    private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime, List<DayOfWeek>? days = null, TimeSpan? leadTime = null)
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
         var user = new User { Name = "max", Language = "de" };
         var source = new Source { UserId = user.Id, Name = "Test-Feed", Url = _feed.Url("/feed").ToString(), FetchFullText = false, MaxAge = TimeSpan.FromDays(3650) };
-        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max_abc@kindle.com", DeliveryTime = deliveryTime, Days = days ?? [] };
+        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max_abc@kindle.com", DeliveryTime = deliveryTime, Days = days ?? [], LeadTime = leadTime ?? TimeSpan.Zero };
         profile.Sections.Add(new Section { Name = "Nachrichten", Position = 1, Sources = { source } });
         db.AddRange(user, source, profile);
         await db.SaveChangesAsync();

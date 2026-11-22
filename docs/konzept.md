@@ -506,7 +506,7 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | --- | --- | --- | --- | --- | --- |
 | 36 | KI | Grundlage: OpenAI-kompatibler Anbieter (Ollama, LM Studio, OpenRouter, OpenAI) über Microsoft.Extensions.AI; Adresse, Modell und verschlüsselter Schlüssel in den Einstellungen, Verbindungstest; „nur lokale KI“ pro Quelle; Standard-Prompts versioniert im Repo | Ist die KI nicht erreichbar, erscheint die Ausgabe trotzdem, ohne Extras | 21 | ✅ erledigt |
 | 37 | KI | Zusammenfassung pro Artikel: 2–3 Sätze als Kasten „Kurz gefasst“ über dem Text | Artikel tragen eine geprüfte Zusammenfassung; der Artikeltext geht nur abgegrenzt als Daten an das Modell | 36 | ✅ erledigt; Test mit dem echten Ollama steht aus |
-| 38 | KI | Vorlauf: Verarbeitung startet pro Profil früher, damit ein langsames Modell rechtzeitig fertig wird | Die Ausgabe kommt pünktlich, auch wenn die Zusammenfassungen eine Stunde brauchen | 36 | – |
+| 38 | KI | Vorlauf: Verarbeitung startet pro Profil früher, damit ein langsames Modell rechtzeitig fertig wird | Die Ausgabe kommt pünktlich, auch wenn die Zusammenfassungen eine Stunde brauchen | 36 | ✅ erledigt |
 | 39 | KI | Tagesüberblick: Seite „Das Wichtigste in 5 Minuten“ | Die Titelseite fasst die wichtigsten Meldungen aller Rubriken zusammen | 36 | – |
 | 40 | KI | Neutrale Überschriften | Reißerische Titel werden sachlich umformuliert, das Original bleibt erhalten | 36 | – |
 | 41 | KI | Themen-Cluster: dieselbe Story aus mehreren Quellen als ein Artikel mit Blickwinkeln | Baut auf den Duplikaten (31) auf | 31, 36 | – |

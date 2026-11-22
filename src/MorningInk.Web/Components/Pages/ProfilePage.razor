@@ -156,6 +156,16 @@
                 <label for="time">@T["Profile_DeliveryTime"]</label>
                 <input id="time" class="input" type="time" @bind="_time" required />
             </div>
+            <div class="field">
+                <label for="lead">@T["Profile_LeadTime"]</label>
+                <select id="lead" class="input" @bind="_leadMinutes" aria-describedby="lead-hint">
+                    @foreach (var minutes in LeadChoices)
+                    {
+                        <option value="@minutes">@LeadText(minutes)</option>
+                    }
+                </select>
+                <span id="lead-hint" class="hint">@T["Profile_LeadTimeHint"]</span>
+            </div>
             <fieldset class="field">
                 <legend class="label">@T["Profile_Days"]</legend>
                 <div class="weekdays">
@@ -238,6 +248,10 @@
     private string _recipient = string.Empty;
     private TimeOnly _time;
     private HashSet<DayOfWeek> _days = [];
+    private int _leadMinutes;
+
+    // A slow AI on a CPU needs hours; more than four is not worth offering.
+    private static readonly int[] LeadChoices = [0, 30, 60, 120, 180, 240];
     private string _zone = string.Empty;
     private string? _country;
     private string? _region;
@@ -251,6 +265,7 @@
         _recipient = profile.Recipient;
         _time = profile.DeliveryTime;
         _days = profile.Days.Count == 0 ? [.. Enum.GetValues<DayOfWeek>()] : [.. profile.Days];
+        _leadMinutes = (int)profile.LeadTime.TotalMinutes;
         _zone = profile.TimeZoneId;
         _country = profile.Country;
         _confirmEdition = false;
@@ -292,6 +307,13 @@
     private string DaysText(Profile profile) => profile.Days.Count == 0
         ? T["Profile_EveryDay"]
         : T["Profile_OnDays", string.Join(", ", Week.Where(profile.Days.Contains).Select(d => CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)d]))];
+
+    private string LeadText(int minutes) => minutes switch
+    {
+        0 => T["Profile_LeadNone"],
+        < 60 => T["Profile_LeadMinutes", minutes],
+        _ => T["Profile_LeadHours", minutes / 60],
+    };
 
     private void ToggleDay(DayOfWeek day)
     {
@@ -438,7 +460,7 @@
     {
         Clear();
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(
-            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days]), Closed));
+            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days], TimeSpan.FromMinutes(_leadMinutes)), Closed));
         _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
         if (_errors.Count == 0)
         {

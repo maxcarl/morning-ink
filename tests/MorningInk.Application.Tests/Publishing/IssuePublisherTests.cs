@@ -308,6 +308,24 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Issue_prepared_ahead_is_sent_at_its_time_without_being_built_again()
+    {
+        var prepared = await CreatePublisher().PublishAsync(_profile.Id, Slot, CancellationToken.None, prepareOnly: true);
+
+        Assert.IsType<PublishResult.Prepared>(prepared);
+        Assert.Single(_renderer.Rendered);
+        Assert.Empty(_delivery.Requests); // nothing goes out before the delivery time
+        var fetchedWhilePreparing = _sources.Fetched.Count;
+
+        var sent = await PublishAsync();
+
+        Assert.IsType<PublishResult.Delivered>(sent);
+        Assert.Single(_renderer.Rendered);
+        Assert.Single(_delivery.Requests);
+        Assert.Equal(fetchedWhilePreparing, _sources.Fetched.Count); // the sources were not asked again
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 

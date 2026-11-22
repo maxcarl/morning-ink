@@ -10,6 +10,9 @@ public abstract record PublishResult
     /// <param name="UnavailableSources">Sources that failed; the issue mentions them.</param>
     public sealed record Delivered(Guid IssueId, int Articles, IReadOnlyList<SourceProblem> UnavailableSources) : PublishResult;
 
+    /// <summary>Built ahead of its delivery time and waiting; the run at that time sends it.</summary>
+    public sealed record Prepared(Guid IssueId) : PublishResult;
+
     /// <summary>The issue for this slot was delivered before; nothing was sent.</summary>
     public sealed record AlreadyDelivered(Guid IssueId) : PublishResult;
 

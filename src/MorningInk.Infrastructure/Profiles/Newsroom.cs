@@ -77,7 +77,7 @@ public sealed class Newsroom(
 
         // Through Quartz, not in the page: the run goes on when the tab closes, and failed deliveries are retried.
         var scheduler = await schedulers.GetScheduler(cancellationToken);
-        await issues.SendNowAsync(scheduler, new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days), cancellationToken);
+        await issues.SendNowAsync(scheduler, new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days, profile.LeadTime), cancellationToken);
         return true;
     }
 }

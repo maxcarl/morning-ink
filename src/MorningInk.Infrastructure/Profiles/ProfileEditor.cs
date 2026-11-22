@@ -15,7 +15,8 @@ namespace MorningInk.Infrastructure.Profiles;
 /// <param name="TimeZoneId">IANA id, e.g. "Europe/Berlin".</param>
 /// <param name="Country">ISO code, e.g. "DE"; empty searches worldwide.</param>
 /// <param name="Days">Weekdays with an issue; null keeps the current ones, all seven mean every day, none is an error.</param>
-public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region, string? Country = null, IReadOnlyCollection<DayOfWeek>? Days = null);
+/// <param name="LeadTime">How long before delivery to build the issue, up to half a day; null keeps the current one.</param>
+public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region, string? Country = null, IReadOnlyCollection<DayOfWeek>? Days = null, TimeSpan? LeadTime = null);
 
 /// <summary>
 /// Edits a user's issue profiles ("editions", e.g. morning and evening) and their sections. Every method only reaches the
@@ -28,6 +29,7 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     private const int MaxRegionLength = 100;
     private const int MaxSectionArticles = 100;
     private const string TimeFormat = "HH:mm";
+    private static readonly TimeSpan MaxLeadTime = TimeSpan.FromHours(12);
 
     /// <summary>The user's first profile with sections and sources; created with defaults when the user has none.</summary>
     public async Task<Profile> GetOrCreateAsync(Guid userId, CancellationToken cancellationToken)
@@ -99,7 +101,7 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         return true;
     }
 
-    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country, Days, Profile.</summary>
+    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country, Days, LeadTime, Profile.</summary>
     public async Task<IReadOnlyList<string>> SaveSettingsAsync(Guid userId, Guid profileId, ProfileSettings settings, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
@@ -142,6 +144,11 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
             errors.Add("Days");
         }
 
+        if (settings.LeadTime is { } lead && (lead < TimeSpan.Zero || lead > MaxLeadTime))
+        {
+            errors.Add("LeadTime");
+        }
+
         var profile = await FindAsync(userId, profileId, cancellationToken);
         if (profile is null)
         {
@@ -160,6 +167,11 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         profile.TimeZoneId = settings.TimeZoneId;
         profile.Region = string.IsNullOrEmpty(region) ? null : region;
         profile.Country = country;
+        if (settings.LeadTime is { } leadTime)
+        {
+            profile.LeadTime = leadTime;
+        }
+
         if (settings.Days is { } days)
         {
             // Stored as "every day" when all are ticked, so later changes to the default reach these profiles too.
@@ -259,7 +271,7 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     private async Task RescheduleAsync(Profile profile, CancellationToken cancellationToken) =>
         await issueScheduler.ScheduleAsync(
             await schedulers.GetScheduler(cancellationToken),
-            new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days),
+            new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days, profile.LeadTime),
             cancellationToken,
             catchUp: false);
 }
