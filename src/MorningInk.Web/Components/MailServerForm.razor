@@ -28,20 +28,20 @@
     </div>
     <div class="inline-form field">
         <div class="row-main">
-            <label class="label" for="username">@T["Settings_Username"]</label>
-            <input id="username" class="input" @bind="_username" autocomplete="off" readonly="@IsLocked(MailSettingsStore.UsernameField)" />
+            <label class="label" for="smtp-username">@T["Settings_Username"]</label>
+            <input id="smtp-username" class="input" @bind="_username" autocomplete="off" @attributes="PasswordManagers.Ignore" readonly="@IsLocked(MailSettingsStore.UsernameField)" />
         </div>
         <div class="row-main">
-            <label class="label" for="password">@T["Settings_Password"]</label>
+            <label class="label" for="smtp-password">@T["Settings_Password"]</label>
             @* Never filled in from storage: a saved password does not leave the server again. *@
-            <input id="password" class="input" type="password" @bind="_password" autocomplete="new-password" readonly="@IsLocked(MailSettingsStore.PasswordField)" aria-describedby="password-hint" />
+            <input id="smtp-password" class="input" type="password" @bind="_password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" readonly="@IsLocked(MailSettingsStore.PasswordField)" aria-describedby="password-hint" />
             <span id="password-hint" class="hint">@(_passwordSaved ? T["Settings_PasswordSaved"] : T["Settings_PasswordNone"])</span>
         </div>
     </div>
     <div class="inline-form field">
         <div class="row-main">
             <label class="label" for="from">@T["Settings_FromAddress"]</label>
-            <input id="from" class="input" @bind="_fromAddress" type="email" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
+            <input id="from" class="input" @bind="_fromAddress" type="email" autocomplete="off" @attributes="PasswordManagers.Ignore" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
             <LockHint Field="@MailSettingsStore.FromAddressField" Id="from-lock" Locked="@Locks.Fields" />
         </div>
         <div class="row-main">

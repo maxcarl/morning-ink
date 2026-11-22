@@ -55,7 +55,7 @@
             <div class="field">
                 <label for="ai-key">@T["Settings_AiKey"]</label>
                 @* Never filled in from storage, like the mail password. *@
-                <input id="ai-key" class="input" type="password" @bind="_aiKey" autocomplete="new-password" aria-describedby="ai-key-hint" />
+                <input id="ai-key" class="input" type="password" @bind="_aiKey" autocomplete="new-password" @attributes="PasswordManagers.Ignore" aria-describedby="ai-key-hint" />
                 <span id="ai-key-hint" class="hint">@(_aiKeySaved ? T["Settings_AiKeySaved"] : T["Settings_AiKeyNone"])</span>
             </div>
             <div class="field">
@@ -103,7 +103,7 @@
         <form @onsubmit="SendTestAsync">
             <div class="field">
                 <label for="test-recipient">@T["Settings_TestRecipient"]</label>
-                <input id="test-recipient" class="input" @bind="_testRecipient" type="email" required />
+                <input id="test-recipient" class="input" @bind="_testRecipient" type="email" autocomplete="off" @attributes="PasswordManagers.Ignore" required />
             </div>
             <button type="submit" class="button button-block" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
         </form>

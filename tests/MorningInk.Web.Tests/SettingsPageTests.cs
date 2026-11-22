@@ -23,8 +23,8 @@ public sealed class SettingsPageTests : IDisposable
         Pages.Submit(page,
             ("#host", "127.0.0.1"),
             ("#port", _smtp.Port.ToString(CultureInfo.InvariantCulture)),
-            ("#username", "max"),
-            ("#password", Password),
+            ("#smtp-username", "max"),
+            ("#smtp-password", Password),
             ("#from", "morning-ink@example.com"),
             ("#from-name", "Morning Ink"));
         Pages.Shows(page, "Saved.");
@@ -95,6 +95,20 @@ public sealed class SettingsPageTests : IDisposable
 
         Pages.Shows(page, "The AI answers (qwen2.5:7b).");
         Assert.Single(ai.Bodies);
+    }
+
+    [Fact]
+    public async Task Password_managers_leave_the_mail_and_ai_credentials_alone()
+    {
+        // They belong to other services; a password manager would save them as the login for Morning Ink.
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+
+        var page = pages.Open<Settings>("No password saved");
+
+        Assert.All(
+            ["#smtp-username", "#smtp-password", "#from", "#ai-key", "#test-recipient"],
+            selector => Assert.Equal("true", page.Find(selector).GetAttribute("data-bwignore")));
     }
 
     [Fact]

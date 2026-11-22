@@ -32,8 +32,8 @@ public sealed class WelcomePageTests : IDisposable
         Pages.Submit(page,
             ("#host", "127.0.0.1"),
             ("#port", _smtp.Port.ToString(CultureInfo.InvariantCulture)),
-            ("#username", "max"),
-            ("#password", "correct-horse-battery-staple"),
+            ("#smtp-username", "max"),
+            ("#smtp-password", "correct-horse-battery-staple"),
             ("#from", "morning-ink@example.com"));
         Pages.Shows(page, "Test mail sent to max_abc@kindle.com");
         Assert.Contains("morning-ink@example.com", page.Markup, StringComparison.Ordinal); // to put on Amazon's approved list
