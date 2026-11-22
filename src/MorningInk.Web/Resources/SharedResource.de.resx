@@ -395,4 +395,12 @@
   <data name="Log_NotifyFailed" xml:space="preserve"><value>Benachrichtigung über {0} fehlgeschlagen: {1}</value></data>
   <data name="Sources_SkipAds" xml:space="preserve"><value>Keine Werbung</value></data>
   <data name="Sources_SkipAdsHint" xml:space="preserve"><value>Lässt weg, was der Verlag als Werbung kennzeichnet, z. B. „Anzeige:“ oder „[Sponsored]“ im Titel. Artikel über Werbung bleiben.</value></data>
+  <data name="Sources_FilteredOut" xml:space="preserve"><value>Von den Filtern aussortiert: {0} von {1}</value></data>
+  <data name="Sources_AllFiltered" xml:space="preserve"><value>Die Filter sortieren alle Artikel dieser Quelle aus.</value></data>
+  <data name="Sources_MinWordsLater" xml:space="preserve"><value>Die Mindestwortzahl braucht den Volltext und wird deshalb erst beim Bauen der Ausgabe geprüft.</value></data>
+  <data name="Sources_Reason_LiveTicker" xml:space="preserve"><value>Liveticker</value></data>
+  <data name="Sources_Reason_Ad" xml:space="preserve"><value>Als Werbung gekennzeichnet</value></data>
+  <data name="Sources_Reason_Excluded" xml:space="preserve"><value>Enthält „{0}“</value></data>
+  <data name="Sources_Reason_NotIncluded" xml:space="preserve"><value>Keins der gewünschten Wörter</value></data>
+  <data name="Sources_Reason_TooShort" xml:space="preserve"><value>Weniger als {0} Wörter</value></data>
 </root>

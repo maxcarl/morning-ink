@@ -395,4 +395,12 @@
   <data name="Log_NotifyFailed" xml:space="preserve"><value>Notification by {0} failed: {1}</value></data>
   <data name="Sources_SkipAds" xml:space="preserve"><value>No advertising</value></data>
   <data name="Sources_SkipAdsHint" xml:space="preserve"><value>Leaves out what the publisher marks as an ad, e.g. “Anzeige:” or “[Sponsored]” in the title. Articles about advertising stay.</value></data>
+  <data name="Sources_FilteredOut" xml:space="preserve"><value>Left out by the filters: {0} of {1}</value></data>
+  <data name="Sources_AllFiltered" xml:space="preserve"><value>The filters leave out every article of this source.</value></data>
+  <data name="Sources_MinWordsLater" xml:space="preserve"><value>The minimum word count needs the full text, so it is only checked when the issue is built.</value></data>
+  <data name="Sources_Reason_LiveTicker" xml:space="preserve"><value>Live ticker</value></data>
+  <data name="Sources_Reason_Ad" xml:space="preserve"><value>Marked as advertising</value></data>
+  <data name="Sources_Reason_Excluded" xml:space="preserve"><value>Contains “{0}”</value></data>
+  <data name="Sources_Reason_NotIncluded" xml:space="preserve"><value>None of the required words</value></data>
+  <data name="Sources_Reason_TooShort" xml:space="preserve"><value>Fewer than {0} words</value></data>
 </root>

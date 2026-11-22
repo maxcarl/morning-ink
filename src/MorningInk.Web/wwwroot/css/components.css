@@ -197,6 +197,12 @@ li[draggable="true"]:active {
   text-decoration: none;
 }
 
+/* Articles the filters leave out: still readable, clearly second. */
+.headline-list-dropped a {
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
 .headline-list .row-meta {
   font-size: var(--text-xs);
 }

@@ -1,6 +1,7 @@
 @page "/sources"
 @rendermode InteractiveServer
 @inherits InteractivePage
+@using MorningInk.Application.Processing
 @using MorningInk.Application.Sources
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Http
@@ -163,16 +164,44 @@
             @switch (_previewResult)
             {
                 case SourceResult.Success { Articles.Count: > 0 } success:
-                    <span class="label">@T["Sources_LatestArticles"]</span>
-                    <ul class="headline-list">
-                        @foreach (var article in success.Articles.Take(PreviewArticles))
-                        {
-                            <li>
-                                <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer" target="_blank">@article.Title</a>
-                                <div class="row-meta">@string.Join(" · ", new[] { article.Author, article.PublishedAt?.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture) }.Where(s => !string.IsNullOrEmpty(s)))</div>
-                            </li>
-                        }
-                    </ul>
+                    @* The same rules as the issue, so changed filters show their effect right here. *@
+                    var judged = success.Articles.Select(article => (Article: article, Verdict: Verdict(article, _preview))).ToList();
+                    var kept = judged.Where(j => j.Verdict is null).ToList();
+                    var dropped = judged.Where(j => j.Verdict is not null).ToList();
+                    @if (kept.Count > 0)
+                    {
+                        <span class="label">@T["Sources_LatestArticles"]</span>
+                        <ul class="headline-list">
+                            @foreach (var (article, _) in kept.Take(PreviewArticles))
+                            {
+                                <li>
+                                    <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer" target="_blank">@article.Title</a>
+                                    <div class="row-meta">@string.Join(" · ", new[] { article.Author, article.PublishedAt?.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture) }.Where(s => !string.IsNullOrEmpty(s)))</div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="status status-warn">@T["Sources_AllFiltered"]</p>
+                    }
+                    @if (dropped.Count > 0)
+                    {
+                        <span class="label">@T["Sources_FilteredOut", dropped.Count, judged.Count]</span>
+                        <ul class="headline-list headline-list-dropped">
+                            @foreach (var (article, verdict) in dropped.Take(DroppedArticles))
+                            {
+                                <li>
+                                    <a href="@article.Url.AbsoluteUri" rel="noopener noreferrer" target="_blank">@article.Title</a>
+                                    <div class="row-meta">@Reason(verdict!)</div> @* ! is safe: only dropped articles have a verdict *@
+                                </li>
+                            }
+                        </ul>
+                    }
+                    @if (_preview.FetchFullText && _preview.MinWords is not null)
+                    {
+                        <p class="hint">@T["Sources_MinWordsLater"]</p>
+                    }
                     break;
                 case SourceResult.Failure failure:
                     <p class="status status-error">@failure.Message</p>
@@ -187,6 +216,9 @@
 
 @code {
     private const int PreviewArticles = 5;
+
+    // Enough to see which rule hits too often, short enough for the sidebar.
+    private const int DroppedArticles = 10;
 
     private List<Source> _sources = [];
     private IReadOnlyList<FeedCandidate>? _found;
@@ -430,6 +462,18 @@
     }
 
     private async Task PreviewAsync(Source draft) => ShowPreview(draft, await UseAsync<SourceCatalog, SourceResult>(catalog => catalog.PreviewAsync(draft, Closed)));
+
+    // The word count needs the full text, which the test does not fetch; with full text on it is checked in the issue only.
+    private static FilterVerdict? Verdict(FetchedArticle article, Source source) =>
+        ArticleFilter.Reject(article, source)
+        ?? (!source.FetchFullText && !ArticleFilter.IsLongEnough(article, source) ? new FilterVerdict(FilterReason.TooShort) : null);
+
+    private string Reason(FilterVerdict verdict) => verdict.Reason switch
+    {
+        FilterReason.Excluded => T["Sources_Reason_Excluded", verdict.Keyword ?? string.Empty],
+        FilterReason.TooShort => T["Sources_Reason_TooShort", _preview?.MinWords ?? 0],
+        _ => T[$"Sources_Reason_{verdict.Reason}"],
+    };
 
     private void ShowPreview(Source source, SourceResult result)
     {

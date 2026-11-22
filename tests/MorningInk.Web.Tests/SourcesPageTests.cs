@@ -52,6 +52,31 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Test_applies_the_filters_and_says_why_an_article_is_left_out()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        await AddSourcesAsync(app, "Erste");
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            (await db.Sources.SingleAsync()).ExcludeKeywords = ["Zweite"];
+            await db.SaveChangesAsync();
+        }
+
+        var page = pages.Open<Sources>("1 feeds");
+        Pages.Button(page, "Test").Click();
+
+        Pages.Shows(page, "Left out by the filters: 1 of 2");
+        var kept = page.Find(".headline-list:not(.headline-list-dropped)");
+        var dropped = page.Find(".headline-list-dropped");
+        Assert.Contains("Erste Meldung", kept.TextContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("Zweite Meldung", kept.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Zweite Meldung", dropped.TextContent, StringComparison.Ordinal);
+        Assert.Contains("Contains “Zweite”", dropped.TextContent, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Source_is_renamed_and_gets_filters()
     {
         using var app = AllowingFeeds();

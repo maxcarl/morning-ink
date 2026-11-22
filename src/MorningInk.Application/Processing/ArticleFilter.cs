@@ -4,6 +4,19 @@ using MorningInk.Domain;
 
 namespace MorningInk.Application.Processing;
 
+/// <summary>Why <see cref="ArticleFilter"/> leaves an article out.</summary>
+public enum FilterReason
+{
+    LiveTicker,
+    Ad,
+    Excluded,
+    NotIncluded,
+    TooShort,
+}
+
+/// <summary>An article left out, and why; <paramref name="Keyword"/> is set for <see cref="FilterReason.Excluded"/>.</summary>
+public sealed record FilterVerdict(FilterReason Reason, string? Keyword = null);
+
 /// <summary>A source's rules for which articles may enter an issue.</summary>
 /// <remarks>
 /// <see cref="Admits"/> looks at title and teaser and runs before the full text is fetched, so a left-out article costs no
@@ -16,25 +29,30 @@ public static partial class ArticleFilter
     /// <summary>Whether the keyword appears in headline or teaser, as a whole word, ignoring case and ß/ss.</summary>
     public static bool Mentions(FetchedArticle article, string keyword) => Contains(HeadlineAndTeaser(article), keyword);
 
-    public static bool Admits(FetchedArticle article, Source source)
+    public static bool Admits(FetchedArticle article, Source source) => Reject(article, source) is null;
+
+    /// <summary>Why the source's rules leave the article out, or null if it may enter; the keyword is the one that decided.</summary>
+    public static FilterVerdict? Reject(FetchedArticle article, Source source)
     {
         var text = HeadlineAndTeaser(article);
         if (source.SkipLiveTickers && LiveTicker().IsMatch(article.Title))
         {
-            return false;
+            return new(FilterReason.LiveTicker);
         }
 
         if (source.SkipAds && IsMarkedAsAd(article))
         {
-            return false;
+            return new(FilterReason.Ad);
         }
 
-        if (source.ExcludeKeywords.Any(keyword => Contains(text, keyword)))
+        if (source.ExcludeKeywords.FirstOrDefault(keyword => Contains(text, keyword)) is { } excluded)
         {
-            return false;
+            return new(FilterReason.Excluded, excluded);
         }
 
-        return source.IncludeKeywords.Count == 0 || source.IncludeKeywords.Any(keyword => Contains(text, keyword));
+        return source.IncludeKeywords.Count == 0 || source.IncludeKeywords.Any(keyword => Contains(text, keyword))
+            ? null
+            : new(FilterReason.NotIncluded);
     }
 
     public static bool IsLongEnough(FetchedArticle article, Source source) =>

@@ -84,6 +84,23 @@ public class ArticleFilterTests
     }
 
     [Fact]
+    public void The_reason_names_the_rule_that_left_the_article_out()
+    {
+        var source = Source(s =>
+        {
+            s.SkipLiveTickers = true;
+            s.IncludeKeywords = ["Raspberry Pi"];
+            s.ExcludeKeywords = ["Sonderpreis", "Gerücht"];
+        });
+
+        Assert.Equal(new FilterVerdict(FilterReason.LiveTicker), ArticleFilter.Reject(Article("Liveticker: Raspberry Pi 6"), source));
+        Assert.Equal(new FilterVerdict(FilterReason.Ad), ArticleFilter.Reject(Article("Anzeige: Raspberry Pi"), source));
+        Assert.Equal(new FilterVerdict(FilterReason.Excluded, "Gerücht"), ArticleFilter.Reject(Article("Raspberry Pi 6: ein Gerücht"), source));
+        Assert.Equal(new FilterVerdict(FilterReason.NotIncluded), ArticleFilter.Reject(Article("Neues Smartphone"), source));
+        Assert.Null(ArticleFilter.Reject(Article("Raspberry Pi 6 vorgestellt"), source));
+    }
+
+    [Fact]
     public void Too_short_articles_are_left_out_after_the_full_text()
     {
         var source = Source(s => s.MinWords = 5);
