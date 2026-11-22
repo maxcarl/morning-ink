@@ -27,6 +27,7 @@ public sealed class LocalNewsSourceTests : IDisposable
             "/search" => "Weather/nominatim-unknown.json",
             "/news/search" when query["fail"] is null => "LocalNews/bingnews-muenchen.xml",
             "/searxng/search" => "LocalNews/searxng-aachen.json",
+            "/searxng-blocked/search" => "LocalNews/searxng-engines-failed.json",
             "/searxng-locked/search" => "forbidden",
             _ => null,
         };
@@ -134,8 +135,12 @@ public sealed class LocalNewsSourceTests : IDisposable
             ["Stadtrat beschließt Haushalt für 2027", "Weihnachtsmarkt öffnet am Freitag", "Neue Buslinie in der Städteregion"],
             articles.Select(a => a.Title));
         Assert.Contains("&lt;b&gt;mit&lt;/b&gt;", articles[0].Summary, StringComparison.Ordinal); // the teaser is text, never markup
-        var search = Uri.UnescapeDataString(Assert.Single(_server.Requests, r => r.Url.Contains("/searxng/", StringComparison.Ordinal)).Url);
-        Assert.Contains("\"Aachen\" OR \"Städteregion Aachen\"", search, StringComparison.Ordinal);
+        // One search per term: most engines behind SearXNG know neither OR nor quotes, and answer such a query with nothing.
+        var searches = _server.Requests.Where(r => r.Url.Contains("/searxng/", StringComparison.Ordinal)).Select(r => Uri.UnescapeDataString(r.Url.Replace('+', ' '))).ToList();
+        Assert.Equal(2, searches.Count);
+        Assert.Contains(searches, s => s.Contains("q=Aachen&", StringComparison.Ordinal));
+        Assert.Contains(searches, s => s.Contains("q=Städteregion Aachen&", StringComparison.Ordinal));
+        var search = searches[0];
         Assert.Contains("categories=news", search, StringComparison.Ordinal);
         Assert.Contains("format=json", search, StringComparison.Ordinal);
         Assert.Contains("language=de-DE", search, StringComparison.Ordinal);
@@ -150,6 +155,15 @@ public sealed class LocalNewsSourceTests : IDisposable
     }
 
     [Fact]
+    public async Task Searxng_without_results_names_the_engines_that_failed()
+    {
+        var failure = Assert.IsType<SourceResult.Failure>(await FetchAsync(Local("52062"), searxng: "/searxng-blocked"));
+
+        Assert.Equal("SearxngEnginesFailed", failure.Reason);
+        Assert.Equal(["bing news (CAPTCHA), duckduckgo news (timeout)"], failure.Arguments);
+    }
+
+    [Fact]
     public async Task Searxng_down_is_a_failure() =>
         Assert.IsType<SourceResult.Failure>(await FetchAsync(Local("52062"), searxng: "/searxng-down")); // answers 500
 
@@ -159,7 +173,7 @@ public sealed class LocalNewsSourceTests : IDisposable
         await FetchAsync(Local("52062"), storedSearxng: "/searxng");
 
         Assert.Empty(SearchRequests()); // not Bing
-        Assert.Single(_server.Requests, r => r.Url.Contains("/searxng/search", StringComparison.Ordinal));
+        Assert.Contains(_server.Requests, r => r.Url.Contains("/searxng/search", StringComparison.Ordinal));
     }
 
     public void Dispose()

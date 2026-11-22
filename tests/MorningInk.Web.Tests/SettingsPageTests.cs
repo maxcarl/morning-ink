@@ -216,5 +216,23 @@ public sealed class SettingsPageTests : IDisposable
         Assert.True(page.Find("#searxng-url").HasAttribute("readonly"));
     }
 
+    [Fact]
+    public async Task Search_test_shows_the_query_sent_so_an_empty_answer_can_be_tried_in_searxng_itself()
+    {
+        using var searxng = new MorningInk.Infrastructure.Tests.Http.LocalServer(async context =>
+        {
+            context.Response.ContentType = "application/json";
+            await context.Response.OutputStream.WriteAsync("{\"results\":[],\"unresponsive_engines\":[]}"u8.ToArray());
+        });
+        using var app = new TestApp(new() { ["NewsSearch:SearxngUrl"] = $"http://127.0.0.1:{searxng.Port}", ["Http:AllowedHosts:0"] = $"127.0.0.1:{searxng.Port}" });
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("NewsSearch__SearxngUrl");
+
+        Pages.Button(page, "Test search").Click();
+
+        Pages.Shows(page, "SearXNG answers: 0 news items about London.");
+        Assert.Contains($"http://127.0.0.1:{searxng.Port}/search?q=London", page.Markup, StringComparison.Ordinal);
+    }
+
     public void Dispose() => _smtp.Dispose();
 }

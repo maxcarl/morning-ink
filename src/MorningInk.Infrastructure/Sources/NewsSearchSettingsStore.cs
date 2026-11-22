@@ -24,16 +24,20 @@ public sealed class NewsSearchSettingsStore(MorningInkDbContext db, IOptions<New
             ? options.Value.SearxngUrl
             : await db.NewsSearchSettings.AsNoTracking().Select(n => n.SearxngUrl).SingleOrDefaultAsync(cancellationToken);
 
-    /// <summary>Searches the saved SearXNG once for the term, so the admin sees at once whether it answers with JSON.</summary>
+    /// <summary>
+    /// Searches the saved SearXNG once for the term, so the admin sees at once whether it answers with JSON, and with
+    /// the request as sent, to try in SearXNG itself when nothing comes back.
+    /// </summary>
     /// <returns>Null when no SearXNG is set.</returns>
-    public async Task<SourceResult?> TestAsync(string term, CancellationToken cancellationToken)
+    public async Task<(SourceResult Result, Uri Request)?> TestAsync(string term, CancellationToken cancellationToken)
     {
         if (await SearxngUrlAsync(cancellationToken) is not { } url)
         {
             return null;
         }
 
-        return await searxng.SearchAsync(new NewsQuery([term], TestRange), url, cancellationToken);
+        var query = new NewsQuery([term], TestRange);
+        return (await searxng.SearchAsync(query, url, cancellationToken), searxng.RequestUrls(query, url)[0]);
     }
 
     /// <summary>Saves the address; empty goes back to Bing. False when it is no http(s) address.</summary>

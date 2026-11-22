@@ -17,41 +17,64 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
 {
     private const string Forbidden = "403";
 
+    /// <summary>
+    /// Searches once per term and merges the results: most engines behind SearXNG know neither OR nor quotes and answer
+    /// such a query with nothing, while each term alone finds its news.
+    /// </summary>
     /// <param name="baseUrl">The instance, e.g. "https://searx.example.com".</param>
     public async Task<SourceResult> SearchAsync(NewsQuery query, string baseUrl, CancellationToken cancellationToken)
+    {
+        var articles = new List<FetchedArticle>();
+        var unresponsive = new List<string>();
+        foreach (var request in RequestUrls(query, baseUrl))
+        {
+            var fetched = await http.GetAsync(request, cancellationToken: cancellationToken);
+            if (fetched is not FetchResult.Success page)
+            {
+                return fetched switch
+                {
+                    FetchResult.Failure { Error: FetchError.HttpError, Arguments: [_, Forbidden] } =>
+                        new SourceResult.Failure("SearXNG refused the JSON format; add \"json\" to search.formats in its settings.yml.", Reason: "SearxngNoJson"),
+                    FetchResult.Failure failure => failure.ToSourceFailure(),
+                    _ => new SourceResult.Failure("The news search did not answer.", Reason: "NewsSearchNoAnswer"),
+                };
+            }
+
+            if (Read(page.Content) is not var (found, failed))
+            {
+                return new SourceResult.Failure("The news search returned no readable answer.", Reason: "NewsSearchNoFeed");
+            }
+
+            articles.AddRange(found);
+            unresponsive.AddRange(failed);
+        }
+
+        // Nothing found and engines failing, e.g. blocked by a CAPTCHA: that is the reason, not a quiet day.
+        if (articles.Count == 0 && unresponsive.Count > 0)
+        {
+            var engines = string.Join(", ", unresponsive.Distinct());
+            return new SourceResult.Failure($"SearXNG found nothing; these engines failed: {engines}.", Reason: "SearxngEnginesFailed", Arguments: [engines]);
+        }
+
+        return new SourceResult.Success(articles.DistinctBy(a => a.Url).ToList(), ETag: null, LastModified: null);
+    }
+
+    /// <summary>The searches as sent, one per term, so they can be tried in SearXNG's own page when nothing comes back.</summary>
+    public IReadOnlyList<Uri> RequestUrls(NewsQuery query, string baseUrl)
     {
         var settings = options.Value;
         var country = query.Country ?? settings.Country;
         var language = Countries.LanguageOf(query.Country) ?? settings.Language;
-        var terms = string.Join(" OR ", query.Terms.Select(t => $"\"{t.Replace("\"", string.Empty, StringComparison.Ordinal)}\""));
-        (string, string)[] parameters =
-        [
-            ("q", terms),
-            ("categories", "news"),
-            ("format", "json"),
-            ("language", $"{language}-{country}"),
-            ("time_range", TimeRange(query.MaxAge)),
-        ];
-
-        var endpoint = baseUrl.TrimEnd('/') + "/search";
-        var fetched = await http.GetAsync(Urls.WithQuery(endpoint, parameters), cancellationToken: cancellationToken);
-        if (fetched is not FetchResult.Success page)
-        {
-            return fetched switch
-            {
-                FetchResult.Failure { Error: FetchError.HttpError, Arguments: [_, Forbidden] } =>
-                    new SourceResult.Failure("SearXNG refused the JSON format; add \"json\" to search.formats in its settings.yml.", Reason: "SearxngNoJson"),
-                FetchResult.Failure failure => failure.ToSourceFailure(),
-                _ => new SourceResult.Failure("The news search did not answer.", Reason: "NewsSearchNoAnswer"),
-            };
-        }
-
-        if (Read(page.Content) is not { } articles)
-        {
-            return new SourceResult.Failure("The news search returned no readable answer.", Reason: "NewsSearchNoFeed");
-        }
-
-        return new SourceResult.Success(articles, ETag: null, LastModified: null);
+        return query.Terms
+            .Select(term => Urls.WithQuery(baseUrl.TrimEnd('/') + "/search",
+            [
+                ("q", term),
+                ("categories", "news"),
+                ("format", "json"),
+                ("language", $"{language}-{country}"),
+                ("time_range", TimeRange(query.MaxAge)),
+            ]))
+            .ToList();
     }
 
     // SearXNG knows day, week, month and year; the source's maximum age cuts off the rest afterwards.
@@ -63,17 +86,25 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
         _ => "year",
     };
 
-    private static List<FetchedArticle>? Read(byte[] json)
+    // The articles, and the engines that failed as "name (reason)", from [["bing news", "CAPTCHA"], …].
+    private static (List<FetchedArticle> Articles, List<string> Unresponsive)? Read(byte[] json)
     {
         try
         {
             using var document = JsonDocument.Parse(json);
-            if (!document.RootElement.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
+            var root = document.RootElement;
+            if (!root.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
             {
                 return null;
             }
 
-            return results.EnumerateArray().Select(ToArticle).OfType<FetchedArticle>().ToList();
+            var unresponsive = root.TryGetProperty("unresponsive_engines", out var engines) && engines.ValueKind == JsonValueKind.Array
+                ? engines.EnumerateArray()
+                    .Where(e => e.ValueKind == JsonValueKind.Array && e.GetArrayLength() == 2)
+                    .Select(e => $"{e[0]} ({e[1]})")
+                    .ToList()
+                : [];
+            return (results.EnumerateArray().Select(ToArticle).OfType<FetchedArticle>().ToList(), unresponsive);
         }
         catch (JsonException)
         {

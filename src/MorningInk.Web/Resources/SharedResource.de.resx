@@ -574,4 +574,6 @@
   <data name="Stats_Share" xml:space="preserve"><value>Anteil</value></data>
   <data name="Stats_FailedRuns" xml:space="preserve"><value>Fehler</value></data>
   <data name="Error_SenderTooLong" xml:space="preserve"><value>Der Absender darf höchstens 200 Zeichen haben.</value></data>
+  <data name="Settings_SearxngRequest" xml:space="preserve"><value>Gesendete Anfrage:</value></data>
+  <data name="Source_SearxngEnginesFailed" xml:space="preserve"><value>SearXNG fand nichts, weil diese Suchmaschinen versagt haben: {0}. Prüf sie in SearXNG, z. B. blockierte Suchmaschinen abschalten.</value></data>
 </root>

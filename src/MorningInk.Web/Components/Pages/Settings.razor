@@ -201,6 +201,10 @@
                     }
                     <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestNewsAsync">@T["Settings_SearxngTest"]</button>
                 </div>
+                @if (_searxngRequest is not null)
+                {
+                    <p class="hint">@T["Settings_SearxngRequest"] <a href="@_searxngRequest" target="_blank" rel="noopener noreferrer">@_searxngRequest</a></p>
+                }
             </form>
         </section>        </div>
         <div>
@@ -233,6 +237,7 @@
 
     // Local news
     private string? _searxngUrl;
+    private Uri? _searxngRequest;
     private bool _searxngLocked;
 
     protected override async Task LoadAsync()
@@ -269,7 +274,9 @@
         try
         {
             var term = T["Settings_SearxngTestTerm"].Value;
-            switch (await UseAsync<NewsSearchSettingsStore, MorningInk.Application.Sources.SourceResult?>(store => store.TestAsync(term, Closed)))
+            var test = await UseAsync<NewsSearchSettingsStore, (MorningInk.Application.Sources.SourceResult, Uri)?>(store => store.TestAsync(term, Closed));
+            _searxngRequest = test?.Item2;
+            switch (test?.Item1)
             {
                 case null:
                     _errors = [T["Settings_SearxngNotSet"]];
