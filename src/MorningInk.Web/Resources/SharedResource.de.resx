@@ -551,4 +551,26 @@
   <data name="Dash_AilingSources" xml:space="preserve"><value>Seit Tagen ohne Erfolg: {0}. Schau dir die Quellen an.</value></data>
   <data name="Sources_FailingSince" xml:space="preserve"><value>Fehler seit {0}: {1}</value></data>
   <data name="Sources_EmptySince" xml:space="preserve"><value>Seit {0} nichts Neues. Ist der Feed umgezogen?</value></data>
+  <data name="Stats_Title" xml:space="preserve"><value>Statistik</value></data>
+  <data name="Stats_Lede" xml:space="preserve"><value>Die letzten {0} Tage deiner Ausgaben.</value></data>
+  <data name="Stats_Issues" xml:space="preserve"><value>Ausgaben</value></data>
+  <data name="Stats_IssueCount" xml:space="preserve"><value>Gebaute Ausgaben</value></data>
+  <data name="Stats_Delivered" xml:space="preserve"><value>Zugestellt</value></data>
+  <data name="Stats_Failed" xml:space="preserve"><value>Fehlgeschlagen</value></data>
+  <data name="Stats_AverageSize" xml:space="preserve"><value>Ø Größe</value></data>
+  <data name="Stats_Kilobytes" xml:space="preserve"><value>{0} KB</value></data>
+  <data name="Stats_AverageArticles" xml:space="preserve"><value>Artikel pro Ausgabe</value></data>
+  <data name="Stats_AverageBuild" xml:space="preserve"><value>Bauzeit</value></data>
+  <data name="Stats_Minutes" xml:space="preserve"><value>{0} Min.</value></data>
+  <data name="Stats_Seconds" xml:space="preserve"><value>{0} s</value></data>
+  <data name="Stats_AiCalls" xml:space="preserve"><value>KI-Anfragen</value></data>
+  <data name="Stats_AiCallsValue" xml:space="preserve"><value>{0} · {1} Zeichen</value></data>
+  <data name="Stats_Sources" xml:space="preserve"><value>Quellen</value></data>
+  <data name="Stats_SourcesHint" xml:space="preserve"><value>Abgerufen zählt jeden Artikel, den eine Quelle brachte; in Ausgaben die ausgewählten. Ein kleiner Anteil heißt: Filter, Interessen oder das Artikel-Limit lassen das meiste weg.</value></data>
+  <data name="Stats_NoSources" xml:space="preserve"><value>Noch keine Quellen.</value></data>
+  <data name="Stats_Source" xml:space="preserve"><value>Quelle</value></data>
+  <data name="Stats_Fetched" xml:space="preserve"><value>Abgerufen</value></data>
+  <data name="Stats_InIssues" xml:space="preserve"><value>In Ausgaben</value></data>
+  <data name="Stats_Share" xml:space="preserve"><value>Anteil</value></data>
+  <data name="Stats_FailedRuns" xml:space="preserve"><value>Fehler</value></data>
 </root>

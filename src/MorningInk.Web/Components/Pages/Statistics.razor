@@ -1,0 +1,81 @@
+@page "/stats"
+@rendermode InteractiveServer
+@inherits InteractivePage
+@using System.Globalization
+@using MorningInk.Infrastructure.Profiles
+
+<PageTitle>@T["Stats_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <h1>@T["Stats_Title"]</h1>
+    <p class="lede">@T["Stats_Lede", IssueStatistics.Days]</p>
+</header>
+
+@if (_report is { } report)
+{
+    <div class="columns">
+        <div>
+        <section aria-labelledby="issues-heading">
+            <h2 id="issues-heading" class="department">@T["Stats_Issues"]</h2>
+            <dl class="facts">
+                <div><dt>@T["Stats_IssueCount"]</dt><dd>@report.Issues</dd></div>
+                <div><dt>@T["Stats_Delivered"]</dt><dd>@report.Delivered</dd></div>
+                <div><dt>@T["Stats_Failed"]</dt><dd>@report.Failed</dd></div>
+                <div><dt>@T["Stats_AverageSize"]</dt><dd>@(report.AverageBytes is { } bytes ? T["Stats_Kilobytes", (bytes / 1024).ToString("N0", CultureInfo.CurrentCulture)] : "–")</dd></div>
+                <div><dt>@T["Stats_AverageArticles"]</dt><dd>@(report.AverageArticles?.ToString("N1", CultureInfo.CurrentCulture) ?? "–")</dd></div>
+                <div><dt>@T["Stats_AverageBuild"]</dt><dd>@(report.AverageBuildTime is { } build ? Duration(build) : "–")</dd></div>
+                <div><dt>@T["Stats_AiCalls"]</dt><dd>@T["Stats_AiCallsValue", report.AiCalls, report.AiCharacters.ToString("N0", CultureInfo.CurrentCulture)]</dd></div>
+            </dl>
+        </section>
+        </div>
+
+        <div>
+        <section aria-labelledby="sources-heading">
+            <h2 id="sources-heading" class="department">@T["Stats_Sources"]</h2>
+            <p class="hint">@T["Stats_SourcesHint"]</p>
+            @if (report.Sources.Count == 0)
+            {
+                <p class="muted">@T["Stats_NoSources"]</p>
+            }
+            else
+            {
+                <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">@T["Stats_Source"]</th>
+                            <th scope="col" class="number">@T["Stats_Fetched"]</th>
+                            <th scope="col" class="number">@T["Stats_InIssues"]</th>
+                            <th scope="col" class="number">@T["Stats_Share"]</th>
+                            <th scope="col" class="number">@T["Stats_FailedRuns"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var source in report.Sources)
+                        {
+                            <tr>
+                                <th scope="row">@source.Name</th>
+                                <td class="number">@source.Fetched</td>
+                                <td class="number">@source.InIssues</td>
+                                <td class="number">@(source.Fetched == 0 ? "–" : ((double)source.InIssues / source.Fetched).ToString("P0", CultureInfo.CurrentCulture))</td>
+                                <td class="number">@source.FailedRuns</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                </div>
+            }
+        </section>
+        </div>
+    </div>
+}
+
+@code {
+    private StatisticsReport? _report;
+
+    protected override async Task LoadAsync() =>
+        _report = await UseAsync<IssueStatistics, StatisticsReport>(statistics => statistics.LoadAsync(UserId, Closed));
+
+    private string Duration(TimeSpan time) =>
+        time.TotalMinutes >= 1 ? T["Stats_Minutes", Math.Round(time.TotalMinutes, 1).ToString("0.#", CultureInfo.CurrentCulture)] : T["Stats_Seconds", (int)time.TotalSeconds];
+}

@@ -178,6 +178,11 @@
   align-items: start;
 }
 
+/* Grid items do not shrink below their content by default; a wide table would widen the page on a phone. */
+.columns > * {
+  min-width: 0;
+}
+
 @media (min-width: 64rem) {
   .columns {
     grid-template-columns: repeat(2, minmax(0, 1fr));

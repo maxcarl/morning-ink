@@ -551,4 +551,26 @@
   <data name="Dash_AilingSources" xml:space="preserve"><value>Not working for days: {0}. Have a look at the sources.</value></data>
   <data name="Sources_FailingSince" xml:space="preserve"><value>Failing since {0}: {1}</value></data>
   <data name="Sources_EmptySince" xml:space="preserve"><value>Nothing new since {0}. Has the feed moved?</value></data>
+  <data name="Stats_Title" xml:space="preserve"><value>Statistics</value></data>
+  <data name="Stats_Lede" xml:space="preserve"><value>The last {0} days of your editions.</value></data>
+  <data name="Stats_Issues" xml:space="preserve"><value>Issues</value></data>
+  <data name="Stats_IssueCount" xml:space="preserve"><value>Issues built</value></data>
+  <data name="Stats_Delivered" xml:space="preserve"><value>Delivered</value></data>
+  <data name="Stats_Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Stats_AverageSize" xml:space="preserve"><value>Average size</value></data>
+  <data name="Stats_Kilobytes" xml:space="preserve"><value>{0} KB</value></data>
+  <data name="Stats_AverageArticles" xml:space="preserve"><value>Articles per issue</value></data>
+  <data name="Stats_AverageBuild" xml:space="preserve"><value>Build time</value></data>
+  <data name="Stats_Minutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="Stats_Seconds" xml:space="preserve"><value>{0} s</value></data>
+  <data name="Stats_AiCalls" xml:space="preserve"><value>AI requests</value></data>
+  <data name="Stats_AiCallsValue" xml:space="preserve"><value>{0} · {1} characters</value></data>
+  <data name="Stats_Sources" xml:space="preserve"><value>Sources</value></data>
+  <data name="Stats_SourcesHint" xml:space="preserve"><value>Fetched counts every article a source brought; in issues, the ones chosen. A low share means filters, interests or the article limit leave most of it out.</value></data>
+  <data name="Stats_NoSources" xml:space="preserve"><value>No sources yet.</value></data>
+  <data name="Stats_Source" xml:space="preserve"><value>Source</value></data>
+  <data name="Stats_Fetched" xml:space="preserve"><value>Fetched</value></data>
+  <data name="Stats_InIssues" xml:space="preserve"><value>In issues</value></data>
+  <data name="Stats_Share" xml:space="preserve"><value>Share</value></data>
+  <data name="Stats_FailedRuns" xml:space="preserve"><value>Failures</value></data>
 </root>
