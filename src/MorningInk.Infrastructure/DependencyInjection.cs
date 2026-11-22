@@ -99,6 +99,7 @@ public static class DependencyInjection
         services.AddScoped<Profiles.ProfileEditor>();
         services.AddScoped<Profiles.Newsroom>();
         services.AddScoped<Profiles.Onboarding>();
+        services.AddScoped<Profiles.IssueArchive>();
         services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));
         services.AddTransient<INewsSearch, GoogleNewsSearch>();
 

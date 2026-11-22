@@ -1,0 +1,169 @@
+@page "/archive"
+@rendermode InteractiveServer
+@inherits InteractivePage
+@using System.Globalization
+@using MorningInk.Application.Delivery
+@using MorningInk.Application.Scheduling
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Profiles
+
+<PageTitle>@T["Archive_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <span class="kicker">@T["Archive_Kicker"]</span>
+    <h1>@T["Archive_Title"]</h1>
+    <p class="lede">@T["Archive_Lede"]</p>
+    @if (_notice is not null)
+    {
+        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+    }
+    @if (_error is not null)
+    {
+        <div class="alert alert-error" role="alert"><p>@_error</p></div>
+    }
+</header>
+
+<div class="search">
+    <label class="visually-hidden" for="archive-search">@T["Archive_Search"]</label>
+    <input id="archive-search" class="input" type="search" placeholder="@T["Archive_Search"]" @bind="_search" @bind:event="oninput" @bind:after="ReloadAsync" />
+</div>
+
+@if (_page is { } page)
+{
+    var several = page.Issues.Select(i => i.Profile.Id).Distinct().Count() > 1;
+    @if (page.Issues.Count == 0)
+    {
+        <p class="muted">@(string.IsNullOrWhiteSpace(_search) ? T["Archive_Empty"] : T["Archive_NoneFound"])</p>
+    }
+    <ul class="rows" aria-live="polite">
+        @foreach (var item in page.Issues)
+        {
+            var issue = item.Issue;
+            var name = $"{T["Dash_IssueTitle", issue.Number]} · {Local(issue.ScheduledFor, item.Profile).ToString("g", CultureInfo.CurrentCulture)}";
+            var open = _openId == issue.Id;
+            <li class="row" @key="issue.Id">
+                <div class="row-main">
+                    <div class="row-title">@(several ? $"{item.Profile.Title} · " : null)@name</div>
+                    <div class="row-meta">
+                        @Facts(issue) · <span class="status @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
+                    </div>
+                    @if (issue.Entries.Count > 0)
+                    {
+                        <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="entries-@issue.Id" @onclick="() => _openId = open ? null : issue.Id">
+                            @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", issue.Entries.Count])
+                        </button>
+                    }
+                    @if (open)
+                    {
+                        <ul id="entries-@issue.Id" class="headline-list">
+                            @foreach (var entry in issue.Entries.OrderBy(e => e.SourceName, StringComparer.CurrentCulture))
+                            {
+                                <li>
+                                    <a href="@entry.Url" rel="noopener noreferrer" target="_blank">@entry.Title</a>
+                                    <div class="row-meta">@entry.SourceName</div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="row-actions">
+                    @if (item.FileAvailable)
+                    {
+                        @* A plain link: the browser downloads it with the user's sign-in cookie. *@
+                        <a class="button button-secondary button-small" href="/archive/@issue.Id/file" download>@T["Archive_Download"]<span class="visually-hidden"> – @name</span></a>
+                        <button type="button" class="button button-secondary button-small" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
+                    }
+                    else
+                    {
+                        <span class="muted">@T["Archive_FileGone"]</span>
+                    }
+                    @* Kept issues survive the cleanup; the pressed state says so, not only the look. *@
+                    <button type="button" class="link-button @(issue.Pinned ? "pinned" : null)" aria-pressed="@(issue.Pinned ? "true" : "false")" @onclick="() => TogglePinAsync(issue)">@T["Archive_Keep"]<span class="visually-hidden"> – @name</span></button>
+                </div>
+            </li>
+        }
+    </ul>
+    @if (page.HasMore)
+    {
+        <button type="button" class="button button-secondary" @onclick="MoreAsync">@T["Archive_More"]</button>
+    }
+}
+
+@code {
+    private const int PageSize = 20;
+
+    private ArchivePage? _page;
+    private string _search = string.Empty;
+    private int _take = PageSize;
+    private Guid? _openId;
+    private Guid? _sendingId;
+    private string? _notice;
+    private string? _error;
+
+    protected override Task LoadAsync() => ReloadAsync();
+
+    private async Task ReloadAsync() =>
+        _page = await UseAsync<IssueArchive, ArchivePage>(archive => archive.ListAsync(UserId, _search, _take, Closed));
+
+    private Task MoreAsync()
+    {
+        _take += PageSize;
+        return ReloadAsync();
+    }
+
+    private async Task SendAgainAsync(Guid issueId)
+    {
+        _notice = _error = null;
+        _sendingId = issueId;
+        try
+        {
+            var recipient = _page?.Issues.FirstOrDefault(i => i.Issue.Id == issueId)?.Profile.Recipient;
+            switch (await UseAsync<IssueArchive, DeliveryResult?>(archive => archive.ResendAsync(UserId, issueId, Closed)))
+            {
+                case DeliveryResult.Delivered:
+                    _notice = T["Archive_Sent", recipient ?? string.Empty];
+                    break;
+                case DeliveryResult.Failure failure:
+                    _error = T["Archive_SendFailed", failure.Message];
+                    break;
+                default:
+                    _error = T["Archive_FileGone"];
+                    break;
+            }
+
+            await ReloadAsync();
+        }
+        finally
+        {
+            _sendingId = null;
+        }
+    }
+
+    private async Task TogglePinAsync(Issue issue)
+    {
+        await UseAsync<IssueArchive, bool>(archive => archive.SetPinnedAsync(UserId, issue.Id, !issue.Pinned, Closed));
+        await ReloadAsync();
+    }
+
+    // Times show in the edition's own time zone.
+    private static DateTimeOffset Local(DateTimeOffset utc, Profile profile) => TimeZoneInfo.ConvertTime(utc, ProfileTimeZone.Find(profile.TimeZoneId));
+
+    private string Facts(Issue issue)
+    {
+        var facts = new List<string> { T["Dash_Articles", issue.Entries.Count] };
+        if (issue.FileSize is { } size)
+        {
+            facts.Add(string.Create(CultureInfo.CurrentCulture, $"{size / 1024.0 / 1024.0:0.0} MB"));
+        }
+
+        return string.Join(" · ", facts);
+    }
+
+    private static string StatusClass(IssueStatus status) => status switch
+    {
+        IssueStatus.Delivered => "status-ok",
+        IssueStatus.Failed => "status-error",
+        IssueStatus.Empty => "muted",
+        _ => "status-warn",
+    };
+}

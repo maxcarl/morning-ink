@@ -19,6 +19,7 @@
         <NavLink href="/" Match="NavLinkMatch.All">@T["Nav_Home"]</NavLink>
         <NavLink href="/sources">@T["Nav_Sources"]</NavLink>
         <NavLink href="/profile">@T["Nav_Profile"]</NavLink>
+        <NavLink href="/archive">@T["Nav_Archive"]</NavLink>
         @if (HttpContext?.User.IsInRole(nameof(MorningInk.Domain.UserRole.Admin)) == true)
         {
             <NavLink href="/settings">@T["Nav_Settings"]</NavLink>

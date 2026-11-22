@@ -69,6 +69,7 @@ public static class WebUi
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode(options => options.ContentSecurityFrameAncestorsPolicy = null);
         app.MapHealthChecks("/health").AllowAnonymous();
         app.MapThemeSwitch();
+        app.MapIssueDownload();
         app.MapPost("/logout", async (HttpContext context, IAntiforgery antiforgery, SignInManager<AppUser> signIn) =>
         {
             // Without a valid token the request may come from another site: refuse it.

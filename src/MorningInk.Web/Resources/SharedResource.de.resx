@@ -246,4 +246,20 @@
   <data name="Profile_DeleteEditionHint" xml:space="preserve"><value>Ihre Rubriken und alten Ausgaben werden mit gelöscht.</value></data>
   <data name="Profile_Error_Days" xml:space="preserve"><value>Wähl mindestens einen Tag.</value></data>
   <data name="Profile_Error_Profile" xml:space="preserve"><value>Diese Ausgabe gibt es nicht mehr.</value></data>
+  <data name="Nav_Archive" xml:space="preserve"><value>Archiv</value></data>
+  <data name="Archive_Kicker" xml:space="preserve"><value>Zeitungsarchiv</value></data>
+  <data name="Archive_Title" xml:space="preserve"><value>Archiv</value></data>
+  <data name="Archive_Lede" xml:space="preserve"><value>Alle Ausgaben, bis der Aufräumjob sie nach Ablauf der Frist löscht. Behaltene Ausgaben bleiben.</value></data>
+  <data name="Archive_Search" xml:space="preserve"><value>In Artikeln suchen</value></data>
+  <data name="Archive_Empty" xml:space="preserve"><value>Noch keine Ausgaben.</value></data>
+  <data name="Archive_NoneFound" xml:space="preserve"><value>Keine Ausgabe enthält einen Artikel mit diesen Wörtern.</value></data>
+  <data name="Archive_Download" xml:space="preserve"><value>Herunterladen</value></data>
+  <data name="Archive_SendAgain" xml:space="preserve"><value>Erneut senden</value></data>
+  <data name="Archive_Keep" xml:space="preserve"><value>Behalten</value></data>
+  <data name="Archive_FileGone" xml:space="preserve"><value>Datei gelöscht</value></data>
+  <data name="Archive_ShowArticles" xml:space="preserve"><value>{0} Artikel zeigen</value></data>
+  <data name="Archive_HideArticles" xml:space="preserve"><value>Artikel ausblenden</value></data>
+  <data name="Archive_More" xml:space="preserve"><value>Ältere Ausgaben zeigen</value></data>
+  <data name="Archive_Sent" xml:space="preserve"><value>Erneut gesendet an {0}.</value></data>
+  <data name="Archive_SendFailed" xml:space="preserve"><value>Nicht gesendet: {0}</value></data>
 </root>

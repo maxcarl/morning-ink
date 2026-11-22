@@ -268,3 +268,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .editions a[aria-current="page"] { color: var(--color-accent); border-bottom-color: var(--color-accent); }
 .weekdays { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr)); gap: 0 var(--space-2); }
 .edition-delete { margin-top: var(--space-6); }
+
+/* Archive: a kept issue's toggle reads as pressed */
+.link-button.pinned { color: var(--color-accent); font-weight: 700; text-decoration: none; }
+.link-button.pinned::before { content: "✓ "; }
