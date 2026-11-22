@@ -62,6 +62,10 @@ public sealed class Pages : BunitContext
         where TPage : IComponent =>
         page.WaitForAssertion(() => Assert.Contains(text, page.Markup, StringComparison.Ordinal), Patience);
 
+    /// <summary>A time as Blazor's script in the browser sends it from a time field: with seconds.</summary>
+    /// <remarks>bUnit passes values on unchanged, so a test that types "07:15" would pass where a browser fails.</remarks>
+    public static string BrowserTime(string hoursAndMinutes) => hoursAndMinutes + ":00";
+
     /// <summary>The button whose visible text starts with the given text, optionally the n-th of several.</summary>
     public static IElement Button<TPage>(IRenderedComponent<TPage> page, string text, int index = 0)
         where TPage : IComponent =>

@@ -144,8 +144,7 @@
             </div>
             <div class="field">
                 <label for="time">@T["Profile_DeliveryTime"]</label>
-                @* Not @bind, which forces Blazor's own time parsing: browsers send "HH:mm", which it does not accept. The editor validates the text. *@
-                <input id="time" class="input" type="time" value="@_time" @onchange="e => _time = e.Value as string ?? string.Empty" required />
+                <input id="time" class="input" type="time" @bind="_time" required />
             </div>
             <div class="field">
                 <label for="zone">@T["Profile_TimeZone"]</label>
@@ -199,7 +198,7 @@
     // Settings
     private string _title = string.Empty;
     private string _recipient = string.Empty;
-    private string _time = string.Empty;
+    private TimeOnly _time;
     private string _zone = string.Empty;
     private string? _country;
     private string? _region;
@@ -211,7 +210,7 @@
         var profile = _profile!; // ! is safe: ReloadAsync just set it
         _title = profile.Title;
         _recipient = profile.Recipient;
-        _time = profile.DeliveryTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+        _time = profile.DeliveryTime;
         _zone = profile.TimeZoneId;
         _country = profile.Country;
         _region = profile.Region;
@@ -345,7 +344,7 @@
     {
         Clear();
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(
-            UserId, new ProfileSettings(_title, _recipient, _time, _zone, _region, _country), Closed));
+            UserId, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country), Closed));
         _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
         if (_errors.Count == 0)
         {

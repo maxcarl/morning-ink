@@ -54,8 +54,7 @@
                         <div class="inline-form field">
                             <div>
                                 <label class="label" for="time">@T["Profile_DeliveryTime"]</label>
-                                @* Not @bind: Blazor's time parsing does not accept the "HH:mm" browsers send. *@
-                                <input id="time" class="input" type="time" value="@_time" @onchange="e => _time = e.Value as string ?? string.Empty" required />
+                                <input id="time" class="input" type="time" @bind="_time" required />
                             </div>
                             <div class="row-main">
                                 <label class="label" for="zone">@T["Profile_TimeZone"]</label>
@@ -181,7 +180,7 @@
     private string? _fromAddress;
 
     private string _recipient = string.Empty;
-    private string _time = string.Empty;
+    private TimeOnly _time;
     private string _zone = string.Empty;
     private string? _country;
     private string? _region;
@@ -197,7 +196,7 @@
         await ReloadAsync();
         var profile = _profile!; // ! is safe: ReloadAsync just set it
         _recipient = profile.Recipient;
-        _time = profile.DeliveryTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+        _time = profile.DeliveryTime;
         _zone = profile.TimeZoneId;
         _country = profile.Country;
         _region = profile.Region;
@@ -230,7 +229,7 @@
 
     private async Task SaveSettingsAsync(Step next)
     {
-        var settings = new ProfileSettings(_profile!.Title, _recipient, _time, _zone, _region, _country); // ! is safe: the form only shows once the profile is loaded
+        var settings = new ProfileSettings(_profile!.Title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country); // ! is safe: the form only shows once the profile is loaded
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(UserId, settings, Closed));
         if (errors.Count > 0)
         {

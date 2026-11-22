@@ -18,7 +18,7 @@ public sealed class ProfilePageTests : IDisposable
         var page = pages.Open<ProfilePage>("comes out every day");
 
         page.Find("#zone").Change("Europe/Berlin");
-        Pages.Submit(page, ("#title", "Die Frühstücksausgabe"), ("#recipient", "max_abc@kindle.com"), ("#time", "07:15"));
+        Pages.Submit(page, ("#title", "Die Frühstücksausgabe"), ("#recipient", "max_abc@kindle.com"), ("#time", Pages.BrowserTime("07:15")));
 
         Pages.Shows(page, "Saved. Changes apply from the next issue.");
         Assert.Matches("every day at 0?7:15", page.Markup);

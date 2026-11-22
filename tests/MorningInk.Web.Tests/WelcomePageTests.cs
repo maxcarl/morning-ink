@@ -24,7 +24,7 @@ public sealed class WelcomePageTests : IDisposable
 
         // 1: where the issue goes
         page.Find("#country").Change("DE");
-        Pages.Submit(page, ("#recipient", "max_abc@kindle.com"), ("#time", "06:00"));
+        Pages.Submit(page, ("#recipient", "max_abc@kindle.com"), ("#time", Pages.BrowserTime("06:00")));
 
         // 2: mail server, then the test mail
         Pages.Shows(page, "Step 2");
