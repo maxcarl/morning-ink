@@ -5,4 +5,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The same tiny SMTP server the infrastructure tests use. -->
+    <Compile Include="..\MorningInk.Infrastructure.Tests\Delivery\FakeSmtpServer.cs" Link="FakeSmtpServer.cs" />
+  </ItemGroup>
+
 </Project>

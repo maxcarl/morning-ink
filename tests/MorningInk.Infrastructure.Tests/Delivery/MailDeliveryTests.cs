@@ -1,7 +1,7 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MimeKit;
 using MorningInk.Application.Delivery;
+using MorningInk.Infrastructure.Tests.Persistence;
 
 namespace MorningInk.Infrastructure.Tests.Delivery;
 
@@ -11,6 +11,7 @@ public sealed class MailDeliveryTests : IDisposable
     private const string Title = "Morning Ink 2026-11-21";
 
     private readonly string _directory = Directory.CreateTempSubdirectory("morning-ink-").FullName;
+    private readonly TestHost _host = new();
 
     [Fact]
     public async Task Issue_arrives_as_epub_attachment_named_like_the_issue()
@@ -123,13 +124,17 @@ public sealed class MailDeliveryTests : IDisposable
     [Fact]
     public async Task Missing_smtp_settings_are_reported()
     {
-        var result = await CreateDelivery(new Dictionary<string, string?>()).DeliverAsync(
+        var result = await (await CreateDeliveryAsync(new Dictionary<string, string?>())).DeliverAsync(
             new DeliveryRequest(Kindle, Title, WriteFile(10), ".epub", "application/epub+zip"), CancellationToken.None);
 
         Assert.Contains("SMTP", Assert.IsType<DeliveryResult.Failure>(result).Message, StringComparison.Ordinal);
     }
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose()
+    {
+        _host.Dispose();
+        Directory.Delete(_directory, recursive: true);
+    }
 
     private string WriteFile(int size)
     {
@@ -138,10 +143,10 @@ public sealed class MailDeliveryTests : IDisposable
         return path;
     }
 
-    private static Task<DeliveryResult> DeliverAsync(FakeSmtpServer server, DeliveryRequest request, long? maxMessageBytes = null, string? username = null, string? password = null) =>
+    private Task<DeliveryResult> DeliverAsync(FakeSmtpServer server, DeliveryRequest request, long? maxMessageBytes = null, string? username = null, string? password = null) =>
         DeliverAsync(server.Port, request, maxMessageBytes, username, password);
 
-    private static Task<DeliveryResult> DeliverAsync(int port, DeliveryRequest request, long? maxMessageBytes = null, string? username = null, string? password = null)
+    private async Task<DeliveryResult> DeliverAsync(int port, DeliveryRequest request, long? maxMessageBytes = null, string? username = null, string? password = null)
     {
         var settings = new Dictionary<string, string?>
         {
@@ -157,16 +162,10 @@ public sealed class MailDeliveryTests : IDisposable
             settings["Smtp:MaxMessageBytes"] = max.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        return CreateDelivery(settings).DeliverAsync(request, CancellationToken.None);
+        return await (await CreateDeliveryAsync(settings)).DeliverAsync(request, CancellationToken.None);
     }
 
-    private static IDelivery CreateDelivery(Dictionary<string, string?> settings)
-    {
-        settings["Storage:DataDirectory"] = Path.GetTempPath();
-        return new ServiceCollection()
-            .AddLogging()
-            .AddInfrastructure(new ConfigurationBuilder().AddInMemoryCollection(settings).Build())
-            .BuildServiceProvider()
-            .GetRequiredService<IDelivery>();
-    }
+    // Mail settings are read from the database too, so the delivery needs a migrated one.
+    private async Task<IDelivery> CreateDeliveryAsync(Dictionary<string, string?> settings) =>
+        (await _host.StartAsync(settings)).CreateScope().ServiceProvider.GetRequiredService<IDelivery>();
 }

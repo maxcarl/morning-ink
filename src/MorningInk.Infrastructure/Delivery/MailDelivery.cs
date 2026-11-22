@@ -3,22 +3,22 @@ using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.IO;
 using MorningInk.Application.Delivery;
+using MorningInk.Domain;
 
 namespace MorningInk.Infrastructure.Delivery;
 
 /// <summary>Sends an issue as an email attachment, e.g. to a Send-to-Kindle address.</summary>
-internal sealed partial class MailDelivery(IOptions<SmtpOptions> options, ILogger<MailDelivery> logger) : IDelivery
+internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<MailDelivery> logger) : IDelivery
 {
     // Stricter than MimeKit's default, which accepts addresses without a domain.
     private static readonly ParserOptions StrictAddresses = new() { AllowAddressesWithoutDomain = false };
 
     public async Task<DeliveryResult> DeliverAsync(DeliveryRequest request, CancellationToken cancellationToken)
     {
-        var smtp = options.Value;
+        var smtp = await settings.EffectiveAsync(cancellationToken);
         if (string.IsNullOrWhiteSpace(smtp.Host) || !TryParseAddress(smtp.FromAddress, out var from))
         {
             return new DeliveryResult.Failure("SMTP is not configured: server and sender address are needed.", Retryable: false);
@@ -122,10 +122,10 @@ internal sealed partial class MailDelivery(IOptions<SmtpOptions> options, ILogge
         return true;
     }
 
-    private static SecureSocketOptions ToSocketOptions(SmtpSecurity security) => security switch
+    private static SecureSocketOptions ToSocketOptions(MailSecurity security) => security switch
     {
-        SmtpSecurity.StartTls => SecureSocketOptions.StartTls,
-        SmtpSecurity.SslOnConnect => SecureSocketOptions.SslOnConnect,
+        MailSecurity.StartTls => SecureSocketOptions.StartTls,
+        MailSecurity.SslOnConnect => SecureSocketOptions.SslOnConnect,
         _ => SecureSocketOptions.None,
     };
 

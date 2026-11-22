@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Application.Delivery;
 using MorningInk.Infrastructure;
+using MorningInk.Infrastructure.Persistence;
 
 if (args.Length != 3)
 {
@@ -24,7 +25,14 @@ var configuration = new ConfigurationBuilder()
     .Build();
 using var services = new ServiceCollection().AddLogging().AddInfrastructure(configuration).BuildServiceProvider();
 
-var result = await services.GetRequiredService<IDelivery>().DeliverAsync(
+// Mail settings can also live in the database, so it needs to exist (an empty one in the temp directory).
+using (var migration = services.CreateScope())
+{
+    await migration.ServiceProvider.GetRequiredService<DatabaseMigrator>().MigrateAsync(CancellationToken.None);
+}
+
+using var scope = services.CreateScope();
+var result = await scope.ServiceProvider.GetRequiredService<IDelivery>().DeliverAsync(
     new DeliveryRequest(args[0], args[2], args[1], ".epub", "application/epub+zip"),
     CancellationToken.None);
 Console.WriteLine(result switch

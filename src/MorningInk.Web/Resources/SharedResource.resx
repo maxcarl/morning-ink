@@ -126,4 +126,42 @@
   <data name="Theme_auto" xml:space="preserve"><value>Auto</value></data>
   <data name="Theme_light" xml:space="preserve"><value>Light</value></data>
   <data name="Theme_dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Kicker" xml:space="preserve"><value>Composing room</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Lede" xml:space="preserve"><value>Mail server and home network for the whole instance. Only admins see this page.</value></data>
+  <data name="Settings_Mail" xml:space="preserve"><value>Mail server (SMTP)</value></data>
+  <data name="Settings_MailHint" xml:space="preserve"><value>Issues go out by email. Add the sender address to your Amazon account's approved list, or Amazon drops the mail.</value></data>
+  <data name="Settings_Host" xml:space="preserve"><value>Server</value></data>
+  <data name="Settings_Port" xml:space="preserve"><value>Port</value></data>
+  <data name="Settings_Security" xml:space="preserve"><value>Encryption</value></data>
+  <data name="Security_StartTls" xml:space="preserve"><value>STARTTLS (port 587)</value></data>
+  <data name="Security_SslOnConnect" xml:space="preserve"><value>TLS from the start (port 465)</value></data>
+  <data name="Security_None" xml:space="preserve"><value>None (only a relay on this machine)</value></data>
+  <data name="Settings_Username" xml:space="preserve"><value>User name</value></data>
+  <data name="Settings_Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Settings_PasswordSaved" xml:space="preserve"><value>A password is saved. Leave empty to keep it.</value></data>
+  <data name="Settings_PasswordNone" xml:space="preserve"><value>No password saved.</value></data>
+  <data name="Settings_FromAddress" xml:space="preserve"><value>Sender address</value></data>
+  <data name="Settings_FromName" xml:space="preserve"><value>Sender name</value></data>
+  <data name="Settings_Locked" xml:space="preserve"><value>Set by the environment variable Smtp__{0}.</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Settings_Saved" xml:space="preserve"><value>Saved.</value></data>
+  <data name="Settings_Error_Host" xml:space="preserve"><value>The server name must not contain spaces.</value></data>
+  <data name="Settings_Error_Port" xml:space="preserve"><value>The port must be a number between 1 and 65535.</value></data>
+  <data name="Settings_Error_FromAddress" xml:space="preserve"><value>Please enter one email address as sender.</value></data>
+  <data name="Settings_Error_Username" xml:space="preserve"><value>Values may have at most 200 characters.</value></data>
+  <data name="Settings_TestMail" xml:space="preserve"><value>Test mail</value></data>
+  <data name="Settings_TestMailHint" xml:space="preserve"><value>Sends a small test issue. If it arrives on your Kindle, real issues will too.</value></data>
+  <data name="Settings_TestRecipient" xml:space="preserve"><value>Recipient</value></data>
+  <data name="Settings_SendTest" xml:space="preserve"><value>Send test mail</value></data>
+  <data name="Settings_TestSent" xml:space="preserve"><value>Test mail sent to {0}. It may take a few minutes to reach the Kindle.</value></data>
+  <data name="Settings_TestFailed" xml:space="preserve"><value>The test mail was not sent: {0}</value></data>
+  <data name="Settings_Network" xml:space="preserve"><value>Home network</value></data>
+  <data name="Settings_NetworkHint" xml:space="preserve"><value>Morning Ink never fetches addresses in your home network, except these. Only allow your own services, e.g. FreshRSS.</value></data>
+  <data name="Settings_NetworkNone" xml:space="preserve"><value>Nothing allowed.</value></data>
+  <data name="Settings_NetworkConfigured" xml:space="preserve"><value>from the configuration</value></data>
+  <data name="Settings_NetworkAdd" xml:space="preserve"><value>Allow host</value></data>
+  <data name="Settings_NetworkAddHint" xml:space="preserve"><value>"host" for any port, or "host:port", e.g. freshrss.lan or 192.168.1.20:8080.</value></data>
+  <data name="Settings_NetworkRemove" xml:space="preserve"><value>Remove</value></data>
 </root>

@@ -1,0 +1,16 @@
+@* Says that an environment variable sets this field, so it is read-only here. *@
+@if (Locked.Contains(Field))
+{
+    <span id="@Id" class="hint">@T["Settings_Locked", Field]</span>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string Field { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public IReadOnlySet<string> Locked { get; set; } = new HashSet<string>();
+}

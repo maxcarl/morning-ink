@@ -127,6 +127,12 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(SmtpOptions.SectionName))
             .Validate(o => o.Port is > 0 and <= 65535 && o.MaxMessageBytes > 0 && o.Timeout > TimeSpan.Zero, "Smtp:Port, Smtp:MaxMessageBytes and Smtp:Timeout must be positive.");
         services.AddTransient<IDelivery, MailDelivery>();
+        services.AddScoped<MailSettingsStore>();
+        services.AddTransient<TestMail>();
+
+        // Which fields the configuration sets, so the UI can show them read-only.
+        var section = configuration.GetSection(SmtpOptions.SectionName);
+        services.AddSingleton(new MailSettingsLocks(section.GetChildren().Where(c => !string.IsNullOrEmpty(c.Value)).Select(c => c.Key).ToHashSet(StringComparer.OrdinalIgnoreCase)));
     }
 
     private static void AddIdentity(IServiceCollection services)

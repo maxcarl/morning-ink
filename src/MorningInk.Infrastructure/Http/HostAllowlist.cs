@@ -32,6 +32,17 @@ public sealed class HostAllowlist(IOptions<SafeHttpOptions> options, IServiceSco
         _stored = entries.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <summary>Takes back an entry added in the UI; configured entries cannot be removed here.</summary>
+    public async Task RemoveAsync(string entry, CancellationToken cancellationToken)
+    {
+        var normalized = entry.Trim().ToLowerInvariant(); // stored lower case, see AddAsync
+        await using var scope = scopes.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().AllowedHosts
+            .Where(h => h.Entry == normalized)
+            .ExecuteDeleteAsync(cancellationToken);
+        ImmutableInterlocked.Update(ref _stored, set => set.Remove(normalized));
+    }
+
     /// <summary>Allows an entry from now on. Only call for admins; the caller checks the role.</summary>
     public async Task AddAsync(string entry, Guid adminId, CancellationToken cancellationToken)
     {
