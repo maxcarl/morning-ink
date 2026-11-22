@@ -195,24 +195,13 @@ public sealed class IssuePublisher(
         bool withAi = true)
     {
         var profile = loaded.Profile;
-        var orderedSections = profile.Sections.OrderBy(s => s.Position).ToList();
+        var sections = profile.Sections.OrderBy(s => s.Position).ToList();
 
         // Each source once, even if several sections use it.
         var bySource = new Dictionary<Guid, IReadOnlyList<FetchedArticle>>();
-        foreach (var source in orderedSections.SelectMany(s => s.Sources).DistinctBy(s => s.Id))
+        foreach (var source in sections.SelectMany(s => s.Sources).DistinctBy(s => s.Id))
         {
-            var before = problems.Count;
-            bySource[source.Id] = await FetchAsync(source, problems, cancellationToken);
-            if (problems.Count > before)
-            {
-                // Source and English text, then code and values, so the dashboard can say it in the user's language.
-                var problem = problems[^1];
-                issue.AddLog(time.GetUtcNow(), "SourceFailed", [problem.SourceName, problem.Message, problem.Reason ?? string.Empty, .. problem.Arguments]);
-            }
-            else
-            {
-                issue.AddLog(time.GetUtcNow(), "Fetched", source.Name, bySource[source.Id].Count);
-            }
+            bySource[source.Id] = await FetchAsync(source, issue, problems, cancellationToken);
         }
 
         // By reference: the seen-filter hands back the very instances it keeps, one per article.
@@ -221,21 +210,35 @@ public sealed class IssuePublisher(
             ReferenceEqualityComparer.Instance);
         issue.AddLog(time.GetUtcNow(), "Fresh", fresh.Count, bySource.Values.Sum(a => a.Count));
 
-        // First choose, across all sections, so a story another section already took is merged instead of repeated.
-        var taken = new List<(FetchedArticle Article, string SourceName, List<AlsoReported> AlsoAt)>();
-        var plan = new List<(Section Section, List<(FetchedArticle Article, Source Source, List<AlsoReported> AlsoAt)> Picks)>();
-        foreach (var section in orderedSections)
+        var plan = Choose(sections, bySource, fresh, profile.Interests, issue);
+        var content = await ProcessAsync(plan, withAi, issue, cancellationToken);
+        return content.Count == 0
+            ? null
+            : new IssueContent(issue.Id, profile.Title, issue.Number, localTime, loaded.Language, content, problems.Select(p => p.SourceName).ToList(), await WeatherAsync(profile, cancellationToken));
+    }
+
+    // All sections are chosen before any article is processed, so a story another section already took is merged
+    // into that one instead of appearing twice.
+    private List<(Section Section, List<Pick> Picks)> Choose(
+        List<Section> sections,
+        Dictionary<Guid, IReadOnlyList<FetchedArticle>> bySource,
+        HashSet<FetchedArticle> fresh,
+        IReadOnlyList<Interest> interests,
+        Issue issue)
+    {
+        var taken = new List<Pick>();
+        var plan = new List<(Section, List<Pick>)>();
+        foreach (var section in sections)
         {
-            var picks = new List<(FetchedArticle, Source, List<AlsoReported>)>();
             var unread = section.Sources
                 .SelectMany(source => bySource[source.Id].Select(article => (Article: article, Source: source)))
                 .Where(candidate => fresh.Contains(candidate.Article))
                 .ToList();
             var candidates = unread
-                .Where(candidate => ArticleFilter.Admits(candidate.Article, candidate.Source) && !Interests.Hides(candidate.Article, profile.Interests))
+                .Where(candidate => ArticleFilter.Admits(candidate.Article, candidate.Source) && !Interests.Hides(candidate.Article, interests))
 
                 // The edition's interests first, then the newest: when the limit is tight, its topics win.
-                .OrderByDescending(candidate => Interests.Score(candidate.Article, profile.Interests))
+                .OrderByDescending(candidate => Interests.Score(candidate.Article, interests))
                 .ThenByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue)
                 .ToList();
             if (unread.Count > candidates.Count)
@@ -243,29 +246,29 @@ public sealed class IssuePublisher(
                 issue.AddLog(time.GetUtcNow(), "Filtered", section.Name, unread.Count - candidates.Count);
             }
 
+            var picks = new List<Pick>();
             foreach (var (article, source) in candidates)
             {
-                if (picks.Count >= (section.MaxArticles ?? int.MaxValue))
+                if (picks.Count == (section.MaxArticles ?? int.MaxValue))
                 {
                     break;
                 }
 
                 fresh.Remove(article); // an article appears in the first section that takes it
-                var same = taken.FindIndex(t => Duplicates.AreSame(t.Article, article));
-                if (same >= 0)
+                if (taken.Find(t => Duplicates.AreSame(t.Article, article)) is { } same)
                 {
                     // Named under the kept one, unless it is the same source telling the story twice.
-                    if (taken[same].SourceName != source.Name)
+                    if (same.Source.Name != source.Name)
                     {
-                        taken[same].AlsoAt.Add(new AlsoReported(source.Name, article, source.Id));
+                        same.AlsoAt.Add(new AlsoReported(source.Name, article, source.Id));
                     }
 
                     continue;
                 }
 
-                var alsoAt = new List<AlsoReported>();
-                taken.Add((article, source.Name, alsoAt));
-                picks.Add((article, source, alsoAt));
+                var pick = new Pick(article, source, []);
+                taken.Add(pick);
+                picks.Add(pick);
             }
 
             plan.Add((section, picks));
@@ -277,8 +280,13 @@ public sealed class IssuePublisher(
             issue.AddLog(time.GetUtcNow(), "Merged", merged);
         }
 
-        var processingStarted = time.GetUtcNow();
+        return plan;
+    }
 
+    // Full text, cleaning, images and AI: most of the time an issue takes, so the log says how long.
+    private async Task<List<IssueSection>> ProcessAsync(List<(Section Section, List<Pick> Picks)> plan, bool withAi, Issue issue, CancellationToken cancellationToken)
+    {
+        var started = time.GetUtcNow();
         var sections = new List<IssueSection>();
         foreach (var (section, picks) in plan)
         {
@@ -298,10 +306,8 @@ public sealed class IssuePublisher(
             }
         }
 
-        // Full text, cleaning, images and AI take most of the time; worth seeing when an issue comes late.
         var kept = sections.Sum(s => s.Articles.Count);
-        var seconds = (int)(time.GetUtcNow() - processingStarted).TotalSeconds;
-        issue.AddLog(time.GetUtcNow(), "Processed", kept, seconds);
+        issue.AddLog(time.GetUtcNow(), "Processed", kept, (int)(time.GetUtcNow() - started).TotalSeconds);
         if (plan.Sum(p => p.Picks.Count) - kept is var dropped and > 0)
         {
             issue.AddLog(time.GetUtcNow(), "Dropped", dropped);
@@ -312,9 +318,7 @@ public sealed class IssuePublisher(
             issue.AddLog(time.GetUtcNow(), "Summaries", summaries);
         }
 
-        return sections.Count == 0
-            ? null
-            : new IssueContent(issue.Id, profile.Title, issue.Number, localTime, loaded.Language, sections, problems.Select(p => p.SourceName).ToList(), await WeatherAsync(profile, cancellationToken));
+        return sections;
     }
 
     // Weather is a bonus: whatever goes wrong here, the issue comes without it.
@@ -342,40 +346,43 @@ public sealed class IssuePublisher(
         }
     }
 
-    private async Task<IReadOnlyList<FetchedArticle>> FetchAsync(Source source, List<SourceProblem> problems, CancellationToken cancellationToken)
+    // A failed source only costs its own articles. Its health and cache validators are saved with the issue.
+    private async Task<IReadOnlyList<FetchedArticle>> FetchAsync(Source source, Issue issue, List<SourceProblem> problems, CancellationToken cancellationToken)
     {
-        if (sources.FirstOrDefault(s => s.Kind == source.Kind) is not { } implementation)
-        {
-            problems.Add(new SourceProblem(source.Name, $"Source type {source.Kind} is not available.", "KindUnavailable", [source.Kind.ToString()]));
-            return [];
-        }
-
+        SourceResult result;
         try
         {
-            switch (await implementation.FetchAsync(source, cancellationToken))
-            {
-                case SourceResult.Success success:
-                    // Kept for the next conditional request; saved together with the issue, like the health.
-                    source.ETag = success.ETag;
-                    source.LastModified = success.LastModified;
-                    source.RecordSuccess(time.GetUtcNow(), success.Articles.Count);
-                    return success.Articles;
-                case SourceResult.Failure failure:
-                    problems.Add(new SourceProblem(source.Name, failure.Message, failure.Reason, failure.Arguments));
-                    source.RecordFailure(time.GetUtcNow(), failure.Message, failure.Reason, failure.Arguments ?? []);
-                    return [];
-                default:
-                    return [];
-            }
+            result = ImplementationOf(source) is { } implementation
+                ? await implementation.FetchAsync(source, cancellationToken)
+                : new SourceResult.Failure($"Source type {source.Kind} is not available.", Reason: "KindUnavailable", Arguments: [source.Kind.ToString()]);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
             // A bug in one source must not stop the newspaper; the source shows up as unavailable instead.
-            problems.Add(new SourceProblem(source.Name, e.Message));
-            source.RecordFailure(time.GetUtcNow(), e.Message, null, []);
+            result = new SourceResult.Failure(e.Message);
+        }
+
+        var now = time.GetUtcNow();
+        if (result is SourceResult.Failure failure)
+        {
+            var problem = new SourceProblem(source.Name, failure.Message, failure.Reason, failure.Arguments);
+            problems.Add(problem);
+            source.RecordFailure(now, failure.Message, failure.Reason, problem.Arguments);
+
+            // Source and English text, then code and values, so the dashboard can say it in the user's language.
+            issue.AddLog(now, "SourceFailed", [problem.SourceName, problem.Message, problem.Reason ?? string.Empty, .. problem.Arguments]);
             return [];
         }
+
+        var success = (SourceResult.Success)result;
+        source.ETag = success.ETag;
+        source.LastModified = success.LastModified;
+        source.RecordSuccess(now, success.Articles.Count);
+        issue.AddLog(now, "Fetched", source.Name, success.Articles.Count);
+        return success.Articles;
     }
+
+    private ISource? ImplementationOf(Source source) => sources.FirstOrDefault(s => s.Kind == source.Kind);
 
     private async Task<FetchedArticle?> ProcessAsync(FetchedArticle article, Source source, bool withAi, CancellationToken cancellationToken)
     {
@@ -410,32 +417,27 @@ public sealed class IssuePublisher(
         issue.AddLog(time.GetUtcNow(), "Rendered", issue.FileSize / 1024);
         foreach (var article in content.Sections.SelectMany(s => s.Articles))
         {
-            issue.Entries.Add(new IssueEntry
-            {
-                Url = article.Article.Url.AbsoluteUri,
-                Title = article.Article.Title,
-                SourceName = article.SourceName,
-                SourceId = article.SourceId,
-                ExternalId = article.Article.Id,
-            });
+            issue.Entries.Add(Entry(article.Article, article.SourceName, article.SourceId, duplicate: false));
 
             // Kept as entries too, so they count as seen once the issue is out and do not come alone the next day.
             foreach (var other in article.AlsoAt)
             {
-                issue.Entries.Add(new IssueEntry
-                {
-                    Url = other.Article.Url.AbsoluteUri,
-                    Title = other.Article.Title,
-                    SourceName = other.SourceName,
-                    Duplicate = true,
-                    SourceId = other.SourceId,
-                    ExternalId = other.Article.Id,
-                });
+                issue.Entries.Add(Entry(other.Article, other.SourceName, other.SourceId, duplicate: true));
             }
         }
 
         await store.SaveChangesAsync(cancellationToken);
     }
+
+    private static IssueEntry Entry(FetchedArticle article, string sourceName, Guid? sourceId, bool duplicate) => new()
+    {
+        Url = article.Url.AbsoluteUri,
+        Title = article.Title,
+        SourceName = sourceName,
+        SourceId = sourceId,
+        ExternalId = article.Id,
+        Duplicate = duplicate,
+    };
 
     private async Task<PublishResult> DeliverAsync(
         Issue issue,
@@ -495,7 +497,7 @@ public sealed class IssuePublisher(
             .GroupBy(e => e.SourceId!.Value); // ! is safe: filtered just above
         foreach (var group in delivered)
         {
-            if (!byId.TryGetValue(group.Key, out var source) || sources.FirstOrDefault(s => s.Kind == source.Kind) is not { } implementation)
+            if (!byId.TryGetValue(group.Key, out var source) || ImplementationOf(source) is not { } implementation)
             {
                 continue;
             }
@@ -519,4 +521,7 @@ public sealed class IssuePublisher(
             }
         }
     }
+
+    /// <summary>An article chosen for a section, with the other sources that told the same story.</summary>
+    private sealed record Pick(FetchedArticle Article, Source Source, List<AlsoReported> AlsoAt);
 }
