@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Net;
 using System.Text.Json;
 using MorningInk.Application.Sources;
 using MorningInk.Infrastructure.Http;
