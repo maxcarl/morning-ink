@@ -8,53 +8,90 @@
 
 A self-hosted service that turns your RSS feeds into a daily EPUB newspaper and sends it to your Kindle. One Docker container, web UI, optional AI.
 
-> [!WARNING]
-> Morning Ink is in early development and **not usable yet**. See the [roadmap](#roadmap).
+> [!NOTE]
+> Morning Ink is young. The first release is feature-complete and in its trial run; expect rough edges and [tell us about them](https://github.com/maxcarl/morning-ink/issues).
 
 ## Features
-
-Planned for the first release:
 
 - **RSS and Atom feeds** with full-text extraction and clean, e-ink friendly formatting
 - **Local news and weather** for your region, by postal code or town
 - **EPUB newspaper** with cover page, table of contents and sections
-- **Send to Kindle** by email, on your own schedule and in your time zone
-- **Web UI** for sources, schedules and settings, with a setup wizard
-- **One container, no required dependencies:** SQLite and a built-in scheduler
-- **Safe by default:** blocks requests to your home network, encrypts stored credentials and sanitizes all HTML
+- **Send to Kindle** by email, every day at your time and in your time zone
+- **Web UI** for sources, sections and settings, with a setup wizard and sample sources in several languages
+- **One container, no other services:** SQLite and a built-in scheduler
+- **Safe by default:** blocks requests to your home network, encrypts stored passwords and cleans all HTML
 
-Later: more sources (newsletters via IMAP, FreshRSS, Miniflux, Wallabag, YouTube), more readers (Kobo, KOReader, PocketBook, reMarkable via OPDS, WebDAV and PDF), several users, and optional AI summaries with Ollama or a cloud provider. Morning Ink always works without AI.
+Later: more sources (newsletters, FreshRSS, Miniflux, Wallabag, YouTube), more readers (Kobo, KOReader, PocketBook, reMarkable), several issues per day and optional AI summaries. Morning Ink always works without AI.
 
-### Non-goals
-
-- Not a replacement for your RSS reader. Morning Ink connects to FreshRSS and Miniflux instead.
-- Not a public service or SaaS. It is meant for you, your family and friends.
-- No paywall circumvention. Paid content only with your own subscription and login.
+Not a goal: replacing your RSS reader, running as a public service, or getting around paywalls.
 
 ## Getting started
 
-Requires Docker.
+You need:
 
-```bash
-git clone https://github.com/maxcarl/morning-ink.git
-cd morning-ink
-docker compose up -d
+- **A computer that is always on and runs [Docker](https://docs.docker.com/get-docker/)**, e.g. a NAS, a Raspberry Pi 4 or 5 (64-bit) or a home server
+- **A Kindle** and the Amazon account it is registered to
+- **An email account that can send mail (SMTP)**. Your mail provider's help pages list server and port. Gmail, Outlook and iCloud need an *app password* instead of your normal password.
+
+### 1. Start Morning Ink
+
+Create a folder, save this as `compose.yaml` in it:
+
+```yaml
+services:
+  morning-ink:
+    image: ghcr.io/maxcarl/morning-ink:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - morning-ink-data:/data
+    restart: unless-stopped
+
+volumes:
+  morning-ink-data:
 ```
 
-Open <http://localhost:8080> and create the admin account with the setup code from `docker compose logs`. All data lives in the `/data` volume.
+Then, in that folder:
 
-Prebuilt images for `amd64` and `arm64` are published to `ghcr.io/maxcarl/morning-ink`.
+```bash
+docker compose up -d
+docker compose logs morning-ink | grep "setup code"
+```
+
+The second command shows a setup code like `ABCD-EFGH-JKLM-NPQR`. It proves that you are the owner of this installation.
+
+### 2. Create your account
+
+Open <http://localhost:8080>, or `http://<address of the computer>:8080` from another device. Enter the setup code and choose a user name and password.
+
+### 3. Follow the wizard
+
+The wizard opens by itself and takes five steps:
+
+1. **Your Kindle:** your Send-to-Kindle address. You find it on Amazon under *Manage Your Content and Devices → Preferences → Personal Document Settings*. It ends in `@kindle.com`.
+2. **Mail server:** the SMTP details of your email account. *Save and send a test mail* sends a test issue to your Kindle.
+3. **Your region:** a postal code or town for the weather, and local news if you like.
+4. **Sources:** pick a few sample feeds. You can add any website later under *Sources*.
+5. **First issue:** *Send the first issue*. It arrives on your Kindle within a few minutes, and from then on every day at your delivery time.
+
+> [!IMPORTANT]
+> **Allow the sender at Amazon.** Amazon silently drops mail from senders it does not know. In *Personal Document Settings*, add the sender address of step 2 to the *Approved Personal Document E-mail List*. Without this, nothing arrives and there is no error message.
+
+### If nothing arrives
+
+- **The overview page shows each issue with its status.** A failed delivery shows the mail server's error message there.
+- **The test mail does not reach the Kindle:** check the approved sender list (see above), then the Send-to-Kindle address.
+- **Amazon sends a rejection mail to the sender address,** for example when a file was too large. Look in that mailbox.
+
+### Updates and backups
+
+Update with `docker compose pull && docker compose up -d`. All data lives in the `morning-ink-data` volume. Back up the whole volume: the `keys` folder in it is needed to read stored passwords.
+
+Morning Ink is meant for your home network. To reach it from the internet, put it behind a reverse proxy with HTTPS.
 
 ## Configuration
 
-Set at least these environment variables, e.g. in `compose.yaml`:
-
-| Setting | Meaning |
-| --- | --- |
-| `Smtp__Host`, `Smtp__Username`, `Smtp__Password` | Your outgoing mail server |
-| `Smtp__FromAddress` | Sender; add it to the approved list in your Amazon account |
-
-All settings: [docs/configuration.md](docs/configuration.md). Mail settings will also be editable in the web UI.
+The essentials are set in the web UI. Mail settings can also come from environment variables, e.g. in `compose.yaml`; they then show as read-only in the UI. All settings: [docs/configuration.md](docs/configuration.md).
 
 ## Development
 
@@ -67,17 +104,13 @@ dotnet format --verify-no-changes     # formatting check, also run in CI
 dotnet run --project src/MorningInk.Web
 ```
 
-The code follows Clean Architecture (`Domain`, `Application`, `Infrastructure`, `Web`), and architecture tests enforce the layer boundaries. The full design, in German, is in [docs/konzept.md](docs/konzept.md).
+The code follows Clean Architecture (`Domain`, `Application`, `Infrastructure`, `Web`), and architecture tests enforce the layer boundaries. Design decisions are in [docs/adr](docs/adr). The full design, in German, is in [docs/konzept.md](docs/konzept.md).
 
 ## Roadmap
 
-The first release is split into 25 tasks in five stages. Their progress is tracked in the [concept](docs/konzept.md#mvp-aufgaben).
-
-1. **Foundation:** solution, CI, container, database, encrypted credentials
-2. **Fetching content:** safe HTTP client, feeds, full text, images, duplicates
-3. **Newspaper:** EPUB, Kindle delivery, schedule, local news and weather
-4. **Web UI:** login, sources, profiles, settings, dashboard, setup wizard
-5. **Acceptance:** documentation and a seven-day trial run
+1. **First release:** feeds, full text, local news, weather, EPUB, Kindle delivery, web UI, setup wizard. Done except the seven-day trial run. Progress: [concept](docs/konzept.md#mvp-aufgaben).
+2. **Comfort:** preview, archive, OPML import, filters, several issues per day, several users, OPDS and more readers.
+3. **AI:** summaries and topic weighting with Ollama or a cloud provider, always optional.
 
 ## Contributing
 
@@ -85,7 +118,7 @@ Issues and ideas are welcome. Please open an issue before starting larger change
 
 ## Private use
 
-Full texts, images and archived issues are for your personal use only. Respect the terms of the sites you subscribe to.
+Morning Ink is for your own reading. Full texts, images and archived issues are for your personal use only: do not share or publish them. Respect the terms of the sites you subscribe to. Paid content only works with your own subscription and login.
 
 ## License
 

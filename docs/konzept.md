@@ -480,7 +480,7 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 21 | 3 Oberfläche | Seite Einstellungen: SMTP mit Testmail (Passwort verschlüsselt in der Datenbank); Freigaben fürs Heimnetz (nur Admin). Werte aus Umgebungsvariablen haben Vorrang und erscheinen schreibgeschützt | Testmail kommt an, Passwort wird nie wieder angezeigt | 12, 18 | 🔄 umgesetzt; Testmail an den echten Kindle steht noch aus |
 | 22 | 3 Oberfläche | Dashboard: nächste Ausgabe, letzte Ausgaben mit Status, „Jetzt senden“ | Fehler einer Ausgabe sind dort ohne Blick ins Log sichtbar | 13, 18 | ✅ erledigt |
 | 23 | 3 Oberfläche | Einrichtungsassistent: Kindle-Adresse, SMTP, Region, Testmail, Beispielquellen, erste Ausgabe | Vom leeren Container zur ersten Zeitung in unter 10 Minuten | 19–21 | ✅ erledigt; Durchlauf mit echtem Kindle steht noch aus |
-| 24 | 4 Abnahme | README: Installation, Amazon-Freigabe, Hinweis auf privaten Gebrauch | Jemand ohne Vorwissen kommt allein bis zur ersten Zeitung | 23 | – |
+| 24 | 4 Abnahme | README: Installation, Amazon-Freigabe, Hinweis auf privaten Gebrauch | Jemand ohne Vorwissen kommt allein bis zur ersten Zeitung | 23 | 🔄 geschrieben; Test durch jemanden ohne Vorwissen steht aus, das Container-Image muss dafür öffentlich sein |
 | 25 | 4 Abnahme | Probelauf über 7 Tage mit drei echten Feeds | Alle Abnahmekriterien für das MVP sind abgehakt | 1–24 | – |
 
 Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko steckt in 8 (Volltext) und 11 (EPUB für Kindle), deshalb lohnt es sich, dort früh echte Seiten und einen echten Kindle zu testen.
