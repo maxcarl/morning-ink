@@ -131,7 +131,7 @@ public sealed class IssuePublisher(
         {
             var chosen = section.Sources
                 .SelectMany(source => bySource[source.Id].Select(article => (Article: article, Source: source)))
-                .Where(candidate => fresh.Contains(candidate.Article))
+                .Where(candidate => fresh.Contains(candidate.Article) && ArticleFilter.Admits(candidate.Article, candidate.Source))
                 .OrderByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue)
                 .Take(section.MaxArticles ?? int.MaxValue)
                 .ToList();
@@ -140,7 +140,8 @@ public sealed class IssuePublisher(
             foreach (var (article, source) in chosen)
             {
                 fresh.Remove(article); // an article appears in the first section that takes it
-                if (await ProcessAsync(article, source, cancellationToken) is { } processed)
+                // ponytail: an article too short after the full text leaves a gap in the limit; fetching spares would cost downloads.
+                if (await ProcessAsync(article, source, cancellationToken) is { } processed && ArticleFilter.IsLongEnough(processed, source))
                 {
                     articles.Add(new IssueArticle(processed, source.Name));
                 }

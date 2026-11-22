@@ -52,6 +52,25 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Source_is_renamed_and_gets_filters()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        await AddSourcesAsync(app, "Erste");
+        var page = pages.Open<Sources>("1 feeds");
+
+        Pages.Button(page, "Edit").Click();
+        page.Find("#source-live").Change(true);
+        Pages.Submit(page, ("#source-name", "Lokalnachrichten"), ("#source-exclude", "Fußball, Anzeige"), ("#source-minwords", "80"));
+
+        Pages.Shows(page, "Lokalnachrichten");
+        var source = Assert.Single(await SourcesAsync(app));
+        Assert.Equal(("Lokalnachrichten", 80, true), (source.Name, source.MinWords, source.SkipLiveTickers));
+        Assert.Equal(["Fußball", "Anzeige"], source.ExcludeKeywords);
+        Assert.Contains("filtered", page.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Blocked_home_network_host_can_be_allowed_by_an_admin()
     {
         using var app = new TestApp(); // nothing allowed: the local feed server counts as home network

@@ -258,6 +258,35 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Filtered_articles_take_no_place_in_the_section_limit()
+    {
+        _profile.Sections.Single(s => s.Name == "Nachrichten").MaxArticles = 1;
+        _tagesschau.ExcludeKeywords = ["Liveticker"];
+        Answer(_tagesschau, new SourceResult.Success(
+            [
+                new FetchedArticle(null, "Liveticker zur Wahl", new Uri("https://tagesschau.de/live"), Slot.AddHours(-1), null, null, "<p>Text</p>"),
+                new FetchedArticle(null, "Ergebnis der Wahl", new Uri("https://tagesschau.de/wahl"), Slot.AddHours(-2), null, null, "<p>Text</p>"),
+            ],
+            ETag: null,
+            LastModified: null));
+
+        await PublishAsync();
+
+        var news = Assert.Single(_renderer.Rendered).Sections.Single(s => s.Name == "Nachrichten");
+        Assert.Equal("Ergebnis der Wahl", Assert.Single(news.Articles).Article.Title);
+    }
+
+    [Fact]
+    public async Task Articles_below_the_minimum_length_are_left_out()
+    {
+        _heise.MinWords = 50; // the articles here have one word of text
+
+        await PublishAsync();
+
+        Assert.DoesNotContain(Assert.Single(_renderer.Rendered).Sections, s => s.Name == "Tech");
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 

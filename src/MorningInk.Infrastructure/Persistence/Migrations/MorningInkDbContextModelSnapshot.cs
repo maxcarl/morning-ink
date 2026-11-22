@@ -455,8 +455,16 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
+                    b.PrimitiveCollection<string>("ExcludeKeywords")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("FetchFullText")
                         .HasColumnType("INTEGER");
+
+                    b.PrimitiveCollection<string>("IncludeKeywords")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Kind")
                         .IsRequired()
@@ -472,6 +480,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<int>("MaxArticles")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("MinWords")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -480,6 +491,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<string>("Place")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("SkipLiveTickers")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Url")
                         .HasMaxLength(2048)

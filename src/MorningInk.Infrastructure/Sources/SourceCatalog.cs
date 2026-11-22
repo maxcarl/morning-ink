@@ -19,12 +19,35 @@ public abstract record SourceSaveResult
     public sealed record Invalid(string Reason) : SourceSaveResult;
 }
 
+/// <summary>What the sources page saves for a source; see <see cref="Source"/> for what each setting does.</summary>
+public sealed record SourceSettings(
+    string Name,
+    bool FetchFullText,
+    int MaxArticles,
+    IReadOnlyList<string> IncludeKeywords,
+    IReadOnlyList<string> ExcludeKeywords,
+    int? MinWords,
+    bool SkipLiveTickers)
+{
+    private static readonly char[] Separators = [',', ';', '\n', '\r'];
+
+    /// <summary>Keywords as typed: separated by commas, semicolons or lines; blanks and repeats dropped.</summary>
+    public static IReadOnlyList<string> ParseKeywords(string? text) =>
+        (text ?? string.Empty).Split(Separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+}
+
 /// <summary>A user's sources: list, add, delete and test. Every method only ever sees the given user's sources.</summary>
 public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> sources)
 {
     private const int MaxNameLength = 200;
     private const int MaxPlaceLength = 100;
     private const int LocalNewsMaxArticles = 10;
+    private const int MaxArticlesLimit = 100;
+    private const int MaxMinWords = 10_000;
+    private const int MaxKeywords = 50;
+    private const int MaxKeywordLength = 100;
 
     public async Task<IReadOnlyList<Source>> ListAsync(Guid userId, CancellationToken cancellationToken) =>
         await db.Sources.Where(s => s.UserId == userId).OrderBy(s => s.Name).AsNoTracking().ToListAsync(cancellationToken);
@@ -55,6 +78,37 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
 
         // Fewer than a feed: a town's news search also brings regional and sports news from further away.
         return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Kind = SourceKind.Local, Place = place, Country = code, FetchFullText = true, MaxArticles = LocalNewsMaxArticles }, cancellationToken);
+    }
+
+    /// <summary>Renames the source and sets its limits and filters.</summary>
+    /// <returns>Saved, or Invalid with "NotFound", "NameRequired", "MaxArticlesInvalid", "MinWordsInvalid" or "KeywordsInvalid".</returns>
+    public async Task<SourceSaveResult> SaveSettingsAsync(Guid userId, Guid sourceId, SourceSettings settings, CancellationToken cancellationToken)
+    {
+        var name = settings.Name.Trim();
+        var reason = name.Length is 0 or > MaxNameLength ? "NameRequired"
+            : settings.MaxArticles is < 1 or > MaxArticlesLimit ? "MaxArticlesInvalid"
+            : settings.MinWords is < 1 or > MaxMinWords ? "MinWordsInvalid"
+            : new[] { settings.IncludeKeywords, settings.ExcludeKeywords }.Any(k => k.Count > MaxKeywords || k.Any(w => w.Length > MaxKeywordLength)) ? "KeywordsInvalid"
+            : null;
+        if (reason is not null)
+        {
+            return new SourceSaveResult.Invalid(reason);
+        }
+
+        if (await db.Sources.SingleOrDefaultAsync(s => s.Id == sourceId && s.UserId == userId, cancellationToken) is not { } source)
+        {
+            return new SourceSaveResult.Invalid("NotFound");
+        }
+
+        source.Name = name;
+        source.FetchFullText = settings.FetchFullText;
+        source.MaxArticles = settings.MaxArticles;
+        source.IncludeKeywords = [.. settings.IncludeKeywords];
+        source.ExcludeKeywords = [.. settings.ExcludeKeywords];
+        source.MinWords = settings.MinWords;
+        source.SkipLiveTickers = settings.SkipLiveTickers;
+        await db.SaveChangesAsync(cancellationToken);
+        return new SourceSaveResult.Saved(source);
     }
 
     /// <summary>Deletes the source if it belongs to the user; false otherwise.</summary>

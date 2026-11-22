@@ -75,9 +75,50 @@
                             {
                                 @* The hidden name tells screen readers which of the many "Test" buttons this is. *@
                                 <button type="button" class="button button-secondary button-small" disabled="@_busy" @onclick="() => TestAsync(source)">@T["Sources_Test"]<span class="visually-hidden"> – @source.Name</span></button>
+                                <button type="button" class="link-button" aria-expanded="@(source.Id == _editId ? "true" : "false")" aria-controls="edit-@source.Id" @onclick="() => ToggleEdit(source)">@(source.Id == _editId ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @source.Name</span></button>
                                 <button type="button" class="link-button link-danger" @onclick="() => _confirmId = source.Id">@T["Sources_Delete"]<span class="visually-hidden"> – @source.Name</span></button>
                             }
                         </div>
+                        @if (source.Id == _editId)
+                        {
+                            @* Name, limits and filters; the filters run before the full text is fetched (see ArticleFilter). *@
+                            <form id="edit-@source.Id" class="source-editor" @onsubmit="() => SaveSourceAsync(source.Id)">
+                                <div class="inline-form field">
+                                    <div class="row-main">
+                                        <label class="label" for="source-name">@T["Sources_Name"]</label>
+                                        <input id="source-name" class="input" @bind="_edit.Name" required />
+                                    </div>
+                                    <div>
+                                        <label class="label" for="source-max">@T["Sources_MaxArticles"]</label>
+                                        <input id="source-max" class="input" type="number" min="1" max="100" @bind="_edit.MaxArticles" />
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label for="source-include">@T["Sources_Include"]</label>
+                                    <input id="source-include" class="input" @bind="_edit.Include" placeholder="@T["Sources_IncludePlaceholder"]" aria-describedby="source-include-hint" />
+                                    <span id="source-include-hint" class="hint">@T["Sources_IncludeHint"]</span>
+                                </div>
+                                <div class="field">
+                                    <label for="source-exclude">@T["Sources_Exclude"]</label>
+                                    <input id="source-exclude" class="input" @bind="_edit.Exclude" placeholder="@T["Sources_ExcludePlaceholder"]" aria-describedby="source-exclude-hint" />
+                                    <span id="source-exclude-hint" class="hint">@T["Sources_ExcludeHint"]</span>
+                                </div>
+                                <div class="inline-form field">
+                                    <div>
+                                        <label class="label" for="source-minwords">@T["Sources_MinWords"]</label>
+                                        <input id="source-minwords" class="input" type="number" min="1" @bind="_edit.MinWords" placeholder="@T["Sources_NoMinimum"]" />
+                                    </div>
+                                    <div class="row-main checks">
+                                        <label class="checkbox"><input id="source-live" type="checkbox" @bind="_edit.SkipLiveTickers" /> @T["Sources_SkipLive"]</label>
+                                        <label class="checkbox"><input type="checkbox" @bind="_edit.FetchFullText" /> @T["Sources_FullText"]</label>
+                                    </div>
+                                </div>
+                                <div class="row-actions">
+                                    <button type="submit" class="button button-small" disabled="@_busy">@T["Profile_Save"]<span class="visually-hidden"> – @source.Name</span></button>
+                                    <button type="button" class="link-button" @onclick="() => _editId = null">@T["Confirm_Cancel"]</button>
+                                </div>
+                            </form>
+                        }
                     </li>
                 }
             </ul>
@@ -147,6 +188,8 @@
     private SourceResult? _previewResult;
     private Guid? _selectedId;
     private Guid? _confirmId;
+    private Guid? _editId;
+    private SourceDraft _edit = new();
     private string? _notice;
     private string? _error;
     private string? _blockedHost;
@@ -297,6 +340,43 @@
         }
     }
 
+    private void ToggleEdit(Source source)
+    {
+        _confirmId = null;
+        _editId = _editId == source.Id ? null : source.Id;
+        _edit = new SourceDraft
+        {
+            Name = source.Name,
+            MaxArticles = source.MaxArticles,
+            Include = string.Join(", ", source.IncludeKeywords),
+            Exclude = string.Join(", ", source.ExcludeKeywords),
+            MinWords = source.MinWords,
+            SkipLiveTickers = source.SkipLiveTickers,
+            FetchFullText = source.FetchFullText,
+        };
+    }
+
+    private Task SaveSourceAsync(Guid id) => RunAsync(async () =>
+    {
+        var settings = new SourceSettings(
+            _edit.Name,
+            _edit.FetchFullText,
+            _edit.MaxArticles,
+            SourceSettings.ParseKeywords(_edit.Include),
+            SourceSettings.ParseKeywords(_edit.Exclude),
+            _edit.MinWords,
+            _edit.SkipLiveTickers);
+        if (await UseAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, id, settings, Closed)) is SourceSaveResult.Invalid invalid)
+        {
+            _error = T[$"Error_{invalid.Reason}"];
+            return;
+        }
+
+        _notice = T["Profile_Saved"];
+        _editId = null;
+        await ReloadAsync();
+    });
+
     private Task DeleteAsync(Guid id) => RunAsync(() => DeleteCoreAsync(id));
 
     private async Task DeleteCoreAsync(Guid id)
@@ -368,9 +448,34 @@
         }
     }
 
-    private string Describe(Source source) => source.Kind == SourceKind.Local
-        ? $"{KindName(source.Kind)} · {source.Place}"
-        : $"{KindName(source.Kind)} · {source.Url}";
+    // The open editor's fields; only one source is edited at a time.
+    private sealed class SourceDraft
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public int MaxArticles { get; set; }
+
+        public string Include { get; set; } = string.Empty;
+
+        public string Exclude { get; set; } = string.Empty;
+
+        public int? MinWords { get; set; }
+
+        public bool SkipLiveTickers { get; set; }
+
+        public bool FetchFullText { get; set; }
+    }
+
+    private string Describe(Source source)
+    {
+        var parts = new List<string?> { KindName(source.Kind), source.Kind == SourceKind.Local ? source.Place : source.Url };
+        if (source.IncludeKeywords.Count + source.ExcludeKeywords.Count > 0 || source.MinWords is not null || source.SkipLiveTickers)
+        {
+            parts.Add(T["Sources_Filtered"]);
+        }
+
+        return string.Join(" · ", parts.Where(p => !string.IsNullOrEmpty(p)));
+    }
 
     private string KindName(SourceKind kind) => kind == SourceKind.Local ? T["Kind_Local"] : T["Kind_Rss"];
 }

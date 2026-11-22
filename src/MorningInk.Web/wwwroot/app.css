@@ -272,3 +272,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 /* Archive: a kept issue's toggle reads as pressed */
 .link-button.pinned { color: var(--color-accent); font-weight: 700; text-decoration: none; }
 .link-button.pinned::before { content: "✓ "; }
+
+/* Source editor: below its row, across the full width */
+.source-editor { flex-basis: 100%; padding-top: var(--space-4); border-top: 1px solid var(--color-rule); }
+.source-editor .checks { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 var(--space-6); }

@@ -35,6 +35,18 @@ public class Source
     /// <summary>Articles published longer ago are left out. Articles without a date are kept.</summary>
     public TimeSpan MaxAge { get; set; } = TimeSpan.FromDays(1);
 
+    /// <summary>When not empty, only articles with at least one of these words or phrases in title or teaser.</summary>
+    public List<string> IncludeKeywords { get; set; } = [];
+
+    /// <summary>Articles with one of these words or phrases in title or teaser are left out.</summary>
+    public List<string> ExcludeKeywords { get; set; } = [];
+
+    /// <summary>Articles with fewer words, after the full text, are left out; null keeps all.</summary>
+    public int? MinWords { get; set; }
+
+    /// <summary>Whether to leave out live tickers and live blogs, which are outdated by the time the issue is read.</summary>
+    public bool SkipLiveTickers { get; set; }
+
     /// <summary>Cache validator from the last fetch, so an unchanged source is not downloaded again.</summary>
     public string? ETag { get; set; }
 

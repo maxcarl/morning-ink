@@ -262,4 +262,19 @@
   <data name="Archive_More" xml:space="preserve"><value>Show older issues</value></data>
   <data name="Archive_Sent" xml:space="preserve"><value>Sent again to {0}.</value></data>
   <data name="Archive_SendFailed" xml:space="preserve"><value>Not sent: {0}</value></data>
+  <data name="Sources_MaxArticles" xml:space="preserve"><value>At most (articles)</value></data>
+  <data name="Sources_Include" xml:space="preserve"><value>Only with these words</value></data>
+  <data name="Sources_IncludePlaceholder" xml:space="preserve"><value>e.g. Police, City council</value></data>
+  <data name="Sources_IncludeHint" xml:space="preserve"><value>Separated by commas. Empty takes every article.</value></data>
+  <data name="Sources_Exclude" xml:space="preserve"><value>Never with these words</value></data>
+  <data name="Sources_ExcludePlaceholder" xml:space="preserve"><value>e.g. Football, Advert</value></data>
+  <data name="Sources_ExcludeHint" xml:space="preserve"><value>Looked for in headline and teaser, as whole words, upper or lower case.</value></data>
+  <data name="Sources_MinWords" xml:space="preserve"><value>At least (words)</value></data>
+  <data name="Sources_NoMinimum" xml:space="preserve"><value>no minimum</value></data>
+  <data name="Sources_SkipLive" xml:space="preserve"><value>No live tickers</value></data>
+  <data name="Sources_Filtered" xml:space="preserve"><value>filtered</value></data>
+  <data name="Error_NotFound" xml:space="preserve"><value>This source no longer exists.</value></data>
+  <data name="Error_MaxArticlesInvalid" xml:space="preserve"><value>Choose between 1 and 100 articles.</value></data>
+  <data name="Error_MinWordsInvalid" xml:space="preserve"><value>The minimum length must be at least 1 word.</value></data>
+  <data name="Error_KeywordsInvalid" xml:space="preserve"><value>At most 50 words of up to 100 characters each.</value></data>
 </root>
