@@ -41,7 +41,7 @@
     <div class="inline-form field">
         <div class="row-main">
             <label class="label" for="from">@T["Settings_FromAddress"]</label>
-            <input id="from" class="input" @bind="_fromAddress" type="email" autocomplete="off" @attributes="PasswordManagers.Ignore" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
+            <input id="from" class="input" @bind="_fromAddress" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" readonly="@IsLocked(MailSettingsStore.FromAddressField)" aria-describedby="from-lock" />
             <LockHint Field="@MailSettingsStore.FromAddressField" Id="from-lock" Locked="@Locks.Fields" />
         </div>
         <div class="row-main">

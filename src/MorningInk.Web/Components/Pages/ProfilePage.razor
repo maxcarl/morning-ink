@@ -184,7 +184,7 @@
             </div>
             <div class="field">
                 <label for="recipient">@T["Profile_Recipient"]</label>
-                <input id="recipient" class="input" @bind="_recipient" type="email" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
+                <input id="recipient" class="input" @bind="_recipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
                 <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
             </div>
             <div class="field">

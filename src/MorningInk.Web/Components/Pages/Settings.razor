@@ -103,7 +103,7 @@
         <form @onsubmit="SendTestAsync">
             <div class="field">
                 <label for="test-recipient">@T["Settings_TestRecipient"]</label>
-                <input id="test-recipient" class="input" @bind="_testRecipient" type="email" autocomplete="off" @attributes="PasswordManagers.Ignore" required />
+                <input id="test-recipient" class="input" @bind="_testRecipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" required />
             </div>
             <button type="submit" class="button button-block" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
         </form>

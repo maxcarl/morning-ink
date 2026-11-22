@@ -109,6 +109,7 @@ public sealed class SettingsPageTests : IDisposable
         Assert.All(
             ["#smtp-username", "#smtp-password", "#from", "#ai-key", "#test-recipient"],
             selector => Assert.Equal("true", page.Find(selector).GetAttribute("data-bwignore")));
+        Assert.DoesNotContain("type=\"email\"", page.Markup, StringComparison.Ordinal); // a type Bitwarden takes for a user name regardless
     }
 
     [Fact]
