@@ -20,8 +20,6 @@ public sealed class Pages : BunitContext
 
     private Pages(TestApp app, Guid userId, string name, bool admin)
     {
-        // The texts the tests look for are the English ones.
-        CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
         Services.AddFallbackServiceProvider(app.Services);
         var auth = AddAuthorization();
         auth.SetAuthorized(name);
@@ -52,6 +50,9 @@ public sealed class Pages : BunitContext
     public IRenderedComponent<TPage> Open<TPage>(string loadedWhen)
         where TPage : IComponent
     {
+        // The texts the tests look for are the English ones. Set here, in a method that is not async: a culture set inside
+        // an async method does not flow back to the caller, and the page renders on the caller's context.
+        CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
         var page = Render<TPage>();
         Shows(page, loadedWhen);
         return page;

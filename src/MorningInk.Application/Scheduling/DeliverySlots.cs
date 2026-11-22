@@ -11,6 +11,14 @@ public static class DeliverySlots
         return slot <= now ? slot : ToUtc(today.AddDays(-1), time, zone);
     }
 
+    /// <summary>The first slot after <paramref name="now"/>; a slot exactly at <paramref name="now"/> counts as under way.</summary>
+    public static DateTimeOffset NextAfter(DateTimeOffset now, TimeOnly time, TimeZoneInfo zone)
+    {
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone).DateTime);
+        var slot = ToUtc(today, time, zone);
+        return slot > now ? slot : ToUtc(today.AddDays(1), time, zone);
+    }
+
     private static DateTimeOffset ToUtc(DateOnly date, TimeOnly time, TimeZoneInfo zone)
     {
         var local = date.ToDateTime(time, DateTimeKind.Unspecified);

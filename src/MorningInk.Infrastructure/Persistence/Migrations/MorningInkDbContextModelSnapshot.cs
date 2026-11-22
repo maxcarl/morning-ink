@@ -250,6 +250,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Pinned")
                         .HasColumnType("INTEGER");
 
+                    b.PrimitiveCollection<string>("Problems")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("ProfileId")
                         .HasColumnType("TEXT");
 

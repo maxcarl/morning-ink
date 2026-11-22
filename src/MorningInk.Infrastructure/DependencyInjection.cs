@@ -97,6 +97,7 @@ public static class DependencyInjection
         services.AddTransient<FeedDiscovery>();
         services.AddScoped<SourceCatalog>();
         services.AddScoped<Profiles.ProfileEditor>();
+        services.AddScoped<Profiles.Newsroom>();
         services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));
         services.AddTransient<INewsSearch, GoogleNewsSearch>();
 

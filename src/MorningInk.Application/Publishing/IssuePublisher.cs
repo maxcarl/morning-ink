@@ -85,6 +85,7 @@ public sealed class IssuePublisher(
             await store.SaveChangesAsync(cancellationToken);
 
             var content = await BuildAsync(loaded, issue, localTime, problems, cancellationToken);
+            issue.Problems = problems.Select(p => $"{p.SourceName}: {p.Message}").ToList();
             if (content is null)
             {
                 issue.Status = IssueStatus.Empty;

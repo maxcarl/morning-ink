@@ -77,6 +77,19 @@ public sealed partial class IssueScheduler(
         }
     }
 
+    /// <summary>Builds and sends an issue right away, outside the schedule ("send now"), with the usual retries.</summary>
+    /// <remarks>The slot is the current moment, so it is a new issue of its own; the seen-filter keeps it from repeating the last one.</remarks>
+    public async Task SendNowAsync(IScheduler scheduler, ProfileSchedule schedule, CancellationToken cancellationToken)
+    {
+        if (!await scheduler.Exists(JobKeyFor(schedule.ProfileId), cancellationToken))
+        {
+            await ScheduleAsync(scheduler, schedule, cancellationToken, catchUp: false);
+        }
+
+        var now = time.GetUtcNow();
+        await scheduler.ScheduleJob(OneOff(JobKeyFor(schedule.ProfileId), $"now-{schedule.ProfileId}-{now.ToUnixTimeMilliseconds()}", now, now), default, cancellationToken);
+    }
+
     /// <summary>Plans another delivery attempt for a slot, or gives up after the configured number of attempts.</summary>
     /// <param name="attempts">Attempts made so far.</param>
     public async Task ScheduleRetryAsync(IScheduler scheduler, Guid profileId, DateTimeOffset slot, int attempts, CancellationToken cancellationToken)

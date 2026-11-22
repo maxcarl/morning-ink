@@ -34,6 +34,20 @@ public sealed class IssueSchedulerTests : IDisposable
     }
 
     [Fact]
+    public async Task Send_now_delivers_an_issue_outside_the_schedule()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0)); // nothing due: 18:00 was 13 hours ago
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+        await scheduler.Start();
+
+        await services.GetRequiredService<IssueScheduler>().SendNowAsync(scheduler, new ProfileSchedule(profileId, new TimeOnly(18, 0), "Europe/Berlin"), CancellationToken.None);
+
+        await WaitUntilAsync(() => _smtp.Messages.Count == 1);
+        await scheduler.Shutdown(waitForJobsToComplete: true);
+    }
+
+    [Fact]
     public async Task Slot_older_than_the_catch_up_window_is_skipped()
     {
         await using var services = await StartAsync();

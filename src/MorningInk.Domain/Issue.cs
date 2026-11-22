@@ -33,6 +33,9 @@ public class Issue
 
     public DateTimeOffset? DeliveredAt { get; set; }
 
+    /// <summary>Sources that failed while building, as "name: reason", so the dashboard shows them without the log.</summary>
+    public List<string> Problems { get; set; } = [];
+
     /// <summary>Articles in the issue; after delivery they count as seen.</summary>
     public ICollection<IssueEntry> Entries { get; } = [];
 

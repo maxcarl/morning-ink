@@ -1,25 +1,194 @@
 @page "/"
+@rendermode InteractiveServer
+@inherits InteractivePage
+@using System.Globalization
+@using MorningInk.Application.Scheduling
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Profiles
 
 <PageTitle>@T["Home_Title"] – @T["Brand"]</PageTitle>
 
 <header class="page-header">
     <span class="kicker">@T["Home_Kicker"]</span>
     <h1>@T["Home_Title"]</h1>
-    <p class="lede">@T["Home_Welcome", _name]</p>
+    <p class="lede">@T["Home_Welcome", UserName]</p>
+    @if (_notice is not null)
+    {
+        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+    }
 </header>
-<p class="muted">@T["Home_Empty"]</p>
+
+@if (_view is { } view)
+{
+    var profile = view.Profile;
+    <div class="with-sidebar">
+        <div>
+            @* The lead story: the next issue, big, like a front page's top headline. *@
+            <section class="lead" aria-labelledby="next-heading">
+                <span class="kicker">@T["Dash_Next"]</span>
+                <h2 id="next-heading" class="lead-headline">@Headline(view.NextIssue)</h2>
+                <p class="lede">
+                    @(string.IsNullOrEmpty(profile.Recipient)
+                        ? T["Dash_NextLedeNoRecipient", NextNumber(view), profile.Sections.Count]
+                        : T["Dash_NextLede", NextNumber(view), profile.Sections.Count, profile.Recipient])
+                </p>
+                <button type="button" class="button" disabled="@(!view.CanSend || !view.MailServerSet || _sending)" @onclick="SendNowAsync">@T["Dash_SendNow"]</button>
+            </section>
+
+            <h2 class="department">@T["Dash_Recent"]</h2>
+            @if (view.Issues.Count == 0)
+            {
+                <p class="muted">@T["Dash_NoIssues"]</p>
+            }
+            <ul class="rows" aria-live="polite">
+                @foreach (var issue in view.Issues)
+                {
+                    <li class="row" @key="issue.Id">
+                        <div class="row-main">
+                            <div class="row-title">@T["Dash_IssueTitle", issue.Number] · @Local(issue.ScheduledFor).ToString("g", CultureInfo.CurrentCulture)</div>
+                            <div class="row-meta">@Facts(issue)</div>
+                            @if (issue.Error is not null && issue.Status == IssueStatus.Failed)
+                            {
+                                <p class="status status-error issue-error">@issue.Error</p>
+                            }
+                            @if (issue.Problems.Count > 0)
+                            {
+                                <p class="row-meta">@T["Dash_Unavailable"] @string.Join(" · ", issue.Problems)</p>
+                            }
+                        </div>
+                        @* Status in words, colour only adds to it. *@
+                        <span class="status @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <aside class="sidebar" aria-labelledby="notes-heading">
+            <h2 id="notes-heading" class="label muted">@T["Dash_Notes"]</h2>
+            <ul class="headline-list">
+                @if (string.IsNullOrEmpty(profile.Recipient))
+                {
+                    <li><a href="/profile">@T["Dash_NeedRecipient"]</a></li>
+                }
+                @if (profile.Sections.Count == 0)
+                {
+                    <li><a href="/profile">@T["Dash_NeedSections"]</a></li>
+                }
+                @if (!view.MailServerSet)
+                {
+                    <li>
+                        @if (IsAdmin)
+                        {
+                            <a href="/settings">@T["Dash_NeedMailAdmin"]</a>
+                        }
+                        else
+                        {
+                            @T["Dash_NeedMail"]
+                        }
+                    </li>
+                }
+            </ul>
+            @if (view.CanSend && view.MailServerSet)
+            {
+                <p class="muted">@T["Dash_AllGood"]</p>
+            }
+        </aside>
+    </div>
+}
 
 @code {
-    private string _name = string.Empty;
+    // How often and how long the page looks for the issue that "send now" started.
+    private static readonly TimeSpan PollEvery = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan PollFor = TimeSpan.FromMinutes(5);
 
-    [CascadingParameter]
-    private Task<AuthenticationState>? AuthenticationState { get; set; }
+    private NewsroomView? _view;
+    private string? _notice;
+    private bool _sending;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task LoadAsync() => ReloadAsync();
+
+    private async Task ReloadAsync() => _view = await UseAsync<Newsroom, NewsroomView>(newsroom => newsroom.LoadAsync(UserId, Closed));
+
+    private async Task SendNowAsync()
     {
-        if (AuthenticationState is not null)
+        var newest = _view?.Issues.FirstOrDefault()?.Id;
+        _sending = true;
+        if (!await UseAsync<Newsroom, bool>(newsroom => newsroom.SendNowAsync(UserId, Closed)))
         {
-            _name = (await AuthenticationState).User.Identity?.Name ?? string.Empty;
+            _sending = false;
+            return;
         }
+
+        _notice = T["Dash_SendStarted"];
+        StateHasChanged();
+
+        // The issue is built in the background; look for it until it is done, so the page shows how it went.
+        using var timer = new PeriodicTimer(PollEvery);
+        var until = DateTime.UtcNow + PollFor;
+        try
+        {
+            while (DateTime.UtcNow < until && await timer.WaitForNextTickAsync(Closed))
+            {
+                await ReloadAsync();
+                StateHasChanged();
+                if (_view?.Issues.FirstOrDefault() is { } latest && latest.Id != newest && latest.Status is not IssueStatus.Building)
+                {
+                    break;
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The tab closed; the issue is still built and sent.
+            return;
+        }
+
+        _notice = null;
+        _sending = false;
     }
+
+    // Weekday and short time; "t" inside a custom format would mean the AM/PM letter, so the two are formatted apart.
+    private string Headline(DateTimeOffset utc)
+    {
+        var local = Local(utc);
+        return $"{local.ToString("dddd", CultureInfo.CurrentCulture)}, {local.ToString("t", CultureInfo.CurrentCulture)}";
+    }
+
+    private int NextNumber(NewsroomView view) => view.Issues.Select(i => i.Number).DefaultIfEmpty(0).Max() + 1;
+
+    private DateTimeOffset Local(DateTimeOffset utc) => TimeZoneInfo.ConvertTime(utc, ProfileTimeZone.Find(_view?.Profile.TimeZoneId ?? "UTC"));
+
+    private string Facts(Issue issue)
+    {
+        var facts = new List<string>();
+        if (issue.Entries.Count > 0)
+        {
+            facts.Add(T["Dash_Articles", issue.Entries.Count]);
+        }
+
+        if (issue.FileSize is { } size)
+        {
+            facts.Add(string.Create(CultureInfo.CurrentCulture, $"{size / 1024.0 / 1024.0:0.0} MB"));
+        }
+
+        if (issue.DeliveredAt is { } delivered)
+        {
+            facts.Add(T["Dash_DeliveredAt", Local(delivered).ToString("t", CultureInfo.CurrentCulture)]);
+        }
+
+        if (issue.Attempts.Any(a => !a.Succeeded))
+        {
+            facts.Add(T["Dash_Attempts", issue.Attempts.Count]);
+        }
+
+        return string.Join(" · ", facts);
+    }
+
+    private static string StatusClass(IssueStatus status) => status switch
+    {
+        IssueStatus.Delivered => "status-ok",
+        IssueStatus.Failed => "status-error",
+        IssueStatus.Empty => "muted",
+        _ => "status-warn",
+    };
 }

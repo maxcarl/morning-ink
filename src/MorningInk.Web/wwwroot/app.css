@@ -234,3 +234,9 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .reconnect { display: none; position: fixed; inset: auto 0 0; z-index: 10; margin: 0; padding: var(--space-3) var(--space-6); background: var(--color-ink); color: var(--color-paper); text-align: center; }
 .reconnect a { color: inherit; }
 .reconnect.components-reconnect-failed, .reconnect.components-reconnect-rejected { display: block; }
+
+/* Dashboard: the next issue as the lead story */
+.lead { padding-bottom: var(--space-6); margin-bottom: var(--space-6); border-bottom: 1px solid var(--color-ink); }
+.lead-headline { font-size: clamp(2rem, 5vw, var(--text-2xl)); margin-bottom: var(--space-2); }
+.lead .lede { margin-bottom: var(--space-4); }
+.issue-error { margin: var(--space-1) 0 0; }

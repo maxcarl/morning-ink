@@ -48,6 +48,7 @@ public sealed class IssuePublisherTests : IDisposable
         var content = Assert.Single(_renderer.Rendered);
         Assert.Equal(["heise"], content.UnavailableSources);
         Assert.Single(_delivery.Requests);
+        Assert.Equal(["heise: heise.de could not be reached."], Assert.Single(_store.Issues).Problems); // for the dashboard
     }
 
     [Fact]

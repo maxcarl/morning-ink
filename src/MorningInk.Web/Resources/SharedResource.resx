@@ -30,7 +30,6 @@
     <data name="Logout" xml:space="preserve"><value>Sign out</value></data>
   <data name="Home_Title" xml:space="preserve"><value>Overview</value></data>
   <data name="Home_Welcome" xml:space="preserve"><value>Welcome, {0}.</value></data>
-  <data name="Home_Empty" xml:space="preserve"><value>Your next issue and the latest deliveries will appear here soon.</value></data>
   <data name="NotFound_Title" xml:space="preserve"><value>Page not found</value></data>
   <data name="NotFound_Text" xml:space="preserve"><value>This page does not exist.</value></data>
   <data name="NotFound_Back" xml:space="preserve"><value>Back to the overview</value></data>
@@ -180,4 +179,27 @@
   <data name="Sources_Loading" xml:space="preserve"><value>Loading…</value></data>
   <data name="Profile_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Settings_Sending" xml:space="preserve"><value>Sending…</value></data>
+  <data name="Dash_Next" xml:space="preserve"><value>Next issue</value></data>
+  <data name="Dash_NextLede" xml:space="preserve"><value>Issue no. {0} with {1} sections, sent to {2}.</value></data>
+  <data name="Dash_NextLedeNoRecipient" xml:space="preserve"><value>Issue no. {0} with {1} sections.</value></data>
+  <data name="Dash_SendNow" xml:space="preserve"><value>Send now</value></data>
+  <data name="Dash_SendStarted" xml:space="preserve"><value>The issue is being built and sent. It shows up below in a moment.</value></data>
+  <data name="Dash_Recent" xml:space="preserve"><value>Recent issues</value></data>
+  <data name="Dash_NoIssues" xml:space="preserve"><value>No issues yet. The first one comes at the next delivery time, or right away with “Send now”.</value></data>
+  <data name="Dash_IssueTitle" xml:space="preserve"><value>No. {0}</value></data>
+  <data name="Dash_Articles" xml:space="preserve"><value>{0} articles</value></data>
+  <data name="Dash_DeliveredAt" xml:space="preserve"><value>delivered {0}</value></data>
+  <data name="Dash_Attempts" xml:space="preserve"><value>{0} delivery attempts</value></data>
+  <data name="Dash_Unavailable" xml:space="preserve"><value>Not reachable while building:</value></data>
+  <data name="Dash_Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Dash_AllGood" xml:space="preserve"><value>No news is good news: everything is set up.</value></data>
+  <data name="Dash_NeedRecipient" xml:space="preserve"><value>No recipient yet. Enter your Send-to-Kindle address under Edition.</value></data>
+  <data name="Dash_NeedSections" xml:space="preserve"><value>No sections yet. Add one under Edition.</value></data>
+  <data name="Dash_NeedMail" xml:space="preserve"><value>No mail server yet. Ask an admin to set it up.</value></data>
+  <data name="Dash_NeedMailAdmin" xml:space="preserve"><value>No mail server yet. Set it up under Settings.</value></data>
+  <data name="Status_Building" xml:space="preserve"><value>Being built</value></data>
+  <data name="Status_Rendered" xml:space="preserve"><value>Built, not delivered yet</value></data>
+  <data name="Status_Delivered" xml:space="preserve"><value>Delivered</value></data>
+  <data name="Status_Failed" xml:space="preserve"><value>Delivery failed</value></data>
+  <data name="Status_Empty" xml:space="preserve"><value>No new articles</value></data>
 </root>

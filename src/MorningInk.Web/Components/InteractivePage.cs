@@ -15,6 +15,8 @@ public abstract class InteractivePage : ComponentBase, IDisposable
 
     protected bool IsAdmin { get; private set; }
 
+    protected string UserName { get; private set; } = string.Empty;
+
     /// <summary>Cancelled when the page goes away, so a slow feed test stops with it.</summary>
     protected CancellationToken Closed => _closed.Token;
 
@@ -39,6 +41,7 @@ public abstract class InteractivePage : ComponentBase, IDisposable
         var user = (await Authentication.GetAuthenticationStateAsync()).User;
         UserId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("Pages require a signed-in user."));
         IsAdmin = user.IsInRole(nameof(UserRole.Admin));
+        UserName = user.Identity?.Name ?? string.Empty;
         await LoadAsync();
     }
 
