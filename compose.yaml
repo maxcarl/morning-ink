@@ -1,6 +1,7 @@
 services:
   morning-ink:
     build: .
+    container_name: morning-ink
     image: ghcr.io/maxcarl/morning-ink:latest
     ports:
       - "8080:8080"
