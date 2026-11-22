@@ -41,157 +41,170 @@
     <Messages Notice="@_notice" Errors="_errors" />
 </header>
 
-@* One column in reading order: what is in the paper, what it prefers, when and where it goes. *@
-<div class="columns">
-    <div>
-        <section aria-labelledby="sections-heading">
-            <h2 id="sections-heading" class="department">@T["Profile_Sections"]</h2>
-            <p class="hint">@T["Profile_SectionsHint"]</p>
-            @if (_sections.Count == 0)
-            {
-                <p class="muted">@T["Profile_NoSections"]</p>
-            }
-            <ul class="rows">
-                @for (var i = 0; i < _sections.Count; i++)
+@* Three areas, one at a time, so a phone shows one screen of fields and not all of them at once. *@
+<div class="tabs" role="tablist" aria-label="@T["Profile_Title"]">
+    @foreach (var area in Areas)
+    {
+        <button type="button" role="tab" id="area-tab-@area" class="tab" aria-selected="@(area == _area ? "true" : "false")" aria-controls="area-@area" @onclick="() => _area = area">@T[$"Profile_Area_{area}"]</button>
+    }
+</div>
+
+<div id="area-content" role="tabpanel" aria-labelledby="area-tab-content" hidden="@(_area != "content")">
+    <div class="columns">
+        <div>
+            <section aria-labelledby="sections-heading">
+                <h2 id="sections-heading" class="department">@T["Profile_Sections"]</h2>
+                <p class="hint">@T["Profile_SectionsHint"]</p>
+                @if (_sections.Count == 0)
                 {
-                    var index = i;
-                    var item = _sections[i];
-                    var open = item.Id == _openId;
-                    @* Drag a row onto another to move it there. The arrows in the editor do the same by keyboard. *@
-                    <li @key="item.Id" draggable="@(open ? "false" : "true")" class="@(item.Id == _overId ? "drop-target" : null)"
-                        @ondragstart="() => _dragId = item.Id" @ondragenter="() => _overId = item.Id" @ondragend="() => _overId = _dragId = null"
-                        @ondragover:preventDefault @ondrop="() => DropAsync(index)">
-                        <div class="row">
-                            <span class="drag-handle" aria-hidden="true">⋮⋮</span>
-                            <div class="row-main">
-                                <div class="row-title">@item.Name</div>
-                                <div class="row-meta">@Summary(item)</div>
+                    <p class="muted">@T["Profile_NoSections"]</p>
+                }
+                <ul class="rows">
+                    @for (var i = 0; i < _sections.Count; i++)
+                    {
+                        var index = i;
+                        var item = _sections[i];
+                        var open = item.Id == _openId;
+                        @* Drag a row onto another to move it there. The arrows in the editor do the same by keyboard. *@
+                        <li @key="item.Id" draggable="@(open ? "false" : "true")" class="@(item.Id == _overId ? "drop-target" : null)"
+                            @ondragstart="() => _dragId = item.Id" @ondragenter="() => _overId = item.Id" @ondragend="() => _overId = _dragId = null"
+                            @ondragover:preventDefault @ondrop="() => DropAsync(index)">
+                            <div class="row">
+                                <span class="drag-handle" aria-hidden="true">⋮⋮</span>
+                                <div class="row-main">
+                                    <div class="row-title">@item.Name</div>
+                                    <div class="row-meta">@Summary(item)</div>
+                                </div>
+                                <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="editor-@item.Id" @onclick="() => Toggle(item)">
+                                    @(open ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @item.Name</span>
+                                </button>
                             </div>
-                            <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="editor-@item.Id" @onclick="() => Toggle(item)">
-                                @(open ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @item.Name</span>
-                            </button>
-                        </div>
-                        @if (open)
-                        {
-                            <form id="editor-@item.Id" class="editor-body" @onsubmit="() => SaveSectionAsync(item.Id)">
-                                <fieldset class="field">
-                                    <legend class="label">@T["Profile_SectionSources"]</legend>
-                                    @if (_sources.Count == 0)
-                                    {
-                                        <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
-                                    }
-                                    @if (_sources.Count > SearchFrom)
-                                    {
-                                        <div class="search">
-                                            <label class="visually-hidden" for="find-@item.Id">@T["Profile_FindSource"]</label>
-                                            <input id="find-@item.Id" class="input" type="search" placeholder="@T["Profile_FindSource"]" @bind="_find" @bind:event="oninput" />
+                            @if (open)
+                            {
+                                <form id="editor-@item.Id" class="editor-body" @onsubmit="() => SaveSectionAsync(item.Id)">
+                                    <fieldset class="field">
+                                        <legend class="label">@T["Profile_SectionSources"]</legend>
+                                        @if (_sources.Count == 0)
+                                        {
+                                            <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
+                                        }
+                                        @if (_sources.Count > SearchFrom)
+                                        {
+                                            <div class="search">
+                                                <label class="visually-hidden" for="find-@item.Id">@T["Profile_FindSource"]</label>
+                                                <input id="find-@item.Id" class="input" type="search" placeholder="@T["Profile_FindSource"]" @bind="_find" @bind:event="oninput" />
+                                            </div>
+                                        }
+                                        <div class="choices">
+                                            @foreach (var source in Choices())
+                                            {
+                                                <label class="checkbox" @key="source.Id"><input type="checkbox" checked="@_picked.Contains(source.Id)" @onchange="() => Pick(source.Id)" /> @source.Name</label>
+                                            }
                                         </div>
-                                    }
-                                    <div class="choices">
-                                        @foreach (var source in Choices())
+                                    </fieldset>
+                                    <div class="inline-form field">
+                                        <div class="row-main">
+                                            <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
+                                            <input id="name-@item.Id" class="input" @bind="_name" required />
+                                        </div>
+                                        <div>
+                                            <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
+                                            <input id="max-@item.Id" class="input" @bind="_max" inputmode="numeric" placeholder="@T["Profile_Unlimited"]" />
+                                        </div>
+                                    </div>
+                                    <div class="row-actions">
+                                        @if (item.Id == _confirmId)
                                         {
-                                            <label class="checkbox" @key="source.Id"><input type="checkbox" checked="@_picked.Contains(source.Id)" @onchange="() => Pick(source.Id)" /> @source.Name</label>
+                                            <p class="confirm" role="alert">@T["Confirm_Delete", item.Name]</p>
+                                            <button type="button" class="button button-small" @onclick="() => DeleteAsync(item.Id)">@T["Confirm_Yes"]</button>
+                                            <button type="button" class="link-button" @onclick="() => _confirmId = null">@T["Confirm_Cancel"]</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="button button-small">@T["Profile_Save"]<span class="visually-hidden"> – @item.Name</span></button>
+                                            @if (index > 0)
+                                            {
+                                                <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index - 1)">@T["Profile_MoveUp"]<span class="visually-hidden"> – @item.Name</span></button>
+                                            }
+                                            @if (index < _sections.Count - 1)
+                                            {
+                                                <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index + 1)">@T["Profile_MoveDown"]<span class="visually-hidden"> – @item.Name</span></button>
+                                            }
+                                            <button type="button" class="link-button link-danger" @onclick="() => _confirmId = item.Id">@T["Profile_DeleteSection"]<span class="visually-hidden"> – @item.Name</span></button>
                                         }
                                     </div>
-                                </fieldset>
-                                <div class="inline-form field">
-                                    <div class="row-main">
-                                        <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
-                                        <input id="name-@item.Id" class="input" @bind="_name" required />
-                                    </div>
-                                    <div>
-                                        <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
-                                        <input id="max-@item.Id" class="input" @bind="_max" inputmode="numeric" placeholder="@T["Profile_Unlimited"]" />
-                                    </div>
-                                </div>
-                                <div class="row-actions">
-                                    @if (item.Id == _confirmId)
-                                    {
-                                        <p class="confirm" role="alert">@T["Confirm_Delete", item.Name]</p>
-                                        <button type="button" class="button button-small" @onclick="() => DeleteAsync(item.Id)">@T["Confirm_Yes"]</button>
-                                        <button type="button" class="link-button" @onclick="() => _confirmId = null">@T["Confirm_Cancel"]</button>
-                                    }
-                                    else
-                                    {
-                                        <button type="submit" class="button button-small">@T["Profile_Save"]<span class="visually-hidden"> – @item.Name</span></button>
-                                        @if (index > 0)
-                                        {
-                                            <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index - 1)">@T["Profile_MoveUp"]<span class="visually-hidden"> – @item.Name</span></button>
-                                        }
-                                        @if (index < _sections.Count - 1)
-                                        {
-                                            <button type="button" class="button button-secondary button-small" @onclick="() => MoveAsync(item.Id, index + 1)">@T["Profile_MoveDown"]<span class="visually-hidden"> – @item.Name</span></button>
-                                        }
-                                        <button type="button" class="link-button link-danger" @onclick="() => _confirmId = item.Id">@T["Profile_DeleteSection"]<span class="visually-hidden"> – @item.Name</span></button>
-                                    }
-                                </div>
-                            </form>
-                        }
-                    </li>
-                }
-            </ul>
-            <form @onsubmit="AddSectionAsync" class="field">
-                <label class="label" for="new-section">@T["Profile_AddSection"]</label>
-                <div class="inline-form">
-                    <input id="new-section" class="input" @bind="_newSection" required />
-                    <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
-                </div>
-            </form>
-        </section>
-
-        <section aria-labelledby="interests-heading">
-            <h2 id="interests-heading" class="department">@T["Interests_Title"]</h2>
-            <p class="hint">@T["Interests_Hint"]</p>
-            <details class="explainer">
-                <summary>@T["Interests_How"]</summary>
-                <p>@T["Interests_HowTopic"]</p>
-                <p>@T["Interests_HowKeywords"]</p>
-                <p>@T["Interests_HowWeight"]</p>
-                <p>@T["Interests_HowExamples"]</p>
-                <ul>
-                    <li>@T["Interests_ExampleFootball"]</li>
-                    <li>@T["Interests_ExampleCelebrities"]</li>
+                                </form>
+                            }
+                        </li>
+                    }
                 </ul>
-                <p>@T["Interests_HowSources"]</p>
-            </details>
-            <form @onsubmit="SaveInterestsAsync">
-                @for (var i = 0; i < _interests.Count; i++)
-                {
-                    var draft = _interests[i];
-                    var index = i;
-                    <div class="interest inline-form field" @key="draft">
-                        <div>
-                            <label class="label" for="interest-topic-@index">@T["Interests_Topic"]</label>
-                            <input id="interest-topic-@index" class="input" @bind="draft.Topic" placeholder="@T["Interests_TopicPlaceholder"]" />
-                        </div>
-                        <div class="row-main">
-                            <label class="label" for="interest-keywords-@index">@T["Interests_Keywords"]</label>
-                            <input id="interest-keywords-@index" class="input" @bind="draft.Keywords" placeholder="@T["Interests_KeywordsPlaceholder"]" />
-                        </div>
-                        <div>
-                            <label class="label" for="interest-weight-@index">@T["Interests_Weight"]</label>
-                            <select id="interest-weight-@index" class="input" @bind="draft.Weight">
-                                @foreach (var weight in new[] { InterestWeight.StrongPrefer, InterestWeight.Prefer, InterestWeight.Less, InterestWeight.Hide })
-                                {
-                                    <option value="@weight">@T[$"Interests_Weight_{weight}"]</option>
-                                }
-                            </select>
-                        </div>
-                        <button type="button" class="link-button link-danger" @onclick="() => _interests.RemoveAt(index)">@T["Interests_Remove"]<span class="visually-hidden"> – @draft.Topic</span></button>
+                <form @onsubmit="AddSectionAsync" class="field">
+                    <label class="label" for="new-section">@T["Profile_AddSection"]</label>
+                    <div class="inline-form">
+                        <input id="new-section" class="input" @bind="_newSection" required />
+                        <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
                     </div>
-                }
-                <div class="row-actions">
-                    <button type="button" class="button button-secondary button-small" @onclick="() => _interests.Add(new InterestDraft())">+ @T["Interests_Add"]</button>
-                    <button type="submit" class="button button-small">@T["Interests_Save"]</button>
-                </div>
-            </form>
-        </section>
+                </form>
+            </section>
+        </div>
+        <div>
+            <section aria-labelledby="interests-heading">
+                <h2 id="interests-heading" class="department">@T["Interests_Title"]</h2>
+                <p class="hint">@T["Interests_Hint"]</p>
+                <details class="explainer">
+                    <summary>@T["Interests_How"]</summary>
+                    <p>@T["Interests_HowTopic"]</p>
+                    <p>@T["Interests_HowKeywords"]</p>
+                    <p>@T["Interests_HowWeight"]</p>
+                    <p>@T["Interests_HowExamples"]</p>
+                    <ul>
+                        <li>@T["Interests_ExampleFootball"]</li>
+                        <li>@T["Interests_ExampleCelebrities"]</li>
+                    </ul>
+                    <p>@T["Interests_HowSources"]</p>
+                </details>
+                <form @onsubmit="SaveInterestsAsync">
+                    @for (var i = 0; i < _interests.Count; i++)
+                    {
+                        var draft = _interests[i];
+                        var index = i;
+                        <div class="interest inline-form field" @key="draft">
+                            <div>
+                                <label class="label" for="interest-topic-@index">@T["Interests_Topic"]</label>
+                                <input id="interest-topic-@index" class="input" @bind="draft.Topic" placeholder="@T["Interests_TopicPlaceholder"]" />
+                            </div>
+                            <div class="row-main">
+                                <label class="label" for="interest-keywords-@index">@T["Interests_Keywords"]</label>
+                                <input id="interest-keywords-@index" class="input" @bind="draft.Keywords" placeholder="@T["Interests_KeywordsPlaceholder"]" />
+                            </div>
+                            <div>
+                                <label class="label" for="interest-weight-@index">@T["Interests_Weight"]</label>
+                                <select id="interest-weight-@index" class="input" @bind="draft.Weight">
+                                    @foreach (var weight in new[] { InterestWeight.StrongPrefer, InterestWeight.Prefer, InterestWeight.Less, InterestWeight.Hide })
+                                    {
+                                        <option value="@weight">@T[$"Interests_Weight_{weight}"]</option>
+                                    }
+                                </select>
+                            </div>
+                            <button type="button" class="link-button link-danger" @onclick="() => _interests.RemoveAt(index)">@T["Interests_Remove"]<span class="visually-hidden"> – @draft.Topic</span></button>
+                        </div>
+                    }
+                    <div class="row-actions">
+                        <button type="button" class="button button-secondary button-small" @onclick="() => _interests.Add(new InterestDraft())">+ @T["Interests_Add"]</button>
+                        <button type="submit" class="button button-small">@T["Interests_Save"]</button>
+                    </div>
+                </form>
+            </section>
+        </div>
     </div>
+</div>
 
-    <div>
+<div id="area-delivery" role="tabpanel" aria-labelledby="area-tab-delivery" hidden="@(_area != "delivery")">
         <section aria-labelledby="settings-heading">
             <h2 id="settings-heading" class="visually-hidden">@T["Profile_Settings"]</h2>
             <form @onsubmit="SaveSettingsAsync">
+                <div class="columns">
+                <div>
                 <h3 class="department">@T["Profile_GroupPaper"]</h3>
                 <div class="field-row">
                     <div class="field">
@@ -246,7 +259,9 @@
                     <span id="lead-hint" class="hint">@T["Profile_LeadTimeHint"]</span>
                 </div>
 
-                <h3 class="department form-group">@T["Profile_Delivery"]</h3>
+                </div>
+                <div>
+                <h3 class="department">@T["Profile_Delivery"]</h3>
                 <fieldset class="field">
                     <legend class="visually-hidden">@T["Profile_Delivery"]</legend>
                     <div class="choices">
@@ -263,65 +278,72 @@
                         <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
                     </div>
                 }
+                </div>
+                </div>
                 <button type="submit" class="button">@T["Profile_Save"]</button>
             </form>
         </section>
+</div>
 
-        <section aria-labelledby="notify-heading">
-            <h2 id="notify-heading" class="department">@T["Notify_Title"]</h2>
-            <p class="hint">@T["Notify_Hint"]</p>
-            <form @onsubmit="SaveNotificationAsync" aria-labelledby="notify-heading">
-                <div class="field">
-                    <label for="notify-channel">@T["Notify_Channel"]</label>
-                    <select id="notify-channel" class="input" @bind="_notifyChannel">
-                        @foreach (var channel in Enum.GetValues<NotificationChannel>())
-                        {
-                            <option value="@channel">@T[$"Notify_Channel_{channel}"]</option>
-                        }
-                    </select>
-                </div>
-                @if (_notifyChannel != NotificationChannel.None)
-                {
+<div id="area-notify" role="tabpanel" aria-labelledby="area-tab-notify" hidden="@(_area != "notify")">
+    <div class="columns">
+        <div>
+            <section aria-labelledby="notify-heading">
+                <h2 id="notify-heading" class="department">@T["Notify_Title"]</h2>
+                <p class="hint">@T["Notify_Hint"]</p>
+                <form @onsubmit="SaveNotificationAsync" aria-labelledby="notify-heading">
                     <div class="field">
-                        <label for="notify-target">@T[$"Notify_Target_{_notifyChannel}"]</label>
-                        <input id="notify-target" class="input" type="text" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_notifyTarget" aria-describedby="notify-target-hint" required />
-                        <span id="notify-target-hint" class="hint">@T[$"Notify_TargetHint_{_notifyChannel}"]</span>
+                        <label for="notify-channel">@T["Notify_Channel"]</label>
+                        <select id="notify-channel" class="input" @bind="_notifyChannel">
+                            @foreach (var channel in Enum.GetValues<NotificationChannel>())
+                            {
+                                <option value="@channel">@T[$"Notify_Channel_{channel}"]</option>
+                            }
+                        </select>
                     </div>
-                    @if (_notifyChannel != NotificationChannel.Email)
+                    @if (_notifyChannel != NotificationChannel.None)
                     {
                         <div class="field">
-                            <label for="notify-secret">@T[$"Notify_Secret_{_notifyChannel}"]</label>
-                            @* Never filled in from storage, like the mail password. *@
-                            <input id="notify-secret" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_notifySecret" aria-describedby="notify-secret-hint" />
-                            <span id="notify-secret-hint" class="hint">@(_notifySecretSaved ? T["Notify_SecretSaved"] : T[$"Notify_SecretHint_{_notifyChannel}"])</span>
+                            <label for="notify-target">@T[$"Notify_Target_{_notifyChannel}"]</label>
+                            <input id="notify-target" class="input" type="text" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_notifyTarget" aria-describedby="notify-target-hint" required />
+                            <span id="notify-target-hint" class="hint">@T[$"Notify_TargetHint_{_notifyChannel}"]</span>
                         </div>
+                        @if (_notifyChannel != NotificationChannel.Email)
+                        {
+                            <div class="field">
+                                <label for="notify-secret">@T[$"Notify_Secret_{_notifyChannel}"]</label>
+                                @* Never filled in from storage, like the mail password. *@
+                                <input id="notify-secret" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_notifySecret" aria-describedby="notify-secret-hint" />
+                                <span id="notify-secret-hint" class="hint">@(_notifySecretSaved ? T["Notify_SecretSaved"] : T[$"Notify_SecretHint_{_notifyChannel}"])</span>
+                            </div>
+                        }
                     }
+                    <div class="row-actions">
+                        <button type="submit" class="button">@T["Profile_Save"]</button>
+                        @if (_profile?.NotifyChannel is not (null or NotificationChannel.None))
+                        {
+                            <button type="button" class="button button-secondary" disabled="@_notifyBusy" @onclick="TestNotificationAsync">@T["Notify_Test"]</button>
+                        }
+                    </div>
+                </form>
+                @if (_editions.Count > 1 && _profile is not null)
+                {
+                    @* A user always keeps one edition, so the last one has no delete. *@
+                    <div class="row-actions edition-delete">
+                        @if (_confirmEdition)
+                        {
+                            <p class="confirm" role="alert">@T["Confirm_Delete", _profile.Title] @T["Profile_DeleteEditionHint"]</p>
+                            <button type="button" class="button button-small" @onclick="DeleteEditionAsync">@T["Confirm_Yes"]</button>
+                            <button type="button" class="link-button" @onclick="() => _confirmEdition = false">@T["Confirm_Cancel"]</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="link-button link-danger" @onclick="() => _confirmEdition = true">@T["Profile_DeleteEdition"]</button>
+                        }
+                    </div>
                 }
-                <div class="row-actions">
-                    <button type="submit" class="button">@T["Profile_Save"]</button>
-                    @if (_profile?.NotifyChannel is not (null or NotificationChannel.None))
-                    {
-                        <button type="button" class="button button-secondary" disabled="@_notifyBusy" @onclick="TestNotificationAsync">@T["Notify_Test"]</button>
-                    }
-                </div>
-            </form>
-            @if (_editions.Count > 1 && _profile is not null)
-            {
-                @* A user always keeps one edition, so the last one has no delete. *@
-                <div class="row-actions edition-delete">
-                    @if (_confirmEdition)
-                    {
-                        <p class="confirm" role="alert">@T["Confirm_Delete", _profile.Title] @T["Profile_DeleteEditionHint"]</p>
-                        <button type="button" class="button button-small" @onclick="DeleteEditionAsync">@T["Confirm_Yes"]</button>
-                        <button type="button" class="link-button" @onclick="() => _confirmEdition = false">@T["Confirm_Cancel"]</button>
-                    }
-                    else
-                    {
-                        <button type="button" class="link-button link-danger" @onclick="() => _confirmEdition = true">@T["Profile_DeleteEdition"]</button>
-                    }
-                </div>
-            }
-        </section>
+            </section>
+        </div>
     </div>
 </div>
 
@@ -357,6 +379,8 @@
     private string _title = string.Empty;
     private string _recipient = string.Empty;
     private bool _sendByEmail = true;
+    private static readonly string[] Areas = ["content", "delivery", "notify"];
+    private string _area = "content";
     private TimeOnly _time;
     private HashSet<DayOfWeek> _days = [];
     private List<InterestDraft> _interests = [];

@@ -50,17 +50,19 @@
                 {
                     <li class="row @(source.Id == _selectedId ? "row-selected" : null)" @key="source.Id">
                         <div class="row-main">
-                            <div class="row-title">@source.Name</div>
+                            <div class="row-title">
+                                @source.Name
+                                @if (source.FetchFullText)
+                                {
+                                    <span class="badge">@T["Sources_FullTextFact"]</span>
+                                }
+                            </div>
                             <div class="row-meta">@Describe(source)</div>
                             @if (HealthNote(source) is { } note)
                             {
                                 <div class="row-meta status @note.Class">@note.Text</div>
                             }
                         </div>
-                        @if (source.FetchFullText)
-                        {
-                            <span class="badge">@T["Sources_FullTextFact"]</span>
-                        }
                         <div class="row-actions">
                             @if (source.Id == _confirmId)
                             {

@@ -74,7 +74,7 @@ a {
 }
 
 .row-main {
-  flex: 1 1 16rem;
+  flex: 1 1 12rem;
   min-width: 0;
 }
 
@@ -563,4 +563,19 @@ textarea.input {
 /* A further group of the same form, spaced like a section of its own */
 .form-group {
   margin-top: var(--space-12);
+}
+
+/* A badge next to a title sits on its line, smaller than the title */
+.row-title .badge {
+  margin-left: var(--space-2);
+  font-family: var(--font-sans);
+  vertical-align: middle;
+}
+
+/* On a phone, rows keep to two lines: what it is, then what to do with it */
+@media (max-width: 40rem) {
+  .row {
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+  }
 }

@@ -594,4 +594,7 @@
   <data name="Sources_AddTab_newsletter" xml:space="preserve"><value>Newsletter</value></data>
   <data name="Sources_AddTab_opml" xml:space="preserve"><value>Import / Export</value></data>
   <data name="Welcome_DoneLedeFetch" xml:space="preserve"><value>Deine Zeitung hat {0} Rubriken und liegt für deinen Reader im OPDS-Katalog bereit (siehe Konto).</value></data>
+  <data name="Profile_Area_content" xml:space="preserve"><value>Inhalt</value></data>
+  <data name="Profile_Area_delivery" xml:space="preserve"><value>Zeitplan &amp; Zustellung</value></data>
+  <data name="Profile_Area_notify" xml:space="preserve"><value>Benachrichtigung</value></data>
 </root>
