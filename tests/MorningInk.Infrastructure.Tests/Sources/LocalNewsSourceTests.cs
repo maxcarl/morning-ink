@@ -86,7 +86,10 @@ public sealed class LocalNewsSourceTests : IDisposable
     {
         var result = await FetchAsync(Local("Xyzzyqwerty"));
 
-        Assert.Contains("Xyzzyqwerty", Assert.IsType<SourceResult.Failure>(result).Message, StringComparison.Ordinal);
+        var failure = Assert.IsType<SourceResult.Failure>(result);
+        Assert.Contains("Xyzzyqwerty", failure.Message, StringComparison.Ordinal);
+        Assert.Equal("PlaceNotFound", failure.Reason);
+        Assert.Equal(["Xyzzyqwerty"], failure.Arguments);
     }
 
     [Theory]

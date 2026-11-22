@@ -37,12 +37,14 @@ internal sealed class BingNewsSearch(SafeHttpClient http, IOptions<NewsSearchOpt
         var fetched = await http.GetAsync(Urls.WithQuery(settings.BingNewsUrl, parameters), cancellationToken: cancellationToken);
         if (fetched is not FetchResult.Success page)
         {
-            return new SourceResult.Failure(fetched is FetchResult.Failure failure ? failure.Message : "The news search did not answer.");
+            return fetched is FetchResult.Failure failure
+                ? failure.ToSourceFailure()
+                : new SourceResult.Failure("The news search did not answer.", Reason: "NewsSearchNoAnswer");
         }
 
         if (FeedParser.LoadXml(page.Content)?.Root?.Element("channel") is not { } channel)
         {
-            return new SourceResult.Failure("The news search returned no readable feed.");
+            return new SourceResult.Failure("The news search returned no readable feed.", Reason: "NewsSearchNoFeed");
         }
 
         var articles = channel.Elements("item").Select(ToArticle).OfType<FetchedArticle>().ToList();

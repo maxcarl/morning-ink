@@ -203,7 +203,7 @@
                     }
                     break;
                 case SourceResult.Failure failure:
-                    <p class="status status-error">@failure.Message</p>
+                    <p class="status status-error">@SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)</p>
                     break;
                 default:
                     <p class="muted">@T["Sources_NoArticles"]</p>
@@ -328,7 +328,7 @@
                 _blockedHost = host;
                 break;
             case FeedDiscoveryResult.Failure failure:
-                _error = T["Sources_DiscoveryFailed", failure.Message];
+                _error = T["Sources_DiscoveryFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)];
                 break;
         }
     }

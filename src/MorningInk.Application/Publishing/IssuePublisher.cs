@@ -130,7 +130,6 @@ public sealed class IssuePublisher(
             await store.SaveChangesAsync(cancellationToken);
 
             var content = await BuildAsync(loaded, issue, localTime, problems, cancellationToken);
-            issue.Problems = problems.Select(p => $"{p.SourceName}: {p.Message}").ToList();
             if (content is null)
             {
                 issue.Status = IssueStatus.Empty;
@@ -206,7 +205,9 @@ public sealed class IssuePublisher(
             bySource[source.Id] = await FetchAsync(source, problems, cancellationToken);
             if (problems.Count > before)
             {
-                issue.AddLog(time.GetUtcNow(), "SourceFailed", source.Name, problems[^1].Message);
+                // Source and English text, then code and values, so the dashboard can say it in the user's language.
+                var problem = problems[^1];
+                issue.AddLog(time.GetUtcNow(), "SourceFailed", [problem.SourceName, problem.Message, problem.Reason ?? string.Empty, .. problem.Arguments]);
             }
             else
             {
@@ -345,7 +346,7 @@ public sealed class IssuePublisher(
     {
         if (sources.FirstOrDefault(s => s.Kind == source.Kind) is not { } implementation)
         {
-            problems.Add(new SourceProblem(source.Name, $"Source type {source.Kind} is not available."));
+            problems.Add(new SourceProblem(source.Name, $"Source type {source.Kind} is not available.", "KindUnavailable", [source.Kind.ToString()]));
             return [];
         }
 
@@ -359,7 +360,7 @@ public sealed class IssuePublisher(
                     source.LastModified = success.LastModified;
                     return success.Articles;
                 case SourceResult.Failure failure:
-                    problems.Add(new SourceProblem(source.Name, failure.Message));
+                    problems.Add(new SourceProblem(source.Name, failure.Message, failure.Reason, failure.Arguments));
                     return [];
                 default:
                     return [];

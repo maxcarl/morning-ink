@@ -39,7 +39,7 @@ public sealed class IssuePublisherTests : IDisposable
     [Fact]
     public async Task Failed_source_still_delivers_the_issue_with_a_note()
     {
-        Answer(_heise, new SourceResult.Failure("heise.de could not be reached."));
+        Answer(_heise, new SourceResult.Failure("heise.de could not be reached.", Reason: "Unreachable", Arguments: ["heise.de"]));
 
         var result = await PublishAsync();
 
@@ -49,7 +49,9 @@ public sealed class IssuePublisherTests : IDisposable
         var content = Assert.Single(_renderer.Rendered);
         Assert.Equal(["heise"], content.UnavailableSources);
         Assert.Single(_delivery.Requests);
-        Assert.Equal(["heise: heise.de could not be reached."], Assert.Single(_store.Issues).Problems); // for the dashboard
+        // The dashboard reads it from the log: source, English text, then code and values for the user's language.
+        var failed = Assert.Single(Assert.Single(_store.Issues).Log, e => e.Event == "SourceFailed");
+        Assert.Equal(["heise", "heise.de could not be reached.", "Unreachable", "heise.de"], failed.Arguments);
     }
 
     [Fact]

@@ -20,7 +20,7 @@ public sealed class HomePageTests : IDisposable
         {
             issue.Status = IssueStatus.Failed;
             issue.Error = "550 Mailbox unavailable";
-            issue.Problems = ["heise: heise.de could not be reached."];
+            issue.AddLog(DateTimeOffset.UtcNow, "SourceFailed", "heise", "heise.de could not be reached.", "Unreachable", "heise.de");
             issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = DateTimeOffset.UtcNow, Succeeded = false, Error = "timeout" });
             issue.Attempts.Add(new DeliveryAttempt { AttemptedAt = DateTimeOffset.UtcNow, Succeeded = false, Error = "550 Mailbox unavailable" });
         });

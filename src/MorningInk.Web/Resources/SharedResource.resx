@@ -183,7 +183,7 @@
   <data name="Dash_Articles" xml:space="preserve"><value>{0} articles</value></data>
   <data name="Dash_DeliveredAt" xml:space="preserve"><value>delivered {0}</value></data>
   <data name="Dash_Attempts" xml:space="preserve"><value>{0} delivery attempts</value></data>
-  <data name="Dash_Unavailable" xml:space="preserve"><value>Not reachable while building:</value></data>
+  <data name="Dash_Unavailable" xml:space="preserve"><value>Problems while fetching:</value></data>
   <data name="Dash_Notes" xml:space="preserve"><value>Notes</value></data>
   <data name="Dash_NeedRecipient" xml:space="preserve"><value>No recipient yet. Enter your Send-to-Kindle address under Edition.</value></data>
   <data name="Dash_NeedSections" xml:space="preserve"><value>No sections yet. Add one under Edition.</value></data>
@@ -332,7 +332,7 @@
   <data name="Log_Started" xml:space="preserve"><value>Building started</value></data>
   <data name="Log_StartedAhead" xml:space="preserve"><value>Building started ahead of the delivery time</value></data>
   <data name="Log_Fetched" xml:space="preserve"><value>{0}: {1} articles fetched</value></data>
-  <data name="Log_SourceFailed" xml:space="preserve"><value>{0} not reachable: {1}</value></data>
+  <data name="Log_SourceFailed" xml:space="preserve"><value>{0}</value></data>
   <data name="Log_Fresh" xml:space="preserve"><value>{0} of {1} articles are new</value></data>
   <data name="Log_Filtered" xml:space="preserve"><value>{0}: {1} articles left out by filters or interests</value></data>
   <data name="Log_Chosen" xml:space="preserve"><value>{0}: {1} of {2} articles chosen</value></data>
@@ -406,4 +406,20 @@
   <data name="Dash_SectionCount_One" xml:space="preserve"><value>1 section</value></data>
   <data name="Dash_To" xml:space="preserve"><value>to {0}</value></data>
   <data name="Dash_ToArchive" xml:space="preserve"><value>All issues in the archive →</value></data>
+  <data name="Source_InvalidUrl" xml:space="preserve"><value>The address is not valid or not allowed (only http and https).</value></data>
+  <data name="Source_BlockedAddress" xml:space="preserve"><value>{0} is in the home network and blocked.</value></data>
+  <data name="Source_TooManyRedirects" xml:space="preserve"><value>More than {0} redirects.</value></data>
+  <data name="Source_TooLarge" xml:space="preserve"><value>The answer is larger than {0} MB.</value></data>
+  <data name="Source_Timeout" xml:space="preserve"><value>{0} did not answer in time.</value></data>
+  <data name="Source_HttpError" xml:space="preserve"><value>{0} answered with error {1}.</value></data>
+  <data name="Source_Unreachable" xml:space="preserve"><value>{0} could not be reached.</value></data>
+  <data name="Source_InvalidXml" xml:space="preserve"><value>The feed is broken (not valid XML).</value></data>
+  <data name="Source_NotAFeed" xml:space="preserve"><value>This is not an RSS, RDF or Atom feed.</value></data>
+  <data name="Source_NewsSearchNoAnswer" xml:space="preserve"><value>The news search did not answer.</value></data>
+  <data name="Source_NewsSearchNoFeed" xml:space="preserve"><value>The news search returned nothing readable.</value></data>
+  <data name="Source_NoPlace" xml:space="preserve"><value>No place is set for this local source.</value></data>
+  <data name="Source_PlaceNotFound" xml:space="preserve"><value>The place “{0}” was not found.</value></data>
+  <data name="Source_KindUnavailable" xml:space="preserve"><value>Source type {0} is not available.</value></data>
+  <data name="Source_EnterAddress" xml:space="preserve"><value>Please enter an address.</value></data>
+  <data name="Source_NoAnswer" xml:space="preserve"><value>The address did not answer.</value></data>
 </root>

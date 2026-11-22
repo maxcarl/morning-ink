@@ -15,7 +15,12 @@ public abstract record SourceResult
     /// <summary>The source has not changed since the last fetch, so there is nothing new.</summary>
     public sealed record NotModified : SourceResult;
 
-    /// <param name="Message">Explanation for the issue's failure note; never contains credentials.</param>
+    /// <param name="Message">Explanation in English, for logs and as a fallback; never contains credentials.</param>
     /// <param name="BlockedHost">Set when the home-network protection blocked it: the allowlist entry an admin could add.</param>
-    public sealed record Failure(string Message, string? BlockedHost = null) : SourceResult;
+    /// <param name="Reason">A stable code such as "Unreachable", which the UI turns into words in the user's language.</param>
+    /// <param name="Arguments">The values the words need, e.g. the host.</param>
+    public sealed record Failure(string Message, string? BlockedHost = null, string? Reason = null, IReadOnlyList<string>? Arguments = null) : SourceResult
+    {
+        public IReadOnlyList<string> Arguments { get; init; } = Arguments ?? [];
+    }
 }

@@ -100,9 +100,9 @@
                 {
                     <p class="issue-note issue-note-error">@DeliveryTexts.Describe(T, issue.ErrorReason, issue.ErrorArguments, issue.Error)</p>
                 }
-                @if (issue.Problems.Count > 0)
+                @if (issue.Log.Where(e => e.Event == SourceFailed).ToList() is { Count: > 0 } failed)
                 {
-                    <p class="issue-note">@T["Dash_Unavailable"] @string.Join(" · ", issue.Problems)</p>
+                    <p class="issue-note">@T["Dash_Unavailable"] @string.Join(" · ", failed.Select(e => SourceTexts.Problem(T, e)))</p>
                 }
                 @if (logOpen)
                 {
@@ -124,6 +124,9 @@
 
     // The wizard started the issue a moment before this page opened.
     private static readonly TimeSpan FollowBack = TimeSpan.FromMinutes(1);
+
+    // The log event of a source that could not be fetched; the dashboard lists them under the issue.
+    private const string SourceFailed = "SourceFailed";
 
     private NewsroomView? _view;
     private Guid? _logId;

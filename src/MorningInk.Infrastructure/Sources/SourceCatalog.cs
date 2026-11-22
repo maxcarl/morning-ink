@@ -123,7 +123,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     public async Task<SourceResult> PreviewAsync(Source draft, CancellationToken cancellationToken) =>
         sources.FirstOrDefault(s => s.Kind == draft.Kind) is { } implementation
             ? await implementation.FetchAsync(draft, cancellationToken)
-            : new SourceResult.Failure($"Source type {draft.Kind} is not available.");
+            : new SourceResult.Failure($"Source type {draft.Kind} is not available.", Reason: "KindUnavailable", Arguments: [draft.Kind.ToString()]);
 
     /// <summary>Fetches a saved source of the user ("test now"); null if it does not belong to them.</summary>
     /// <remarks>Runs on a detached copy without cache validators, so the test always shows articles and never changes what the next issue fetches.</remarks>

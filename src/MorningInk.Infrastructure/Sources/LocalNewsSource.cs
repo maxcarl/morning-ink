@@ -17,7 +17,7 @@ internal sealed class LocalNewsSource(IGeocoder geocoder, INewsSearch search, Ti
         var place = source.Place?.Trim();
         if (string.IsNullOrEmpty(place))
         {
-            return new SourceResult.Failure("No place is set for this local source.");
+            return new SourceResult.Failure("No place is set for this local source.", Reason: "NoPlace");
         }
 
         // Geocoding only when the place changed; the result is saved with the source.
@@ -28,7 +28,7 @@ internal sealed class LocalNewsSource(IGeocoder geocoder, INewsSearch search, Ti
 
         if (source.Location is not { } location)
         {
-            return new SourceResult.Failure($"The place \"{place}\" was not found.");
+            return new SourceResult.Failure($"The place \"{place}\" was not found.", Reason: "PlaceNotFound", Arguments: [place]);
         }
 
         // The district catches the villages around a town; cities without one only search for themselves.

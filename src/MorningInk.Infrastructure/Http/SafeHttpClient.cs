@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
@@ -51,15 +52,15 @@ public sealed class SafeHttpClient
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
-            return new FetchResult.Failure(FetchError.Timeout, $"{uri.Host} did not answer in time.");
+            return new FetchResult.Failure(FetchError.Timeout, $"{uri.Host} did not answer in time.", Arguments: [uri.Host]);
         }
         catch (HttpRequestException e) when (e.InnerException is BlockedAddressException blocked)
         {
-            return new FetchResult.Failure(FetchError.BlockedAddress, blocked.Message, blocked.AllowlistEntry);
+            return new FetchResult.Failure(FetchError.BlockedAddress, blocked.Message, blocked.AllowlistEntry, [blocked.AllowlistEntry]);
         }
         catch (HttpRequestException)
         {
-            return new FetchResult.Failure(FetchError.Unreachable, $"{uri.Host} could not be reached.");
+            return new FetchResult.Failure(FetchError.Unreachable, $"{uri.Host} could not be reached.", Arguments: [uri.Host]);
         }
     }
 
@@ -87,12 +88,18 @@ public sealed class SafeHttpClient
             {
                 return response.IsSuccessStatusCode
                     ? await ReadBodyAsync(response, current, maxBytes, cancellationToken)
-                    : new FetchResult.Failure(FetchError.HttpError, $"{current.Host} answered with HTTP {(int)response.StatusCode}.");
+                    : new FetchResult.Failure(
+                        FetchError.HttpError,
+                        $"{current.Host} answered with HTTP {(int)response.StatusCode}.",
+                        Arguments: [current.Host, ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture)]);
             }
 
             if (redirects == _options.MaxRedirects)
             {
-                return new FetchResult.Failure(FetchError.TooManyRedirects, $"More than {_options.MaxRedirects} redirects.");
+                return new FetchResult.Failure(
+                    FetchError.TooManyRedirects,
+                    $"More than {_options.MaxRedirects} redirects.",
+                    Arguments: [_options.MaxRedirects.ToString(CultureInfo.InvariantCulture)]);
             }
 
             var next = new Uri(current, location);
@@ -114,7 +121,9 @@ public sealed class SafeHttpClient
 
     private static async Task<FetchResult> ReadBodyAsync(HttpResponseMessage response, Uri finalUri, long maxBytes, CancellationToken cancellationToken)
     {
-        var tooLarge = new FetchResult.Failure(FetchError.TooLarge, $"The response is larger than {maxBytes} bytes.");
+        // In whole MiB for people; the English message keeps the exact limit for logs.
+        var megabytes = Math.Max(1, maxBytes / (1024 * 1024)).ToString(CultureInfo.InvariantCulture);
+        var tooLarge = new FetchResult.Failure(FetchError.TooLarge, $"The response is larger than {maxBytes} bytes.", Arguments: [megabytes]);
         if (response.Content.Headers.ContentLength > maxBytes)
         {
             return tooLarge;

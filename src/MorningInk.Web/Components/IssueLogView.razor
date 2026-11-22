@@ -11,6 +11,7 @@
 
 @code {
     private const string DeliveryFailed = "DeliveryFailed";
+    private const string SourceFailed = "SourceFailed";
 
     [Parameter, EditorRequired]
     public IReadOnlyList<IssueLogEntry> Entries { get; set; } = [];
@@ -25,6 +26,11 @@
         {
             var reason = entry.Arguments[1].Length == 0 ? null : entry.Arguments[1];
             return T[$"Log_{DeliveryFailed}", DeliveryTexts.Describe(T, reason, entry.Arguments.Skip(2).ToList(), entry.Arguments[0])];
+        }
+
+        if (entry.Event == SourceFailed)
+        {
+            return T[$"Log_{SourceFailed}", SourceTexts.Problem(T, entry)];
         }
 
         // Notifications name their channel first, shown as in the edition's channel list.

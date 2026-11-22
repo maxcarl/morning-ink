@@ -57,7 +57,8 @@ internal static partial class FeedParser
         }
         catch (XmlException e)
         {
-            return new SourceResult.Failure($"The feed is not valid XML: {e.Message}");
+            // The parser's detail stays in the English message for logs; people only need to know the feed is broken.
+            return new SourceResult.Failure($"The feed is not valid XML: {e.Message}", Reason: "InvalidXml");
         }
 
         IEnumerable<FetchedArticle?>? articles = root.Name switch
@@ -69,7 +70,7 @@ internal static partial class FeedParser
         };
 
         return articles is null
-            ? new SourceResult.Failure("This is not an RSS, RDF or Atom feed.")
+            ? new SourceResult.Failure("This is not an RSS, RDF or Atom feed.", Reason: "NotAFeed")
             : new SourceResult.Success(articles.OfType<FetchedArticle>().ToList(), ETag: null, LastModified: null);
     }
 

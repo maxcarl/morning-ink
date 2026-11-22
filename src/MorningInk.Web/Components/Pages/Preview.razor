@@ -59,7 +59,7 @@
             </details>
             @if (built.UnavailableSources.Count > 0)
             {
-                <p class="hint">@T["Dash_Unavailable"] @string.Join(" · ", built.UnavailableSources.Select(p => p.SourceName))</p>
+                <p class="hint">@T["Dash_Unavailable"] @string.Join(" · ", built.UnavailableSources.Select(p => $"{p.SourceName}: {SourceTexts.Describe(T, p.Reason, p.Arguments, p.Message)}"))</p>
             }
         </aside>
     </div>

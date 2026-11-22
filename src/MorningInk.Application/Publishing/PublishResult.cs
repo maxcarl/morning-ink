@@ -30,4 +30,9 @@ public abstract record PublishResult
 }
 
 /// <summary>A source that could not be used today, and why.</summary>
-public sealed record SourceProblem(string SourceName, string Message);
+/// <param name="Message">In English, for logs and as a fallback.</param>
+/// <param name="Reason">Code for the words in the user's language, see <see cref="Sources.SourceResult.Failure"/>.</param>
+public sealed record SourceProblem(string SourceName, string Message, string? Reason = null, IReadOnlyList<string>? Arguments = null)
+{
+    public IReadOnlyList<string> Arguments { get; init; } = Arguments ?? [];
+}

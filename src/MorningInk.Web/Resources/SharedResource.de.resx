@@ -183,7 +183,7 @@
   <data name="Dash_Articles" xml:space="preserve"><value>{0} Artikel</value></data>
   <data name="Dash_DeliveredAt" xml:space="preserve"><value>zugestellt {0}</value></data>
   <data name="Dash_Attempts" xml:space="preserve"><value>{0} Zustellversuche</value></data>
-  <data name="Dash_Unavailable" xml:space="preserve"><value>Beim Bauen nicht erreichbar:</value></data>
+  <data name="Dash_Unavailable" xml:space="preserve"><value>Probleme beim Abruf:</value></data>
   <data name="Dash_Notes" xml:space="preserve"><value>Meldungen</value></data>
   <data name="Dash_NeedRecipient" xml:space="preserve"><value>Noch kein Empfänger. Trag deine Send-to-Kindle-Adresse unter Ausgabe ein.</value></data>
   <data name="Dash_NeedSections" xml:space="preserve"><value>Noch keine Rubriken. Leg unter Ausgabe eine an.</value></data>
@@ -332,7 +332,7 @@
   <data name="Log_Started" xml:space="preserve"><value>Bau gestartet</value></data>
   <data name="Log_StartedAhead" xml:space="preserve"><value>Bau vorab gestartet (Vorlauf)</value></data>
   <data name="Log_Fetched" xml:space="preserve"><value>{0}: {1} Artikel abgerufen</value></data>
-  <data name="Log_SourceFailed" xml:space="preserve"><value>{0} nicht erreichbar: {1}</value></data>
+  <data name="Log_SourceFailed" xml:space="preserve"><value>{0}</value></data>
   <data name="Log_Fresh" xml:space="preserve"><value>{0} von {1} Artikeln sind neu</value></data>
   <data name="Log_Filtered" xml:space="preserve"><value>{0}: {1} Artikel durch Filter oder Interessen ausgelassen</value></data>
   <data name="Log_Chosen" xml:space="preserve"><value>{0}: {1} von {2} Artikeln ausgewählt</value></data>
@@ -406,4 +406,20 @@
   <data name="Dash_SectionCount_One" xml:space="preserve"><value>1 Rubrik</value></data>
   <data name="Dash_To" xml:space="preserve"><value>an {0}</value></data>
   <data name="Dash_ToArchive" xml:space="preserve"><value>Alle Ausgaben im Archiv →</value></data>
+  <data name="Source_InvalidUrl" xml:space="preserve"><value>Die Adresse ist ungültig oder nicht erlaubt (nur http und https).</value></data>
+  <data name="Source_BlockedAddress" xml:space="preserve"><value>{0} liegt im Heimnetz und ist gesperrt.</value></data>
+  <data name="Source_TooManyRedirects" xml:space="preserve"><value>Mehr als {0} Weiterleitungen.</value></data>
+  <data name="Source_TooLarge" xml:space="preserve"><value>Die Antwort ist größer als {0} MB.</value></data>
+  <data name="Source_Timeout" xml:space="preserve"><value>{0} hat nicht rechtzeitig geantwortet.</value></data>
+  <data name="Source_HttpError" xml:space="preserve"><value>{0} antwortete mit Fehler {1}.</value></data>
+  <data name="Source_Unreachable" xml:space="preserve"><value>{0} ist nicht erreichbar.</value></data>
+  <data name="Source_InvalidXml" xml:space="preserve"><value>Der Feed ist fehlerhaft (kein gültiges XML).</value></data>
+  <data name="Source_NotAFeed" xml:space="preserve"><value>Das ist kein RSS-, RDF- oder Atom-Feed.</value></data>
+  <data name="Source_NewsSearchNoAnswer" xml:space="preserve"><value>Die Nachrichtensuche hat nicht geantwortet.</value></data>
+  <data name="Source_NewsSearchNoFeed" xml:space="preserve"><value>Die Nachrichtensuche lieferte nichts Lesbares.</value></data>
+  <data name="Source_NoPlace" xml:space="preserve"><value>Für diese Lokalquelle ist kein Ort eingetragen.</value></data>
+  <data name="Source_PlaceNotFound" xml:space="preserve"><value>Der Ort „{0}“ wurde nicht gefunden.</value></data>
+  <data name="Source_KindUnavailable" xml:space="preserve"><value>Der Quellentyp {0} ist nicht verfügbar.</value></data>
+  <data name="Source_EnterAddress" xml:space="preserve"><value>Bitte gib eine Adresse ein.</value></data>
+  <data name="Source_NoAnswer" xml:space="preserve"><value>Die Adresse hat nicht geantwortet.</value></data>
 </root>

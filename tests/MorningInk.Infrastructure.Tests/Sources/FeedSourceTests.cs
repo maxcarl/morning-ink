@@ -73,7 +73,10 @@ public sealed class FeedSourceTests
 
         var result = await FetchAsync(server, new Source { UserId = Guid.NewGuid(), Name = "test", Url = server.Url("/feed").ToString() });
 
-        Assert.Contains("500", Assert.IsType<SourceResult.Failure>(result).Message, StringComparison.Ordinal);
+        var failure = Assert.IsType<SourceResult.Failure>(result);
+        Assert.Contains("500", failure.Message, StringComparison.Ordinal);
+        Assert.Equal("HttpError", failure.Reason); // for the words in the user's language
+        Assert.Equal(["127.0.0.1", "500"], failure.Arguments);
     }
 
     private static async Task<SourceResult> FetchAsync(LocalServer server, Source source)

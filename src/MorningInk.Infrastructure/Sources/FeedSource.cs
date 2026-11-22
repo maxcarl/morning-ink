@@ -13,7 +13,7 @@ internal sealed class FeedSource(SafeHttpClient http, TimeProvider time) : ISour
     {
         if (source.Url is null || !Uri.TryCreate(source.Url, UriKind.Absolute, out var url))
         {
-            return new SourceResult.Failure("The feed address is not a valid URL.");
+            return new SourceResult.Failure("The feed address is not a valid URL.", Reason: nameof(FetchError.InvalidUrl));
         }
 
         // ponytail: sources with a credential are fetched without it for now; sending it comes with private feeds.
@@ -25,7 +25,7 @@ internal sealed class FeedSource(SafeHttpClient http, TimeProvider time) : ISour
         return fetched switch
         {
             FetchResult.NotModified => new SourceResult.NotModified(),
-            FetchResult.Failure failure => new SourceResult.Failure(failure.Message, failure.BlockedHost),
+            FetchResult.Failure failure => failure.ToSourceFailure(),
             FetchResult.Success success => Limit(FeedParser.Parse(success.Content, success.FinalUri), source, success.Validators),
             _ => throw new InvalidOperationException($"Unknown fetch result {fetched.GetType().Name}."),
         };

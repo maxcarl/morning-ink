@@ -14,8 +14,14 @@ public abstract record FeedDiscoveryResult
     /// <param name="Feeds">Feeds found; empty when the site has none.</param>
     public sealed record Found(IReadOnlyList<FeedCandidate> Feeds) : FeedDiscoveryResult;
 
+    /// <param name="Message">Explanation in English, for logs and as a fallback.</param>
     /// <param name="BlockedHost">Set when the home-network protection blocked it: the entry an admin could allow.</param>
-    public sealed record Failure(string Message, string? BlockedHost = null) : FeedDiscoveryResult;
+    /// <param name="Reason">A stable code the UI turns into words, as for <see cref="SourceResult.Failure"/>.</param>
+    /// <param name="Arguments">The values the words need.</param>
+    public sealed record Failure(string Message, string? BlockedHost = null, string? Reason = null, IReadOnlyList<string>? Arguments = null) : FeedDiscoveryResult
+    {
+        public IReadOnlyList<string> Arguments { get; init; } = Arguments ?? [];
+    }
 }
 
 /// <summary>A feed found for a site.</summary>
@@ -48,20 +54,22 @@ public sealed class FeedDiscovery(SafeHttpClient http)
 
         if (!Uri.TryCreate(text, UriKind.Absolute, out var url))
         {
-            return new FeedDiscoveryResult.Failure(text.Length == 0 ? "Please enter an address." : "This is not a valid address.");
+            return text.Length == 0
+                ? new FeedDiscoveryResult.Failure("Please enter an address.", Reason: "EnterAddress")
+                : new FeedDiscoveryResult.Failure("This is not a valid address.", Reason: nameof(FetchError.InvalidUrl));
         }
 
         if (UrlPolicy.Check(url) is { } invalid)
         {
-            return new FeedDiscoveryResult.Failure(invalid);
+            return new FeedDiscoveryResult.Failure(invalid, Reason: nameof(FetchError.InvalidUrl));
         }
 
         var page = await http.GetAsync(url, cancellationToken: cancellationToken);
         if (page is not FetchResult.Success site)
         {
             return page is FetchResult.Failure failure
-                ? new FeedDiscoveryResult.Failure(failure.Message, failure.BlockedHost)
-                : new FeedDiscoveryResult.Failure("The address did not answer.");
+                ? new FeedDiscoveryResult.Failure(failure.Message, failure.BlockedHost, failure.Error.ToString(), failure.Arguments)
+                : new FeedDiscoveryResult.Failure("The address did not answer.", Reason: "NoAnswer");
         }
 
         if (IsFeed(site))

@@ -29,7 +29,8 @@ public sealed class CleanupTests : IDisposable
 
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        Assert.Equal([pinned, recent], (await db.Issues.Select(i => i.Id).ToListAsync()).Order());
+        // Both sides sorted: ids made in the same millisecond have no fixed order, which made this test flaky.
+        Assert.Equal(new[] { pinned, recent }.Order(), (await db.Issues.Select(i => i.Id).ToListAsync()).Order());
         Assert.Empty(await db.Set<IssueEntry>().Where(e => e.IssueId == old).ToListAsync());
         Assert.False(File.Exists(Path.Combine(IssueDirectory, $"{old}.epub")));
         Assert.True(File.Exists(Path.Combine(IssueDirectory, $"{pinned}.epub")));
