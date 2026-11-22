@@ -72,6 +72,23 @@ public sealed partial class OpdsTests : IDisposable
         Assert.DoesNotContain(secondPassword, later, StringComparison.Ordinal); // shown once, stored only as a hash
     }
 
+    [Fact]
+    public async Task Guessing_the_reader_password_is_slowed_down()
+    {
+        await _app.SignedInAdminAsync();
+        var guesser = Reader(TestApp.AdminName, "wrong");
+
+        var answers = new List<HttpStatusCode>();
+        for (var i = 0; i <= SignInLimits.AttemptsPerMinute; i++)
+        {
+            answers.Add((await guesser.GetAsync("/opds")).StatusCode);
+        }
+
+        // The setup's own sign-in counted too: the limit is per client, whatever it signs in to.
+        Assert.Equal(HttpStatusCode.Unauthorized, answers[0]);
+        Assert.Equal(HttpStatusCode.TooManyRequests, answers[^1]);
+    }
+
     public void Dispose() => _app.Dispose();
 
     private HttpClient Reader(string name, string password)

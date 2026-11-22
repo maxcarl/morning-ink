@@ -25,6 +25,7 @@ public static class WebUi
         services.AddSingleton<PreviewStore>();
         services.AddCascadingAuthenticationState();
         services.AddLocalization(options => options.ResourcesPath = "Resources");
+        services.AddSignInLimits();
 
         // Every endpoint needs a signed-in user unless it says otherwise ([AllowAnonymous]): new pages are safe by default.
         services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -54,6 +55,7 @@ public static class WebUi
             await next();
         });
 
+        app.UseRateLimiter();
         app.UseRequestLocalization(options => options
             .SetDefaultCulture(Cultures[0])
             .AddSupportedCultures(Cultures)
