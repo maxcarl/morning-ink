@@ -32,11 +32,12 @@ internal sealed partial class ImageProcessor(
     public async Task<FetchedArticle> ProcessAsync(FetchedArticle article, Source source, CancellationToken cancellationToken) =>
         article with
         {
-            Summary = await RewriteAsync(article.Summary, cancellationToken),
-            Content = await RewriteAsync(article.Content, cancellationToken),
+            Summary = await RewriteAsync(article.Summary, source.LoadImages, cancellationToken),
+            Content = await RewriteAsync(article.Content, source.LoadImages, cancellationToken),
         };
 
-    private async Task<string?> RewriteAsync(string? html, CancellationToken cancellationToken)
+    // Without images, each is removed unrequested: a tracking pixel learns nothing.
+    private async Task<string?> RewriteAsync(string? html, bool load, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(html) || !html.Contains("<img", StringComparison.OrdinalIgnoreCase))
         {
@@ -47,7 +48,7 @@ internal sealed partial class ImageProcessor(
         var kept = 0;
         foreach (var image in document.Images.ToList())
         {
-            var name = kept < _options.MaxPerArticle && Uri.TryCreate(image.GetAttribute("src"), UriKind.Absolute, out var url)
+            var name = load && kept < _options.MaxPerArticle && Uri.TryCreate(image.GetAttribute("src"), UriKind.Absolute, out var url)
                 ? await StoreAsync(url, cancellationToken)
                 : null;
             if (name is null)

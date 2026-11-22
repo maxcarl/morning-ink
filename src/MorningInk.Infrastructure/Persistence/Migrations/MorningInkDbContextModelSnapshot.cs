@@ -610,6 +610,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<long?>("LastModified")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("LoadImages")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("LocalAiOnly")
                         .HasColumnType("INTEGER");
 
@@ -632,6 +635,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Place")
                         .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sender")
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("SkipAds")

@@ -119,10 +119,22 @@
                                     <label class="checkbox"><input id="source-local-ai" type="checkbox" @bind="_edit.LocalAiOnly" aria-describedby="source-local-ai-hint" /> @T["Sources_LocalAiOnly"]</label>
                                     <span id="source-local-ai-hint" class="hint">@T["Sources_LocalAiOnlyHint"]</span>
                                 </div>
+                                <div class="field">
+                                    <label class="checkbox"><input id="source-images" type="checkbox" @bind="_edit.LoadImages" aria-describedby="source-images-hint" /> @T["Sources_LoadImages"]</label>
+                                    <span id="source-images-hint" class="hint">@T["Sources_LoadImagesHint"]</span>
+                                </div>
                                 @if (source.Kind == SourceKind.FreshRss)
                                 {
                                     <div class="field">
                                         <label class="checkbox"><input id="source-mark-read" type="checkbox" @bind="_edit.MarkReadAfterDelivery" /> @T["Sources_MarkRead"]</label>
+                                    </div>
+                                }
+                                @if (source.Kind == SourceKind.Newsletter)
+                                {
+                                    <div class="field">
+                                        <label for="source-sender">@T["Sources_NewsletterSender"]</label>
+                                        <input id="source-sender" class="input" @bind="_edit.Sender" placeholder="substack.com" aria-describedby="source-sender-hint" />
+                                        <span id="source-sender-hint" class="hint">@T["Sources_NewsletterSenderHint"]</span>
                                     </div>
                                 }
                                 <div class="row-actions">
@@ -242,6 +254,7 @@
     private string _freshRssUrl = string.Empty;
     private string _freshRssUser = string.Empty;
     private string _freshRssPassword = string.Empty;
+    private NewsletterDraft _newsletter = new();
     private FreshRssConnection.Connected? _freshRss;
     private HashSet<string> _freshRssPicked = [];
 
@@ -348,6 +361,45 @@
                 <button type="submit" class="button" disabled="@_busy">@T["Sources_FreshRssAdd"]</button>
             </form>
         }
+
+        @* Newsletters from one's own mailbox, read only: a dedicated folder or address keeps them apart from other mail. *@
+        <form @onsubmit="AddNewsletterAsync" class="field" aria-labelledby="newsletter-label">
+            <span id="newsletter-label" class="label">@T["Sources_Newsletter"]</span>
+            <span class="hint">@T["Sources_NewsletterHint"]</span>
+            <div class="field-row">
+                <div class="field">
+                    <label for="newsletter-server">@T["Sources_NewsletterServer"]</label>
+                    <input id="newsletter-server" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Server" placeholder="imap.example.com" aria-describedby="newsletter-server-hint" required />
+                    <span id="newsletter-server-hint" class="hint">@T["Sources_NewsletterServerHint"]</span>
+                </div>
+                <div class="field">
+                    <label for="newsletter-user">@T["Login_UserName"]</label>
+                    <input id="newsletter-user" class="input" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_newsletter.User" required />
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label for="newsletter-password">@T["Settings_Password"]</label>
+                    <input id="newsletter-password" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_newsletter.Password" required />
+                </div>
+                <div class="field">
+                    <label for="newsletter-folder">@T["Sources_NewsletterFolder"]</label>
+                    <input id="newsletter-folder" class="input" spellcheck="false" @bind="_newsletter.Folder" placeholder="INBOX" />
+                </div>
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label for="newsletter-sender">@T["Sources_NewsletterSender"]</label>
+                    <input id="newsletter-sender" class="input" spellcheck="false" autocapitalize="none" @bind="_newsletter.Sender" placeholder="substack.com" aria-describedby="newsletter-sender-hint" />
+                    <span id="newsletter-sender-hint" class="hint">@T["Sources_NewsletterSenderHint"]</span>
+                </div>
+                <div class="field">
+                    <label for="newsletter-name">@T["Sources_Name"]</label>
+                    <input id="newsletter-name" class="input" @bind="_newsletter.Name" placeholder="@T["Kind_Newsletter"]" />
+                </div>
+            </div>
+            <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_NewsletterAdd"]</button>
+        </form>
 
         @* Moving from another reader: its OPML export in, our feeds out. *@
         <div class="field">
@@ -475,6 +527,8 @@
             LocalAiOnly = source.LocalAiOnly,
             MarkReadAfterDelivery = source.MarkReadAfterDelivery,
             SkipAds = source.SkipAds,
+            LoadImages = source.LoadImages,
+            Sender = source.Sender,
         };
     }
 
@@ -490,7 +544,9 @@
             _edit.SkipLiveTickers,
             _edit.LocalAiOnly,
             _edit.SkipAds,
-            _edit.MarkReadAfterDelivery);
+            _edit.MarkReadAfterDelivery,
+            _edit.LoadImages,
+            _edit.Sender);
         if (await UseAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, id, settings, Closed)) is SourceSaveResult.Invalid invalid)
         {
             _error = T[$"Error_{invalid.Reason}"];
@@ -584,6 +640,24 @@
         }
     });
 
+    private Task AddNewsletterAsync() => RunAsync(async () =>
+    {
+        var input = new NewsletterInput(
+            string.IsNullOrWhiteSpace(_newsletter.Name) ? T["Kind_Newsletter"] : _newsletter.Name, _newsletter.Server, _newsletter.User, _newsletter.Password, _newsletter.Folder, _newsletter.Sender);
+        var (source, failure) = await UseAsync<SourceCatalog, (Source?, MorningInk.Application.Sources.SourceResult.Failure?)>(catalog => catalog.AddNewsletterAsync(UserId, input, Closed));
+        if (failure is not null)
+        {
+            _error = T["Sources_NewsletterFailed", SourceTexts.Describe(T, failure.Reason, failure.Arguments, failure.Message)];
+            _blockedHost = failure.BlockedHost;
+            return;
+        }
+
+        // The password is not kept in the page once it is stored.
+        _newsletter = new();
+        _notice = T["Sources_Added"];
+        await ReloadAsync();
+    });
+
     private void PickCategory(string stream)
     {
         if (!_freshRssPicked.Remove(stream))
@@ -620,6 +694,22 @@
         }
     }
 
+    // The newsletter form's fields.
+    private sealed class NewsletterDraft
+    {
+        public string Server { get; set; } = string.Empty;
+
+        public string User { get; set; } = string.Empty;
+
+        public string Password { get; set; } = string.Empty;
+
+        public string Folder { get; set; } = "INBOX";
+
+        public string? Sender { get; set; }
+
+        public string? Name { get; set; }
+    }
+
     // The open editor's fields; only one source is edited at a time.
     private sealed class SourceDraft
     {
@@ -642,11 +732,21 @@
         public bool MarkReadAfterDelivery { get; set; } = true;
 
         public bool SkipAds { get; set; } = true;
+
+        public bool LoadImages { get; set; } = true;
+
+        public string? Sender { get; set; }
     }
 
     private string Describe(Source source)
     {
-        var parts = new List<string?> { KindName(source.Kind), source.Kind == SourceKind.Local ? source.Place : source.Url };
+        var parts = new List<string?>
+        {
+            KindName(source.Kind),
+            source.Kind == SourceKind.Local ? source.Place : source.Url,
+            source.Kind == SourceKind.Newsletter ? source.Stream : null,
+            source.Kind == SourceKind.Newsletter && source.Sender is { } sender ? T["Sources_NewsletterFrom", sender].Value : null,
+        };
         if (source.IncludeKeywords.Count + source.ExcludeKeywords.Count > 0 || source.MinWords is not null || source.SkipLiveTickers)
         {
             parts.Add(T["Sources_Filtered"]);

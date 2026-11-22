@@ -84,12 +84,24 @@ public sealed class ImageProcessorTests : IDisposable
         await context.Response.OutputStream.WriteAsync(path == "/icon.png" ? Icon : Photo);
     });
 
-    private async Task<string> ProcessAsync(LocalServer server, string html)
+    [Fact]
+    public async Task Source_without_images_loads_none_so_no_tracking_pixel_is_ever_requested()
+    {
+        using var server = ImageServer();
+
+        var content = await ProcessAsync(server, $"<p>Text</p><img src=\"{server.Url("/photo.png")}\">", loadImages: false);
+
+        Assert.Empty(new HtmlParser().ParseDocument(content).Images);
+        Assert.Contains("Text", content, StringComparison.Ordinal);
+        Assert.Empty(server.Requests);
+    }
+
+    private async Task<string> ProcessAsync(LocalServer server, string html, bool loadImages = true)
     {
         using var services = BuildServices(server.Port);
         var images = services.GetServices<IProcessor>().OfType<ImageProcessor>().Single();
         var article = new FetchedArticle(null, "Title", server.Url("/article"), null, null, null, html);
-        var source = new Source { UserId = Guid.NewGuid(), Name = "n", Url = "https://example.com" };
+        var source = new Source { UserId = Guid.NewGuid(), Name = "n", Url = "https://example.com", LoadImages = loadImages };
         return (await images.ProcessAsync(article, source, CancellationToken.None)).Content!; // ! is safe: content was given
     }
 

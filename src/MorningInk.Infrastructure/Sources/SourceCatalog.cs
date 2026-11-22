@@ -32,6 +32,11 @@ public abstract record FreshRssConnection
     public sealed record Failed(SourceResult.Failure Failure) : FreshRssConnection;
 }
 
+/// <summary>What the sources page enters for a newsletter source.</summary>
+/// <param name="Server">"host" or "host:port"; without a port, IMAP with TLS on 993.</param>
+/// <param name="Sender">Only mails whose sender address contains this, e.g. "substack.com"; empty takes all.</param>
+public sealed record NewsletterInput(string Name, string Server, string User, string Password, string Folder, string? Sender);
+
 /// <summary>What the sources page saves for a source; see <see cref="Source"/> for what each setting does.</summary>
 public sealed record SourceSettings(
     string Name,
@@ -43,7 +48,9 @@ public sealed record SourceSettings(
     bool SkipLiveTickers,
     bool LocalAiOnly = false,
     bool SkipAds = true,
-    bool MarkReadAfterDelivery = true)
+    bool MarkReadAfterDelivery = true,
+    bool LoadImages = true,
+    string? Sender = null)
 {
     private static readonly char[] Separators = [',', ';', '\n', '\r'];
 
@@ -55,8 +62,12 @@ public sealed record SourceSettings(
 }
 
 /// <summary>A user's sources: list, add, delete and test. Every method only ever sees the given user's sources.</summary>
-public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> sources, FreshRssClient freshRss)
+public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> sources, FreshRssClient freshRss, NewsletterClient newsletters)
 {
+    // A weekly newsletter may wait a few days to be read; the seen articles keep it from coming twice.
+    private static readonly TimeSpan NewsletterMaxAge = TimeSpan.FromDays(7);
+    private const int MaxFolderLength = 200;
+
     // FreshRSS sources read unread articles, which may wait longer than a feed's day; read ones never come again.
     private static readonly TimeSpan FreshRssMaxAge = TimeSpan.FromDays(7);
     private const string FreshRssApiPath = "api/greader.php";
@@ -80,6 +91,63 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         }
 
         return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Url = feed.AbsoluteUri, FetchFullText = fetchFullText }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Adds a newsletter source after signing in and opening the folder once, so a typo shows now and not tomorrow.
+    /// The login is stored encrypted and reused for further folders or senders of the same mailbox.
+    /// </summary>
+    /// <returns>The new source, or why not: "NameRequired", "NewsletterServer", a connection failure or a login failure.</returns>
+    public async Task<(Source? Source, SourceResult.Failure? Failure)> AddNewsletterAsync(Guid userId, NewsletterInput input, CancellationToken cancellationToken)
+    {
+        var name = input.Name.Trim();
+        var folder = string.IsNullOrWhiteSpace(input.Folder) ? "INBOX" : input.Folder.Trim();
+        var sender = string.IsNullOrWhiteSpace(input.Sender) ? null : input.Sender.Trim();
+        if (name.Length is 0 or > MaxNameLength)
+        {
+            return (null, new SourceResult.Failure("A name is required.", Reason: "NameRequired"));
+        }
+
+        if (NewsletterClient.ParseServer(input.Server) is not var (host, port) || folder.Length > MaxFolderLength || sender?.Length > MaxNameLength)
+        {
+            return (null, new SourceResult.Failure("That is no mail server.", Reason: "NewsletterServer"));
+        }
+
+        var username = input.User.Trim();
+        if (await newsletters.CheckAsync(new NewsletterMailbox(host, port, username, input.Password, folder, sender), cancellationToken) is { } failure)
+        {
+            return (null, failure);
+        }
+
+        var credentialName = $"IMAP {host}";
+        var credential = await db.Credentials.SingleOrDefaultAsync(c => c.UserId == userId && c.Name == credentialName && c.Username == username, cancellationToken);
+        if (credential is null)
+        {
+            credential = new Credential { UserId = userId, Name = credentialName, Username = username, Secret = input.Password, Method = CredentialMethod.Basic };
+            db.Credentials.Add(credential);
+        }
+        else
+        {
+            credential.Secret = input.Password;
+        }
+
+        var source = new Source
+        {
+            UserId = userId,
+            Name = name,
+            Kind = SourceKind.Newsletter,
+            Url = $"imap://{(host.Contains(':', StringComparison.Ordinal) ? $"[{host}]" : host)}:{port}",
+            Stream = folder,
+            Sender = sender,
+            CredentialId = credential.Id,
+
+            // The mail is the article: there is no web page to fetch the text from.
+            FetchFullText = false,
+            MaxAge = NewsletterMaxAge,
+        };
+        db.Sources.Add(source);
+        await db.SaveChangesAsync(cancellationToken);
+        return (source, null);
     }
 
     /// <summary>
@@ -163,6 +231,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
             : settings.MaxArticles is < 1 or > MaxArticlesLimit ? "MaxArticlesInvalid"
             : settings.MinWords is < 1 or > MaxMinWords ? "MinWordsInvalid"
             : new[] { settings.IncludeKeywords, settings.ExcludeKeywords }.Any(k => k.Count > MaxKeywords || k.Any(w => w.Length > MaxKeywordLength)) ? "KeywordsInvalid"
+            : settings.Sender?.Trim().Length > MaxNameLength ? "NameRequired"
             : null;
         if (reason is not null)
         {
@@ -184,6 +253,12 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         source.LocalAiOnly = settings.LocalAiOnly;
         source.SkipAds = settings.SkipAds;
         source.MarkReadAfterDelivery = settings.MarkReadAfterDelivery;
+        source.LoadImages = settings.LoadImages;
+        if (source.Kind == SourceKind.Newsletter)
+        {
+            source.Sender = string.IsNullOrWhiteSpace(settings.Sender) ? null : settings.Sender.Trim();
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         return new SourceSaveResult.Saved(source);
     }

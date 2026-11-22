@@ -62,7 +62,10 @@ internal static class EpubPages
             new XElement(Xhtml + "h1", section.Name),
             new XElement(Xhtml + "h2", texts.Briefs),
             new XElement(Xhtml + "ul", new XAttribute("class", "briefs"), briefs.Select(a => new XElement(Xhtml + "li",
-                new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(a.Article.Url)), a.Article.Title),
+                // A brief links to its web page; a newsletter's "mid:" address cannot be opened, so its title stays text.
+                a.Article.Url.Scheme is "http" or "https"
+                    ? new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(a.Article.Url)), a.Article.Title)
+                    : new XText(a.Article.Title),
                 new XElement(Xhtml + "span", new XAttribute("class", "meta"), " · " + string.Join(" · ", new[]
                 {
                     a.SourceName,
@@ -103,8 +106,12 @@ internal static class EpubPages
                 AlsoAt(item, texts),
                 Summary(article, texts),
                 body,
-                new XElement(Xhtml + "p", new XAttribute("class", "original"),
-                    new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(article.Url)), texts.ReadOriginal))));
+
+                // Only a web page can be read in the original; a newsletter's "mid:" address cannot be opened.
+                article.Url.Scheme is "http" or "https"
+                    ? new XElement(Xhtml + "p", new XAttribute("class", "original"),
+                        new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(article.Url)), texts.ReadOriginal))
+                    : null));
     }
 
     /// <summary>The EPUB 3 table of contents, also shown as a page for readers without their own TOC view.</summary>

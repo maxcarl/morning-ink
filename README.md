@@ -29,6 +29,7 @@
 
 - **RSS and Atom feeds** with full text, cleaned up for e-ink
 - **Your FreshRSS:** its categories as sources, unread articles only, marked read once the issue is out
+- **Newsletters from your mailbox** over IMAP, read only: nothing there is marked, moved or deleted
 - **OPML import and export** to move feeds from or to another reader
 - **Local news and weather** for your town, with the articles themselves, not just headlines
 - **EPUB with cover, contents and sections**, the same story from several sources merged into one
@@ -51,7 +52,7 @@
 - **Safe by default:** blocks requests into your home network, encrypts stored passwords, cleans all HTML
 - **Installable as an app** on phone and desktop
 
-Later: newsletters, Miniflux, more readers (Kobo, reMarkable) and more AI: a daily overview, neutral headlines, translation. Morning Ink always works without AI.
+Later: Miniflux, more readers (Kobo, reMarkable) and more AI: a daily overview, neutral headlines, translation. Morning Ink always works without AI.
 
 Not a goal: replacing your RSS reader, running as a public service, or getting around paywalls.
 

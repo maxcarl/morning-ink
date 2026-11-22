@@ -7,10 +7,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The same tiny SMTP server the infrastructure tests use. -->
+    <!-- The same tiny fake servers the infrastructure tests use. -->
     <Compile Include="..\MorningInk.Infrastructure.Tests\Delivery\FakeSmtpServer.cs" Link="FakeSmtpServer.cs" />
     <Compile Include="..\MorningInk.Infrastructure.Tests\Ai\FakeChatServer.cs" Link="FakeChatServer.cs" />
     <Compile Include="..\MorningInk.Infrastructure.Tests\Http\LocalServer.cs" Link="LocalServer.cs" />
+    <Compile Include="..\MorningInk.Infrastructure.Tests\Sources\FakeImapServer.cs" Link="FakeImapServer.cs" />
   </ItemGroup>
 
 </Project>

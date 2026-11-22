@@ -96,6 +96,8 @@ public static class DependencyInjection
         services.AddTransient<ISource, LocalNewsSource>();
         services.AddTransient<ISource, FreshRssSource>();
         services.AddTransient<FreshRssClient>();
+        services.AddTransient<ISource, NewsletterSource>();
+        services.AddTransient<NewsletterClient>();
         services.AddTransient<FeedDiscovery>();
         services.AddScoped<SourceCatalog>();
         services.AddScoped<Profiles.ProfileEditor>();

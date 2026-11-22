@@ -7,6 +7,16 @@ public class ArticleSanitizerTests
     private static readonly Uri BaseUri = new("https://example.com/news/article");
     private readonly ArticleSanitizer _sanitizer = new();
 
+    [Fact]
+    public void Newsletter_html_is_cleaned_with_its_message_id_as_base()
+    {
+        var html = _sanitizer.Html("<table><tr><td><p>Hallo <a href=\"https://brief.example.com/x\">mehr</a><a href=\"relativ\">kaputt</a></p><script>x()</script></td></tr></table>", new Uri("mid:abc%40example.com"));
+
+        Assert.Contains("<a href=\"https://brief.example.com/x\">mehr</a>", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("script", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("mid:", html, StringComparison.Ordinal); // a relative link has nothing to point to
+    }
+
     [Theory]
     [InlineData("<p>Hi<script>alert(1)</script></p>", "alert")]
     [InlineData("<img src=\"https://example.com/a.png\" onerror=\"alert(1)\">", "onerror")]

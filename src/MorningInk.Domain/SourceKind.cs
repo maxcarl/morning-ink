@@ -11,4 +11,7 @@ public enum SourceKind
 
     /// <summary>Unread articles of one category in one's own FreshRSS, through its Google Reader API.</summary>
     FreshRss,
+
+    /// <summary>Newsletters in a folder of the user's mailbox, read over IMAP without changing anything there.</summary>
+    Newsletter,
 }

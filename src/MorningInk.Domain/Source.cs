@@ -11,7 +11,10 @@ public class Source
 
     public SourceKind Kind { get; set; } = SourceKind.Rss;
 
-    /// <summary>Address of the source, e.g. the feed. Untrusted input: only fetched through the safe HTTP client. Null for local news.</summary>
+    /// <summary>
+    /// Address of the source, e.g. the feed, or "imap://host:port" for newsletters. Untrusted input: only reached
+    /// through the safe connection checks. Null for local news.
+    /// </summary>
     public string? Url { get; set; }
 
     /// <summary>For local news: postal code or town, e.g. "52062" or "Aachen".</summary>
@@ -25,6 +28,7 @@ public class Source
 
     /// <summary>
     /// For FreshRSS: the stream to read, e.g. "user/-/label/Technik" for a category; null reads everything unread.
+    /// For newsletters: the mail folder, e.g. "INBOX" or "Newsletter".
     /// </summary>
     public string? Stream { get; set; }
 
@@ -60,6 +64,15 @@ public class Source
     /// advertising category, or a sponsored section in the address. On by default; the word alone in a text is no mark.
     /// </summary>
     public bool SkipAds { get; set; } = true;
+
+    /// <summary>
+    /// Whether the articles' images are downloaded. Off, none is requested: for newsletters, whose tracking pixels
+    /// would otherwise tell the sender the mail was opened.
+    /// </summary>
+    public bool LoadImages { get; set; } = true;
+
+    /// <summary>For newsletters: only mails whose sender address contains this, e.g. "substack.com"; null takes all.</summary>
+    public string? Sender { get; set; }
 
     /// <summary>Whether this source's content may only go to an AI on the user's own hardware, never to a cloud provider.</summary>
     public bool LocalAiOnly { get; set; }

@@ -529,4 +529,23 @@
   <data name="Sources_OpmlInvalid" xml:space="preserve"><value>Das ist keine OPML-Datei, oder sie ist größer als 1 MB.</value></data>
   <data name="Sources_OpmlImported" xml:space="preserve"><value>{0} Feed(s) übernommen, {1} schon vorhanden.</value></data>
   <data name="Sources_OpmlSkipped" xml:space="preserve"><value>{0} ohne brauchbare Adresse übersprungen.</value></data>
+  <data name="Kind_Newsletter" xml:space="preserve"><value>Newsletter</value></data>
+  <data name="Sources_Group_Newsletter" xml:space="preserve"><value>Newsletter</value></data>
+  <data name="Source_NewsletterLogin" xml:space="preserve"><value>{0} hat die Anmeldung abgelehnt. Prüf Benutzername und Passwort; viele Anbieter brauchen für IMAP ein App-Passwort.</value></data>
+  <data name="Source_NewsletterFolder" xml:space="preserve"><value>Den Ordner „{0}“ gibt es in diesem Postfach nicht.</value></data>
+  <data name="Source_NewsletterNoLogin" xml:space="preserve"><value>Diese Newsletter-Quelle hat keine Anmeldung mehr. Füg sie neu hinzu.</value></data>
+  <data name="Source_NewsletterServer" xml:space="preserve"><value>Das ist keine Mailserver-Adresse. Gib z. B. imap.example.com oder imap.example.com:143 ein.</value></data>
+  <data name="Source_NameRequired" xml:space="preserve"><value>Bitte gib einen Namen mit höchstens 200 Zeichen ein.</value></data>
+  <data name="Sources_Newsletter" xml:space="preserve"><value>Newsletter aus deinem Postfach (IMAP)</value></data>
+  <data name="Sources_NewsletterHint" xml:space="preserve"><value>Nur lesend: Im Postfach wird nichts als gelesen markiert, verschoben oder gelöscht. Ein eigener Ordner oder eine eigene Adresse für Newsletter hält andere Mails heraus.</value></data>
+  <data name="Sources_NewsletterServer" xml:space="preserve"><value>IMAP-Server</value></data>
+  <data name="Sources_NewsletterServerHint" xml:space="preserve"><value>Port 993 (TLS), außer du gibst einen anderen an, z. B. :143 für STARTTLS. Unverschlüsselt nur bei einem im Heimnetz freigegebenen Server.</value></data>
+  <data name="Sources_NewsletterFolder" xml:space="preserve"><value>Ordner</value></data>
+  <data name="Sources_NewsletterSender" xml:space="preserve"><value>Nur von (optional)</value></data>
+  <data name="Sources_NewsletterSenderHint" xml:space="preserve"><value>Teil der Absenderadresse, z. B. substack.com oder news@example.com; leer nimmt jede Mail im Ordner.</value></data>
+  <data name="Sources_NewsletterAdd" xml:space="preserve"><value>Verbinden und hinzufügen</value></data>
+  <data name="Sources_NewsletterFailed" xml:space="preserve"><value>Das Postfach ließ sich nicht lesen: {0}</value></data>
+  <data name="Sources_NewsletterFrom" xml:space="preserve"><value>von {0}</value></data>
+  <data name="Sources_LoadImages" xml:space="preserve"><value>Bilder laden</value></data>
+  <data name="Sources_LoadImagesHint" xml:space="preserve"><value>Aus wird kein Bild abgerufen. Bei Newslettern verraten Tracking-Pixel dem Absender sonst, dass die Mail geöffnet wurde.</value></data>
 </root>

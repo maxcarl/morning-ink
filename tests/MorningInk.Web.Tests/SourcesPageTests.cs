@@ -188,6 +188,31 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Newsletter_folder_is_added_after_a_check_and_its_images_can_be_switched_off()
+    {
+        var mail = new MimeKit.MimeMessage { Subject = "Wochenbrief", Date = DateTimeOffset.UtcNow.AddHours(-1) };
+        mail.From.Add(new MimeKit.MailboxAddress("Brief", "brief@example.com"));
+        mail.Body = new MimeKit.TextPart("plain") { Text = "Hallo" };
+        using var imap = new MorningInk.Infrastructure.Tests.Sources.FakeImapServer("reader", "imap-password", new() { ["Newsletter"] = [mail] });
+        using var app = new TestApp(new() { ["Http:AllowedHosts:0"] = $"127.0.0.1:{imap.Port}" });
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Sources>("0 feeds");
+
+        Pages.Submit(page, ("#newsletter-server", $"127.0.0.1:{imap.Port}"), ("#newsletter-user", "reader"), ("#newsletter-password", "wrong"), ("#newsletter-folder", "Newsletter"), ("#newsletter-name", "Wochenbrief"));
+        Pages.Shows(page, "refused the sign-in");
+        Pages.Submit(page, ("#newsletter-server", $"127.0.0.1:{imap.Port}"), ("#newsletter-user", "reader"), ("#newsletter-password", "imap-password"), ("#newsletter-folder", "Newsletter"), ("#newsletter-name", "Wochenbrief"));
+        Pages.Shows(page, "Source added.");
+
+        Assert.Contains(page.FindAll("h2.department"), h => h.TextContent == "Newsletters");
+        Pages.Button(page, "Edit").Click();
+        page.Find("#source-images").Change(false);
+        Pages.Submit(page, ("#source-sender", "example.com"));
+        Pages.Shows(page, "from example.com");
+        var source = Assert.Single(await SourcesAsync(app));
+        Assert.Equal((SourceKind.Newsletter, "Newsletter", false), (source.Kind, source.Stream, source.LoadImages));
+    }
+
+    [Fact]
     public async Task Opml_file_from_another_reader_adds_its_feeds()
     {
         using var app = AllowingFeeds();

@@ -107,6 +107,7 @@ public sealed class MorningInkDbContext(
             source.Property(s => s.Name).HasMaxLength(NameLength);
             source.Property(s => s.Url).HasMaxLength(UrlLength);
             source.Property(s => s.Stream).HasMaxLength(UrlLength);
+            source.Property(s => s.Sender).HasMaxLength(NameLength);
             source.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
             source.Property(s => s.ETag).HasMaxLength(ETagLength);
             source.Property(s => s.Place).HasMaxLength(RegionLength);
