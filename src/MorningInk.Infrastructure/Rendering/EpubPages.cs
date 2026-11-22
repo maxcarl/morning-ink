@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Xml.Linq;
 using MorningInk.Application.Rendering;
+using MorningInk.Application.Sources;
 using MorningInk.Application.Weather;
 
 namespace MorningInk.Infrastructure.Rendering;
@@ -69,6 +70,13 @@ internal static class EpubPages
                     a.AlsoAt.Count == 0 ? null : texts.AlsoAt(string.Join(", ", a.AlsoAt.Select(o => o.SourceName).Distinct())),
                 }.Where(m => !string.IsNullOrWhiteSpace(m))))))));
 
+    // The AI's summary as a box above the text; added as text, so whatever it says can never become markup.
+    private static XElement? Summary(FetchedArticle article, EpubTexts texts) => string.IsNullOrWhiteSpace(article.AiSummary)
+        ? null
+        : new XElement(Xhtml + "aside", new XAttribute("class", "summary"),
+            new XElement(Xhtml + "p", new XAttribute("class", "kicker"), texts.InShort),
+            new XElement(Xhtml + "p", article.AiSummary));
+
     // The same story from other sources, merged into this one.
     private static XElement? AlsoAt(IssueArticle item, EpubTexts texts) => item.AlsoAt.Count == 0
         ? null
@@ -93,6 +101,7 @@ internal static class EpubPages
                 new XElement(Xhtml + "h1", article.Title),
                 new XElement(Xhtml + "p", new XAttribute("class", "meta"), string.Join(" · ", meta.Where(m => !string.IsNullOrWhiteSpace(m)))),
                 AlsoAt(item, texts),
+                Summary(article, texts),
                 body,
                 new XElement(Xhtml + "p", new XAttribute("class", "original"),
                     new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(article.Url)), texts.ReadOriginal))));
@@ -146,6 +155,7 @@ internal static class EpubPages
         .original { margin-top: 1.5em; font-size: 0.9em; }
         .kicker { font-variant: small-caps; letter-spacing: 0.05em; color: #444; margin: 0; }
         .briefs li { margin-bottom: 0.8em; }
+        .summary { border-top: 1px solid #444; border-bottom: 1px solid #444; margin: 0.8em 0; padding: 0.3em 0; font-style: italic; }
         """;
 
     public static string Iso(DateTimeOffset time) =>

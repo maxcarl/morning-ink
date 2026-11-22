@@ -277,4 +277,22 @@
   <data name="Error_MaxArticlesInvalid" xml:space="preserve"><value>Choose between 1 and 100 articles.</value></data>
   <data name="Error_MinWordsInvalid" xml:space="preserve"><value>The minimum length must be at least 1 word.</value></data>
   <data name="Error_KeywordsInvalid" xml:space="preserve"><value>At most 50 words of up to 100 characters each.</value></data>
+  <data name="Settings_Ai" xml:space="preserve"><value>AI (optional)</value></data>
+  <data name="Settings_AiHint" xml:space="preserve"><value>An OpenAI-compatible provider such as Ollama, LM Studio or OpenRouter. Without it, issues come without summaries.</value></data>
+  <data name="Settings_AiEndpoint" xml:space="preserve"><value>Address</value></data>
+  <data name="Settings_AiEndpointHint" xml:space="preserve"><value>For Ollama the server's address with port 11434; "/v1" is added by itself.</value></data>
+  <data name="Settings_AiModel" xml:space="preserve"><value>Model</value></data>
+  <data name="Settings_AiKey" xml:space="preserve"><value>API key</value></data>
+  <data name="Settings_AiKeySaved" xml:space="preserve"><value>A key is saved. Leave empty to keep it.</value></data>
+  <data name="Settings_AiKeyNone" xml:space="preserve"><value>No key saved. Ollama needs none.</value></data>
+  <data name="Settings_AiLocal" xml:space="preserve"><value>Runs on my own hardware (e.g. Ollama); its host is allowed in the home network</value></data>
+  <data name="Settings_AiSummaries" xml:space="preserve"><value>Short summary above each article</value></data>
+  <data name="Settings_AiTest" xml:space="preserve"><value>Test connection</value></data>
+  <data name="Settings_AiTesting" xml:space="preserve"><value>Asking the AI…</value></data>
+  <data name="Settings_AiNotSet" xml:space="preserve"><value>Save an address and a model first.</value></data>
+  <data name="Settings_AiWorks" xml:space="preserve"><value>The AI answers ({0}).</value></data>
+  <data name="Settings_AiFailed" xml:space="preserve"><value>The AI does not answer: {0}</value></data>
+  <data name="Settings_Error_AiEndpoint" xml:space="preserve"><value>This is not a valid http or https address.</value></data>
+  <data name="Settings_Error_AiModel" xml:space="preserve"><value>Please enter the model name, e.g. qwen2.5:7b.</value></data>
+  <data name="Sources_LocalAiOnly" xml:space="preserve"><value>Local AI only</value></data>
 </root>

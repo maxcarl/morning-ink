@@ -34,4 +34,5 @@
   <data name="WeatherUnknown" xml:space="preserve"><value>Unknown</value></data>
   <data name="Briefs" xml:space="preserve"><value>In brief</value></data>
   <data name="AlsoAt" xml:space="preserve"><value>Also reported by: {0}</value></data>
+  <data name="InShort" xml:space="preserve"><value>In short</value></data>
 </root>

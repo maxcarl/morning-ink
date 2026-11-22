@@ -121,6 +121,11 @@ public static class DependencyInjection
         services.AddTransient<IProcessor, FullTextProcessor>();
         services.AddTransient<IProcessor, SanitizingProcessor>();
         services.AddTransient<IProcessor, ImageProcessor>();
+
+        // Last: summarizes the cleaned full text. Scoped, so one issue run stops asking once the AI has failed.
+        services.AddScoped<IProcessor, Ai.AiSummaryProcessor>();
+        services.AddScoped<Ai.AiSettingsStore>();
+        services.AddSingleton<Ai.AiChat>();
     }
 
     // Not validated on start: mail can be set up later, and delivery reports a missing setup as a failure.
@@ -186,6 +191,16 @@ public static class DependencyInjection
 
     private static void AddSafeHttp(IServiceCollection services, IConfiguration configuration)
     {
+        // The AI's own client: the same home-network check on every connection, but no response size limit or short
+        // deadline, since a model on a CPU answers slowly. The OpenAI client applies its own network timeout.
+        services.AddHttpClient(Ai.AiChat.HttpClientName, client => client.Timeout = Timeout.InfiniteTimeSpan)
+            .ConfigurePrimaryHttpMessageHandler(provider => new SocketsHttpHandler
+            {
+                ConnectCallback = provider.GetRequiredService<SafeConnector>().ConnectAsync,
+                UseProxy = false,
+                UseCookies = false,
+            });
+
         services.AddOptions<SafeHttpOptions>()
             .Bind(configuration.GetSection(SafeHttpOptions.SectionName))
             .Validate(o => o.MaxRedirects >= 0 && o.MaxResponseBytes > 0, "Http:MaxRedirects and Http:MaxResponseBytes must not be negative.")

@@ -27,6 +27,8 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string Briefs => Get(nameof(Briefs));
 
+    public string InShort => Get(nameof(InShort));
+
     public string AlsoAt(string sources) => string.Format(Culture, Get(nameof(AlsoAt)), sources);
 
     public string IssueNumber(int number) => string.Format(Culture, Get(nameof(IssueNumber)), number);

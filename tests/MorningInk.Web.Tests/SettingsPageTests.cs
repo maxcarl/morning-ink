@@ -81,6 +81,23 @@ public sealed class SettingsPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Admin_connects_a_local_ai_and_tests_it()
+    {
+        using var ai = new MorningInk.Infrastructure.Tests.Ai.FakeChatServer();
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("No password saved");
+
+        // A local provider's host is allowed in the home network when saving, so no allowlist entry is needed first.
+        Pages.Submit(page, ("#ai-endpoint", ai.Endpoint), ("#ai-model", "qwen2.5:7b"));
+        Pages.Shows(page, "Saved.");
+        Pages.Button(page, "Test connection").Click();
+
+        Pages.Shows(page, "The AI answers (qwen2.5:7b).");
+        Assert.Single(ai.Bodies);
+    }
+
+    [Fact]
     public async Task Users_who_are_not_admins_cannot_open_the_settings()
     {
         using var app = new TestApp();

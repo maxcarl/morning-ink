@@ -106,6 +106,24 @@ public sealed class EpubRendererTests : IDisposable
         var article = XDocument.Parse(epub.Entries.Select(ReadText).Single(t => t.Contains("<article", StringComparison.Ordinal) && t.Contains("Größere Überraschung", StringComparison.Ordinal)));
         Assert.Equal("Politik", article.Descendants(Xhtml + "p").First(p => (string?)p.Attribute("class") == "kicker").Value);
         Assert.Contains("Auch bei: Süddeutsche Zeitung", article.Root!.Value, StringComparison.Ordinal);
+        var summary = article.Descendants(Xhtml + "aside").Single();
+        Assert.Contains("Kurz gefasst", summary.Value, StringComparison.Ordinal);
+        Assert.Contains("Die Wahl ging anders aus als erwartet. <b>Kein</b> Markup hier.", summary.Value, StringComparison.Ordinal); // text, never markup
+        Assert.Empty(summary.Descendants(Xhtml + "b"));
+    }
+
+    [Fact]
+    public async Task Ncx_gives_entries_with_the_same_target_the_same_play_order()
+    {
+        // A section's entry leads to its first article, so two entries share a target; epubcheck wants one number for it.
+        using var epub = await RenderAsync();
+
+        XNamespace ncx = "http://www.daisy.org/z3986/2005/ncx/";
+        var points = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "toc.ncx"))).Descendants(ncx + "navPoint")
+            .Select(p => (Src: (string?)p.Element(ncx + "content")?.Attribute("src"), Order: (int)p.Attribute("playOrder")!)) // ! is safe: every navPoint gets one
+            .ToList();
+        Assert.All(points.GroupBy(p => p.Src), target => Assert.Single(target.Select(p => p.Order).Distinct()));
+        Assert.Equal(points.Select(p => p.Src).Distinct().Count(), points.Select(p => p.Order).Distinct().Count());
     }
 
     [Fact]
@@ -203,11 +221,12 @@ public sealed class EpubRendererTests : IDisposable
         FetchedArticle Article(string title, string? content, string? summary = null) =>
             new(null, title, new Uri($"https://example.com/{Uri.EscapeDataString(title)}"), now.AddHours(-2), "Erika Mustermann", summary, content);
 
-        var politics = Article(
+        var politics = WithSummary(Article(
             "Größere Überraschung bei der Wahl",
             "<p>Die Wahlbeteiligung lag bei 78 Prozent, mehr dazu <a href=\"https://example.com/wahl\">hier</a> und <a href=\"https://bücher.de/a b\">da</a>.</p>"
             + $"<img src=\"images/{_imageName}\" alt=\"Wahllokal\">"
-            + "<img src=\"images/../../keys/key.xml\"><img src=\"images/0000000000000000000000000000000000000000000000000000000000000000.jpg\">");
+            + "<img src=\"images/../../keys/key.xml\"><img src=\"images/0000000000000000000000000000000000000000000000000000000000000000.jpg\">"));
+        static FetchedArticle WithSummary(FetchedArticle article) => article with { AiSummary = "Die Wahl ging anders aus als erwartet. <b>Kein</b> Markup hier." };
         return new IssueContent(
             Id: Guid.Parse("0193a1b2-0000-7000-8000-000000000042"),
             Title: "Morning Ink",

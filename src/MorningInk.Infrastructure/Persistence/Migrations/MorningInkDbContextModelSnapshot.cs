@@ -142,6 +142,33 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.AiSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ApiKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Endpoint")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsLocal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Summaries")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AiSettings");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.AllowedHost", b =>
                 {
                     b.Property<Guid>("Id")
@@ -475,6 +502,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<long?>("LastModified")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("LocalAiOnly")
                         .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("MaxAge")

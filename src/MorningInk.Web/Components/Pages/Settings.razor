@@ -9,6 +9,7 @@
 @using MorningInk.Infrastructure.Http
 @using MorningInk.Infrastructure.Profiles
 @inject HostAllowlist Allowlist
+@inject MorningInk.Infrastructure.Ai.AiChat AiChat
 
 <PageTitle>@T["Settings_Title"] – @T["Brand"]</PageTitle>
 
@@ -36,6 +37,36 @@
         <h2 id="mail-heading" class="department">@T["Settings_Mail"]</h2>
         <p class="hint">@T["Settings_MailHint"]</p>
         <MailServerForm Saved="MailSaved" Cancellation="Closed" />
+
+        <h2 class="department">@T["Settings_Ai"]</h2>
+        <p class="hint">@T["Settings_AiHint"]</p>
+        <form @onsubmit="SaveAiAsync">
+            <div class="inline-form field">
+                <div class="row-main">
+                    <label class="label" for="ai-endpoint">@T["Settings_AiEndpoint"]</label>
+                    <input id="ai-endpoint" class="input" @bind="_aiEndpoint" placeholder="http://192.168.1.20:11434" aria-describedby="ai-endpoint-hint" />
+                    <span id="ai-endpoint-hint" class="hint">@T["Settings_AiEndpointHint"]</span>
+                </div>
+                <div>
+                    <label class="label" for="ai-model">@T["Settings_AiModel"]</label>
+                    <input id="ai-model" class="input" @bind="_aiModel" placeholder="qwen2.5:7b" />
+                </div>
+            </div>
+            <div class="field">
+                <label for="ai-key">@T["Settings_AiKey"]</label>
+                @* Never filled in from storage, like the mail password. *@
+                <input id="ai-key" class="input" type="password" @bind="_aiKey" autocomplete="new-password" aria-describedby="ai-key-hint" />
+                <span id="ai-key-hint" class="hint">@(_aiKeySaved ? T["Settings_AiKeySaved"] : T["Settings_AiKeyNone"])</span>
+            </div>
+            <div class="field">
+                <label class="checkbox"><input id="ai-local" type="checkbox" @bind="_aiLocal" /> @T["Settings_AiLocal"]</label>
+                <label class="checkbox"><input id="ai-summaries" type="checkbox" @bind="_aiSummaries" /> @T["Settings_AiSummaries"]</label>
+            </div>
+            <div class="row-actions">
+                <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
+                <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestAiAsync">@(_busy ? T["Settings_AiTesting"] : T["Settings_AiTest"])</button>
+            </div>
+        </form>
 
         <h2 class="department">@T["Settings_Network"]</h2>
         <p class="hint">@T["Settings_NetworkHint"]</p>
@@ -87,9 +118,72 @@
     private string? _testRecipient;
     private string? _newEntry;
 
+    // AI provider
+    private string? _aiEndpoint;
+    private string? _aiModel;
+    private string? _aiKey;
+    private bool _aiKeySaved;
+    private bool _aiLocal = true;
+    private bool _aiSummaries = true;
+
     protected override async Task LoadAsync()
     {
         _testRecipient = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Recipient;
+        await LoadAiAsync();
+    }
+
+    private async Task LoadAiAsync()
+    {
+        var ai = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, AiSettings>(store => store.LoadAsync(Closed));
+        _aiEndpoint = ai.Endpoint;
+        _aiModel = ai.Model;
+        _aiKey = null;
+        _aiKeySaved = ai.ApiKey is not null;
+        _aiLocal = ai.IsLocal;
+        _aiSummaries = ai.Summaries;
+    }
+
+    private async Task SaveAiAsync()
+    {
+        Clear();
+        var input = new MorningInk.Infrastructure.Ai.AiSettingsInput(_aiEndpoint, _aiModel, _aiKey, _aiLocal, _aiSummaries);
+        var errors = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Closed));
+        _errors = errors.Select(field => T[$"Settings_Error_Ai{field}"].Value).ToList();
+        if (_errors.Count == 0)
+        {
+            _notice = T["Settings_Saved"];
+            await LoadAiAsync();
+        }
+    }
+
+    // Tests what is saved, so a test right after typing asks the user to save first.
+    private async Task TestAiAsync()
+    {
+        Clear();
+        _busy = true;
+        try
+        {
+            var ai = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, AiSettings>(store => store.LoadAsync(Closed));
+            if (ai.Endpoint is null)
+            {
+                _errors = [T["Settings_AiNotSet"]];
+                return;
+            }
+
+            var problem = await AiChat.TestAsync(ai, Closed);
+            if (problem is null)
+            {
+                _notice = T["Settings_AiWorks", ai.Model ?? string.Empty];
+            }
+            else
+            {
+                _errors = [T["Settings_AiFailed", problem]];
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     private void MailSaved(IReadOnlyList<string> errors)

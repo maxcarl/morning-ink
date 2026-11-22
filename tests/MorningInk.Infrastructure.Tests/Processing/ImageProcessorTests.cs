@@ -58,13 +58,15 @@ public sealed class ImageProcessorTests : IDisposable
     }
 
     [Fact]
-    public void Processors_run_full_text_then_sanitizing_then_images()
+    public void Processors_run_full_text_then_sanitizing_then_images_then_the_ai_summary()
     {
         using var services = BuildServices(port: 0);
+        using var scope = services.CreateScope();
 
+        // The summary comes last: it reads the cleaned full text.
         Assert.Equal(
-            [typeof(FullTextProcessor), typeof(SanitizingProcessor), typeof(ImageProcessor)],
-            services.GetServices<IProcessor>().Select(p => p.GetType()));
+            [typeof(FullTextProcessor), typeof(SanitizingProcessor), typeof(ImageProcessor), typeof(MorningInk.Infrastructure.Ai.AiSummaryProcessor)],
+            scope.ServiceProvider.GetServices<IProcessor>().Select(p => p.GetType()));
     }
 
     public void Dispose() => Directory.Delete(_dataDirectory, recursive: true);

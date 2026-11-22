@@ -499,3 +499,17 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | 33 | Benutzer | Mehrere Benutzer (Familie und Freunde), vom Admin angelegt | Jeder sieht und bearbeitet nur die eigenen Quellen und Ausgaben | 18 | – |
 | 34 | Zustellung | OPDS-Katalog für KOReader und Reader-Apps | KOReader holt die Ausgabe mit Login selbst ab | 28 | – |
 | 35 | Quellen | SearXNG als Nachrichtensuche für „Lokales“, wählbar neben Bing (`INewsSearch`, Einstellung `NewsSearch__SearxngUrl`) | Mit gesetzter Adresse kommen lokale Meldungen über die eigene SearXNG-Instanz, mit Volltext vom Verlag; ohne bleibt Bing | 17 | – |
+
+## Aufgaben Stufe 3 (KI)
+
+| Nr. | Bereich | Aufgabe | Fertig, wenn | Hängt ab von | Status |
+| --- | --- | --- | --- | --- | --- |
+| 36 | KI | Grundlage: OpenAI-kompatibler Anbieter (Ollama, LM Studio, OpenRouter, OpenAI) über Microsoft.Extensions.AI; Adresse, Modell und verschlüsselter Schlüssel in den Einstellungen, Verbindungstest; „nur lokale KI“ pro Quelle; Standard-Prompts versioniert im Repo | Ist die KI nicht erreichbar, erscheint die Ausgabe trotzdem, ohne Extras | 21 | ✅ erledigt |
+| 37 | KI | Zusammenfassung pro Artikel: 2–3 Sätze als Kasten „Kurz gefasst“ über dem Text | Artikel tragen eine geprüfte Zusammenfassung; der Artikeltext geht nur abgegrenzt als Daten an das Modell | 36 | ✅ erledigt; Test mit dem echten Ollama steht aus |
+| 38 | KI | Vorlauf: Verarbeitung startet pro Profil früher, damit ein langsames Modell rechtzeitig fertig wird | Die Ausgabe kommt pünktlich, auch wenn die Zusammenfassungen eine Stunde brauchen | 36 | – |
+| 39 | KI | Tagesüberblick: Seite „Das Wichtigste in 5 Minuten“ | Die Titelseite fasst die wichtigsten Meldungen aller Rubriken zusammen | 36 | – |
+| 40 | KI | Neutrale Überschriften | Reißerische Titel werden sachlich umformuliert, das Original bleibt erhalten | 36 | – |
+| 41 | KI | Themen-Cluster: dieselbe Story aus mehreren Quellen als ein Artikel mit Blickwinkeln | Baut auf den Duplikaten (31) auf | 31, 36 | – |
+| 42 | KI | Übersetzen fremdsprachiger Quellen | Englische Artikel erscheinen auf Deutsch, auf Wunsch zweisprachig | 36 | – |
+| 43 | KI | Themen-Recherche | Treffer zu eigenen Themen landen mit Begründung in der Ausgabe | 35, 36 | – |
+| 44 | KI | Anzeige, welche Inhalte an welchen Anbieter gingen, und Tageslimit | Das Dashboard zeigt Aufrufe und Inhalte pro Anbieter | 36 | – |

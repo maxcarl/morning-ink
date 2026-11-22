@@ -111,6 +111,7 @@
                                     <div class="row-main checks">
                                         <label class="checkbox"><input id="source-live" type="checkbox" @bind="_edit.SkipLiveTickers" /> @T["Sources_SkipLive"]</label>
                                         <label class="checkbox"><input type="checkbox" @bind="_edit.FetchFullText" /> @T["Sources_FullText"]</label>
+                                        <label class="checkbox"><input id="source-local-ai" type="checkbox" @bind="_edit.LocalAiOnly" /> @T["Sources_LocalAiOnly"]</label>
                                     </div>
                                 </div>
                                 <div class="row-actions">
@@ -353,6 +354,7 @@
             MinWords = source.MinWords,
             SkipLiveTickers = source.SkipLiveTickers,
             FetchFullText = source.FetchFullText,
+            LocalAiOnly = source.LocalAiOnly,
         };
     }
 
@@ -365,7 +367,8 @@
             SourceSettings.ParseKeywords(_edit.Include),
             SourceSettings.ParseKeywords(_edit.Exclude),
             _edit.MinWords,
-            _edit.SkipLiveTickers);
+            _edit.SkipLiveTickers,
+            _edit.LocalAiOnly);
         if (await UseAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, id, settings, Closed)) is SourceSaveResult.Invalid invalid)
         {
             _error = T[$"Error_{invalid.Reason}"];
@@ -464,6 +467,8 @@
         public bool SkipLiveTickers { get; set; }
 
         public bool FetchFullText { get; set; }
+
+        public bool LocalAiOnly { get; set; }
     }
 
     private string Describe(Source source)

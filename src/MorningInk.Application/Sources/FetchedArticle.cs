@@ -8,6 +8,7 @@ namespace MorningInk.Application.Sources;
 /// <param name="Author">Author name, if given.</param>
 /// <param name="Summary">Teaser, often HTML.</param>
 /// <param name="Content">Full text, often HTML; many feeds only have a summary.</param>
+/// <param name="AiSummary">A few plain sentences written by the AI, checked before use; null without AI.</param>
 public sealed record FetchedArticle(
     string? Id,
     string Title,
@@ -15,4 +16,5 @@ public sealed record FetchedArticle(
     DateTimeOffset? PublishedAt,
     string? Author,
     string? Summary,
-    string? Content);
+    string? Content,
+    string? AiSummary = null);

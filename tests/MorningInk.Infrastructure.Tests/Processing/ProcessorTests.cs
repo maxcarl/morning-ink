@@ -86,8 +86,8 @@ public sealed class ProcessorTests
     private static async Task<FetchedArticle> RunAsync(LocalServer server, FetchedArticle article, Source source)
     {
         using var services = BuildServices(server.Port);
-        // Images have their own tests; here they would fetch the saved page's images from the internet.
-        foreach (var processor in services.GetServices<IProcessor>().Where(p => p is not ImageProcessor))
+        // Images and AI summaries have their own tests; here images would come from the internet and the AI needs a database.
+        foreach (var processor in services.GetServices<IProcessor>().Where(p => p is not ImageProcessor and not MorningInk.Infrastructure.Ai.AiSummaryProcessor))
         {
             article = await processor.ProcessAsync(article, source, CancellationToken.None);
         }

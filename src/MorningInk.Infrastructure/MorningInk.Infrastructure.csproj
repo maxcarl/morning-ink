@@ -6,6 +6,8 @@
     <ProjectReference Include="..\MorningInk.Application\MorningInk.Application.csproj" />
     <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
@@ -19,6 +21,11 @@
   <ItemGroup>
     <!-- Literata (SIL Open Font License 1.1, see Rendering/Fonts/OFL.txt) for generated covers. -->
     <EmbeddedResource Include="Rendering\Fonts\*.ttf" LogicalName="Fonts.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Default prompts, versioned with the code (see CLAUDE.md, AI rules). -->
+    <EmbeddedResource Include="Ai\Prompts\*.txt" />
   </ItemGroup>
 
 </Project>

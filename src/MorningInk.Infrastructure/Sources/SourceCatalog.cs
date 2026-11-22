@@ -27,7 +27,8 @@ public sealed record SourceSettings(
     IReadOnlyList<string> IncludeKeywords,
     IReadOnlyList<string> ExcludeKeywords,
     int? MinWords,
-    bool SkipLiveTickers)
+    bool SkipLiveTickers,
+    bool LocalAiOnly = false)
 {
     private static readonly char[] Separators = [',', ';', '\n', '\r'];
 
@@ -107,6 +108,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         source.ExcludeKeywords = [.. settings.ExcludeKeywords];
         source.MinWords = settings.MinWords;
         source.SkipLiveTickers = settings.SkipLiveTickers;
+        source.LocalAiOnly = settings.LocalAiOnly;
         await db.SaveChangesAsync(cancellationToken);
         return new SourceSaveResult.Saved(source);
     }

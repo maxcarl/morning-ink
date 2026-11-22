@@ -1,0 +1,22 @@
+namespace MorningInk.Domain;
+
+/// <summary>The AI provider for the whole instance: an OpenAI-compatible endpoint such as Ollama's. One row at most.</summary>
+public class AiSettings
+{
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+
+    /// <summary>Base address, e.g. "http://192.168.1.20:11434/v1"; null means no AI.</summary>
+    public string? Endpoint { get; set; }
+
+    /// <summary>Model name as the provider knows it, e.g. "qwen2.5:7b".</summary>
+    public string? Model { get; set; }
+
+    /// <summary>Stored encrypted; never shown again once saved. Not needed for Ollama.</summary>
+    public string? ApiKey { get; set; }
+
+    /// <summary>Whether the provider runs on the user's own hardware; sources marked "local AI only" use it only then.</summary>
+    public bool IsLocal { get; set; } = true;
+
+    /// <summary>Whether articles get a short summary above their text.</summary>
+    public bool Summaries { get; set; } = true;
+}

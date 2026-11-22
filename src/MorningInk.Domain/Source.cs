@@ -47,6 +47,9 @@ public class Source
     /// <summary>Whether to leave out live tickers and live blogs, which are outdated by the time the issue is read.</summary>
     public bool SkipLiveTickers { get; set; }
 
+    /// <summary>Whether this source's content may only go to an AI on the user's own hardware, never to a cloud provider.</summary>
+    public bool LocalAiOnly { get; set; }
+
     /// <summary>Cache validator from the last fetch, so an unchanged source is not downloaded again.</summary>
     public string? ETag { get; set; }
 
