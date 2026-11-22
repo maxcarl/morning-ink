@@ -444,7 +444,7 @@ Das MVP ist fertig, wenn:
 - **KI:** Ollama ohne GPU, siehe Modell-Empfehlung.
 - **Frontend:** Blazor, standardmäßig statisch gerendert, interaktiv wo es etwas bringt. Keine Rücksicht auf den Kindle-Browser (ADR 0002).
 - **Länder:** Profil und jede lokale Quelle haben ein Land. Postleitzahlen werden nur dort gesucht, Ortsnamen und Nachrichten kommen in der Sprache und Ausgabe dieses Landes (z. B. Deutschland `de`/`DE`, USA `en`/`US`). Ohne Land wird weltweit gesucht.
-- **Lokale Nachrichten:** über eine Nachrichtensuche nach Ort und Landkreis hinter einer Schnittstelle. Zum Start Google News RSS (der Ortsname geht dabei an Google), später wahlweise ein selbst gehostetes SearXNG, dasselbe wie für die KI-Recherche.
+- **Lokale Nachrichten:** über eine Nachrichtensuche nach Ort und Landkreis hinter einer Schnittstelle. Bing News RSS (der Ortsname geht dabei an Microsoft): Die Links führen direkt zum Verlag, so bekommen lokale Meldungen Volltext oder wenigstens den Anriss (ADR 0003). Google News lieferte nur Überschriften. Später wahlweise ein selbst gehostetes SearXNG, dasselbe wie für die KI-Recherche.
 
 **Offen**
 
@@ -473,7 +473,7 @@ Das MVP besteht aus 25 Aufgaben in fünf Etappen. Nach Etappe 2 kommt die Zeitun
 | 14 | 2 Zeitung | Scheduler mit Quartz.NET: Zeitplan und Zeitzone pro Profil, verpasste Ausgaben nachholen | Container um 6 Uhr aus, um 7 Uhr an: Die Ausgabe kommt nach | 13 | ✅ erledigt |
 | 15 | 2 Zeitung | Aufräumjob, Grundversion: alte Ausgaben und gesehene Artikel nach Frist löschen | Ausgaben älter als die Frist sind weg, angeheftete bleiben | 4 | ✅ erledigt |
 | 16 | 2 Zeitung | Region im Profil und Wetter-Kachel: PLZ oder Ort über Geocoding zu Ort, Landkreis und Koordinaten, Wetter von Open-Meteo auf der Titelseite | Titelseite zeigt das Wetter für die Region; ist der Wetterdienst nicht erreichbar, kommt die Ausgabe ohne Kachel | 4, 6, 11 | ✅ erledigt |
-| 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis über eine Nachrichtensuche (`INewsSearch`, zuerst Google News RSS). Jede Quelle hat ihren eigenen Ort, so sind mehrere Orte möglich (z. B. zu Hause und bei den Kindern) | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | ✅ erledigt |
+| 17 | 2 Zeitung | Quelle „Lokales“ hinter `ISource`: Nachrichten zu Ort und Landkreis über eine Nachrichtensuche (`INewsSearch`, anfangs Google News RSS, seit ADR 0003 Bing News RSS). Jede Quelle hat ihren eigenen Ort, so sind mehrere Orte möglich (z. B. zu Hause und bei den Kindern) | Für eine Test-PLZ erscheinen Artikel aus der Region, Tests mit gespeicherten Antworten laufen grün | 7, 16 | ✅ erledigt |
 | 18 | 3 Oberfläche | Blazor-Grundgerüst mit Login, Admin wird beim ersten Start angelegt | Ohne Login ist keine Seite und keine Datei erreichbar | 3, 4 | ✅ erledigt |
 | 19 | 3 Oberfläche | Seite Quellen: anlegen, Feed aus Website-URL finden, Vorschau, „Jetzt testen“; scheitert der Test an der Netzsperre, bietet sie Admins die Freigabe des Hosts an | Website-URL eingeben, Feed wird gefunden, Vorschau zeigt Artikel | 7, 18 | ✅ erledigt |
 | 20 | 3 Oberfläche | Seite Profil: Titel, Zeitplan, Empfänger, Region, Rubriken mit Quellen | Änderungen wirken ab der nächsten Ausgabe | 14, 16, 19 | ✅ erledigt |

@@ -28,6 +28,21 @@ internal static partial class FeedParser
         IgnoreProcessingInstructions = true,
     };
 
+    /// <summary>Loads XML with the same protection as feeds (no DTDs, nothing loaded from elsewhere); null when it is not XML.</summary>
+    public static XDocument? LoadXml(byte[] content)
+    {
+        try
+        {
+            using var stream = new MemoryStream(content);
+            using var reader = XmlReader.Create(stream, ReaderSettings);
+            return XDocument.Load(reader);
+        }
+        catch (XmlException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Parses a feed; articles without a usable http(s) link are skipped.</summary>
     /// <param name="content">Raw feed bytes; the XML declaration decides the encoding.</param>
     /// <param name="baseUri">Address the feed came from; relative links resolve against it.</param>

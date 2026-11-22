@@ -28,7 +28,7 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Weather__GeocodingUrl` | Nominatim (OpenStreetMap) | Turns postal codes and towns into places; asked only when a region changes. Can be a self-hosted Nominatim. |
 | `Weather__CountryCodes` | – | Countries to look up regions in when a profile or local source has no country (set in the UI); empty searches worldwide. |
 | `Weather__ForecastUrl` | Open-Meteo | Weather forecast; coordinates are sent rounded to about a kilometre. Can be a self-hosted Open-Meteo. |
-| `NewsSearch__GoogleNewsUrl` | Google News RSS | News search for local news sources. The towns searched for go to Google. |
+| `NewsSearch__BingNewsUrl` | Bing News RSS | News search for local news sources. The towns searched for go to Microsoft; articles are then fetched from the publishers. |
 | `NewsSearch__Language`, `NewsSearch__Country` | `de`, `DE` | News edition when a local source has no country; with a country, its own edition is used (e.g. `en`/`US`). |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
 | `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |

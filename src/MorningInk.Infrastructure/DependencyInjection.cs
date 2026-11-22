@@ -101,7 +101,7 @@ public static class DependencyInjection
         services.AddScoped<Profiles.Onboarding>();
         services.AddScoped<Profiles.IssueArchive>();
         services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));
-        services.AddTransient<INewsSearch, GoogleNewsSearch>();
+        services.AddTransient<INewsSearch, BingNewsSearch>();
 
         services.AddOptions<WeatherOptions>().Bind(configuration.GetSection(WeatherOptions.SectionName));
         services.AddTransient<IGeocoder, NominatimGeocoder>();

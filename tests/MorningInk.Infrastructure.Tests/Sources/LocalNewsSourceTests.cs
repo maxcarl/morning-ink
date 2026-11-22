@@ -7,7 +7,7 @@ using MorningInk.Infrastructure.Tests.Http;
 
 namespace MorningInk.Infrastructure.Tests.Sources;
 
-/// <summary>Local news: geocoding (Nominatim) and news search (Google News RSS), both as saved real answers on a local server.</summary>
+/// <summary>Local news: geocoding (Nominatim) and news search (Bing News RSS), both as saved real answers on a local server.</summary>
 public sealed class LocalNewsSourceTests : IDisposable
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 21, 19, 0, 0, TimeSpan.Zero);
@@ -21,7 +21,7 @@ public sealed class LocalNewsSourceTests : IDisposable
             "/search" when query["postalcode"] == "52062" => "Weather/nominatim-52062.json",
             "/search" when query["postalcode"] == "10115" => "Weather/nominatim-10115.json",
             "/search" => "Weather/nominatim-unknown.json",
-            "/rss/search" when query["fail"] is null => "LocalNews/googlenews-aachen.xml",
+            "/news/search" when query["fail"] is null => "LocalNews/bingnews-muenchen.xml",
             _ => null,
         };
         if (file is null)
@@ -39,21 +39,23 @@ public sealed class LocalNewsSourceTests : IDisposable
         var result = await FetchAsync(Local("52062"));
 
         var success = Assert.IsType<SourceResult.Success>(result);
-        Assert.Equal(20, success.Articles.Count);
+        Assert.Equal(5, success.Articles.Count);
         var search = Uri.UnescapeDataString(SearchRequests().Single());
-        Assert.Contains("\"Aachen\" OR \"Städteregion Aachen\" when:1d", search, StringComparison.Ordinal);
-        Assert.Contains("hl=de", search, StringComparison.Ordinal);
+        Assert.Contains("\"Aachen\" OR \"Städteregion Aachen\"", search, StringComparison.Ordinal);
+        Assert.Contains("format=rss", search, StringComparison.Ordinal);
+        Assert.Contains("setlang=de", search, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task Titles_lose_the_publisher_suffix_and_the_publisher_becomes_the_author()
+    public async Task Links_lead_to_the_publisher_with_teaser_and_publisher_name()
     {
         var articles = Assert.IsType<SourceResult.Success>(await FetchAsync(Local("52062"))).Articles;
 
-        var zeit = Assert.Single(articles, a => a.Title == "3. Fußball-Liga: Waldhof Mannheim verliert bei Alemannia Aachen");
-        Assert.Equal("DIE ZEIT", zeit.Author);
-        Assert.Null(zeit.Content);
-        Assert.All(articles, a => Assert.DoesNotContain($" - {a.Author}", a.Title, StringComparison.Ordinal));
+        var premiere = Assert.Single(articles, a => a.Title.StartsWith("Premiere in München", StringComparison.Ordinal));
+        Assert.Equal("https://www.sueddeutsche.de/muenchen/muenchen-gaertnerplatztheater-landstreicher-operette-kritik-li.3568257", premiere.Url.AbsoluteUri);
+        Assert.Equal("Süddeutsche Zeitung", premiere.Author);
+        Assert.Contains("Gärtnerplatztheater", premiere.Summary, StringComparison.Ordinal);
+        Assert.All(articles, a => Assert.NotEqual("www.bing.com", a.Url.Host)); // full text comes from the publisher, not through Bing
     }
 
     [Fact]
@@ -76,7 +78,7 @@ public sealed class LocalNewsSourceTests : IDisposable
         await FetchAsync(source);
 
         Assert.Equal("Aachen", source.Location?.Name);
-        Assert.Single(_server.Requests, r => r.Url.Contains("/search?", StringComparison.Ordinal) && !r.Url.Contains("/rss/", StringComparison.Ordinal));
+        Assert.Single(_server.Requests, r => r.Url.Contains("/search?", StringComparison.Ordinal) && !r.Url.Contains("/news/", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -88,8 +90,8 @@ public sealed class LocalNewsSourceTests : IDisposable
     }
 
     [Theory]
-    [InlineData("AT", "hl=de&gl=AT&ceid=AT:de")]
-    [InlineData("US", "hl=en&gl=US&ceid=US:en")]
+    [InlineData("AT", "setlang=de&cc=AT")]
+    [InlineData("US", "setlang=en&cc=US")]
     public async Task News_come_from_the_edition_of_the_places_country(string country, string edition)
     {
         await FetchAsync(Local("10115", country));
@@ -109,7 +111,7 @@ public sealed class LocalNewsSourceTests : IDisposable
 
     private Source Local(string? place, string? country = "DE") => new() { UserId = _userId, Name = $"Lokales {place}", Kind = SourceKind.Local, Place = place, Country = country };
 
-    private List<string> SearchRequests() => _server.Requests.Select(r => r.Url).Where(u => u.Contains("/rss/search", StringComparison.Ordinal)).ToList();
+    private List<string> SearchRequests() => _server.Requests.Select(r => r.Url).Where(u => u.Contains("/news/search", StringComparison.Ordinal)).ToList();
 
     private async Task<SourceResult> FetchAsync(Source source, bool searchFails = false)
     {
@@ -123,7 +125,7 @@ public sealed class LocalNewsSourceTests : IDisposable
                     ["Storage:DataDirectory"] = Path.GetTempPath(),
                     ["Http:AllowedHosts:0"] = $"127.0.0.1:{_server.Port}",
                     ["Weather:GeocodingUrl"] = baseUrl + "/search",
-                    ["NewsSearch:GoogleNewsUrl"] = baseUrl + "/rss/search" + (searchFails ? "?fail=1" : string.Empty),
+                    ["NewsSearch:BingNewsUrl"] = baseUrl + "/news/search" + (searchFails ? "?fail=1" : string.Empty),
                 })
                 .Build())
             .BuildServiceProvider();

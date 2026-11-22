@@ -53,8 +53,8 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
             return Task.FromResult<SourceSaveResult>(new SourceSaveResult.Invalid("CountryInvalid"));
         }
 
-        // Local news are headlines without full text (see FullTextProcessor), so fewer of them.
-        return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Kind = SourceKind.Local, Place = place, Country = code, FetchFullText = false, MaxArticles = LocalNewsMaxArticles }, cancellationToken);
+        // Fewer than a feed: a town's news search also brings regional and sports news from further away.
+        return SaveAsync(new Source { UserId = userId, Name = name.Trim(), Kind = SourceKind.Local, Place = place, Country = code, FetchFullText = true, MaxArticles = LocalNewsMaxArticles }, cancellationToken);
     }
 
     /// <summary>Deletes the source if it belongs to the user; false otherwise.</summary>

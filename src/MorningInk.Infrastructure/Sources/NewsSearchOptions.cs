@@ -5,8 +5,8 @@ public sealed class NewsSearchOptions
 {
     public const string SectionName = "NewsSearch";
 
-    /// <summary>Google News RSS search endpoint. The search terms (towns) go to Google.</summary>
-    public string GoogleNewsUrl { get; set; } = "https://news.google.com/rss/search";
+    /// <summary>Bing News search endpoint (RSS). The search terms (towns) go to Microsoft.</summary>
+    public string BingNewsUrl { get; set; } = "https://www.bing.com/news/search";
 
     /// <summary>Language of the results.</summary>
     public string Language { get; set; } = "de";

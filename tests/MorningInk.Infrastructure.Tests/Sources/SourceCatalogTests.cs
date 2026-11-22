@@ -169,7 +169,7 @@ public sealed class SourceCatalogTests : IDisposable
         var invalid = await catalog.AddLocalAsync(user, "Lokales Mars", "1", "XX", CancellationToken.None);
 
         var source = Assert.Single(await catalog.ListAsync(user, CancellationToken.None));
-        Assert.Equal((SourceKind.Local, "52062", "DE", false), (source.Kind, source.Place, source.Country, source.FetchFullText));
+        Assert.Equal((SourceKind.Local, "52062", "DE", true), (source.Kind, source.Place, source.Country, source.FetchFullText)); // full text from the publisher
         Assert.IsType<SourceSaveResult.Invalid>(invalid);
     }
 

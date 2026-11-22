@@ -55,13 +55,14 @@ public sealed class ProcessorTests
     }
 
     [Fact]
-    public async Task Full_text_is_not_fetched_for_local_news()
+    public async Task Full_text_is_fetched_for_local_news_too()
     {
+        // The news search links straight to the publisher, so local news get their article like any feed.
         using var server = new LocalServer(context => context.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes("<html/>")).AsTask());
 
-        await RunAsync(server, Article(server.Url("/article")), new Source { UserId = Guid.NewGuid(), Name = "Lokales", Kind = SourceKind.Local, Place = "52062" });
+        await RunAsync(server, Article(server.Url("/article")), new Source { UserId = Guid.NewGuid(), Name = "Lokales", Kind = SourceKind.Local, Place = "52062", FetchFullText = true });
 
-        Assert.Empty(server.Requests);
+        Assert.Single(server.Requests);
     }
 
     [Fact]
