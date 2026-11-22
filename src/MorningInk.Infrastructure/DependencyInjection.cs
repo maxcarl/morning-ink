@@ -177,6 +177,8 @@ public static class DependencyInjection
         services.AddSingleton<SetupCode>();
         services.AddScoped<AdminSetup>();
         services.AddScoped<UserDirectory>();
+        services.AddScoped<ReaderAccess>();
+        services.AddSingleton<IPasswordHasher<Domain.User>, PasswordHasher<Domain.User>>();
 
         // Old sessions of a deleted user or one with a reset password end within a minute instead of the default 30.
         services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.FromMinutes(1));

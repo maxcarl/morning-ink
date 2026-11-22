@@ -1,6 +1,7 @@
 @page "/account"
 @inject UserDirectory Users
 @inject SignInManager<AppUser> SignInManager
+@inject ReaderAccess Readers
 
 @* A plain form, not an interactive page: after the change the sign-in cookie must be issued anew, which needs a real request. *@
 <PageTitle>@T["Account_Title"] – @T["Brand"]</PageTitle>
@@ -41,11 +42,52 @@
             <button type="submit" class="button">@T["Account_Save"]</button>
         </EditForm>
     </section>
+
+    <section aria-labelledby="reader-heading">
+        <h2 id="reader-heading" class="department">@T["Account_Reader"]</h2>
+        <p class="hint">@T["Account_ReaderHint"]</p>
+        <dl class="facts">
+            <div><dt>@T["Account_ReaderCatalog"]</dt><dd><code>@CatalogUrl</code></dd></div>
+            <div><dt>@T["Login_UserName"]</dt><dd><code>@HttpContext.User.Identity?.Name</code></dd></div>
+            <div>
+                <dt>@T["Account_ReaderPassword"]</dt>
+                <dd>
+                    @if (_readerPassword is not null)
+                    {
+                        <code id="reader-password">@_readerPassword</code>
+                    }
+                    else
+                    {
+                        @(_hasReaderPassword ? T["Account_ReaderPasswordSet"] : T["Account_ReaderPasswordNone"])
+                    }
+                </dd>
+            </div>
+        </dl>
+        @if (_readerPassword is not null)
+        {
+            <p class="status status-warn">@T["Account_ReaderPasswordOnce"]</p>
+        }
+        <div class="row-actions">
+            <form method="post" @formname="reader" @onsubmit="CreateReaderPasswordAsync">
+                <AntiforgeryToken />
+                <button type="submit" class="button button-secondary">@(_hasReaderPassword ? T["Account_ReaderRenew"] : T["Account_ReaderCreate"])</button>
+            </form>
+            @if (_hasReaderPassword)
+            {
+                <form method="post" @formname="reader-revoke" @onsubmit="RevokeReaderPasswordAsync">
+                    <AntiforgeryToken />
+                    <button type="submit" class="link-button link-danger">@T["Account_ReaderRevoke"]</button>
+                </form>
+            }
+        </div>
+    </section>
 </div>
 
 @code {
     private string? _notice;
     private List<string> _errors = [];
+    private string? _readerPassword;
+    private bool _hasReaderPassword;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
@@ -53,13 +95,36 @@
     [SupplyParameterFromForm]
     private PasswordInput Input { get; set; } = default!; // ! is safe: set in OnInitialized before rendering
 
-    // Set here, not as initializer: form binding assigns the property on POST.
-    protected override void OnInitialized() => Input ??= new();
+    // ! is safe: the page needs a signed-in user, whose cookie always carries the id
+    private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    // What readers enter as catalog address; behind a proxy, the address the browser used.
+    private string CatalogUrl => $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/opds";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set here, not as initializer: form binding assigns the property on POST.
+        Input ??= new();
+        _hasReaderPassword = await Readers.HasPasswordAsync(UserId, HttpContext.RequestAborted);
+    }
+
+    // Shown once on this answer only; a new one ends the old, e.g. after a reader got lost.
+    private async Task CreateReaderPasswordAsync()
+    {
+        _readerPassword = await Readers.CreateAsync(UserId, HttpContext.RequestAborted);
+        _hasReaderPassword = true;
+    }
+
+    private async Task RevokeReaderPasswordAsync()
+    {
+        await Readers.RevokeAsync(UserId, HttpContext.RequestAborted);
+        _hasReaderPassword = false;
+        _notice = T["Account_ReaderRevoked"];
+    }
 
     private async Task ChangeAsync()
     {
-        // ! is safe: the page needs a signed-in user, whose cookie always carries the id
-        var userId = Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userId = UserId;
         var errors = await Users.ChangeOwnPasswordAsync(userId, Input.Current, Input.New, HttpContext.RequestAborted);
         (Input.Current, Input.New) = (string.Empty, string.Empty);
         if (errors.Count > 0)

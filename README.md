@@ -34,18 +34,22 @@
 
 **Your control**
 
-- **Filters per source:** words to require or exclude, a minimum length, no live tickers
+- **Filters per source:** words to require or exclude, a minimum length, no live tickers, no marked ads
 - **Archive** to search, download, send again and keep issues
 - **Optional AI summaries** with your own Ollama or any OpenAI-compatible provider; private sources can stay local
 - **Setup wizard** with sample sources from several countries; first newspaper in minutes
+- **Notifications** by ntfy, Gotify, Telegram or e-mail when an issue is out
+- **KOReader and other OPDS readers** fetch issues themselves, with a password of their own
 
 **Your server**
 
 - **One container, no other services:** SQLite and a built-in scheduler
+- **Family and friends:** each user with their own sources and editions
+- **Local news from your own SearXNG** instead of Bing, if you run one
 - **Safe by default:** blocks requests into your home network, encrypts stored passwords, cleans all HTML
 - **Installable as an app** on phone and desktop
 
-Later: newsletters, FreshRSS and Miniflux, more readers (Kobo, KOReader via OPDS, reMarkable) and more AI: a daily overview, neutral headlines, translation. Morning Ink always works without AI.
+Later: newsletters, FreshRSS and Miniflux, more readers (Kobo, reMarkable) and more AI: a daily overview, neutral headlines, translation. Morning Ink always works without AI.
 
 Not a goal: replacing your RSS reader, running as a public service, or getting around paywalls.
 

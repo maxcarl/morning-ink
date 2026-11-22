@@ -12,4 +12,10 @@ public class User
     public string Language { get; set; } = "en";
 
     public UserRole Role { get; set; } = UserRole.User;
+
+    /// <summary>
+    /// Hash of the password e-readers use for the OPDS catalog; null while none was made. A password of its own, so the
+    /// account's password never has to be typed into a reader.
+    /// </summary>
+    public string? ReaderPasswordHash { get; set; }
 }
