@@ -152,7 +152,7 @@ public sealed partial class IssueScheduler(
         }
 
         // Quartz wants "?" for the day of month when the day of week is given; its weekday names are SUN, MON, …
-        var days = string.Join(',', schedule.Days!.Distinct().Order().Select(d => d.ToString()[..3].ToUpperInvariant())); // ! is safe: IsEveryDay is true for null
+        var days = string.Join(',', schedule.Days.Distinct().Order().Select(d => d.ToString()[..3].ToUpperInvariant()));
         return string.Create(CultureInfo.InvariantCulture, $"0 {minute} {hour} ? * {days}");
     }
 

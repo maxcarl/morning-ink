@@ -14,13 +14,17 @@ internal sealed class FreshRssSource(FreshRssClient client, MorningInkDbContext 
 
     public async Task<SourceResult> FetchAsync(Source source, CancellationToken cancellationToken)
     {
-        var (api, session, failure) = await SignInAsync(source, cancellationToken);
-        if (failure is not null)
+        if (await SignInAsync(source, cancellationToken) is not ({ } api, { } session))
         {
-            return failure;
+            return NoLogin;
         }
 
-        var result = await client.UnreadAsync(api!, session!, source.Stream, cancellationToken); // ! is safe: no failure means both are set
+        if (!session.Ok)
+        {
+            return session.Failure;
+        }
+
+        var result = await client.UnreadAsync(api, session.Body, source.Stream, cancellationToken);
         return result is SourceResult.Success success
             ? success with { Articles = SourceLimits.Apply(success.Articles, source, time.GetUtcNow()) }
             : result;
@@ -33,26 +37,31 @@ internal sealed class FreshRssSource(FreshRssClient client, MorningInkDbContext 
             return SourceAcknowledgement.Nothing;
         }
 
-        var (api, session, failure) = await SignInAsync(source, cancellationToken);
-        if (failure is not null)
+        if (await SignInAsync(source, cancellationToken) is not ({ } api, { } session))
         {
-            return new SourceAcknowledgement(0, failure.Message);
+            return new SourceAcknowledgement(0, NoLogin.Message);
         }
 
-        var problem = await client.MarkReadAsync(api!, session!, articleIds, cancellationToken); // ! is safe: no failure means both are set
+        if (!session.Ok)
+        {
+            return new SourceAcknowledgement(0, session.Failure.Message);
+        }
+
+        var problem = await client.MarkReadAsync(api, session.Body, articleIds, cancellationToken);
         return problem is null ? new SourceAcknowledgement(articleIds.Count, null) : new SourceAcknowledgement(0, problem);
     }
 
-    private async Task<(Uri? Api, string? Session, SourceResult.Failure? Failure)> SignInAsync(Source source, CancellationToken cancellationToken)
+    private static readonly SourceResult.Failure NoLogin = new("This FreshRSS source has no login.", Reason: "FreshRssNoLogin");
+
+    // Only the user's own login, and only for this source's own address; null when the login is gone.
+    private async Task<(Uri Api, FreshRssClient.Answer Session)?> SignInAsync(Source source, CancellationToken cancellationToken)
     {
-        // Only the user's own login, and only for this source's own address.
         var credential = await db.LoginOfAsync(source, cancellationToken);
         if (credential is null || !Uri.TryCreate(source.Url, UriKind.Absolute, out var api))
         {
-            return (null, null, new SourceResult.Failure("This FreshRSS source has no login.", Reason: "FreshRssNoLogin"));
+            return null;
         }
 
-        var (session, failure) = await client.SignInAsync(api, credential.Username ?? string.Empty, credential.Secret, cancellationToken);
-        return (api, session, failure);
+        return (api, await client.SignInAsync(api, credential.Username ?? string.Empty, credential.Secret, cancellationToken));
     }
 }

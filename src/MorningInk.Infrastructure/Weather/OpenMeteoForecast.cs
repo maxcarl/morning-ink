@@ -41,7 +41,7 @@ internal sealed partial class OpenMeteoForecast(SafeHttpClient http, IOptions<We
         try
         {
             var forecast = JsonSerializer.Deserialize<Response>(response.Content);
-            return forecast?.Daily is null ? null : ToForecast(location.Name, forecast);
+            return forecast?.Daily is { } daily ? ToForecast(location.Name, daily, forecast.Hourly) : null;
         }
         catch (Exception e) when (e is JsonException or FormatException or IndexOutOfRangeException)
         {
@@ -50,9 +50,8 @@ internal sealed partial class OpenMeteoForecast(SafeHttpClient http, IOptions<We
         }
     }
 
-    private static WeatherForecast? ToForecast(string place, Response forecast)
+    private static WeatherForecast? ToForecast(string place, DailyValues daily, HourlyValues? hourlyValues)
     {
-        var daily = forecast.Daily!; // ! is safe: checked by the caller
         var days = new List<DayForecast>();
         for (var i = 0; i < daily.Time.Length; i++)
         {
@@ -68,7 +67,7 @@ internal sealed partial class OpenMeteoForecast(SafeHttpClient http, IOptions<We
         }
 
         var today = new List<DayPartForecast>();
-        if (forecast.Hourly is { } hourly)
+        if (hourlyValues is { } hourly)
         {
             foreach (var (part, hour) in DayParts)
             {

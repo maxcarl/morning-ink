@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Security;
 using System.Net.Sockets;
 using MailKit;
@@ -140,9 +141,9 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
     }
 
     // Exactly one plain address: no lists, no line breaks, no address without a domain.
-    private static bool TryParseAddress(string? text, out MailboxAddress address)
+    private static bool TryParseAddress(string? text, [NotNullWhen(true)] out MailboxAddress? address)
     {
-        address = null!; // ! is safe: only read when this method returns true
+        address = null;
         if (string.IsNullOrWhiteSpace(text) || text.IndexOfAny(['\r', '\n', ',', ';']) >= 0
             || !MailboxAddress.TryParse(StrictAddresses, text.Trim(), out var parsed) || !parsed.Address.Contains('@', StringComparison.Ordinal))
         {

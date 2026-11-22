@@ -39,7 +39,7 @@ public abstract class InteractivePage : ComponentBase, IDisposable
     protected sealed override async Task OnInitializedAsync()
     {
         var user = (await Authentication.GetAuthenticationStateAsync()).User;
-        UserId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("Pages require a signed-in user."));
+        UserId = user.Id();
         IsAdmin = user.IsInRole(nameof(UserRole.Admin));
         UserName = user.Identity?.Name ?? string.Empty;
         await LoadAsync();

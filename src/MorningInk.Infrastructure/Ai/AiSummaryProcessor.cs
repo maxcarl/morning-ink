@@ -42,7 +42,7 @@ internal sealed partial class AiSummaryProcessor(AiSettingsStore store, AiChat c
         }
 
         _settings ??= await store.LoadAsync(cancellationToken);
-        if (_settings is not { Enabled: true, Summaries: true, Endpoint: not null, Model: not null } settings
+        if (_settings is not { Enabled: true, Summaries: true, Endpoint: { } endpoint, Model: { } model } settings
             || (source.LocalAiOnly && !settings.IsLocal))
         {
             return article;
@@ -85,35 +85,41 @@ internal sealed partial class AiSummaryProcessor(AiSettingsStore store, AiChat c
         finally
         {
             // Failed calls count too: the text left the instance either way.
-            await RecordAsync(settings, article, source, input.Length, summary is not null);
-        }
-    }
-
-    private async Task RecordAsync(AiSettings settings, FetchedArticle article, Source source, int characters, bool succeeded)
-    {
-        // ! is safe: the caller checked that both are set
-        var endpoint = new Uri(settings.Endpoint!);
-        try
-        {
-            await usage.RecordAsync(new AiCall
+            await RecordAsync(new AiCall
             {
                 At = usage.Now,
-                Provider = $"{endpoint.Host}:{endpoint.Port}",
-                Model = settings.Model!,
+                Provider = Provider(endpoint),
+                Model = model,
                 IsLocal = settings.IsLocal,
                 UserId = source.UserId,
                 SourceName = Shorten(source.Name, 200),
                 ArticleTitle = Shorten(article.Title, 500),
                 ArticleUrl = Shorten(article.Url.AbsoluteUri, 2000),
-                Characters = characters,
-                Succeeded = succeeded,
-            }, CancellationToken.None); // recorded even when the run is cancelled right after the call
+                Characters = input.Length,
+                Succeeded = summary is not null,
+            });
+        }
+    }
+
+    private async Task RecordAsync(AiCall call)
+    {
+        try
+        {
+            // Recorded even when the run is cancelled right after the call: the text has left the instance.
+            await usage.RecordAsync(call, CancellationToken.None);
         }
         catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
         {
             // The record is for transparency; losing one must not cost the summary.
             LogNotRecorded(logger, e.Message);
         }
+    }
+
+    // "192.168.1.20:11434": where the text went, without path or key.
+    private static string Provider(string endpoint)
+    {
+        var uri = new Uri(endpoint);
+        return $"{uri.Host}:{uri.Port}";
     }
 
     private static string Shorten(string text, int length) => text.Length <= length ? text : text[..length];

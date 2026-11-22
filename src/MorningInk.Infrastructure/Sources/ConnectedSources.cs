@@ -45,13 +45,13 @@ public sealed class ConnectedSources(MorningInkDbContext db, FreshRssClient fres
             return new FreshRssConnection.Failed(new SourceResult.Failure("This is not a valid address.", Reason: nameof(FetchError.InvalidUrl)));
         }
 
-        var (session, failure) = await freshRss.SignInAsync(api, user.Trim(), password, cancellationToken);
-        if (session is null)
+        var session = await freshRss.SignInAsync(api, user.Trim(), password, cancellationToken);
+        if (!session.Ok)
         {
-            return new FreshRssConnection.Failed(failure!); // ! is safe: no session means a failure
+            return new FreshRssConnection.Failed(session.Failure);
         }
 
-        var (categories, listFailure) = await freshRss.CategoriesAsync(api, session, cancellationToken);
+        var (categories, listFailure) = await freshRss.CategoriesAsync(api, session.Body, cancellationToken);
         return listFailure is null ? new FreshRssConnection.Connected(api, categories) : new FreshRssConnection.Failed(listFailure);
     }
 

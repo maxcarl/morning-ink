@@ -62,7 +62,8 @@ public sealed partial class SafeConnector(HostAllowlist allowlist, ILogger<SafeC
             }
         }
 
-        throw lastError!; // ! is safe: permitted is not empty, so the loop ran and failed at least once
+        // The loop ran at least once, since permitted is not empty, so there is an error to report.
+        throw lastError ?? new SocketException((int)SocketError.HostUnreachable);
     }
 
     private BlockedAddressException Blocked(string host, int port, string reason, IReadOnlyCollection<int> openPorts)

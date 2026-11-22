@@ -1,5 +1,4 @@
 using System.IO.Compression;
-using System.Security.Claims;
 
 namespace MorningInk.Web;
 
@@ -23,8 +22,8 @@ public static class PreviewFiles
     public static void MapPreviewFiles(this WebApplication app) =>
         app.MapGet("/preview/file/{*path}", (string path, HttpContext context, PreviewStore previews) =>
         {
-            // The fallback policy has already required a signed-in user, so the id claim is there.
-            var userId = Guid.Parse(context.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: see above
+            // The fallback policy has already required a signed-in user.
+            var userId = context.User.Id();
             if (previews.Get(userId) is not { } file || !MediaTypes.TryGetValue(Path.GetExtension(path), out var mediaType))
             {
                 return Results.NotFound();

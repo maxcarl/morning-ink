@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 namespace MorningInk.Application.Scheduling;
 
 /// <summary>Computes the slots of a daily schedule, e.g. "6:00 in Europe/Berlin", in UTC.</summary>
@@ -38,9 +39,9 @@ public static class DeliverySlots
     }
 
     /// <summary>Whether the days stand for "every day": none chosen, or all seven.</summary>
-    public static bool IsEveryDay(IReadOnlyCollection<DayOfWeek>? days) => days is null || days.Count == 0 || days.Distinct().Count() == DaysPerWeek;
+    public static bool IsEveryDay([NotNullWhen(false)] IReadOnlyCollection<DayOfWeek>? days) => days is null || days.Count == 0 || days.Distinct().Count() == DaysPerWeek;
 
-    private static bool IsIssueDay(DateOnly date, IReadOnlyCollection<DayOfWeek>? days) => IsEveryDay(days) || days!.Contains(date.DayOfWeek); // ! is safe: IsEveryDay is true for null
+    private static bool IsIssueDay(DateOnly date, IReadOnlyCollection<DayOfWeek>? days) => IsEveryDay(days) || days.Contains(date.DayOfWeek);
 
     private static DateTimeOffset ToUtc(DateOnly date, TimeOnly time, TimeZoneInfo zone)
     {

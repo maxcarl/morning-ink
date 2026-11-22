@@ -87,8 +87,7 @@
     [SupplyParameterFromForm]
     private PasswordInput Input { get; set; } = default!; // ! is safe: set in OnInitialized before rendering
 
-    // ! is safe: the page needs a signed-in user, whose cookie always carries the id
-    private Guid UserId => Guid.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private Guid UserId => HttpContext.User.Id();
 
     // What readers enter as catalog address; behind a proxy, the address the browser used.
     private string CatalogUrl => $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/opds";

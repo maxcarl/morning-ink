@@ -48,7 +48,7 @@ public sealed class IssueStatistics(MorningInkDbContext db, TimeProvider time)
             issues.Count,
             issues.Count(i => i.Status == IssueStatus.Delivered),
             issues.Count(i => i.Status == IssueStatus.Failed),
-            built.Count == 0 ? null : (long)built.Average(i => i.FileSize!.Value), // ! is safe: only issues with a file
+            built.Count == 0 ? null : (long)built.Select(i => i.FileSize).OfType<long>().Average(),
             built.Count == 0 ? null : built.Average(i => i.Entries.Count(e => !e.Duplicate)),
             AverageBuildTime(issues),
             await SourcesAsync(userId, issues, cancellationToken),
@@ -61,8 +61,8 @@ public sealed class IssueStatistics(MorningInkDbContext db, TimeProvider time)
     {
         var times = issues
             .Select(i => (Start: i.Log.FirstOrDefault(e => e.Event is "Started" or "StartedAhead")?.At, End: i.Log.FirstOrDefault(e => e.Event == "Rendered")?.At))
-            .Where(t => t.Start is not null && t.End is not null)
-            .Select(t => (t.End!.Value - t.Start!.Value).Ticks) // ! is safe: both checked above
+            .Select(t => t is { Start: { } start, End: { } end } ? (end - start).Ticks : (long?)null)
+            .OfType<long>()
             .ToList();
         return times.Count == 0 ? null : TimeSpan.FromTicks((long)times.Average());
     }

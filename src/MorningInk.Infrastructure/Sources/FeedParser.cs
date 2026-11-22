@@ -153,7 +153,7 @@ internal static partial class FeedParser
     }
 
     private static List<string> Categories(IEnumerable<string?> names) =>
-        names.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n!.Trim()).ToList(); // ! is safe: blanks are filtered out first
+        names.OfType<string>().Select(n => n.Trim()).Where(n => n.Length > 0).ToList();
 
     // Feeds are untrusted: links like "javascript:" or "file:" must not reach the newspaper.
     private static Uri? ResolveLink(string? link, Uri baseUri) =>

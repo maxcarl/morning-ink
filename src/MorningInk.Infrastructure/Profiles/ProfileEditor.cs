@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
@@ -342,8 +343,8 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         _ => false,
     };
 
-    private static bool IsWebAddress(string text, out Uri uri) =>
-        Uri.TryCreate(text, UriKind.Absolute, out uri!) && uri.Scheme is "http" or "https" && string.IsNullOrEmpty(uri.UserInfo); // ! is safe: only read when this returns true
+    private static bool IsWebAddress(string text, [NotNullWhen(true)] out Uri? uri) =>
+        Uri.TryCreate(text, UriKind.Absolute, out uri) && uri.Scheme is "http" or "https" && string.IsNullOrEmpty(uri.UserInfo);
 
     // A numeric chat id (negative for groups) or a public channel's @name, optionally "/thread" for a forum topic.
     [System.Text.RegularExpressions.GeneratedRegex(@"^(-?\d{1,20}|@[A-Za-z0-9_]{5,32})(/\d{1,10})?$", System.Text.RegularExpressions.RegexOptions.None, matchTimeoutMilliseconds: 100)]

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text;
 using MorningInk.Infrastructure.Sources;
 
@@ -12,8 +11,8 @@ public static class SourcesExport
     public static void MapSourcesExport(this WebApplication app) =>
         app.MapGet("/sources/export.opml", async (HttpContext context, SourceCatalog catalog) =>
         {
-            // The fallback policy has already required a signed-in user, so the id claim is there.
-            var userId = Guid.Parse(context.User.FindFirstValue(ClaimTypes.NameIdentifier)!); // ! is safe: see above
+            // The fallback policy has already required a signed-in user.
+            var userId = context.User.Id();
             var opml = await catalog.ExportOpmlAsync(userId, context.RequestAborted);
             return Results.File(Encoding.UTF8.GetBytes(opml), OpmlMediaType, "morning-ink-feeds.opml");
         });

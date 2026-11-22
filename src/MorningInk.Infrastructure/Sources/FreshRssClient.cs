@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
@@ -22,38 +23,39 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
     private const string LabelPrefix = "user/-/label/";
     private const int MaxItems = 100;
 
-    /// <summary>Signs in with the API password (set in FreshRSS under Profile → API management).</summary>
-    public async Task<(string? Session, SourceResult.Failure? Failure)> SignInAsync(Uri api, string user, string password, CancellationToken cancellationToken)
+    /// <summary>Signs in with the API password (set in FreshRSS under Profile → API management); the answer is the session.</summary>
+    public async Task<Answer> SignInAsync(Uri api, string user, string password, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint(api, "accounts/ClientLogin"))
         {
             Content = new FormUrlEncodedContent([new("Email", user), new("Passwd", password)]),
         };
-        var (body, failure) = await SendAsync(request, cancellationToken);
-        if (failure is not null)
+        var answer = await SendAsync(request, cancellationToken);
+        if (!answer.Ok)
         {
-            return (null, failure.Arguments is [_, "401" or "403"] ? LoginFailed(api) : failure);
+            return answer.Failure.Arguments is [_, "401" or "403"] ? Answer.Fail(LoginFailed(api)) : answer;
         }
 
         // "SID=…\nLSID=…\nAuth=…": the Auth line is the session for all further requests.
-        var session = body!.Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.StartsWith("Auth=", StringComparison.Ordinal))?[5..]; // ! is safe: no failure means a body
-        return string.IsNullOrEmpty(session) ? (null, LoginFailed(api)) : (session, null);
+        var session = answer.Body.Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.StartsWith("Auth=", StringComparison.Ordinal))?[5..];
+        return string.IsNullOrEmpty(session) ? Answer.Fail(LoginFailed(api)) : Answer.With(session);
     }
 
     public async Task<(IReadOnlyList<FreshRssCategory> Categories, SourceResult.Failure? Failure)> CategoriesAsync(Uri api, string session, CancellationToken cancellationToken)
     {
-        var (body, failure) = await GetAsync(api, "reader/api/0/tag/list?output=json", session, cancellationToken);
-        if (failure is not null)
+        var answer = await GetAsync(api, "reader/api/0/tag/list?output=json", session, cancellationToken);
+        if (!answer.Ok)
         {
-            return ([], failure);
+            return ([], answer.Failure);
         }
 
-        using var json = Parse(body!); // ! is safe: no failure means a body
+        using var json = Parse(answer.Body);
         var categories = json?.RootElement.TryGetProperty("tags", out var tags) == true && tags.ValueKind == JsonValueKind.Array
             ? tags.EnumerateArray()
                 .Select(t => Text(t, "id"))
-                .Where(id => id is not null && id.StartsWith(LabelPrefix, StringComparison.Ordinal))
-                .Select(id => new FreshRssCategory(id!, id![LabelPrefix.Length..])) // ! is safe: nulls are filtered out
+                .OfType<string>()
+                .Where(id => id.StartsWith(LabelPrefix, StringComparison.Ordinal))
+                .Select(id => new FreshRssCategory(id, id[LabelPrefix.Length..]))
                 .ToList()
             : [];
         return (categories, null);
@@ -64,13 +66,13 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
     {
         var id = stream ?? "user/-/state/com.google/reading-list";
         var path = $"reader/api/0/stream/contents/{EscapePath(id)}?output=json&n={MaxItems}&xt={Uri.EscapeDataString(ReadState)}";
-        var (body, failure) = await GetAsync(api, path, session, cancellationToken);
-        if (failure is not null)
+        var answer = await GetAsync(api, path, session, cancellationToken);
+        if (!answer.Ok)
         {
-            return failure;
+            return answer.Failure;
         }
 
-        using var json = Parse(body!); // ! is safe: no failure means a body
+        using var json = Parse(answer.Body);
         if (json is null || !json.RootElement.TryGetProperty("items", out var items) || items.ValueKind != JsonValueKind.Array)
         {
             return new SourceResult.Failure("FreshRSS returned no readable list of articles.", Reason: "FreshRssNoList");
@@ -84,19 +86,19 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
     public async Task<string?> MarkReadAsync(Uri api, string session, IReadOnlyList<string> ids, CancellationToken cancellationToken)
     {
         // Writing needs a short-lived token on top of the session.
-        var (token, failure) = await GetAsync(api, "reader/api/0/token", session, cancellationToken);
-        if (failure is not null)
+        var token = await GetAsync(api, "reader/api/0/token", session, cancellationToken);
+        if (!token.Ok)
         {
-            return failure.Message;
+            return token.Failure.Message;
         }
 
-        List<KeyValuePair<string, string>> form = [new("a", ReadState), new("T", token!.Trim()), .. ids.Select(id => KeyValuePair.Create("i", id))]; // ! is safe: no failure means a body
+        List<KeyValuePair<string, string>> form = [new("a", ReadState), new("T", token.Body.Trim()), .. ids.Select(id => KeyValuePair.Create("i", id))];
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint(api, "reader/api/0/edit-tag")) { Content = new FormUrlEncodedContent(form) };
         request.Headers.TryAddWithoutValidation("Authorization", $"GoogleLogin auth={session}");
         return (await SendAsync(request, cancellationToken)).Failure?.Message;
     }
 
-    private async Task<(string? Body, SourceResult.Failure? Failure)> GetAsync(Uri api, string path, string session, CancellationToken cancellationToken)
+    private async Task<Answer> GetAsync(Uri api, string path, string session, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, Endpoint(api, path));
         request.Headers.TryAddWithoutValidation("Authorization", $"GoogleLogin auth={session}");
@@ -104,32 +106,31 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
     }
 
     // Expected problems become the same reason codes as any fetch, so the page explains them in the user's language.
-    private async Task<(string? Body, SourceResult.Failure? Failure)> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    private async Task<Answer> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        // ! is safe: every request here is built with an absolute address
-        var host = request.RequestUri!.Host;
+        var host = request.RequestUri?.Host ?? string.Empty;
         try
         {
             using var response = await httpClients.CreateClient(HttpClientName).SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 var code = ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture);
-                return (null, new SourceResult.Failure($"{host} answered with HTTP {code}.", Reason: nameof(FetchError.HttpError), Arguments: [host, code]));
+                return Answer.Fail(new SourceResult.Failure($"{host} answered with HTTP {code}.", Reason: nameof(FetchError.HttpError), Arguments: [host, code]));
             }
 
-            return (await response.Content.ReadAsStringAsync(cancellationToken), null);
+            return Answer.With(await response.Content.ReadAsStringAsync(cancellationToken));
         }
         catch (HttpRequestException e) when (e.InnerException is BlockedAddressException blocked)
         {
-            return (null, new SourceResult.Failure(blocked.Message, blocked.AllowlistEntry, nameof(FetchError.BlockedAddress), [blocked.AllowlistEntry]));
+            return Answer.Fail(new SourceResult.Failure(blocked.Message, blocked.AllowlistEntry, nameof(FetchError.BlockedAddress), [blocked.AllowlistEntry]));
         }
         catch (HttpRequestException)
         {
-            return (null, new SourceResult.Failure($"{host} could not be reached.", Reason: nameof(FetchError.Unreachable), Arguments: [host]));
+            return Answer.Fail(new SourceResult.Failure($"{host} could not be reached.", Reason: nameof(FetchError.Unreachable), Arguments: [host]));
         }
         catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return (null, new SourceResult.Failure($"{host} did not answer in time.", Reason: nameof(FetchError.Timeout), Arguments: [host]));
+            return Answer.Fail(new SourceResult.Failure($"{host} did not answer in time.", Reason: nameof(FetchError.Timeout), Arguments: [host]));
         }
     }
 
@@ -183,4 +184,22 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
 
     private static string? Text(JsonElement element, string name) =>
         element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+
+    /// <summary>What FreshRSS answered: a body, or why there is none.</summary>
+    public sealed class Answer
+    {
+        private Answer(string? body, SourceResult.Failure? failure) => (Body, Failure) = (body, failure);
+
+        public string? Body { get; }
+
+        public SourceResult.Failure? Failure { get; }
+
+        [MemberNotNullWhen(true, nameof(Body))]
+        [MemberNotNullWhen(false, nameof(Failure))]
+        public bool Ok => Failure is null;
+
+        public static Answer With(string body) => new(body, null);
+
+        public static Answer Fail(SourceResult.Failure failure) => new(null, failure);
+    }
 }

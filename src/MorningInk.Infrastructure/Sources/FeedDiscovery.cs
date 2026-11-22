@@ -90,9 +90,10 @@ public sealed class FeedDiscovery(SafeHttpClient http)
         var pageTitle = document.Title?.Trim();
         return document.QuerySelectorAll("link[rel~='alternate'][href]")
             .Where(link => FeedTypes.Contains(link.GetAttribute("type") ?? string.Empty))
-            .Select(link => (Link: link, Ok: Uri.TryCreate(site.FinalUri, link.GetAttribute("href"), out var feed), Url: feed))
-            .Where(candidate => candidate.Ok && UrlPolicy.Check(candidate.Url!) is null) // ! is safe: Ok means TryCreate set it
-            .Select(candidate => new FeedCandidate(candidate.Url!, Describes(candidate.Link.GetAttribute("title")) ?? pageTitle ?? candidate.Url!.Host))
+            .Select(link => Uri.TryCreate(site.FinalUri, link.GetAttribute("href"), out var feed) && UrlPolicy.Check(feed) is null
+                ? new FeedCandidate(feed, Describes(link.GetAttribute("title")) ?? pageTitle ?? feed.Host)
+                : null)
+            .OfType<FeedCandidate>()
             .DistinctBy(candidate => candidate.Url)
             .ToList();
     }

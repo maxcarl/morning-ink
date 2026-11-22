@@ -35,8 +35,10 @@
                     <form @onsubmit="SaveDeliveryAsync">
                         <fieldset class="field">
                             <legend class="label">@T["Profile_Delivery"]</legend>
-                            <label class="checkbox"><input id="delivery-email" type="radio" name="delivery" checked="@_sendByEmail" @onchange="() => _sendByEmail = true" /> @T["Profile_DeliveryEmail"]</label>
-                            <label class="checkbox"><input id="delivery-fetch" type="radio" name="delivery" checked="@(!_sendByEmail)" @onchange="() => _sendByEmail = false" aria-describedby="delivery-fetch-hint" /> @T["Profile_DeliveryFetch"]</label>
+                            <div class="choices">
+                                <label class="checkbox"><input id="delivery-email" type="radio" name="delivery" checked="@_sendByEmail" @onchange="() => _sendByEmail = true" /> @T["Profile_DeliveryEmail"]</label>
+                                <label class="checkbox"><input id="delivery-fetch" type="radio" name="delivery" checked="@(!_sendByEmail)" @onchange="() => _sendByEmail = false" aria-describedby="delivery-fetch-hint" /> @T["Profile_DeliveryFetch"]</label>
+                            </div>
                             <span id="delivery-fetch-hint" class="hint">@T["Profile_DeliveryFetchHint"]</span>
                         </fieldset>
                         @if (_sendByEmail)
