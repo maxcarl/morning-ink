@@ -15,7 +15,7 @@
   --color-ink: #191714;          /* 16:1 on paper */
   --color-muted: #57524a;        /* 7.2:1 on paper */
   --color-border: #8a847a;       /* 3.3:1, controls */
-  --color-rule: #d8d0c3;         /* thin decorative rules */
+  --color-rule: #cbc1b1;         /* thin decorative rules */
   --color-accent: #a3161a;       /* kicker, active tab: 6.8:1 */
   --color-ok: #2f6b33;           /* 5.9:1 */
   --color-warn: #7d5300;         /* 6.0:1 */
@@ -57,7 +57,7 @@
   --color-ink: #efe9df;
   --color-muted: #b9b1a5;
   --color-border: #8f887d;
-  --color-rule: #3b3631;
+  --color-rule: #4a433c;
   --color-accent: #ff8f86;
   --color-ok: #8fd19a;
   --color-warn: #f0c060;
@@ -75,7 +75,7 @@
     --color-ink: #efe9df;
     --color-muted: #b9b1a5;
     --color-border: #8f887d;
-    --color-rule: #3b3631;
+    --color-rule: #4a433c;
     --color-accent: #ff8f86;
     --color-ok: #8fd19a;
     --color-warn: #f0c060;
@@ -193,6 +193,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   font: inherit; color: var(--color-ink); background: var(--color-surface);
   border: 1px solid var(--color-ink); border-radius: var(--radius);
 }
+.input::placeholder { color: var(--color-muted); opacity: 1; }
 .input:focus-visible { outline: var(--focus-ring); outline-offset: 0; }
 .hint { display: block; margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-muted); }
 .checkbox { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-height); }
@@ -209,8 +210,9 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 }
 .button:hover { filter: brightness(1.25); }
 .button-secondary { background: transparent; color: var(--color-ink); }
+.button:disabled { background: var(--color-highlight); color: var(--color-muted); border-color: var(--color-border); cursor: not-allowed; filter: none; }
 .button-secondary:hover { background: var(--color-highlight); filter: none; }
-.button-small { min-height: 2.25rem; padding: 0 var(--space-3); font-size: var(--text-sm); }
+.button-small { padding: 0 var(--space-4); font-size: var(--text-sm); }
 .button-block { width: 100%; }
 
 /* Messages: border and wording carry the meaning, color only adds to it */
@@ -224,9 +226,11 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .auth { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--space-6) var(--space-4); }
 .card { width: 100%; max-width: var(--auth-width); background: var(--color-surface); border: 1px solid var(--color-ink); padding: var(--space-8) var(--space-6); }
 .card .brand { display: block; font-size: 2.25rem; text-align: center; padding-bottom: var(--space-3); margin-bottom: var(--space-6); border-bottom: 4px double var(--color-ink); }
+.card h1 { font-size: var(--text-xl); margin-bottom: var(--space-6); }
 .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.department + form, .department + .hint { margin-top: var(--space-4); }
+/* Space between a section heading and whatever follows it */
+.department + * { margin-top: var(--space-4); }
 .rows + form { margin-top: var(--space-6); }
 .sidebar > .label { margin-bottom: var(--space-4); }
 
@@ -247,3 +251,13 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .steps li::before { content: counter(step) " "; font-family: var(--font-serif); font-weight: 700; }
 .steps li[aria-current="step"] { color: var(--color-accent); font-weight: 700; }
 .wizard-nav { margin-top: var(--space-6); }
+
+/* Dashboard notes: what is missing, each with a link to fix it */
+.notes { list-style: none; margin: 0 0 var(--space-6); padding: 0; }
+.notes li { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-rule); }
+
+/* Narrow screens: tabs closer together so they wrap less */
+@media (max-width: 40rem) {
+  .nav { gap: 0 var(--space-4); }
+  .nav a { letter-spacing: 0.06em; }
+}

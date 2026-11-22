@@ -235,4 +235,5 @@
   <data name="Welcome_Help_Done" xml:space="preserve"><value>Die erste Ausgabe wird jetzt gebaut und ist in ein paar Minuten auf deinem Kindle. Danach kommt sie jeden Tag zur Lieferzeit.</value></data>
   <data name="Welcome_AmazonHint" xml:space="preserve"><value>Wichtig: Trag {0} bei Amazon unter „Einstellungen für persönliche Dokumente → Genehmigte E-Mail-Liste“ ein. Sonst verwirft Amazon die Zeitung ohne Meldung.</value></data>
   <data name="Dash_Wizard" xml:space="preserve"><value>Einrichtungsassistent fortsetzen.</value></data>
+  <data name="Dash_SendBlocked" xml:space="preserve"><value>Senden geht, sobald alles eingerichtet ist, siehe Meldungen.</value></data>
 </root>

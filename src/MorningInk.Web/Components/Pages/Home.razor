@@ -33,7 +33,13 @@
                         ? T["Dash_NextLedeNoRecipient", NextNumber(view), profile.Sections.Count]
                         : T["Dash_NextLede", NextNumber(view), profile.Sections.Count, profile.Recipient])
                 </p>
-                <button type="button" class="button" disabled="@(!view.CanSend || !view.MailServerSet || _sending)" @onclick="SendNowAsync">@T["Dash_SendNow"]</button>
+                @{ var blocked = !view.CanSend || !view.MailServerSet; }
+                <button type="button" class="button" disabled="@(blocked || _sending)" aria-describedby="@(blocked ? "send-blocked" : null)" @onclick="SendNowAsync">@T["Dash_SendNow"]</button>
+                @if (blocked)
+                {
+                    @* Right at the button: on a phone the notes that explain it are far below. *@
+                    <p id="send-blocked" class="hint">@T["Dash_SendBlocked"]</p>
+                }
             </section>
 
             <h2 class="department">@T["Dash_Recent"]</h2>
@@ -65,8 +71,8 @@
         </div>
 
         <aside class="sidebar" aria-labelledby="notes-heading">
-            <h2 id="notes-heading" class="label muted">@T["Dash_Notes"]</h2>
-            <ul class="headline-list">
+            <h2 id="notes-heading" class="department">@T["Dash_Notes"]</h2>
+            <ul class="notes">
                 @if (string.IsNullOrEmpty(profile.Recipient))
                 {
                     <li><a href="/profile">@T["Dash_NeedRecipient"]</a></li>

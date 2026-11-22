@@ -235,4 +235,5 @@
   <data name="Welcome_Help_Done" xml:space="preserve"><value>The first issue is built now and arrives on your Kindle in a few minutes. After that it comes every day at your delivery time.</value></data>
   <data name="Welcome_AmazonHint" xml:space="preserve"><value>Important: add {0} on Amazon under Personal Document Settings → Approved Personal Document E-mail List. Otherwise Amazon silently drops the newspaper.</value></data>
   <data name="Dash_Wizard" xml:space="preserve"><value>Continue the setup wizard.</value></data>
+  <data name="Dash_SendBlocked" xml:space="preserve"><value>Sending works once everything is set up, see Notes.</value></data>
 </root>

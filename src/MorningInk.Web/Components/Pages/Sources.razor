@@ -95,7 +95,7 @@
     </div>
 
     <aside class="sidebar" aria-labelledby="preview-label" aria-live="polite">
-        <span id="preview-label" class="label muted">@T["Sources_Preview"]</span>
+        <h2 id="preview-label" class="department">@T["Sources_Preview"]</h2>
         @if (_preview is null)
         {
             <p class="muted">@(_busy ? T["Sources_Loading"] : T["Sources_PreviewHint"])</p>
