@@ -39,3 +39,14 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Images__MaxEncodedBytes` | `204800` | Largest converted JPEG (200 KiB); quality and size go down until it fits. |
 | `Images__MaxPerArticle` | `10` | Images kept per article. |
 | `Images__Quality` | `75` | JPEG quality of the first attempt. |
+
+## Behind a reverse proxy
+
+Set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true` when Morning Ink runs behind a proxy such as Caddy, Traefik or nginx. It then takes the address the browser used from the proxy's `X-Forwarded-Proto` and `X-Forwarded-For` headers, so:
+
+- the OPDS address on the account page starts with `https://`,
+- the sign-in cookie is only ever sent over HTTPS,
+- the limit on sign-in attempts counts each client, not the proxy as one.
+
+Only set it when port 8080 is reachable by the proxy alone, e.g. not published in `compose.yaml` but shared over a Docker network: anyone who reaches the port directly could otherwise claim any address in these headers.
+

@@ -118,7 +118,7 @@ The wizard opens by itself and takes five steps:
 
 Update with `docker compose pull && docker compose up -d`. All data lives in the `morning-ink-data` volume. Back up the whole volume: the `keys` folder in it is needed to read stored passwords.
 
-Morning Ink is meant for your home network. To reach it from the internet, put it behind a reverse proxy with HTTPS.
+Morning Ink is meant for your home network. To reach it from the internet, put it behind a reverse proxy with HTTPS and set `ASPNETCORE_FORWARDEDHEADERS_ENABLED=true`, see [behind a reverse proxy](docs/configuration.md#behind-a-reverse-proxy).
 
 ## Configuration
 

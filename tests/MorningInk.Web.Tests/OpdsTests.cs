@@ -73,6 +73,20 @@ public sealed partial class OpdsTests : IDisposable
     }
 
     [Fact]
+    public async Task Behind_a_proxy_with_forwarded_headers_on_the_catalog_address_is_the_public_one()
+    {
+        using var app = new TestApp(new() { ["FORWARDEDHEADERS_ENABLED"] = "true" });
+        var browser = await app.SignedInAdminAsync();
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/account");
+        request.Headers.Add("X-Forwarded-Proto", "https");
+        request.Headers.Host = "news.example.com";
+
+        var page = await (await browser.SendAsync(request)).Content.ReadAsStringAsync();
+
+        Assert.Contains("https://news.example.com/opds", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Guessing_the_reader_password_is_slowed_down()
     {
         await _app.SignedInAdminAsync();
