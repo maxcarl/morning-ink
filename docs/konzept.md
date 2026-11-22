@@ -159,11 +159,11 @@ Allgemeine Themen, die dich besonders interessieren oder gar nicht, z. B. „Hom
 | Einstellung | Bedeutung |
 | --- | --- |
 | Thema | Name, z. B. „Homelab“ |
-| Stichwörter | Begriffe, an denen das Thema erkannt wird, z. B. „Proxmox, NAS, Raspberry Pi, Selfhosting“ |
+| Stichwörter | Begriffe, an denen das Thema erkannt wird, z. B. „Proxmox, NAS, Raspberry Pi, Selfhosting“. Ganze Wörter; mit Stern am Ende auch Wortanfänge („Fußball*“ findet „Fußballer“) |
 | Gewicht | stark bevorzugen, bevorzugen, weniger, ausblenden |
 
 - **Ohne KI:** Treffer der Stichwörter in Titel und Anrisstext heben oder senken die Priorität eines Artikels. „Ausblenden“ wirkt wie ein Filter.
-- **Mit KI:** Die KI erkennt das Thema auch ohne die genauen Stichwörter („Proxmox-Update“ zählt zu „Homelab“) und bewertet die Relevanz. Stichwörter bleiben als Hinweis und als Rückfall, wenn die KI nicht erreichbar ist.
+- **Mit KI:** Die KI erkennt das Thema auch ohne die genauen Stichwörter („Proxmox-Update“ zählt zu „Homelab“, „Kane trifft doppelt für die Bayern“ zu „Fußball“) und bewertet die Relevanz. Das Thema wird dafür zur Beschreibung, die das Modell als Daten bekommt. Stichwörter bleiben als Hinweis und als Rückfall, wenn die KI nicht erreichbar ist.
 - **Nachvollziehbar:** Artikel, die wegen eines Interesses nach oben gerückt sind, können einen kleinen Vermerk tragen („Homelab“).
 - **Lernt mit:** Die Feedback-Links „Mehr davon“ und „Weniger davon“ schlagen Änderungen am Gewicht vor, statt still etwas zu verändern.
 
@@ -493,7 +493,7 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | 27 | Quellen | OPML-Import und -Export auf der Quellen-Seite | Ein Export aus FreshRSS oder Feedly wird übernommen, Dubletten werden übersprungen | 19 | – |
 | 28 | Ausgaben | Archiv: alle Ausgaben, herunterladen, erneut senden, anheften | Eine alte Ausgabe lässt sich erneut an den Kindle schicken | 22 | ✅ erledigt; Titelseiten-Miniaturen kommen später |
 | 29 | Ausgaben | Vorschau: die nächste Ausgabe im Browser blättern (Sandbox-iframe) | Zeigt dieselben Artikel wie die Zustellung, ohne sie als gelesen zu markieren | 22 | ✅ erledigt; KI nur auf Wunsch |
-| 30 | Verarbeitung | Filter pro Quelle: Stichwörter ein- oder ausschließen, Mindestlänge, keine Liveticker | Ausgeschlossene Artikel erscheinen nicht in der Ausgabe | 19 | ✅ erledigt; Regex vorerst nicht |
+| 30 | Verarbeitung | Filter pro Quelle: Stichwörter ein- oder ausschließen, Mindestlänge, keine Liveticker, keine Werbung | Ausgeschlossene Artikel erscheinen nicht in der Ausgabe; „Testen“ an der Quelle zeigt, was aussortiert wird und warum | 19 | ✅ erledigt; Werbung an den Kennzeichen des Verlags erkannt, Wortanfänge mit Stern; Regex vorerst nicht |
 | 31 | Verarbeitung | Duplikate über Quellen hinweg erkennen, mit „auch bei: …“ | Dieselbe Meldung aus zwei Quellen steht nur einmal im Heft | 13 | ✅ erledigt |
 | 32 | Verarbeitung | Interessen mit Stichwörtern und Gewicht pro Profil | Bevorzugte Themen rücken bei knappem Limit nach vorn, „ausblenden“ wirkt als Filter | 26 | ✅ erledigt; Erkennung per KI kommt später |
 | 33 | Benutzer | Mehrere Benutzer (Familie und Freunde), vom Admin angelegt | Jeder sieht und bearbeitet nur die eigenen Quellen und Ausgaben | 18 | – |
@@ -513,3 +513,4 @@ Die Aufgaben 6 bis 10 lassen sich parallel zu 4 und 5 bauen. Am meisten Risiko s
 | 42 | KI | Übersetzen fremdsprachiger Quellen | Englische Artikel erscheinen auf Deutsch, auf Wunsch zweisprachig | 36 | – |
 | 43 | KI | Themen-Recherche | Treffer zu eigenen Themen landen mit Begründung in der Ausgabe | 35, 36 | – |
 | 44 | KI | Anzeige, welche Inhalte an welchen Anbieter gingen, und Tageslimit | Das Dashboard zeigt Aufrufe und Inhalte pro Anbieter | 36 | – |
+| 45 | KI | Interessen per KI erkennen: Thema als Beschreibung, das Modell ordnet Artikel anhand von Titel und Anriss zu (Ergebnis gegen ein Schema geprüft); Stichwörter bleiben Hinweis und Rückfall; „nur lokale KI“ der Quelle gilt | „Kane trifft doppelt für die Bayern“ fällt unter „Fußball – auslassen“, ohne dass ein Stichwort passt; ohne KI wirken nur die Stichwörter; das Log nennt, welches Interesse gegriffen hat | 32, 36, 38 | – |
