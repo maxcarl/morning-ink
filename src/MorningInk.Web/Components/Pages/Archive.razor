@@ -10,7 +10,6 @@
 <PageTitle>@T["Archive_Title"] – @T["Brand"]</PageTitle>
 
 <header class="page-header">
-    <span class="kicker">@T["Archive_Kicker"]</span>
     <h1>@T["Archive_Title"]</h1>
     <p class="lede">@T["Archive_Lede"]</p>
     @if (_notice is not null)
@@ -35,63 +34,69 @@
     {
         <p class="muted">@(string.IsNullOrWhiteSpace(_search) ? T["Archive_Empty"] : T["Archive_NoneFound"])</p>
     }
-    <ul class="rows" aria-live="polite">
+    <ul class="issues" aria-live="polite">
         @foreach (var item in page.Issues)
         {
             var issue = item.Issue;
             var name = $"{T["Dash_IssueTitle", issue.Number]} · {Clock.DateAndTime(T, Local(issue.ScheduledFor, item.Profile))}";
             var open = _openId == issue.Id;
-            <li class="row" @key="issue.Id">
-                <div class="row-main">
-                    <div class="row-title">@(several ? $"{item.Profile.Title} · " : null)@name</div>
-                    <div class="row-meta">
-                        @Facts(issue) · <span class="status @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
-                    </div>
-                    @{ var inIssue = issue.Entries.Where(e => !e.Duplicate).ToList(); }
-                    @if (inIssue.Count > 0)
-                    {
-                        <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="entries-@issue.Id" @onclick="() => _openId = open ? null : issue.Id">
-                            @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", inIssue.Count])
-                        </button>
-                    }
-                    @if (issue.Log.Count > 0)
-                    {
-                        var logOpen = _logId == issue.Id;
-                        <button type="button" class="link-button" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
-                            @(logOpen ? T["Log_Hide"] : T["Log_Show"])
-                        </button>
-                        @if (logOpen)
+            var inIssue = issue.Entries.Where(e => !e.Duplicate).ToList();
+            var logOpen = _logId == issue.Id;
+            @* The same columns as on the overview, with the actions at the end of the line. *@
+            <li class="issue" @key="issue.Id">
+                <div class="issue-line archive-line">
+                    <span class="issue-name">@(several ? $"{item.Profile.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
+                    <span class="issue-date">@Clock.DateAndTime(T, Local(issue.ScheduledFor, item.Profile))</span>
+                    <span class="issue-facts">@Facts(issue)</span>
+                    <span class="badge @StatusClass(issue.Status)">@T[$"Status_{issue.Status}"]</span>
+                    <span class="issue-actions">
+                        @if (item.FileAvailable)
                         {
-                            <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(item.Profile.TimeZoneId)" /></div>
+                            @* A plain link: the browser downloads it with the user's sign-in cookie. *@
+                            <a class="link-button" href="/archive/@issue.Id/file" download>@T["Archive_Download"]<span class="visually-hidden"> – @name</span></a>
+                            <button type="button" class="link-button" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
                         }
-                    }
-                    @if (open)
-                    {
-                        <ul id="entries-@issue.Id" class="headline-list">
-                            @foreach (var entry in inIssue.OrderBy(e => e.SourceName, StringComparer.CurrentCulture))
-                            {
-                                <li>
-                                    <a href="@entry.Url" rel="noopener noreferrer" target="_blank">@entry.Title</a>
-                                    <div class="row-meta">@entry.SourceName</div>
-                                </li>
-                            }
-                        </ul>
-                    }
+                        else
+                        {
+                            <span class="muted">@T["Archive_FileGone"]</span>
+                        }
+                        @* Kept issues survive the cleanup; the pressed state says so, not only the look. *@
+                        <button type="button" class="link-button @(issue.Pinned ? "pinned" : null)" aria-pressed="@(issue.Pinned ? "true" : "false")" @onclick="() => TogglePinAsync(issue)">@T["Archive_Keep"]<span class="visually-hidden"> – @name</span></button>
+                    </span>
                 </div>
-                <div class="row-actions">
-                    @if (item.FileAvailable)
-                    {
-                        @* A plain link: the browser downloads it with the user's sign-in cookie. *@
-                        <a class="button button-secondary button-small" href="/archive/@issue.Id/file" download>@T["Archive_Download"]<span class="visually-hidden"> – @name</span></a>
-                        <button type="button" class="button button-secondary button-small" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
-                    }
-                    else
-                    {
-                        <span class="muted">@T["Archive_FileGone"]</span>
-                    }
-                    @* Kept issues survive the cleanup; the pressed state says so, not only the look. *@
-                    <button type="button" class="link-button @(issue.Pinned ? "pinned" : null)" aria-pressed="@(issue.Pinned ? "true" : "false")" @onclick="() => TogglePinAsync(issue)">@T["Archive_Keep"]<span class="visually-hidden"> – @name</span></button>
-                </div>
+                @if (inIssue.Count > 0 || issue.Log.Count > 0)
+                {
+                    <div class="issue-more">
+                        @if (inIssue.Count > 0)
+                        {
+                            <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="entries-@issue.Id" @onclick="() => _openId = open ? null : issue.Id">
+                                @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", inIssue.Count])
+                            </button>
+                        }
+                        @if (issue.Log.Count > 0)
+                        {
+                            <button type="button" class="link-button" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
+                                @(logOpen ? T["Log_Hide"] : T["Log_Show"])
+                            </button>
+                        }
+                    </div>
+                }
+                @if (logOpen)
+                {
+                    <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(item.Profile.TimeZoneId)" /></div>
+                }
+                @if (open)
+                {
+                    <ul id="entries-@issue.Id" class="headline-list">
+                        @foreach (var entry in inIssue.OrderBy(e => e.SourceName, StringComparer.CurrentCulture))
+                        {
+                            <li>
+                                <a href="@entry.Url" rel="noopener noreferrer" target="_blank">@entry.Title</a>
+                                <div class="row-meta">@entry.SourceName</div>
+                            </li>
+                        }
+                    </ul>
+                }
             </li>
         }
     </ul>
@@ -163,7 +168,13 @@
 
     private string Facts(Issue issue)
     {
-        var facts = new List<string> { T["Dash_Articles", issue.Entries.Count(e => !e.Duplicate)] };
+        // Issues from before entries were kept have none; "0 articles" would be wrong, so the count is left out.
+        var facts = new List<string>();
+        if (issue.Entries.Count(e => !e.Duplicate) is var articles and > 0)
+        {
+            facts.Add(T["Dash_Articles", articles]);
+        }
+
         if (issue.FileSize is { } size)
         {
             facts.Add(string.Create(CultureInfo.CurrentCulture, $"{size / 1024.0 / 1024.0:0.0} MB"));

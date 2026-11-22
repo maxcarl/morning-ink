@@ -34,7 +34,6 @@
   <data name="NotFound_Back" xml:space="preserve"><value>Back to the overview</value></data>
   <data name="Nav_Home" xml:space="preserve"><value>Newsroom</value></data>
   <data name="Nav_Sources" xml:space="preserve"><value>Sources</value></data>
-  <data name="Sources_Kicker" xml:space="preserve"><value>Correspondents</value></data>
   <data name="Sources_Title" xml:space="preserve"><value>Sources</value></data>
   <data name="Sources_Count" xml:space="preserve"><value>{0} feeds · {1} local</value></data>
   <data name="Sources_Empty" xml:space="preserve"><value>No sources yet. Enter a website or feed address below.</value></data>
@@ -82,7 +81,6 @@
   <data name="Error_PlaceRequired" xml:space="preserve"><value>Please enter a postal code or town.</value></data>
   <data name="Error_AdminOnly" xml:space="preserve"><value>Only admins can do this.</value></data>
   <data name="Nav_Profile" xml:space="preserve"><value>Edition</value></data>
-  <data name="Profile_Kicker" xml:space="preserve"><value>Planning</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Edition</value></data>
   <data name="Profile_Lede" xml:space="preserve"><value>{0} comes out {1} at {2} ({3}), sent to {4}.</value></data>
   <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} comes out {1} at {2} ({3}). Set a recipient so it can be delivered.</value></data>
@@ -123,7 +121,6 @@
   <data name="Theme_light" xml:space="preserve"><value>Light</value></data>
   <data name="Theme_dark" xml:space="preserve"><value>Dark</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
-  <data name="Settings_Kicker" xml:space="preserve"><value>Composing room</value></data>
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
   <data name="Settings_Lede" xml:space="preserve"><value>Mail server and home network for the whole instance. Only admins see this page.</value></data>
   <data name="Settings_Mail" xml:space="preserve"><value>Mail server (SMTP)</value></data>
@@ -197,7 +194,6 @@
   <data name="Status_Delivered" xml:space="preserve"><value>Delivered</value></data>
   <data name="Status_Failed" xml:space="preserve"><value>Delivery failed</value></data>
   <data name="Status_Empty" xml:space="preserve"><value>No new articles</value></data>
-  <data name="Welcome_Kicker" xml:space="preserve"><value>Setup</value></data>
   <data name="Welcome_Title" xml:space="preserve"><value>Welcome to Morning Ink</value></data>
   <data name="Welcome_Lede" xml:space="preserve"><value>Five steps to your first newspaper.</value></data>
   <data name="Welcome_StepOf" xml:space="preserve"><value>Step {0} of {1}</value></data>
@@ -242,7 +238,6 @@
   <data name="Profile_Error_Days" xml:space="preserve"><value>Pick at least one day.</value></data>
   <data name="Profile_Error_Profile" xml:space="preserve"><value>This edition no longer exists.</value></data>
   <data name="Nav_Archive" xml:space="preserve"><value>Archive</value></data>
-  <data name="Archive_Kicker" xml:space="preserve"><value>Back issues</value></data>
   <data name="Archive_Title" xml:space="preserve"><value>Archive</value></data>
   <data name="Archive_Lede" xml:space="preserve"><value>Every issue until the cleanup removes it after the retention period. Kept issues stay.</value></data>
   <data name="Archive_Search" xml:space="preserve"><value>Search in articles</value></data>
@@ -297,7 +292,6 @@
   <data name="Profile_LeadMinutes" xml:space="preserve"><value>{0} minutes before</value></data>
   <data name="Profile_LeadHours" xml:space="preserve"><value>{0} h before</value></data>
   <data name="Profile_Error_LeadTime" xml:space="preserve"><value>Choose a lead time of at most 12 hours.</value></data>
-  <data name="Preview_Kicker" xml:space="preserve"><value>Proof</value></data>
   <data name="Preview_Title" xml:space="preserve"><value>Preview</value></data>
   <data name="Preview_Lede" xml:space="preserve"><value>The issue as it would look if it were built now, without sending it or marking anything as read.</value></data>
   <data name="Preview_Edition" xml:space="preserve"><value>Edition</value></data>

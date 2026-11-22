@@ -14,7 +14,6 @@
 <PageTitle>@T["Settings_Title"] – @T["Brand"]</PageTitle>
 
 <header class="page-header">
-    <span class="kicker">@T["Settings_Kicker"]</span>
     <h1>@T["Settings_Title"]</h1>
     <p class="lede">@T["Settings_Lede"]</p>
     @if (_notice is not null)
@@ -32,13 +31,26 @@
     }
 </header>
 
-<div class="with-sidebar">
+<div class="form-column">
     <section aria-labelledby="mail-heading">
         <h2 id="mail-heading" class="department">@T["Settings_Mail"]</h2>
         <p class="hint">@T["Settings_MailHint"]</p>
         <MailServerForm Saved="MailSaved" Cancellation="Closed" />
 
-        <h2 class="department">@T["Settings_Ai"]</h2>
+        @* Right under the server it tests: one look shows whether mail reaches the Kindle. *@
+        <h3 id="test-heading" class="subhead">@T["Settings_TestMail"]</h3>
+        <p class="hint">@T["Settings_TestMailHint"]</p>
+        <form @onsubmit="SendTestAsync" aria-labelledby="test-heading">
+            <label class="label" for="test-recipient">@T["Settings_TestRecipient"]</label>
+            <div class="inline-form">
+                <input id="test-recipient" class="input" @bind="_testRecipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" required />
+                <button type="submit" class="button button-secondary" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
+            </div>
+        </form>
+    </section>
+
+    <section aria-labelledby="ai-heading">
+        <h2 id="ai-heading" class="department">@T["Settings_Ai"]</h2>
         <p class="hint">@T["Settings_AiHint"]</p>
         <form @onsubmit="SaveAiAsync">
             <div class="field">
@@ -72,7 +84,10 @@
             </div>
         </form>
 
-        <h2 class="department">@T["Settings_Network"]</h2>
+    </section>
+
+    <section aria-labelledby="network-heading">
+        <h2 id="network-heading" class="department">@T["Settings_Network"]</h2>
         <p class="hint">@T["Settings_NetworkHint"]</p>
         <ul class="rows">
             @foreach (var entry in Allowlist.Configured)
@@ -101,17 +116,6 @@
         </form>
     </section>
 
-    <aside class="sidebar" aria-labelledby="test-heading">
-        <h2 id="test-heading" class="department">@T["Settings_TestMail"]</h2>
-        <p class="hint">@T["Settings_TestMailHint"]</p>
-        <form @onsubmit="SendTestAsync">
-            <div class="field">
-                <label for="test-recipient">@T["Settings_TestRecipient"]</label>
-                <input id="test-recipient" class="input" @bind="_testRecipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" required />
-            </div>
-            <button type="submit" class="button button-block" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
-        </form>
-    </aside>
 </div>
 
 @code {

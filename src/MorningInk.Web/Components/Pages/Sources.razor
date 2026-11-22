@@ -12,7 +12,6 @@
 <PageTitle>@T["Sources_Title"] – @T["Brand"]</PageTitle>
 
 <header class="page-header">
-    <span class="kicker">@T["Sources_Kicker"]</span>
     <h1>@T["Sources_Title"]</h1>
     <p class="lede">@T["Sources_Count", _sources.Count(s => s.Kind != SourceKind.Local), _sources.Count(s => s.Kind == SourceKind.Local)]</p>
 
@@ -62,7 +61,7 @@
                         </div>
                         @if (source.FetchFullText)
                         {
-                            <span class="tag">@T["Sources_FullTextFact"]</span>
+                            <span class="badge">@T["Sources_FullTextFact"]</span>
                         }
                         <div class="row-actions">
                             @if (source.Id == _confirmId)
@@ -75,7 +74,7 @@
                             else
                             {
                                 @* The hidden name tells screen readers which of the many "Test" buttons this is. *@
-                                <button type="button" class="button button-secondary button-small" disabled="@_busy" @onclick="() => TestAsync(source)">@T["Sources_Test"]<span class="visually-hidden"> – @source.Name</span></button>
+                                <button type="button" class="link-button" disabled="@_busy" @onclick="() => TestAsync(source)">@T["Sources_Test"]<span class="visually-hidden"> – @source.Name</span></button>
                                 <button type="button" class="link-button" aria-expanded="@(source.Id == _editId ? "true" : "false")" aria-controls="edit-@source.Id" @onclick="() => ToggleEdit(source)">@(source.Id == _editId ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @source.Name</span></button>
                                 <button type="button" class="link-button link-danger" @onclick="() => _confirmId = source.Id">@T["Sources_Delete"]<span class="visually-hidden"> – @source.Name</span></button>
                             }

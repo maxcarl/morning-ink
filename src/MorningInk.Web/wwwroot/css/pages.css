@@ -60,6 +60,7 @@
 
 .issue-name {
   min-width: 4.5rem;
+  overflow-wrap: anywhere;
   font-family: var(--font-serif);
   font-size: var(--text-lg);
   font-weight: 700;
@@ -93,6 +94,27 @@
     grid-column: 5;
     justify-self: end;
   }
+  .archive-line {
+    grid-template-columns: minmax(4.5rem, auto) 11rem minmax(0, 1fr) auto auto;
+  }
+}
+
+.issue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0 var(--space-1);
+  font-size: var(--text-sm);
+}
+
+/* Second line of an archive row: what can be unfolded */
+.issue-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin: 0 0 var(--space-1) calc(-1 * var(--space-2));
+  font-size: var(--text-sm);
 }
 
 .issue-note {
@@ -164,8 +186,12 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0 var(--space-6);
-  margin-top: var(--space-6);
-  border-bottom: 1px solid var(--color-rule);
+  margin-top: var(--space-4);
+}
+
+/* The tabs sit on the header's own rule, so there is only one line under them */
+.page-header:has(.editions) {
+  padding-bottom: 0;
 }
 
 .editions a {

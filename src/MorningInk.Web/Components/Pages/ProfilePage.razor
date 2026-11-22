@@ -12,10 +12,12 @@
 <PageTitle>@T["Profile_Title"] – @T["Brand"]</PageTitle>
 
 <header class="page-header">
-    <span class="kicker">@T["Profile_Kicker"]</span>
-    <h1>@T["Profile_Title"]</h1>
     @if (_profile is not null)
     {
+    <div class="page-title-row">
+        <h1>@T["Profile_Title"]</h1>
+        <a class="button button-secondary button-small" href="/preview?edition=@_profile.Id">@T["Preview_Open"]</a>
+    </div>
     <p class="lede">
         @(string.IsNullOrEmpty(_profile.Recipient)
             ? T["Profile_LedeNoRecipient", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId]
@@ -28,8 +30,11 @@
             <a href="/profile/@edition.Id" aria-current="@(edition.Id == _profile.Id ? "page" : null)">@edition.Title</a>
         }
         <button type="button" class="link-button" @onclick="CreateEditionAsync">+ @T["Profile_NewEdition"]</button>
-        <a class="link-button" href="/preview?edition=@_profile.Id">@T["Preview_Open"]</a>
     </nav>
+    }
+    else
+    {
+        <h1>@T["Profile_Title"]</h1>
     }
     @if (_notice is not null)
     {
@@ -46,7 +51,8 @@
     }
 </header>
 
-<div class="with-sidebar">
+@* One column in reading order: what is in the paper, what it prefers, when and where it goes. *@
+<div class="form-column">
     <section aria-labelledby="sections-heading">
         <h2 id="sections-heading" class="department">@T["Profile_Sections"]</h2>
         <p class="hint">@T["Profile_SectionsHint"]</p>
@@ -140,8 +146,10 @@
                 <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
             </div>
         </form>
+    </section>
 
-        <h2 class="department">@T["Interests_Title"]</h2>
+    <section aria-labelledby="interests-heading">
+        <h2 id="interests-heading" class="department">@T["Interests_Title"]</h2>
         <p class="hint">@T["Interests_Hint"]</p>
         <details class="explainer">
             <summary>@T["Interests_How"]</summary>
@@ -188,9 +196,10 @@
         </form>
     </section>
 
-    <aside class="sidebar" aria-labelledby="settings-heading">
+    <section aria-labelledby="settings-heading">
         <h2 id="settings-heading" class="department">@T["Profile_Settings"]</h2>
         <form @onsubmit="SaveSettingsAsync">
+            <div class="field-row">
             <div class="field">
                 <label for="title">@T["Profile_NewspaperTitle"]</label>
                 <input id="title" class="input" @bind="_title" required />
@@ -200,6 +209,8 @@
                 <input id="recipient" class="input" @bind="_recipient" type="text" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" aria-describedby="recipient-hint" required />
                 <span id="recipient-hint" class="hint">@T["Profile_RecipientHint"]</span>
             </div>
+            </div>
+            <div class="field-row">
             <div class="field">
                 <label for="time">@T["Profile_DeliveryTime"]</label>
                 <input id="time" class="input" type="time" @bind="_time" required />
@@ -214,6 +225,7 @@
                 </select>
                 <span id="lead-hint" class="hint">@T["Profile_LeadTimeHint"]</span>
             </div>
+            </div>
             <fieldset class="field">
                 <legend class="label">@T["Profile_Days"]</legend>
                 <div class="weekdays">
@@ -223,6 +235,7 @@
                     }
                 </div>
             </fieldset>
+            <div class="field-row">
             <div class="field">
                 <label for="zone">@T["Profile_TimeZone"]</label>
                 <select id="zone" class="input" @bind="_zone">
@@ -237,14 +250,17 @@
                 <CountrySelect Id="country" @bind-Selected="_country" DescribedBy="country-hint" />
                 <span id="country-hint" class="hint">@T["Profile_CountryHint"]</span>
             </div>
+            </div>
             <div class="field">
                 <label for="region">@T["Profile_Region"]</label>
                 <input id="region" class="input" @bind="_region" aria-describedby="region-hint" />
                 <span id="region-hint" class="hint">@T["Profile_RegionHint"]</span>
             </div>
-            <button type="submit" class="button button-block">@T["Profile_Save"]</button>
+            <button type="submit" class="button">@T["Profile_Save"]</button>
         </form>
+    </section>
 
+    <section aria-labelledby="notify-heading">
         <h2 id="notify-heading" class="department">@T["Notify_Title"]</h2>
         <p class="hint">@T["Notify_Hint"]</p>
         <form @onsubmit="SaveNotificationAsync" aria-labelledby="notify-heading">
@@ -298,7 +314,7 @@
                 }
             </div>
         }
-    </aside>
+    </section>
 </div>
 
 @code {

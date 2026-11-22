@@ -34,7 +34,6 @@
   <data name="NotFound_Back" xml:space="preserve"><value>Zur Übersicht</value></data>
   <data name="Nav_Home" xml:space="preserve"><value>Redaktion</value></data>
   <data name="Nav_Sources" xml:space="preserve"><value>Quellen</value></data>
-  <data name="Sources_Kicker" xml:space="preserve"><value>Korrespondentennetz</value></data>
   <data name="Sources_Title" xml:space="preserve"><value>Quellen</value></data>
   <data name="Sources_Count" xml:space="preserve"><value>{0} Feeds · {1} Lokales</value></data>
   <data name="Sources_Empty" xml:space="preserve"><value>Noch keine Quellen. Gib unten eine Website oder Feed-Adresse ein.</value></data>
@@ -82,7 +81,6 @@
   <data name="Error_PlaceRequired" xml:space="preserve"><value>Bitte gib eine Postleitzahl oder einen Ort ein.</value></data>
   <data name="Error_AdminOnly" xml:space="preserve"><value>Das dürfen nur Admins.</value></data>
   <data name="Nav_Profile" xml:space="preserve"><value>Ausgabe</value></data>
-  <data name="Profile_Kicker" xml:space="preserve"><value>Blattplanung</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Ausgabe</value></data>
   <data name="Profile_Lede" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}), zugestellt an {4}.</value></data>
   <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}). Trage einen Empfänger ein, damit sie zugestellt werden kann.</value></data>
@@ -123,7 +121,6 @@
   <data name="Theme_light" xml:space="preserve"><value>Hell</value></data>
   <data name="Theme_dark" xml:space="preserve"><value>Dunkel</value></data>
   <data name="Nav_Settings" xml:space="preserve"><value>Einstellungen</value></data>
-  <data name="Settings_Kicker" xml:space="preserve"><value>Setzerei</value></data>
   <data name="Settings_Title" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="Settings_Lede" xml:space="preserve"><value>Mailserver und Heimnetz für die ganze Instanz. Nur Admins sehen diese Seite.</value></data>
   <data name="Settings_Mail" xml:space="preserve"><value>Mailserver (SMTP)</value></data>
@@ -197,7 +194,6 @@
   <data name="Status_Delivered" xml:space="preserve"><value>Zugestellt</value></data>
   <data name="Status_Failed" xml:space="preserve"><value>Zustellung fehlgeschlagen</value></data>
   <data name="Status_Empty" xml:space="preserve"><value>Keine neuen Artikel</value></data>
-  <data name="Welcome_Kicker" xml:space="preserve"><value>Einrichtung</value></data>
   <data name="Welcome_Title" xml:space="preserve"><value>Willkommen bei Morning Ink</value></data>
   <data name="Welcome_Lede" xml:space="preserve"><value>In fünf Schritten zur ersten Zeitung.</value></data>
   <data name="Welcome_StepOf" xml:space="preserve"><value>Schritt {0} von {1}</value></data>
@@ -242,7 +238,6 @@
   <data name="Profile_Error_Days" xml:space="preserve"><value>Wähl mindestens einen Tag.</value></data>
   <data name="Profile_Error_Profile" xml:space="preserve"><value>Diese Ausgabe gibt es nicht mehr.</value></data>
   <data name="Nav_Archive" xml:space="preserve"><value>Archiv</value></data>
-  <data name="Archive_Kicker" xml:space="preserve"><value>Zeitungsarchiv</value></data>
   <data name="Archive_Title" xml:space="preserve"><value>Archiv</value></data>
   <data name="Archive_Lede" xml:space="preserve"><value>Alle Ausgaben, bis der Aufräumjob sie nach Ablauf der Frist löscht. Behaltene Ausgaben bleiben.</value></data>
   <data name="Archive_Search" xml:space="preserve"><value>In Artikeln suchen</value></data>
@@ -297,7 +292,6 @@
   <data name="Profile_LeadMinutes" xml:space="preserve"><value>{0} Minuten vorher</value></data>
   <data name="Profile_LeadHours" xml:space="preserve"><value>{0} Std. vorher</value></data>
   <data name="Profile_Error_LeadTime" xml:space="preserve"><value>Wähl einen Vorlauf von höchstens 12 Stunden.</value></data>
-  <data name="Preview_Kicker" xml:space="preserve"><value>Andruck</value></data>
   <data name="Preview_Title" xml:space="preserve"><value>Vorschau</value></data>
   <data name="Preview_Lede" xml:space="preserve"><value>Die Ausgabe, wie sie aussähe, wenn sie jetzt gebaut würde, ohne sie zu senden oder etwas als gelesen zu markieren.</value></data>
   <data name="Preview_Edition" xml:space="preserve"><value>Ausgabe</value></data>
