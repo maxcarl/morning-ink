@@ -4,11 +4,11 @@ Manuelle Prüfung einer Ausgabe auf einem echten Kindle. epubcheck in der CI pr�
 
 Testdatei: eine Ausgabe per Send to Kindle (Mail oder https://www.amazon.de/sendtokindle) an das Gerät schicken. Für den Weg per Mail: `tools/send-test-issue.cs` (Anleitung im Kopf der Datei).
 
-Stand 2026-11-21: alles außer dem Titel per Web-Upload geprüft; der Test per Mail ist auf später verschoben.
+Stand 2026-11-22: alles außer dem Titel per Web-Upload geprüft. Zustellung per Mail (Gmail, Testmail aus den Einstellungen) am 2026-11-22 geprüft; der Titel per Mail steht noch aus.
 
 | Punkt | Erwartung | Ergebnis |
 | --- | --- | --- |
-| Zustellung | Kommt ohne Fehlermail von Amazon an | ✅ 2026-11-21 |
+| Zustellung | Kommt ohne Fehlermail von Amazon an | ✅ 2026-11-21 (Web-Upload), ✅ 2026-11-22 (Mail über Gmail) |
 | Titel | „Morning Ink JJJJ-MM-TT“, Ausgaben sortieren sich nach Datum | ⚠️ 2026-11-21: Upload per Web-Oberfläche zeigt den Dateinamen. Deshalb trägt der Mail-Anhang den Titel als Dateinamen (Aufgabe 12); dort erneut prüfen |
 | Cover | Bibliothek zeigt das Cover mit Titel, Datum und Schlagzeilen | ✅ 2026-11-21 |
 | Inhaltsverzeichnis | „Gehe zu“ zeigt Titelseite, Rubriken und darunter die Artikel | ✅ 2026-11-21 |
