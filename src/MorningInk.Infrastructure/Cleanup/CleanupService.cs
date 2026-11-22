@@ -18,6 +18,9 @@ public sealed partial class CleanupService(
         var options = retention.Value;
         var now = time.GetUtcNow();
 
+        // The record of what went to the AI is kept as long as the issues it was for.
+        await db.AiCalls.Where(c => c.At < now.AddDays(-options.IssueDays)).ExecuteDeleteAsync(cancellationToken);
+
         var report = new CleanupReport(
             Issues: await DeleteIssuesAsync(now.AddDays(-options.IssueDays), cancellationToken),
             SeenArticles: await db.SeenArticles.Where(s => s.SeenAt < now.AddDays(-options.SeenArticleDays)).ExecuteDeleteAsync(cancellationToken),

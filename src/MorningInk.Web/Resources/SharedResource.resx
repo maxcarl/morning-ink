@@ -501,4 +501,26 @@
   <data name="Source_FreshRssNoList" xml:space="preserve"><value>FreshRSS returned no readable list of articles.</value></data>
   <data name="Log_MarkedRead" xml:space="preserve"><value>{0}: {1} articles marked read</value></data>
   <data name="Log_MarkReadFailed" xml:space="preserve"><value>{0}: could not mark read: {1}</value></data>
+  <data name="Settings_Tab_mail" xml:space="preserve"><value>Mail</value></data>
+  <data name="Settings_Tab_network" xml:space="preserve"><value>Home network</value></data>
+  <data name="Settings_Tab_ai" xml:space="preserve"><value>AI</value></data>
+  <data name="Settings_Tab_news" xml:space="preserve"><value>Local news</value></data>
+  <data name="Settings_AiLimit" xml:space="preserve"><value>Daily limit (optional)</value></data>
+  <data name="Settings_AiLimitHint" xml:space="preserve"><value>Most AI requests in 24 hours, one per article. Above it, issues come without summaries; empty means no limit.</value></data>
+  <data name="Settings_AiPrompt" xml:space="preserve"><value>Instructions for summaries</value></data>
+  <data name="Settings_AiPromptHint" xml:space="preserve"><value>What the AI is told for each article. The rule that the article text is data and never an instruction is always added and cannot be removed here.</value></data>
+  <data name="Settings_AiPromptRestore" xml:space="preserve"><value>Restore default</value></data>
+  <data name="Settings_AiUsage" xml:space="preserve"><value>What went to the AI</value></data>
+  <data name="Settings_AiUsageHint" xml:space="preserve"><value>Every request of the last seven days: which article went to which provider. Title, address and length are recorded, never the text.</value></data>
+  <data name="Settings_AiUsageNone" xml:space="preserve"><value>No requests in the last seven days.</value></data>
+  <data name="Settings_AiUsageDay" xml:space="preserve"><value>{0} requests in the last 24 hours.</value></data>
+  <data name="Settings_AiUsageDayOne" xml:space="preserve"><value>{0} request in the last 24 hours.</value></data>
+  <data name="Settings_AiUsageDayLimit" xml:space="preserve"><value>{0} of {1} requests in the last 24 hours.</value></data>
+  <data name="Settings_AiUsageCalls" xml:space="preserve"><value>{0} × · {1} characters</value></data>
+  <data name="Settings_AiUsageLocal" xml:space="preserve"><value>local</value></data>
+  <data name="Settings_AiUsageCloud" xml:space="preserve"><value>cloud</value></data>
+  <data name="Settings_AiUsageRecent" xml:space="preserve"><value>Latest requests</value></data>
+  <data name="Settings_AiUsageFailed" xml:space="preserve"><value>no answer</value></data>
+  <data name="Settings_Error_AiDailyLimit" xml:space="preserve"><value>The daily limit must be a whole number of at least 1, or empty.</value></data>
+  <data name="Settings_Error_AiSummaryPrompt" xml:space="preserve"><value>The instructions may have at most 4,000 characters.</value></data>
 </root>

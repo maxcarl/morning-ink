@@ -142,6 +142,58 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.AiCall", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ArticleTitle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ArticleUrl")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("At")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Characters")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsLocal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("At");
+
+                    b.ToTable("AiCalls");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.AiSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,6 +201,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ApiKey")
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("DailyLimit")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Enabled")
                         .HasColumnType("INTEGER");
@@ -166,6 +221,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("Summaries")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("SummaryPrompt")
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 

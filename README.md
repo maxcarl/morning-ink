@@ -37,7 +37,7 @@
 
 - **Filters per source:** words to require or exclude, a minimum length, no live tickers, no marked ads
 - **Archive** to search, download, send again and keep issues
-- **Optional AI summaries** with your own Ollama or any OpenAI-compatible provider; private sources can stay local
+- **Optional AI summaries** with your own Ollama or any OpenAI-compatible provider; private sources can stay local, a daily limit caps requests, and the settings show which article went to which provider. The instructions are editable
 - **Setup wizard** with sample sources from several countries; first newspaper in minutes
 - **Notifications** by ntfy, Gotify, Telegram or e-mail when an issue is out
 - **KOReader and other OPDS readers** fetch issues themselves, with a password of their own
@@ -139,7 +139,7 @@ The code follows Clean Architecture (`Domain`, `Application`, `Infrastructure`, 
 
 1. **First release:** feeds, full text, local news, weather, EPUB, Kindle delivery, web UI, setup wizard. Done except the seven-day trial run. Progress: [concept](docs/konzept.md#mvp-aufgaben).
 2. **Comfort:** several editions, filters, merged duplicates and the archive are done. Next: preview, OPML import, interests, several users, OPDS and more readers.
-3. **AI:** article summaries are done. Next: an earlier start for slow models, a daily overview, neutral headlines, topic clusters, translation.
+3. **AI:** summaries, an earlier start for slow models, a daily limit and a record of requests are done. Next: a daily overview, neutral headlines, topic clusters, translation.
 
 ## Contributing
 

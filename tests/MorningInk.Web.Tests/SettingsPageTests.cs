@@ -101,6 +101,64 @@ public sealed class SettingsPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Admin_sets_a_daily_limit_and_an_own_prompt_and_can_go_back_to_the_default()
+    {
+        using var ai = new MorningInk.Infrastructure.Tests.Ai.FakeChatServer();
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("No password saved");
+        Assert.Contains("two or three plain sentences", page.Find("#ai-prompt").GetAttribute("value") ?? page.Find("#ai-prompt").TextContent, StringComparison.Ordinal); // starts from the default
+
+        Pages.Submit(page, ("#ai-endpoint", ai.Endpoint), ("#ai-model", "qwen2.5:7b"), ("#ai-limit", "50"), ("#ai-prompt", "Ein Satz, bitte."));
+        Pages.Shows(page, "Saved.");
+
+        var saved = await AiSettingsAsync(app);
+        Assert.Equal((50, "Ein Satz, bitte."), (saved.DailyLimit, saved.SummaryPrompt));
+
+        Pages.Button(page, "Restore default").Click();
+        Pages.Submit(page, ("#ai-model", "qwen2.5:7b"));
+        Pages.Shows(page, "Saved.");
+        Assert.Null((await AiSettingsAsync(app)).SummaryPrompt);
+    }
+
+    [Fact]
+    public async Task Admin_sees_which_articles_went_to_which_provider()
+    {
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Persistence.MorningInkDbContext>();
+            db.AiCalls.Add(new MorningInk.Domain.AiCall
+            {
+                At = scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow(),
+                Provider = "openrouter.ai:443",
+                Model = "gpt-4o-mini",
+                IsLocal = false,
+                UserId = Guid.NewGuid(),
+                SourceName = "Technik",
+                ArticleTitle = "Neuer Raspberry Pi vorgestellt",
+                ArticleUrl = "https://example.com/pi",
+                Characters = 1234,
+                Succeeded = true,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var page = pages.Open<Settings>("No password saved");
+
+        Pages.Shows(page, "openrouter.ai:443");
+        Pages.Shows(page, "Neuer Raspberry Pi vorgestellt");
+        Pages.Shows(page, "1 request in the last 24 hours");
+    }
+
+    private static async Task<MorningInk.Domain.AiSettings> AiSettingsAsync(TestApp app)
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Ai.AiSettingsStore>().LoadAsync(CancellationToken.None);
+    }
+
+    [Fact]
     public async Task Password_managers_leave_the_mail_and_ai_credentials_alone()
     {
         // They belong to other services; a password manager would save them as the login for Morning Ink.

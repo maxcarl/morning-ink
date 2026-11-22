@@ -132,6 +132,7 @@ public static class DependencyInjection
         services.AddScoped<IProcessor, Ai.AiSummaryProcessor>();
         services.AddScoped<Ai.AiSettingsStore>();
         services.AddSingleton<Ai.AiChat>();
+        services.AddSingleton<Ai.AiUsage>();
     }
 
     // Not validated on start: mail can be set up later, and delivery reports a missing setup as a failure.

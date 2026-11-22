@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MorningInk.Domain;
+using MorningInk.Infrastructure.Ai;
 using MorningInk.Infrastructure.Identity;
 
 namespace MorningInk.Infrastructure.Persistence;
@@ -46,6 +47,8 @@ public sealed class MorningInkDbContext(
     public DbSet<MailSettings> MailSettings => Set<MailSettings>();
 
     public DbSet<AiSettings> AiSettings => Set<AiSettings>();
+
+    public DbSet<AiCall> AiCalls => Set<AiCall>();
 
     public DbSet<NewsSearchSettings> NewsSearchSettings => Set<NewsSearchSettings>();
 
@@ -149,7 +152,20 @@ public sealed class MorningInkDbContext(
         {
             ai.Property(a => a.Endpoint).HasMaxLength(500);
             ai.Property(a => a.Model).HasMaxLength(200);
+            ai.Property(a => a.SummaryPrompt).HasMaxLength(AiSettingsStore.MaxPromptLength);
             ai.Property(a => a.ApiKey).HasConversion((Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter)new ProtectedStringConverter(DataProtection));
+        });
+
+        builder.Entity<AiCall>(call =>
+        {
+            call.Property(c => c.Provider).HasMaxLength(NameLength);
+            call.Property(c => c.Model).HasMaxLength(200);
+            call.Property(c => c.SourceName).HasMaxLength(NameLength);
+            call.Property(c => c.ArticleTitle).HasMaxLength(500);
+            call.Property(c => c.ArticleUrl).HasMaxLength(2000);
+
+            // The limit counts the last 24 hours before every call, and the cleanup deletes by age.
+            call.HasIndex(c => c.At);
         });
 
         builder.Entity<MailSettings>(mail =>

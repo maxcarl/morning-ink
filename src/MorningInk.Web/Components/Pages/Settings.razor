@@ -32,15 +32,26 @@
     }
 </header>
 
-<div class="columns">
-    <div>
+@* Tabs, not one long page: every panel stays rendered, so a switch keeps what was typed in the others. *@
+<div class="tabs" role="tablist" aria-label="@T["Settings_Title"]">
+    @foreach (var tab in Tabs)
+    {
+        <button type="button" role="tab" id="tab-@tab" class="tab" aria-selected="@(tab == _tab ? "true" : "false")" aria-controls="panel-@tab" @onclick="() => _tab = tab">@T[$"Settings_Tab_{tab}"]</button>
+    }
+</div>
+
+<div id="panel-mail" role="tabpanel" aria-labelledby="tab-mail" hidden="@(_tab != "mail")">
+    <div class="columns">
+        <div>
         <section aria-labelledby="mail-heading">
             <h2 id="mail-heading" class="department">@T["Settings_Mail"]</h2>
             <p class="hint">@T["Settings_MailHint"]</p>
             <MailServerForm Saved="MailSaved" Cancellation="Closed" />
-
-            @* Right under the server it tests: one look shows whether mail reaches the Kindle. *@
-            <h3 id="test-heading" class="subhead">@T["Settings_TestMail"]</h3>
+        </section>
+        </div>
+        <div>
+        <section aria-labelledby="test-heading">
+            <h2 id="test-heading" class="department">@T["Settings_TestMail"]</h2>
             <p class="hint">@T["Settings_TestMailHint"]</p>
             <form @onsubmit="SendTestAsync" aria-labelledby="test-heading">
                 <label class="label" for="test-recipient">@T["Settings_TestRecipient"]</label>
@@ -49,8 +60,13 @@
                     <button type="submit" class="button button-secondary" disabled="@_busy">@(_busy ? T["Settings_Sending"] : T["Settings_SendTest"])</button>
                 </div>
             </form>
-        </section>
+        </section>        </div>
+    </div>
+</div>
 
+<div id="panel-network" role="tabpanel" aria-labelledby="tab-network" hidden="@(_tab != "network")">
+    <div class="columns">
+        <div>
         <section aria-labelledby="network-heading">
             <h2 id="network-heading" class="department">@T["Settings_Network"]</h2>
             <p class="hint">@T["Settings_NetworkHint"]</p>
@@ -71,6 +87,11 @@
                     <li class="row muted">@T["Settings_NetworkNone"]</li>
                 }
             </ul>
+        </section>
+        </div>
+        <div>
+        <section aria-labelledby="new-host-heading">
+            <h2 id="new-host-heading" class="department">@T["Settings_NetworkAdd"]</h2>
             <form @onsubmit="AddHostAsync" class="field">
                 <label class="label" for="new-host">@T["Settings_NetworkAdd"]</label>
                 <div class="inline-form">
@@ -79,10 +100,13 @@
                 </div>
                 <span id="new-host-hint" class="hint">@T["Settings_NetworkAddHint"]</span>
             </form>
-        </section>
+        </section>        </div>
     </div>
+</div>
 
-    <div>
+<div id="panel-ai" role="tabpanel" aria-labelledby="tab-ai" hidden="@(_tab != "ai")">
+    <div class="columns">
+        <div>
         <section aria-labelledby="ai-heading">
             <h2 id="ai-heading" class="department">@T["Settings_Ai"]</h2>
             <p class="hint">@T["Settings_AiHint"]</p>
@@ -112,14 +136,67 @@
                     <label class="checkbox"><input id="ai-local" type="checkbox" @bind="_aiLocal" /> @T["Settings_AiLocal"]</label>
                     <label class="checkbox"><input id="ai-summaries" type="checkbox" @bind="_aiSummaries" /> @T["Settings_AiSummaries"]</label>
                 </div>
+                <div class="field">
+                    <label for="ai-limit">@T["Settings_AiLimit"]</label>
+                    <input id="ai-limit" class="input input-short" type="number" min="1" step="1" @bind="_aiLimit" aria-describedby="ai-limit-hint" />
+                    <span id="ai-limit-hint" class="hint">@T["Settings_AiLimitHint"]</span>
+                </div>
+                <div class="field">
+                    <label for="ai-prompt">@T["Settings_AiPrompt"]</label>
+                    <textarea id="ai-prompt" class="input" rows="7" maxlength="@MorningInk.Infrastructure.Ai.AiSettingsStore.MaxPromptLength" @bind="_aiPrompt" aria-describedby="ai-prompt-hint"></textarea>
+                    <span id="ai-prompt-hint" class="hint">@T["Settings_AiPromptHint"]</span>
+                    @if (_aiPrompt?.Trim() != MorningInk.Infrastructure.Ai.AiSettingsStore.DefaultSummaryPrompt)
+                    {
+                        <div><button type="button" class="link-button" @onclick="RestorePrompt">@T["Settings_AiPromptRestore"]</button></div>
+                    }
+                </div>
                 <div class="row-actions">
                     <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
                     <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestAiAsync">@(_busy ? T["Settings_AiTesting"] : T["Settings_AiTest"])</button>
                 </div>
             </form>
-
+        </section>        </div>
+        <div>
+        <section aria-labelledby="usage-heading">
+            <h2 id="usage-heading" class="department">@T["Settings_AiUsage"]</h2>
+            <p class="hint">@T["Settings_AiUsageHint"]</p>
+            @if (_usage is null || _usage.Providers.Count == 0)
+            {
+                <p class="muted">@T["Settings_AiUsageNone"]</p>
+            }
+            else
+            {
+                <p>@(_aiLimit is { } limit ? T["Settings_AiUsageDayLimit", _usage.Last24Hours, limit] : T[_usage.Last24Hours == 1 ? "Settings_AiUsageDayOne" : "Settings_AiUsageDay", _usage.Last24Hours])</p>
+                <dl class="facts">
+                    @foreach (var provider in _usage.Providers)
+                    {
+                        <div>
+                            <dt>@provider.Provider · @provider.Model <span class="badge @(provider.IsLocal ? "status-ok" : "status-warn")">@(provider.IsLocal ? T["Settings_AiUsageLocal"] : T["Settings_AiUsageCloud"])</span></dt>
+                            <dd>@T["Settings_AiUsageCalls", provider.Calls, provider.Characters.ToString("N0", CultureInfo.CurrentCulture)]</dd>
+                        </div>
+                    }
+                </dl>
+                <h3 class="subhead">@T["Settings_AiUsageRecent"]</h3>
+                <ul class="headline-list">
+                    @foreach (var call in _usage.Recent)
+                    {
+                        <li @key="call.Id">
+                            <a href="@call.ArticleUrl" rel="noopener noreferrer" target="_blank">@call.ArticleTitle</a>
+                            <div class="row-meta">
+                                @call.SourceName · @call.Provider · @call.At.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)@(call.Succeeded ? null : $" · {T["Settings_AiUsageFailed"]}")
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
         </section>
+        </div>
+    </div>
+</div>
 
+<div id="panel-news" role="tabpanel" aria-labelledby="tab-news" hidden="@(_tab != "news")">
+    <div class="columns">
+        <div>
         <section aria-labelledby="news-heading">
             <h2 id="news-heading" class="department">@T["Settings_News"]</h2>
             <p class="hint">@T["Settings_NewsHint"]</p>
@@ -137,8 +214,9 @@
                     <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestNewsAsync">@T["Settings_SearxngTest"]</button>
                 </div>
             </form>
-        </section>
-
+        </section>        </div>
+        <div>
+        </div>
     </div>
 </div>
 
@@ -150,6 +228,9 @@
     private string? _testRecipient;
     private string? _newEntry;
 
+    private static readonly string[] Tabs = ["mail", "network", "ai", "news"];
+    private string _tab = "mail";
+
     // AI provider
     private string? _aiEndpoint;
     private string? _aiModel;
@@ -158,6 +239,9 @@
     private bool _aiLocal = true;
     private bool _aiSummaries = true;
     private bool _aiEnabled = true;
+    private int? _aiLimit;
+    private string? _aiPrompt;
+    private MorningInk.Infrastructure.Ai.AiUsageReport? _usage;
 
     // Local news
     private string? _searxngUrl;
@@ -226,12 +310,18 @@
         _aiLocal = ai.IsLocal;
         _aiSummaries = ai.Summaries;
         _aiEnabled = ai.Enabled;
+        _aiLimit = ai.DailyLimit;
+        _aiPrompt = ai.SummaryPrompt ?? MorningInk.Infrastructure.Ai.AiSettingsStore.DefaultSummaryPrompt;
+        _usage = await UseAsync<MorningInk.Infrastructure.Ai.AiUsage, MorningInk.Infrastructure.Ai.AiUsageReport>(usage => usage.ReportAsync(Closed));
     }
+
+    // Back to the versioned default; saved as "no own prompt", so later improvements to it arrive.
+    private void RestorePrompt() => _aiPrompt = MorningInk.Infrastructure.Ai.AiSettingsStore.DefaultSummaryPrompt;
 
     private async Task SaveAiAsync()
     {
         Clear();
-        var input = new MorningInk.Infrastructure.Ai.AiSettingsInput(_aiEndpoint, _aiModel, _aiKey, _aiLocal, _aiSummaries, _aiEnabled);
+        var input = new MorningInk.Infrastructure.Ai.AiSettingsInput(_aiEndpoint, _aiModel, _aiKey, _aiLocal, _aiSummaries, _aiEnabled, _aiLimit, _aiPrompt);
         var errors = await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Closed));
         _errors = errors.Select(field => T[$"Settings_Error_Ai{field}"].Value).ToList();
         if (_errors.Count == 0)

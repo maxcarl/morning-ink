@@ -22,4 +22,13 @@ public class AiSettings
 
     /// <summary>Whether articles get a short summary above their text.</summary>
     public bool Summaries { get; set; } = true;
+
+    /// <summary>Most AI requests in any 24 hours; null means no limit. Above it, issues come without AI extras.</summary>
+    public int? DailyLimit { get; set; }
+
+    /// <summary>
+    /// The admin's own instructions for summaries; null uses the default from the repository, so updates to it arrive.
+    /// The rules that keep the article text as data are added by the code and cannot be edited away.
+    /// </summary>
+    public string? SummaryPrompt { get; set; }
 }

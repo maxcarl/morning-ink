@@ -501,4 +501,26 @@
   <data name="Source_FreshRssNoList" xml:space="preserve"><value>FreshRSS lieferte keine lesbare Artikelliste.</value></data>
   <data name="Log_MarkedRead" xml:space="preserve"><value>{0}: {1} Artikel als gelesen markiert</value></data>
   <data name="Log_MarkReadFailed" xml:space="preserve"><value>{0}: konnte nicht als gelesen markieren: {1}</value></data>
+  <data name="Settings_Tab_mail" xml:space="preserve"><value>Mail</value></data>
+  <data name="Settings_Tab_network" xml:space="preserve"><value>Heimnetz</value></data>
+  <data name="Settings_Tab_ai" xml:space="preserve"><value>KI</value></data>
+  <data name="Settings_Tab_news" xml:space="preserve"><value>Lokale Nachrichten</value></data>
+  <data name="Settings_AiLimit" xml:space="preserve"><value>Tageslimit (optional)</value></data>
+  <data name="Settings_AiLimitHint" xml:space="preserve"><value>Höchstens so viele KI-Anfragen in 24 Stunden, eine pro Artikel. Darüber kommen Ausgaben ohne Zusammenfassungen; leer heißt ohne Limit.</value></data>
+  <data name="Settings_AiPrompt" xml:space="preserve"><value>Anweisung für Zusammenfassungen</value></data>
+  <data name="Settings_AiPromptHint" xml:space="preserve"><value>Das bekommt die KI zu jedem Artikel. Die Regel, dass der Artikeltext nur Daten und nie eine Anweisung ist, wird immer angehängt und lässt sich hier nicht entfernen.</value></data>
+  <data name="Settings_AiPromptRestore" xml:space="preserve"><value>Standard wiederherstellen</value></data>
+  <data name="Settings_AiUsage" xml:space="preserve"><value>Was an die KI ging</value></data>
+  <data name="Settings_AiUsageHint" xml:space="preserve"><value>Jede Anfrage der letzten sieben Tage: welcher Artikel an welchen Anbieter ging. Gespeichert werden Titel, Adresse und Länge, nie der Text.</value></data>
+  <data name="Settings_AiUsageNone" xml:space="preserve"><value>Keine Anfragen in den letzten sieben Tagen.</value></data>
+  <data name="Settings_AiUsageDay" xml:space="preserve"><value>{0} Anfragen in den letzten 24 Stunden.</value></data>
+  <data name="Settings_AiUsageDayOne" xml:space="preserve"><value>{0} Anfrage in den letzten 24 Stunden.</value></data>
+  <data name="Settings_AiUsageDayLimit" xml:space="preserve"><value>{0} von {1} Anfragen in den letzten 24 Stunden.</value></data>
+  <data name="Settings_AiUsageCalls" xml:space="preserve"><value>{0} × · {1} Zeichen</value></data>
+  <data name="Settings_AiUsageLocal" xml:space="preserve"><value>lokal</value></data>
+  <data name="Settings_AiUsageCloud" xml:space="preserve"><value>Cloud</value></data>
+  <data name="Settings_AiUsageRecent" xml:space="preserve"><value>Letzte Anfragen</value></data>
+  <data name="Settings_AiUsageFailed" xml:space="preserve"><value>keine Antwort</value></data>
+  <data name="Settings_Error_AiDailyLimit" xml:space="preserve"><value>Das Tageslimit muss eine ganze Zahl ab 1 sein, oder leer.</value></data>
+  <data name="Settings_Error_AiSummaryPrompt" xml:space="preserve"><value>Die Anweisung darf höchstens 4.000 Zeichen haben.</value></data>
 </root>

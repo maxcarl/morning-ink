@@ -59,6 +59,34 @@ public sealed class CleanupTests : IDisposable
     }
 
     [Fact]
+    public async Task Ai_calls_are_kept_as_long_as_issues()
+    {
+        await using var services = await _host.StartAsync();
+        await using (var scope = services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            db.AiCalls.AddRange(Call("Alt", TestHost.Now.AddDays(-40)), Call("Neu", TestHost.Now.AddDays(-5)));
+            await db.SaveChangesAsync();
+        }
+
+        await RunAsync(services);
+
+        await using var check = services.CreateAsyncScope();
+        Assert.Equal("Neu", (await check.ServiceProvider.GetRequiredService<MorningInkDbContext>().AiCalls.SingleAsync()).ArticleTitle);
+    }
+
+    private static AiCall Call(string title, DateTimeOffset at) => new()
+    {
+        At = at,
+        Provider = "127.0.0.1:11434",
+        Model = "qwen2.5:7b",
+        UserId = Guid.NewGuid(),
+        SourceName = "Feed",
+        ArticleTitle = title,
+        ArticleUrl = "https://example.com/",
+    };
+
+    [Fact]
     public async Task Old_images_go_and_recent_ones_stay()
     {
         await using var services = await _host.StartAsync();
