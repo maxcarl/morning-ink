@@ -24,6 +24,11 @@ public static partial class ArticleFilter
             return false;
         }
 
+        if (source.SkipAds && IsMarkedAsAd(article))
+        {
+            return false;
+        }
+
         if (source.ExcludeKeywords.Any(keyword => Contains(text, keyword)))
         {
             return false;
@@ -35,6 +40,13 @@ public static partial class ArticleFilter
     public static bool IsLongEnough(FetchedArticle article, Source source) =>
         source.MinWords is not { } minimum
         || PlainText(article.Content ?? article.Summary).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length >= minimum;
+
+    /// <summary>Whether the publisher marks the article as advertising, by title prefix or bracket, category or address.</summary>
+    /// <remarks>Only marks count, never the word in running text, so articles about displays or ad rules stay.</remarks>
+    public static bool IsMarkedAsAd(FetchedArticle article) =>
+        AdTitle().IsMatch(article.Title)
+        || (article.Categories ?? []).Any(category => AdMarks.Contains(category))
+        || article.Url.AbsolutePath.Split('/').Any(segment => AdSections.Contains(Path.GetFileNameWithoutExtension(segment)));
 
     private static string HeadlineAndTeaser(FetchedArticle article) => $"{article.Title} {PlainText(article.Summary)}";
 
@@ -56,6 +68,20 @@ public static partial class ArticleFilter
 
     [GeneratedRegex("<[^>]*>", RegexOptions.None, matchTimeoutMilliseconds: 100)]
     private static partial Regex Tags();
+
+    // Category names publishers use for paid content, compared whole and ignoring case.
+    private static readonly HashSet<string> AdMarks = new(
+        ["Anzeige", "Werbung", "Gesponsert", "Sponsored", "Sponsored Post", "Sponsored Content", "Advertorial", "Advertisement", "Promoted", "Paid Post", "Partner Content"],
+        StringComparer.OrdinalIgnoreCase);
+
+    // Address segments of sponsored sections, e.g. https://example.com/sponsored/….
+    private static readonly HashSet<string> AdSections = new(
+        ["anzeige", "sponsored", "sponsored-post", "sponsored-content", "advertorial", "advertorials", "promoted", "paid-post", "partner-content"],
+        StringComparer.OrdinalIgnoreCase);
+
+    // A mark at the start followed by ":" or "|" ("Anzeige: …", "Sponsored | …"), or in brackets anywhere ("… (Werbung)").
+    [GeneratedRegex(@"^\s*[\[(]?\s*(anzeige|werbung|gesponsert|sponsored(\s+(post|content))?|advertorial|promoted|paid\s+post)\s*[\])]?\s*[:|]|[\[(]\s*(anzeige|werbung|gesponsert|sponsored|advertorial|promoted)\s*[\])]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
+    private static partial Regex AdTitle();
 
     // "Liveticker", "Live-Ticker", "Liveblog", "LIVE:" at the start, and the "+++ … +++" style of breaking news tickers.
     [GeneratedRegex(@"\blive[\s-]?(ticker|blog)|^\s*live\s*[:|–-]|\+\+\+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]

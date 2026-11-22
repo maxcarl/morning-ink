@@ -182,7 +182,7 @@ public sealed class SourceCatalogTests : IDisposable
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
         var added = Assert.IsType<SourceSaveResult.Saved>(await catalog.AddLocalAsync(max, "Lokales", "80331", "DE", CancellationToken.None)).Source;
-        var settings = new SourceSettings("Lokales München", FetchFullText: true, MaxArticles: 8, SourceSettings.ParseKeywords("Polizei, Feuerwehr\nStadtrat"), SourceSettings.ParseKeywords("FC Bayern; Oktoberfest"), MinWords: 80, SkipLiveTickers: true);
+        var settings = new SourceSettings("Lokales München", FetchFullText: true, MaxArticles: 8, SourceSettings.ParseKeywords("Polizei, Feuerwehr\nStadtrat"), SourceSettings.ParseKeywords("FC Bayern; Oktoberfest"), MinWords: 80, SkipLiveTickers: true, SkipAds: false);
 
         var foreign = await catalog.SaveSettingsAsync(erika, added.Id, settings, CancellationToken.None);
         var saved = await catalog.SaveSettingsAsync(max, added.Id, settings, CancellationToken.None);
@@ -190,6 +190,7 @@ public sealed class SourceCatalogTests : IDisposable
         Assert.IsType<SourceSaveResult.Invalid>(foreign);
         var source = Assert.IsType<SourceSaveResult.Saved>(saved).Source;
         Assert.Equal(("Lokales München", 8, 80, true), (source.Name, source.MaxArticles, source.MinWords, source.SkipLiveTickers));
+        Assert.False(source.SkipAds);
         Assert.Equal(["Polizei", "Feuerwehr", "Stadtrat"], source.IncludeKeywords);
         Assert.Equal(["FC Bayern", "Oktoberfest"], source.ExcludeKeywords);
     }

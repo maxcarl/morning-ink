@@ -110,6 +110,8 @@
                                     </div>
                                     <div class="row-main checks">
                                         <label class="checkbox"><input id="source-live" type="checkbox" @bind="_edit.SkipLiveTickers" /> @T["Sources_SkipLive"]</label>
+                                        <label class="checkbox"><input id="source-ads" type="checkbox" @bind="_edit.SkipAds" aria-describedby="source-ads-hint" /> @T["Sources_SkipAds"]</label>
+                                        <span id="source-ads-hint" class="hint">@T["Sources_SkipAdsHint"]</span>
                                         <label class="checkbox"><input type="checkbox" @bind="_edit.FetchFullText" /> @T["Sources_FullText"]</label>
                                     </div>
                                 </div>
@@ -358,6 +360,7 @@
             SkipLiveTickers = source.SkipLiveTickers,
             FetchFullText = source.FetchFullText,
             LocalAiOnly = source.LocalAiOnly,
+            SkipAds = source.SkipAds,
         };
     }
 
@@ -371,7 +374,8 @@
             SourceSettings.ParseKeywords(_edit.Exclude),
             _edit.MinWords,
             _edit.SkipLiveTickers,
-            _edit.LocalAiOnly);
+            _edit.LocalAiOnly,
+            _edit.SkipAds);
         if (await UseAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, id, settings, Closed)) is SourceSaveResult.Invalid invalid)
         {
             _error = T[$"Error_{invalid.Reason}"];
@@ -472,6 +476,8 @@
         public bool FetchFullText { get; set; }
 
         public bool LocalAiOnly { get; set; }
+
+        public bool SkipAds { get; set; } = true;
     }
 
     private string Describe(Source source)

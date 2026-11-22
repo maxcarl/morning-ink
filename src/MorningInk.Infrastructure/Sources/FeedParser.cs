@@ -123,7 +123,8 @@ internal static partial class FeedParser
             PublishedAt: ParseDate(Text(item, ns + "pubDate") ?? Text(item, DublinCore + "date")),
             Author: Text(item, DublinCore + "creator") ?? Text(item, ns + "author"),
             Summary: Text(item, ns + "description"),
-            Content: Text(item, ContentModule + "encoded"));
+            Content: Text(item, ContentModule + "encoded"),
+            Categories: Categories(item.Elements(ns + "category").Concat(item.Elements(DublinCore + "subject")).Select(c => Text(c))));
     }
 
     private static FetchedArticle? FromAtom(XElement entry, Uri baseUri)
@@ -144,8 +145,12 @@ internal static partial class FeedParser
             PublishedAt: ParseDate(Text(entry, Atom + "published") ?? Text(entry, Atom + "updated")),
             Author: Text(entry.Element(Atom + "author"), Atom + "name"),
             Summary: Text(entry, Atom + "summary"),
-            Content: Text(entry, Atom + "content"));
+            Content: Text(entry, Atom + "content"),
+            Categories: Categories(entry.Elements(Atom + "category").SelectMany(c => new[] { (string?)c.Attribute("term"), (string?)c.Attribute("label") })));
     }
+
+    private static List<string> Categories(IEnumerable<string?> names) =>
+        names.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n!.Trim()).ToList(); // ! is safe: blanks are filtered out first
 
     // Feeds are untrusted: links like "javascript:" or "file:" must not reach the newspaper.
     private static Uri? ResolveLink(string? link, Uri baseUri) =>

@@ -17,4 +17,5 @@ public sealed record FetchedArticle(
     string? Author,
     string? Summary,
     string? Content,
-    string? AiSummary = null);
+    string? AiSummary = null,
+    IReadOnlyList<string>? Categories = null);

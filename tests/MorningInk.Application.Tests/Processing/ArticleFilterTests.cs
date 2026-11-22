@@ -46,16 +46,41 @@ public class ArticleFilterTests
         Assert.False(ArticleFilter.Admits(Article("Neues Smartphone vorgestellt"), source));
     }
 
+    [Theory]
+    [InlineData("Anzeige: Glasfaser-Router mit Wi-Fi 7 zum Bestpreis", null, "https://example.com/a")] // golem's style
+    [InlineData("[Anzeige] Die besten Deals der Woche", null, "https://example.com/a")]
+    [InlineData("Sponsored: Cloud hosting made easy", null, "https://example.com/a")]
+    [InlineData("So sparen Sie Strom (Werbung)", null, "https://example.com/a")]
+    [InlineData("So gelingt die Migration", "Advertorial", "https://example.com/a")]
+    [InlineData("So gelingt die Migration", null, "https://example.com/sponsored/migration")]
+    [InlineData("So gelingt die Migration", null, "https://example.com/advertorial/migration.html")]
+    public void Marked_ads_are_left_out_when_the_source_says_so(string title, string? category, string url)
+    {
+        var article = Article(title) with { Url = new Uri(url), Categories = category is null ? [] : [category] };
+
+        Assert.False(ArticleFilter.Admits(article, Source(s => s.SkipAds = true)));
+        Assert.True(ArticleFilter.Admits(article, Source(s => s.SkipAds = false)));
+    }
+
+    // The word alone is no mark: tech sites write about displays, ad blockers and advertising rules.
+    [Theory]
+    [InlineData("Neue Anzeige im Tacho zeigt Reichweite", "<p>Die Anzeige ist größer.</p>")]
+    [InlineData("EU verbietet personalisierte Werbung für Kinder", null)]
+    [InlineData("Firefox: Werbeblocker im Test", "<p>Anzeige: so sieht es aus</p>")]
+    [InlineData("Sponsored-Content-Regeln: Was Influencer beachten müssen", null)]
+    public void Articles_about_ads_are_kept(string title, string? summary) =>
+        Assert.True(ArticleFilter.Admits(Article(title, summary), Source(s => s.SkipAds = true)));
+
     [Fact]
     public void Exclusion_wins_over_inclusion()
     {
         var source = Source(s =>
         {
             s.IncludeKeywords = ["Raspberry Pi"];
-            s.ExcludeKeywords = ["Anzeige"];
+            s.ExcludeKeywords = ["Sonderpreis"];
         });
 
-        Assert.False(ArticleFilter.Admits(Article("Anzeige: Raspberry Pi zum Sonderpreis"), source));
+        Assert.False(ArticleFilter.Admits(Article("Raspberry Pi zum Sonderpreis"), source));
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Text;
 using MorningInk.Application.Sources;
 using MorningInk.Infrastructure.Sources;
 
@@ -52,6 +53,24 @@ public class FeedParserTests
         var result = FeedParser.Parse(Read(file), BaseUri);
 
         Assert.IsType<SourceResult.Failure>(result);
+    }
+
+    [Fact]
+    public void Categories_are_read_from_rss_dublin_core_and_atom()
+    {
+        var rss = Encoding.UTF8.GetBytes("""
+            <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>T</title>
+              <item><title>A</title><link>https://example.com/a</link><category> Advertorial </category><dc:subject>Technik</dc:subject></item>
+            </channel></rss>
+            """);
+        var atom = Encoding.UTF8.GetBytes("""
+            <feed xmlns="http://www.w3.org/2005/Atom"><title>T</title>
+              <entry><title>B</title><link href="https://example.com/b"/><category term="sponsored" label="Sponsored"/></entry>
+            </feed>
+            """);
+
+        Assert.Equal(["Advertorial", "Technik"], Assert.IsType<SourceResult.Success>(FeedParser.Parse(rss, BaseUri)).Articles[0].Categories);
+        Assert.Equal(["sponsored", "Sponsored"], Assert.IsType<SourceResult.Success>(FeedParser.Parse(atom, BaseUri)).Articles[0].Categories);
     }
 
     [Fact]

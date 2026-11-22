@@ -393,4 +393,6 @@
   <data name="Profile_Error_NotifySecret" xml:space="preserve"><value>This channel needs its token.</value></data>
   <data name="Log_Notified" xml:space="preserve"><value>Notification sent by {0}</value></data>
   <data name="Log_NotifyFailed" xml:space="preserve"><value>Notification by {0} failed: {1}</value></data>
+  <data name="Sources_SkipAds" xml:space="preserve"><value>No advertising</value></data>
+  <data name="Sources_SkipAdsHint" xml:space="preserve"><value>Leaves out what the publisher marks as an ad, e.g. “Anzeige:” or “[Sponsored]” in the title. Articles about advertising stay.</value></data>
 </root>

@@ -393,4 +393,6 @@
   <data name="Profile_Error_NotifySecret" xml:space="preserve"><value>Dieser Kanal braucht seinen Token.</value></data>
   <data name="Log_Notified" xml:space="preserve"><value>Benachrichtigung über {0} verschickt</value></data>
   <data name="Log_NotifyFailed" xml:space="preserve"><value>Benachrichtigung über {0} fehlgeschlagen: {1}</value></data>
+  <data name="Sources_SkipAds" xml:space="preserve"><value>Keine Werbung</value></data>
+  <data name="Sources_SkipAdsHint" xml:space="preserve"><value>Lässt weg, was der Verlag als Werbung kennzeichnet, z. B. „Anzeige:“ oder „[Sponsored]“ im Titel. Artikel über Werbung bleiben.</value></data>
 </root>

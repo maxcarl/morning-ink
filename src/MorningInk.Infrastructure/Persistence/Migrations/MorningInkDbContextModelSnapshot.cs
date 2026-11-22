@@ -555,6 +555,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("SkipAds")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("SkipLiveTickers")
                         .HasColumnType("INTEGER");
 

@@ -47,6 +47,12 @@ public class Source
     /// <summary>Whether to leave out live tickers and live blogs, which are outdated by the time the issue is read.</summary>
     public bool SkipLiveTickers { get; set; }
 
+    /// <summary>
+    /// Whether to leave out articles the publisher marks as advertising: "Anzeige:" or "[Sponsored]" in the title, an
+    /// advertising category, or a sponsored section in the address. On by default; the word alone in a text is no mark.
+    /// </summary>
+    public bool SkipAds { get; set; } = true;
+
     /// <summary>Whether this source's content may only go to an AI on the user's own hardware, never to a cloud provider.</summary>
     public bool LocalAiOnly { get; set; }
 
