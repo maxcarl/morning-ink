@@ -45,6 +45,20 @@ public sealed class AccessTests : IDisposable
     }
 
     [Fact]
+    public async Task Favicon_is_linked_and_served_without_sign_in()
+    {
+        using var app = new TestApp();
+        var browser = app.Browser();
+
+        var login = await browser.GetStringAsync("/setup"); // the first page anyone sees, before any sign-in exists
+        var href = System.Text.RegularExpressions.Regex.Match(login, @"<link rel=""icon""[^>]*href=""([^""]+)""").Groups[1].Value; // Blazor writes the type's "+" as an entity
+        var icon = await browser.GetAsync("/" + href);
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, icon.StatusCode);
+        Assert.Equal("image/svg+xml", icon.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
     public async Task Health_check_needs_no_login()
     {
         var response = await _app.Browser().GetAsync("/health");
