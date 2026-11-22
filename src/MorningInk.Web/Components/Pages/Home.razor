@@ -13,7 +13,8 @@
 <h1 class="visually-hidden">@T["Home_Title"]</h1>
 @if (_notice is not null)
 {
-    <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+    @* Stays while the page follows the issue; it goes when the issue is done. *@
+    <div class="alert alert-ok toast toast-sticky" role="status"><p>@_notice</p></div>
 }
 
 @if (_view is { } view)

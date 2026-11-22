@@ -38,11 +38,11 @@
     }
     @if (_notice is not null)
     {
-        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
     }
     @if (_errors.Count > 0)
     {
-        <div class="alert alert-error" role="alert">
+        <div class="alert alert-error toast" role="alert">
             @foreach (var error in _errors)
             {
                 <p>@error</p>

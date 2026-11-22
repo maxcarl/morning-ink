@@ -17,11 +17,11 @@
 
     @if (_notice is not null)
     {
-        <div class="alert alert-ok" role="status"><p>@_notice</p></div>
+        <div class="alert alert-ok toast" role="status"><p>@_notice</p></div>
     }
     @if (_error is not null)
     {
-        <div class="alert alert-error" role="alert"><p>@_error</p></div>
+        <div class="alert alert-error toast" role="alert"><p>@_error</p></div>
     }
     @if (_blockedHost is not null)
     {

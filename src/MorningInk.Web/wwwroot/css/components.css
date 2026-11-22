@@ -407,6 +407,37 @@ fieldset {
   margin: 0 0 var(--space-1);
 }
 
+/*
+  Messages after an action sit at the foot of the screen, so they are seen wherever the action was, also at the
+  end of a long form. Success fades after a while; errors stay until the next action.
+*/
+.alert.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-4);
+  transform: translateX(-50%);
+  z-index: 10;
+  width: min(40rem, calc(100% - 2 * var(--space-4)));
+  margin: 0;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+}
+
+.toast.alert-ok:not(.toast-sticky) {
+  animation: toast-out 0.4s ease 6s forwards;
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* An error toast must never hide the last buttons of a page: the page can scroll past it */
+.page:has(.toast.alert-error) {
+  padding-bottom: 10rem;
+}
+
 .alert .button {
   margin-top: var(--space-2);
 }
