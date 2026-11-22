@@ -6,7 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <base href="/" />
-    <link rel="stylesheet" href="@Assets["app.css"]" />
+    @* In cascade order: tokens first, single pages last. *@
+    <link rel="stylesheet" href="@Assets["css/tokens.css"]" />
+    <link rel="stylesheet" href="@Assets["css/base.css"]" />
+    <link rel="stylesheet" href="@Assets["css/layout.css"]" />
+    <link rel="stylesheet" href="@Assets["css/components.css"]" />
+    <link rel="stylesheet" href="@Assets["css/pages.css"]" />
     <link rel="icon" type="image/svg+xml" href="@Assets["favicon.svg"]" />
     @* Installable as an app (home screen, dock); no service worker, since every page needs the server anyway. *@
     <link rel="apple-touch-icon" href="@Assets["apple-touch-icon.png"]" />

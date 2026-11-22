@@ -1,0 +1,35 @@
+/* Base elements and the caps labels. */
+
+/* Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Labels in caps: kicker above headlines, field and sidebar labels */
+.kicker,
+.label,
+.field > label,
+.field > legend {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.kicker {
+  color: var(--color-accent);
+}
+
+.lede {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-lg);
+  color: var(--color-muted);
+  max-width: 42rem;
+  margin-bottom: 0;
+}

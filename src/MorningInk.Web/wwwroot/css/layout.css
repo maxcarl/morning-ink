@@ -1,0 +1,214 @@
+/* Page frame: masthead, tabs, columns, colophon. */
+
+/* Masthead like a front page: ears (date, sign-out), centered nameplate, folio line between rules, section bar */
+.masthead {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-6) 0;
+  text-align: center;
+}
+
+.masthead-ears {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--space-4);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.masthead-ears > * {
+  white-space: nowrap;
+}
+
+.brand {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.nameplate {
+  display: block;
+  font-size: clamp(2.5rem, 8vw, 4.75rem);
+  line-height: 1;
+  padding: var(--space-2) 0 var(--space-3);
+}
+
+.folio {
+  margin: 0;
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--color-ink);
+  border-bottom: 4px double var(--color-ink);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.link-button {
+  background: none;
+  border: 0;
+  padding: var(--space-2) var(--space-2);
+  min-height: var(--control-height);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--color-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-danger {
+  color: var(--color-error);
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-6);
+  border-bottom: 1px solid var(--color-ink);
+}
+
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.nav a.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Colophon: the quiet settings at the foot of the page */
+.colophon {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-6) var(--space-8);
+}
+
+.colophon-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 var(--space-2);
+  border-top: 4px double var(--color-ink);
+  padding-top: var(--space-2);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0 var(--space-1);
+}
+
+.theme-switch .link-button[aria-pressed="true"] {
+  text-decoration: none;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-8);
+}
+
+.page-header {
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-rule);
+  margin-bottom: var(--space-6);
+}
+
+/* Main column with a sidebar on wide screens */
+.with-sidebar {
+  display: grid;
+  gap: var(--space-8);
+}
+
+@media (min-width: 60rem) {
+  .with-sidebar {
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
+  }
+  .sidebar {
+    border-left: 1px solid var(--color-ink);
+    padding-left: var(--space-8);
+  }
+}
+
+/* Section heading with a rule, like a newspaper department */
+.department {
+  font-family: var(--font-serif);
+  font-variant: small-caps;
+  font-size: var(--text-lg);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-ink);
+  padding-bottom: var(--space-2);
+  margin: var(--space-8) 0 0;
+}
+
+.department:first-child {
+  margin-top: 0;
+}
+
+/* Space between a section heading and whatever follows it */
+.department + * {
+  margin-top: var(--space-4);
+}
+
+.rows + form {
+  margin-top: var(--space-6);
+}
+
+.sidebar > .label {
+  margin-bottom: var(--space-4);
+}
+
+/* Lost connection of an interactive page: Blazor toggles these classes on #components-reconnect-modal */
+.reconnect {
+  display: none;
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  margin: 0;
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  text-align: center;
+}
+
+.reconnect a {
+  color: inherit;
+}
+
+.reconnect.components-reconnect-failed,
+.reconnect.components-reconnect-rejected {
+  display: block;
+}
+
+/* Narrow screens: tabs closer together so they wrap less */
+@media (max-width: 40rem) {
+  .nav {
+    gap: 0 var(--space-4);
+  }
+  .nav a {
+    letter-spacing: 0.06em;
+  }
+}

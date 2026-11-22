@@ -1,0 +1,85 @@
+/*
+  Morning Ink design system: a newspaper on paper.
+
+  - Meaning never rests on color alone: status has a word, the primary button is filled, the secondary one
+  outlined, the active tab underlined.
+  - Contrast: body text at least 7:1, small text and controls at least 4.5:1 (WCAG AA and better).
+  - Touch targets at least 44 px; focus is always visible.
+  - Serif for the masthead, headlines and names; sans for labels, forms and meta lines.
+*/
+:root {
+  --color-paper: #f5f0e8;
+  --color-surface: #fbf8f2;
+  --color-highlight: #ece4d6;
+  --color-ink: #191714; /* 16:1 on paper */
+  --color-muted: #57524a; /* 7.2:1 on paper */
+  --color-border: #8a847a; /* 3.3:1, controls */
+  --color-rule: #cbc1b1; /* thin decorative rules */
+  --color-accent: #a3161a; /* kicker, active tab: 6.8:1 */
+  --color-ok: #2f6b33; /* 5.9:1 */
+  --color-warn: #7d5300; /* 6.0:1 */
+  --color-error: #a3161a;
+  --color-error-surface: #f8e9e6;
+  --color-ok-surface: #eaf2e7;
+  --font-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.75rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --radius: 2px;
+  --focus-ring: 3px solid var(--color-accent);
+  --control-height: 2.75rem; /* 44 px */
+  --content-width: 80rem;
+  --auth-width: 26rem;
+  color-scheme: light dark;
+}
+
+/* Dark: chosen explicitly, or "auto" (no choice) when the system prefers it. */
+:root[data-theme="dark"] {
+  --color-paper: #171513;
+  --color-surface: #1f1c19;
+  --color-highlight: #2b2722;
+  --color-ink: #efe9df;
+  --color-muted: #b9b1a5;
+  --color-border: #8f887d;
+  --color-rule: #4a433c;
+  --color-accent: #ff8f86;
+  --color-ok: #8fd19a;
+  --color-warn: #f0c060;
+  --color-error: #ff8f86;
+  --color-error-surface: #3a1816;
+  --color-ok-surface: #16301b;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --color-paper: #171513;
+    --color-surface: #1f1c19;
+    --color-highlight: #2b2722;
+    --color-ink: #efe9df;
+    --color-muted: #b9b1a5;
+    --color-border: #8f887d;
+    --color-rule: #4a433c;
+    --color-accent: #ff8f86;
+    --color-ok: #8fd19a;
+    --color-warn: #f0c060;
+    --color-error: #ff8f86;
+    --color-error-surface: #3a1816;
+    --color-ok-surface: #16301b;
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}

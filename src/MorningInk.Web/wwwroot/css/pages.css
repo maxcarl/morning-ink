@@ -1,0 +1,155 @@
+/* What only single pages need. */
+
+/* Dashboard: the next issue as the lead story */
+.lead {
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-ink);
+}
+
+.lead-headline {
+  font-size: clamp(2rem, 5vw, var(--text-2xl));
+  margin-bottom: var(--space-2);
+}
+
+.lead .lede {
+  margin-bottom: var(--space-4);
+}
+
+.issue-error {
+  margin: var(--space-1) 0 0;
+}
+
+/* Setup wizard: the steps as a folio line, the current one marked like the active tab */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-6);
+  list-style: none;
+  counter-reset: step;
+  margin: var(--space-6) 0 0;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.steps li {
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step) " ";
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+
+.steps li[aria-current="step"] {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.wizard-nav {
+  margin-top: var(--space-6);
+}
+
+/* Dashboard notes: what is missing, each with a link to fix it */
+.notes {
+  list-style: none;
+  margin: 0 0 var(--space-6);
+  padding: 0;
+}
+
+.notes li {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+/* Editions as tabs under the page title */
+.editions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-6);
+  margin-top: var(--space-6);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.editions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.editions a[aria-current="page"] {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: 0 var(--space-2);
+}
+
+.edition-delete {
+  margin-top: var(--space-6);
+}
+
+/* Archive: a kept issue's toggle reads as pressed */
+.link-button.pinned {
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link-button.pinned::before {
+  content: "✓ ";
+}
+
+/* Source editor: below its row, across the full width */
+.source-editor {
+  flex-basis: 100%;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-rule);
+}
+
+.source-editor .checks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 var(--space-6);
+}
+
+/* Preview: the issue's pages in a frame, its cover beside */
+.preview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.preview-controls .field {
+  margin-bottom: 0;
+}
+
+.preview-frame {
+  width: 100%;
+  height: 75vh;
+  border: 1px solid var(--color-ink);
+  background: #fff;
+}
+
+.preview-cover {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  border: 1px solid var(--color-ink);
+  margin-bottom: var(--space-4);
+}
