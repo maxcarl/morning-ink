@@ -22,6 +22,7 @@ public sealed class IssuePublisherTests : IDisposable
     private readonly ProfileLocks _locks = new();
     private readonly FakeGeocoder _geocoder = new();
     private readonly FakeWeather _weather = new();
+    private readonly FakeNotifier _notifier = new();
 
     public IssuePublisherTests()
     {
@@ -386,6 +387,44 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Delivered_issue_is_announced_where_the_edition_wants_it()
+    {
+        _profile.NotifyChannel = NotificationChannel.Ntfy;
+        _profile.NotifyTarget = "https://ntfy.sh/morgenzeitung";
+
+        await PublishAsync();
+
+        var notice = Assert.Single(_notifier.Sent);
+        Assert.Equal(("Morning Ink", 3, null), (notice.EditionTitle, notice.Articles, notice.Problem));
+        Assert.Contains(_store.Issues.Single().Log, e => e.Event == "Notified");
+    }
+
+    [Fact]
+    public async Task Failed_delivery_is_announced_once_not_at_every_retry()
+    {
+        _profile.NotifyChannel = NotificationChannel.Ntfy;
+        _profile.NotifyTarget = "https://ntfy.sh/morgenzeitung";
+        _delivery.Results.Enqueue(new DeliveryResult.Failure("down", Retryable: true));
+        _delivery.Results.Enqueue(new DeliveryResult.Failure("down", Retryable: true));
+
+        await PublishAsync();
+        await PublishAsync();
+
+        Assert.NotNull(Assert.Single(_notifier.Sent).Problem);
+    }
+
+    [Fact]
+    public async Task A_failing_notification_never_costs_the_issue()
+    {
+        _profile.NotifyChannel = NotificationChannel.Ntfy;
+        _profile.NotifyTarget = "https://ntfy.sh/morgenzeitung";
+        _notifier.Throws = true;
+
+        Assert.IsType<PublishResult.Delivered>(await PublishAsync());
+        Assert.Contains(_store.Issues.Single().Log, e => e.Event == "NotifyFailed");
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 
@@ -403,5 +442,5 @@ public sealed class IssuePublisherTests : IDisposable
         CreatePublisher().PublishAsync(_profile.Id, slot ?? Slot, CancellationToken.None);
 
     private IssuePublisher CreatePublisher() => new(
-        _store, [_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], [_renderer], _delivery, _files, _locks, _geocoder, _weather, new FixedTimeProvider(Slot));
+        _store, [_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], [_renderer], _delivery, _files, _locks, _geocoder, _weather, _notifier, new FixedTimeProvider(Slot));
 }

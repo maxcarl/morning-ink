@@ -86,6 +86,7 @@ public sealed class MorningInkDbContext(
             });
             // Interests belong to one edition and are always read with it: one JSON column, no table of their own.
             profile.Property(p => p.Interests).HasConversion(JsonColumn.Converter<Interest>(), JsonColumn.Comparer<Interest>());
+            profile.Property(p => p.NotifySecret).HasConversion((Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter)new ProtectedStringConverter(DataProtection));
             profile.HasMany(p => p.Sections).WithOne().HasForeignKey(s => s.ProfileId).OnDelete(DeleteBehavior.Cascade);
         });
 

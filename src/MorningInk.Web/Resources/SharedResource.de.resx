@@ -363,4 +363,34 @@
   <data name="Clock_DateTime" xml:space="preserve"><value>{0}, {1}</value></data>
   <data name="Settings_AiEnabled" xml:space="preserve"><value>KI verwenden</value></data>
   <data name="Settings_AiEnabledHint" xml:space="preserve"><value>Ausgeschaltet pausiert alle KI-Schritte, z. B. damit Ausgaben schneller fertig sind; Adresse, Modell und Schlüssel bleiben gespeichert.</value></data>
+  <data name="Notify_Title" xml:space="preserve"><value>Benachrichtigung</value></data>
+  <data name="Notify_Hint" xml:space="preserve"><value>Eine kurze Nachricht, sobald eine Ausgabe raus ist oder nicht verschickt werden konnte.</value></data>
+  <data name="Notify_Channel" xml:space="preserve"><value>Senden über</value></data>
+  <data name="Notify_Channel_None" xml:space="preserve"><value>Keine Benachrichtigung</value></data>
+  <data name="Notify_Channel_Ntfy" xml:space="preserve"><value>ntfy</value></data>
+  <data name="Notify_Channel_Gotify" xml:space="preserve"><value>Gotify</value></data>
+  <data name="Notify_Channel_Telegram" xml:space="preserve"><value>Telegram</value></data>
+  <data name="Notify_Channel_Email" xml:space="preserve"><value>E-Mail</value></data>
+  <data name="Notify_Target_Ntfy" xml:space="preserve"><value>Topic-Adresse</value></data>
+  <data name="Notify_TargetHint_Ntfy" xml:space="preserve"><value>Server und Topic, z. B. https://ntfy.sh/meine-morgenzeitung.</value></data>
+  <data name="Notify_Target_Gotify" xml:space="preserve"><value>Server-Adresse</value></data>
+  <data name="Notify_TargetHint_Gotify" xml:space="preserve"><value>z. B. https://gotify.example.com</value></data>
+  <data name="Notify_Target_Telegram" xml:space="preserve"><value>Chat-ID</value></data>
+  <data name="Notify_TargetHint_Telegram" xml:space="preserve"><value>Die Nummer des Chats (Gruppen beginnen mit -100) oder @kanalname. Für ein Thema in einer Forum-Gruppe den Thread anhängen: -1001234567890/42.</value></data>
+  <data name="Notify_Target_Email" xml:space="preserve"><value>E-Mail-Adresse</value></data>
+  <data name="Notify_TargetHint_Email" xml:space="preserve"><value>Geht über den Mailserver aus den Einstellungen.</value></data>
+  <data name="Notify_Secret_Ntfy" xml:space="preserve"><value>Zugangstoken (optional)</value></data>
+  <data name="Notify_SecretHint_Ntfy" xml:space="preserve"><value>Nur für ein geschütztes Topic nötig.</value></data>
+  <data name="Notify_Secret_Gotify" xml:space="preserve"><value>App-Token</value></data>
+  <data name="Notify_SecretHint_Gotify" xml:space="preserve"><value>In Gotify eine App anlegen und ihren Token kopieren.</value></data>
+  <data name="Notify_Secret_Telegram" xml:space="preserve"><value>Bot-Token</value></data>
+  <data name="Notify_SecretHint_Telegram" xml:space="preserve"><value>Von @BotFather. Der Bot muss Mitglied im Chat sein.</value></data>
+  <data name="Notify_SecretSaved" xml:space="preserve"><value>Ein Token ist gespeichert. Leer lassen behält ihn.</value></data>
+  <data name="Notify_Test" xml:space="preserve"><value>Testnachricht senden</value></data>
+  <data name="Notify_TestSent" xml:space="preserve"><value>Testnachricht über {0} verschickt.</value></data>
+  <data name="Notify_TestFailed" xml:space="preserve"><value>Die Testnachricht über {0} ist fehlgeschlagen: {1}. Ein Server im Heimnetz muss erst unter Einstellungen → Netzwerk freigegeben werden.</value></data>
+  <data name="Profile_Error_NotifyTarget" xml:space="preserve"><value>Bitte prüfe die Adresse für die Benachrichtigung.</value></data>
+  <data name="Profile_Error_NotifySecret" xml:space="preserve"><value>Dieser Kanal braucht seinen Token.</value></data>
+  <data name="Log_Notified" xml:space="preserve"><value>Benachrichtigung über {0} verschickt</value></data>
+  <data name="Log_NotifyFailed" xml:space="preserve"><value>Benachrichtigung über {0} fehlgeschlagen: {1}</value></data>
 </root>

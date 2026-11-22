@@ -188,6 +188,46 @@ public sealed class ProfileEditorTests : IDisposable
         Assert.Equal(["Proxmox", "NAS"], stored.Keywords);
     }
 
+    [Theory]
+    [InlineData(NotificationChannel.Ntfy, "https://ntfy.sh/morgenzeitung", null, true)]
+    [InlineData(NotificationChannel.Ntfy, "https://ntfy.sh/", null, false)] // no topic
+    [InlineData(NotificationChannel.Gotify, "https://gotify.example.com", "app-token", true)]
+    [InlineData(NotificationChannel.Gotify, "https://gotify.example.com", null, false)] // Gotify needs its token
+    [InlineData(NotificationChannel.Telegram, "123456789", "bot-token", true)]
+    [InlineData(NotificationChannel.Telegram, "-1001234567890/42", "bot-token", true)] // a forum thread
+    [InlineData(NotificationChannel.Telegram, "-1001234567890/", "bot-token", false)]
+    [InlineData(NotificationChannel.Telegram, "not a chat", "bot-token", false)]
+    [InlineData(NotificationChannel.Email, "leser@example.com", null, true)]
+    [InlineData(NotificationChannel.Email, "a@b.de, c@d.de", null, false)]
+    [InlineData(NotificationChannel.None, null, null, true)]
+    public async Task Notification_settings_are_checked_per_channel(NotificationChannel channel, string? target, string? secret, bool valid)
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max");
+        var profileId = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Id;
+
+        var errors = await EditAsync(services, e => e.SaveNotificationAsync(user, profileId, new NotificationSettings(channel, target, secret), CancellationToken.None));
+
+        Assert.Equal(valid, errors.Count == 0);
+    }
+
+    [Fact]
+    public async Task Notification_token_stays_when_left_empty_and_goes_with_the_channel()
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max");
+        var profileId = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Id;
+
+        await EditAsync(services, e => e.SaveNotificationAsync(user, profileId, new NotificationSettings(NotificationChannel.Gotify, "https://gotify.example.com", "app-token"), CancellationToken.None));
+        await EditAsync(services, e => e.SaveNotificationAsync(user, profileId, new NotificationSettings(NotificationChannel.Gotify, "https://gotify.example.com/", null), CancellationToken.None));
+        var kept = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).NotifySecret;
+        await EditAsync(services, e => e.SaveNotificationAsync(user, profileId, new NotificationSettings(NotificationChannel.None, null, null), CancellationToken.None));
+        var cleared = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
+
+        Assert.Equal("app-token", kept);
+        Assert.Equal((null, null), (cleared.NotifyTarget, cleared.NotifySecret));
+    }
+
     [Fact]
     public async Task No_weekday_at_all_is_refused()
     {

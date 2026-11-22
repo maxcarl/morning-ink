@@ -30,6 +30,7 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Weather__ForecastUrl` | Open-Meteo | Weather forecast; coordinates are sent rounded to about a kilometre. Can be a self-hosted Open-Meteo. |
 | `NewsSearch__BingNewsUrl` | Bing News RSS | News search for local news sources. The towns searched for go to Microsoft; articles are then fetched from the publishers. |
 | `NewsSearch__Language`, `NewsSearch__Country` | `de`, `DE` | News edition when a local source has no country; with a country, its own edition is used (e.g. `en`/`US`). |
+| `Notifications__TelegramApiUrl` | `https://api.telegram.org` | Telegram Bot API for edition notifications; can be a self-hosted Bot API server. ntfy, Gotify and Telegram tokens are set per edition in the UI and stored encrypted. |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |
 | `Images__MaxDimension` | `1000` | Longest side of converted images, in pixels. |
 | `Images__MaxPixels` | `40000000` | Larger images are rejected before decoding. |

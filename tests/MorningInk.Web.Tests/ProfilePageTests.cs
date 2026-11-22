@@ -29,6 +29,22 @@ public sealed class ProfilePageTests : IDisposable
     }
 
     [Fact]
+    public async Task Notification_asks_for_what_its_channel_needs_and_keeps_the_token_hidden()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+
+        page.Find("#notify-channel").Change(nameof(NotificationChannel.Telegram));
+        Pages.Submit(page, ("#notify-target", "-1001234567890/42"));
+        Pages.Shows(page, "This channel needs its token.");
+        Pages.Submit(page, ("#notify-target", "-1001234567890/42"), ("#notify-secret", "bot-token"));
+
+        Pages.Shows(page, "A token is saved. Leave empty to keep it.");
+        Assert.Empty(page.Find("#notify-secret").GetAttribute("value") ?? string.Empty);
+        Assert.Contains(page.FindAll("button"), b => b.TextContent.Contains("Send test message", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Invalid_recipient_is_explained_and_not_saved()
     {
         using var pages = await Pages.AsAdminAsync(_app);

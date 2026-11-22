@@ -140,6 +140,7 @@ public sealed class PublishingTests : IDisposable
             Locks,
             provider.GetRequiredService<IGeocoder>(),
             provider.GetRequiredService<IWeatherForecast>(),
+            provider.GetRequiredService<MorningInk.Application.Notifications.INotifier>(),
             provider.GetRequiredService<TimeProvider>());
         return await publisher.PublishAsync(profileId, slot, CancellationToken.None);
     }

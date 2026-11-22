@@ -18,11 +18,15 @@ namespace MorningInk.Infrastructure.Profiles;
 /// <param name="LeadTime">How long before delivery to build the issue, up to half a day; null keeps the current one.</param>
 public sealed record ProfileSettings(string Title, string Recipient, string DeliveryTime, string TimeZoneId, string? Region, string? Country = null, IReadOnlyCollection<DayOfWeek>? Days = null, TimeSpan? LeadTime = null);
 
+/// <summary>Where an edition announces its issues; see <see cref="Profile.NotifyChannel"/>.</summary>
+/// <param name="Secret">Token for the channel; empty keeps the saved one, as with the mail password.</param>
+public sealed record NotificationSettings(NotificationChannel Channel, string? Target, string? Secret);
+
 /// <summary>
 /// Edits a user's issue profiles ("editions", e.g. morning and evening) and their sections. Every method only reaches the
 /// given user's profiles, and sections only ever get that user's sources. Schedule changes take effect with the next issue.
 /// </summary>
-public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory schedulers, IssueScheduler issueScheduler, IIssueFiles files)
+public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFactory schedulers, IssueScheduler issueScheduler, IIssueFiles files)
 {
     private const string DefaultTitle = "Morning Ink";
     private const int MaxNameLength = 200;
@@ -204,6 +208,41 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
         return true;
     }
 
+    /// <summary>Sets where the edition announces its issues, or returns the invalid fields: NotifyTarget, NotifySecret, Profile.</summary>
+    public async Task<IReadOnlyList<string>> SaveNotificationAsync(Guid userId, Guid profileId, NotificationSettings settings, CancellationToken cancellationToken)
+    {
+        if (await FindAsync(userId, profileId, cancellationToken) is not { } profile)
+        {
+            return ["Profile"];
+        }
+
+        var target = settings.Target?.Trim() ?? string.Empty;
+        var secret = string.IsNullOrWhiteSpace(settings.Secret) ? null : settings.Secret.Trim();
+        var keptSecret = profile.NotifyChannel == settings.Channel ? profile.NotifySecret : null;
+        var errors = new List<string>();
+        if (settings.Channel != NotificationChannel.None && !IsValidTarget(settings.Channel, target))
+        {
+            errors.Add("NotifyTarget");
+        }
+
+        // Gotify and Telegram cannot work without their token; ntfy only needs one for protected topics.
+        if (settings.Channel is NotificationChannel.Gotify or NotificationChannel.Telegram && (secret ?? keptSecret) is null)
+        {
+            errors.Add("NotifySecret");
+        }
+
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
+        profile.NotifyChannel = settings.Channel;
+        profile.NotifyTarget = settings.Channel == NotificationChannel.None ? null : target;
+        profile.NotifySecret = settings.Channel is NotificationChannel.None or NotificationChannel.Email ? null : secret ?? keptSecret;
+        await db.SaveChangesAsync(cancellationToken);
+        return [];
+    }
+
     public async Task<bool> AddSectionAsync(Guid userId, Guid profileId, string name, CancellationToken cancellationToken)
     {
         name = name.Trim();
@@ -282,6 +321,22 @@ public sealed class ProfileEditor(MorningInkDbContext db, ISchedulerFactory sche
     // The user's profile that holds the section; null when no profile of theirs does.
     private Task<Profile?> OwnerOfSectionAsync(Guid userId, Guid sectionId, CancellationToken cancellationToken) =>
         Query(userId).SingleOrDefaultAsync(p => p.Sections.Any(s => s.Id == sectionId), cancellationToken);
+
+    private static bool IsValidTarget(NotificationChannel channel, string target) => channel switch
+    {
+        NotificationChannel.Ntfy => IsWebAddress(target, out var topic) && topic.AbsolutePath.Trim('/').Length > 0,
+        NotificationChannel.Gotify => IsWebAddress(target, out _),
+        NotificationChannel.Telegram => TelegramChat().IsMatch(target),
+        NotificationChannel.Email => IsSingleAddress(target),
+        _ => false,
+    };
+
+    private static bool IsWebAddress(string text, out Uri uri) =>
+        Uri.TryCreate(text, UriKind.Absolute, out uri!) && uri.Scheme is "http" or "https" && string.IsNullOrEmpty(uri.UserInfo); // ! is safe: only read when this returns true
+
+    // A numeric chat id (negative for groups) or a public channel's @name, optionally "/thread" for a forum topic.
+    [System.Text.RegularExpressions.GeneratedRegex(@"^(-?\d{1,20}|@[A-Za-z0-9_]{5,32})(/\d{1,10})?$", System.Text.RegularExpressions.RegexOptions.None, matchTimeoutMilliseconds: 100)]
+    private static partial System.Text.RegularExpressions.Regex TelegramChat();
 
     // Exactly one plain address: no display name, no list, no line breaks (it ends up in a mail header).
     private static bool IsSingleAddress(string value) =>

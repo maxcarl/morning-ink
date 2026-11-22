@@ -34,6 +34,15 @@ public class Profile
     /// <summary>Weekdays with an issue, in <see cref="TimeZoneId"/>; empty means every day.</summary>
     public List<DayOfWeek> Days { get; set; } = [];
 
+    /// <summary>Where to announce a delivered or failed issue; None sends nothing.</summary>
+    public NotificationChannel NotifyChannel { get; set; }
+
+    /// <summary>The ntfy topic URL, Gotify server, Telegram chat id or e-mail address.</summary>
+    public string? NotifyTarget { get; set; }
+
+    /// <summary>ntfy access token, Gotify app token or Telegram bot token; stored encrypted, never shown again.</summary>
+    public string? NotifySecret { get; set; }
+
     /// <summary>Topics to prefer or leave out when a section's limit cannot take every article.</summary>
     public List<Interest> Interests { get; set; } = [];
 

@@ -36,4 +36,7 @@
   <data name="AlsoAt" xml:space="preserve"><value>Auch bei: {0}</value></data>
   <data name="InShort" xml:space="preserve"><value>Kurz gefasst</value></data>
   <data name="ArticleCount" xml:space="preserve"><value>{0} Artikel in {1} Rubriken</value></data>
+  <data name="NoticeTest" xml:space="preserve"><value>Testnachricht von Morning Ink: Benachrichtigungen kommen hier an.</value></data>
+  <data name="NoticeDelivered" xml:space="preserve"><value>{0} Nr. {1} ist da: {2} Artikel.</value></data>
+  <data name="NoticeFailed" xml:space="preserve"><value>{0} Nr. {1} konnte nicht zugestellt werden: {2}</value></data>
 </root>

@@ -87,6 +87,24 @@ internal sealed class FakeAiProcessor : IProcessor
         Task.FromResult(article with { AiSummary = "KI" });
 }
 
+internal sealed class FakeNotifier : MorningInk.Application.Notifications.INotifier
+{
+    public List<MorningInk.Application.Notifications.Notice> Sent { get; } = [];
+
+    public bool Throws { get; set; }
+
+    public Task<string?> NotifyAsync(MorningInk.Application.Notifications.NotificationTarget target, MorningInk.Application.Notifications.Notice notice, CancellationToken cancellationToken)
+    {
+        if (Throws)
+        {
+            throw new InvalidOperationException("Notifier bug");
+        }
+
+        Sent.Add(notice);
+        return Task.FromResult<string?>(null);
+    }
+}
+
 internal sealed class FakeRenderer : IRenderer
 {
     public List<IssueContent> Rendered { get; } = [];

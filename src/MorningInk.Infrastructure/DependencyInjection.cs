@@ -134,7 +134,10 @@ public static class DependencyInjection
         services.AddOptions<SmtpOptions>()
             .Bind(configuration.GetSection(SmtpOptions.SectionName))
             .Validate(o => o.Port is > 0 and <= 65535 && o.MaxMessageBytes > 0 && o.Timeout > TimeSpan.Zero, "Smtp:Port, Smtp:MaxMessageBytes and Smtp:Timeout must be positive.");
-        services.AddTransient<IDelivery, MailDelivery>();
+        services.AddTransient<MailDelivery>();
+        services.AddTransient<IDelivery>(provider => provider.GetRequiredService<MailDelivery>());
+        services.AddOptions<Notifications.NotificationOptions>().Bind(configuration.GetSection(Notifications.NotificationOptions.SectionName));
+        services.AddTransient<MorningInk.Application.Notifications.INotifier, Notifications.Notifier>();
         services.AddScoped<MailSettingsStore>();
         services.AddTransient<TestMail>();
 
@@ -192,6 +195,16 @@ public static class DependencyInjection
 
     private static void AddSafeHttp(IServiceCollection services, IConfiguration configuration)
     {
+        // Notifications: the home-network check on every connection, short deadline, no redirects to follow.
+        services.AddHttpClient(Notifications.Notifier.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(15))
+            .ConfigurePrimaryHttpMessageHandler(provider => new SocketsHttpHandler
+            {
+                ConnectCallback = provider.GetRequiredService<SafeConnector>().ConnectAsync,
+                AllowAutoRedirect = false,
+                UseProxy = false,
+                UseCookies = false,
+            });
+
         // The AI's own client: the same home-network check on every connection, but no response size limit or short
         // deadline, since a model on a CPU answers slowly. The OpenAI client applies its own network timeout.
         services.AddHttpClient(Ai.AiChat.HttpClientName, client => client.Timeout = Timeout.InfiniteTimeSpan)

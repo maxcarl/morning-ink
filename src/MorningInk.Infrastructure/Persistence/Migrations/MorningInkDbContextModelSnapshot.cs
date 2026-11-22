@@ -408,6 +408,15 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<TimeSpan>("LeadTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("NotifyChannel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NotifySecret")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NotifyTarget")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Recipient")
                         .IsRequired()
                         .HasMaxLength(320)

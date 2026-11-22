@@ -1,4 +1,5 @@
 using MorningInk.Application.Delivery;
+using MorningInk.Application.Notifications;
 using MorningInk.Application.Processing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Scheduling;
@@ -24,6 +25,7 @@ public sealed class IssuePublisher(
     ProfileLocks locks,
     IGeocoder geocoder,
     IWeatherForecast weather,
+    INotifier notifier,
     TimeProvider time)
 {
     // ponytail: EPUB for everyone; a format per profile comes with the PDF renderer.
@@ -147,7 +149,37 @@ public sealed class IssuePublisher(
             return new PublishResult.Prepared(issue.Id);
         }
 
-        return await DeliverAsync(issue, loaded.Profile, renderer, IssueContent.BookTitleFor(profile.Title, localTime), problems, cancellationToken);
+        return await DeliverAsync(issue, loaded, renderer, IssueContent.BookTitleFor(profile.Title, localTime), problems, cancellationToken);
+    }
+
+    // Best effort: a notice is a convenience and never decides whether the issue counts as delivered.
+    private async Task NotifyAsync(Issue issue, PublishingProfile loaded, string? problem, CancellationToken cancellationToken)
+    {
+        var profile = loaded.Profile;
+        if (profile.NotifyChannel == NotificationChannel.None || string.IsNullOrWhiteSpace(profile.NotifyTarget))
+        {
+            return;
+        }
+
+        string? error;
+        try
+        {
+            var notice = new Notice(profile.Title, issue.Number, issue.Entries.Count(e => !e.Duplicate), problem, loaded.Language);
+            error = await notifier.NotifyAsync(new NotificationTarget(profile.NotifyChannel, profile.NotifyTarget, profile.NotifySecret), notice, cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            error = e.Message;
+        }
+
+        if (error is null)
+        {
+            issue.AddLog(time.GetUtcNow(), "Notified", profile.NotifyChannel);
+        }
+        else
+        {
+            issue.AddLog(time.GetUtcNow(), "NotifyFailed", profile.NotifyChannel, error);
+        }
     }
 
     private bool HasRenderedFile(Issue issue) =>
@@ -388,12 +420,14 @@ public sealed class IssuePublisher(
 
     private async Task<PublishResult> DeliverAsync(
         Issue issue,
-        Profile profile,
+        PublishingProfile loaded,
         IRenderer renderer,
         string bookTitle,
         IReadOnlyList<SourceProblem> problems,
         CancellationToken cancellationToken)
     {
+        var profile = loaded.Profile;
+
         // ! is safe: DeliverAsync only runs after RenderAsync or for an issue with a rendered file.
         var path = files.PathFor(issue.FileName!);
         var result = await delivery.DeliverAsync(
@@ -407,6 +441,13 @@ public sealed class IssuePublisher(
             issue.Status = IssueStatus.Failed;
             issue.AddLog(now, "DeliveryFailed", [failure.Message, failure.Reason ?? string.Empty, .. failure.Arguments]);
             issue.SetError(failure.Message, failure.Reason, failure.Arguments);
+
+            // Once, not at every retry: a server that is down for an hour would otherwise send five messages.
+            if (issue.Attempts.Count(a => !a.Succeeded) == 1)
+            {
+                await NotifyAsync(issue, loaded, failure.Message, cancellationToken);
+            }
+
             await store.SaveChangesAsync(cancellationToken);
             return new PublishResult.DeliveryFailed(issue.Id, failure.Message, failure.Retryable, issue.Attempts.Count);
         }
@@ -419,6 +460,7 @@ public sealed class IssuePublisher(
 
         // Only now: had the delivery failed, the articles would have to come again.
         await seen.MarkSeenAsync(profile.UserId, issue.Entries.Select(e => new Uri(e.Url)), cancellationToken);
+        await NotifyAsync(issue, loaded, null, cancellationToken);
         await store.SaveChangesAsync(cancellationToken);
         return new PublishResult.Delivered(issue.Id, issue.Entries.Count(e => !e.Duplicate), problems);
     }

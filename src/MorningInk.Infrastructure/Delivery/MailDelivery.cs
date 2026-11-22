@@ -45,6 +45,26 @@ internal sealed partial class MailDelivery(MailSettingsStore settings, ILogger<M
         return await SendAsync(smtp, smtp.Host, message, size, cancellationToken);
     }
 
+    /// <summary>Sends a short plain text mail, e.g. a notification, through the same mail server as the issues.</summary>
+    public async Task<DeliveryResult> SendTextAsync(string recipient, string subject, string text, CancellationToken cancellationToken)
+    {
+        var smtp = await settings.EffectiveAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(smtp.Host) || !TryParseAddress(smtp.FromAddress, out var from))
+        {
+            return new DeliveryResult.Failure("SMTP is not configured: server and sender address are needed.", Retryable: false, "NoMailServer");
+        }
+
+        if (!TryParseAddress(recipient, out var to))
+        {
+            return new DeliveryResult.Failure("The recipient is not a single valid email address.", Retryable: false, "InvalidRecipient");
+        }
+
+        using var message = new MimeMessage { Subject = HeaderText.SingleLine(subject), Body = new TextPart("plain") { Text = text } };
+        message.From.Add(new MailboxAddress(smtp.FromName, from.Address));
+        message.To.Add(to);
+        return await SendAsync(smtp, smtp.Host, message, Measure(message), cancellationToken);
+    }
+
     // The host is passed separately because it was checked for null above.
     private async Task<DeliveryResult> SendAsync(SmtpOptions smtp, string host, MimeMessage message, long size, CancellationToken cancellationToken)
     {

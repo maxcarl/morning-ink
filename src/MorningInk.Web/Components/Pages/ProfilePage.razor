@@ -3,6 +3,7 @@
 @rendermode InteractiveServer
 @inherits InteractivePage
 @using System.Globalization
+@using MorningInk.Application.Notifications
 @using MorningInk.Domain
 @using MorningInk.Infrastructure.Profiles
 @using MorningInk.Infrastructure.Sources
@@ -231,6 +232,44 @@
             </div>
             <button type="submit" class="button button-block">@T["Profile_Save"]</button>
         </form>
+
+        <h2 id="notify-heading" class="department">@T["Notify_Title"]</h2>
+        <p class="hint">@T["Notify_Hint"]</p>
+        <form @onsubmit="SaveNotificationAsync" aria-labelledby="notify-heading">
+            <div class="field">
+                <label for="notify-channel">@T["Notify_Channel"]</label>
+                <select id="notify-channel" class="input" @bind="_notifyChannel">
+                    @foreach (var channel in Enum.GetValues<NotificationChannel>())
+                    {
+                        <option value="@channel">@T[$"Notify_Channel_{channel}"]</option>
+                    }
+                </select>
+            </div>
+            @if (_notifyChannel != NotificationChannel.None)
+            {
+                <div class="field">
+                    <label for="notify-target">@T[$"Notify_Target_{_notifyChannel}"]</label>
+                    <input id="notify-target" class="input" type="text" spellcheck="false" autocapitalize="none" autocomplete="off" @attributes="PasswordManagers.Ignore" @bind="_notifyTarget" aria-describedby="notify-target-hint" required />
+                    <span id="notify-target-hint" class="hint">@T[$"Notify_TargetHint_{_notifyChannel}"]</span>
+                </div>
+                @if (_notifyChannel != NotificationChannel.Email)
+                {
+                    <div class="field">
+                        <label for="notify-secret">@T[$"Notify_Secret_{_notifyChannel}"]</label>
+                        @* Never filled in from storage, like the mail password. *@
+                        <input id="notify-secret" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_notifySecret" aria-describedby="notify-secret-hint" />
+                        <span id="notify-secret-hint" class="hint">@(_notifySecretSaved ? T["Notify_SecretSaved"] : T[$"Notify_SecretHint_{_notifyChannel}"])</span>
+                    </div>
+                }
+            }
+            <div class="row-actions">
+                <button type="submit" class="button">@T["Profile_Save"]</button>
+                @if (_profile?.NotifyChannel is not (null or NotificationChannel.None))
+                {
+                    <button type="button" class="button button-secondary" disabled="@_notifyBusy" @onclick="TestNotificationAsync">@T["Notify_Test"]</button>
+                }
+            </div>
+        </form>
         @if (_editions.Count > 1 && _profile is not null)
         {
             @* A user always keeps one edition, so the last one has no delete. *@
@@ -292,6 +331,13 @@
     private string? _country;
     private string? _region;
 
+    // Notification
+    private NotificationChannel _notifyChannel;
+    private string? _notifyTarget;
+    private string? _notifySecret;
+    private bool _notifySecretSaved;
+    private bool _notifyBusy;
+
     protected override async Task LoadAsync()
     {
         _sources = await UseAsync<SourceCatalog, IReadOnlyList<Source>>(catalog => catalog.ListAsync(UserId, Closed));
@@ -308,6 +354,15 @@
         _shownFor = ProfileId;
         _interests = profile.Interests.Select(i => new InterestDraft { Topic = i.Topic, Keywords = string.Join(", ", i.Keywords), Weight = i.Weight }).ToList();
         _region = profile.Region;
+        LoadNotification(profile);
+    }
+
+    private void LoadNotification(Profile profile)
+    {
+        _notifyChannel = profile.NotifyChannel;
+        _notifyTarget = profile.NotifyTarget;
+        _notifySecret = null;
+        _notifySecretSaved = profile.NotifySecret is not null;
     }
 
     /// <summary>The edition to show; none means the first one.</summary>
@@ -533,6 +588,51 @@
         {
             _notice = T["Profile_Saved"];
             await ReloadAsync();
+        }
+    }
+
+    private async Task SaveNotificationAsync()
+    {
+        Clear();
+        var settings = new NotificationSettings(_notifyChannel, _notifyTarget, _notifySecret);
+        var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveNotificationAsync(UserId, _profile!.Id, settings, Closed)); // ! is safe: the form only shows once the profile is loaded
+        _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
+        if (_errors.Count == 0)
+        {
+            _notice = T["Profile_Saved"];
+            await ReloadAsync();
+            LoadNotification(_profile!); // ! is safe: ReloadAsync always sets it
+        }
+    }
+
+    // Tests what is saved, like the AI test, so the token never has to stay in the form.
+    private async Task TestNotificationAsync()
+    {
+        Clear();
+        if (_profile is not { NotifyTarget: { } target } profile)
+        {
+            return;
+        }
+
+        _notifyBusy = true;
+        try
+        {
+            var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            var problem = await UseAsync<INotifier, string?>(notifier => notifier.NotifyAsync(
+                new NotificationTarget(profile.NotifyChannel, target, profile.NotifySecret), new Notice(profile.Title, 0, 0, null, language, IsTest: true), Closed));
+            var channel = T[$"Notify_Channel_{profile.NotifyChannel}"].Value;
+            if (problem is null)
+            {
+                _notice = T["Notify_TestSent", channel];
+            }
+            else
+            {
+                _errors = [T["Notify_TestFailed", channel, problem]];
+            }
+        }
+        finally
+        {
+            _notifyBusy = false;
         }
     }
 
