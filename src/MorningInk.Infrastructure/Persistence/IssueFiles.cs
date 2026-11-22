@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using MorningInk.Application.Publishing;
 
-namespace MorningInk.Infrastructure;
+namespace MorningInk.Infrastructure.Persistence;
 
 /// <summary>Rendered issues live in the issue directory under the data directory.</summary>
 internal sealed class IssueFiles(IOptions<StorageOptions> storage) : IIssueFiles

@@ -37,7 +37,7 @@ public sealed class IssueRelease(
             return await StoreAsync(issue, loaded, problems, cancellationToken);
         }
 
-        // ! is safe: DeliverAsync only runs after RenderAsync or for an issue with a rendered file.
+        // ! is safe: an issue is only released once it has a rendered file.
         var path = files.PathFor(issue.FileName!);
         var result = await delivery.DeliverAsync(
             new DeliveryRequest(profile.Recipient, bookTitle, path, renderer.FileExtension, renderer.MediaType),
