@@ -33,7 +33,7 @@ public sealed class MailSettingsStore(MorningInkDbContext db, IOptions<SmtpOptio
 
     /// <summary>The stored settings, for the form; the password itself is never handed to a page, only whether there is one.</summary>
     public async Task<MailSettings> LoadAsync(CancellationToken cancellationToken) =>
-        await db.MailSettings.AsNoTracking().FirstOrDefaultAsync(cancellationToken) ?? new MailSettings();
+        await db.MailSettings.AsNoTracking().SingleOrDefaultAsync(cancellationToken) ?? new MailSettings();
 
     /// <summary>What mail delivery uses: stored values, each one replaced by the configuration where it sets it.</summary>
     public async Task<SmtpOptions> EffectiveAsync(CancellationToken cancellationToken)
@@ -85,7 +85,8 @@ public sealed class MailSettingsStore(MorningInkDbContext db, IOptions<SmtpOptio
             return errors;
         }
 
-        var settings = await db.MailSettings.FirstOrDefaultAsync(cancellationToken);
+        // Single, not First: the table holds at most one row, and a second one would be a bug worth seeing.
+        var settings = await db.MailSettings.SingleOrDefaultAsync(cancellationToken);
         if (settings is null)
         {
             settings = new MailSettings();
