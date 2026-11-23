@@ -99,35 +99,43 @@
     .btn-primary:hover { background: var(--accent); border-color: var(--accent); color: var(--paper); }
     .btn:not(.btn-primary):hover { border-color: var(--accent); }
 
-    /* The e-reader. Proportions of a 6" device; everything inside scales with its width. */
+    /* The e-reader. Everything inside scales with the screen width (cqw), so the cover keeps its proportions. */
     .device-col { display: flex; flex-direction: column; align-items: center; }
     .reader {
-      width: min(100%, 22rem); aspect-ratio: 0.69;
+      width: min(100%, 22rem);
       background: var(--bezel); border-radius: 1.1rem; padding: 7% 7% 13%;
       box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 30px 60px -30px rgba(25,23,20,0.55);
       transform: rotate(2.5deg);
-      container-type: inline-size;
     }
+    /* The cover as CoverGenerator draws it: 1600 × 2560 px, so 1cqw = 16 px of the real image. */
     .screen {
-      position: relative; height: 100%; overflow: hidden;
-      background: var(--eink); color: var(--eink-ink);
-      padding: 7cqw 7cqw; font-family: var(--serif);
+      position: relative; aspect-ratio: 1600 / 2560; overflow: hidden; container-type: inline-size;
+      display: flex; flex-direction: column;
+      background: var(--eink); color: var(--eink-ink); font-family: var(--serif);
+      /* Percent, not cqw: the screen's own padding would resolve against the viewport, not against itself. */
+      padding: 6.5% 6.9% 0;
     }
-    .fp-mast { text-align: center; font-size: 11cqw; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
-    .fp-date {
-      text-align: center; font-size: 3.6cqw; color: var(--eink-grey); font-style: italic;
-      margin-top: 2cqw; padding-bottom: 2.4cqw;
-      border-bottom: 0.5cqw double var(--eink-ink); border-bottom-width: 1.4cqw;
+    .fp-ears {
+      display: flex; justify-content: space-between; font-size: 2.9cqw; color: var(--eink-grey);
+      padding-bottom: 1.4cqw; border-bottom: 0.19cqw solid var(--eink-ink);
     }
-    .fp-section { font-family: var(--sans); font-size: 3.2cqw; font-weight: 700; margin-top: 5cqw; }
-    .fp-head { font-size: 6.4cqw; line-height: 1.15; font-weight: 700; margin-top: 1.2cqw; }
-    .fp-head-small { font-size: 5cqw; }
-    .fp-text { font-size: 3.8cqw; line-height: 1.45; margin-top: 1.6cqw; color: var(--eink-ink); }
-    .fp-rule { border: 0; border-top: 0.4cqw solid #b9b6ae; margin: 4cqw 0 0; }
-    .fp-weather { display: flex; justify-content: space-between; align-items: baseline; margin-top: 3cqw; }
-    .fp-temp { font-size: 10cqw; font-weight: 700; line-height: 1; }
-    .fp-weather .fp-text { margin: 0; text-align: right; max-width: 60%; }
-    .fp-more { font-size: 3.6cqw; margin-top: 3cqw; color: var(--eink-grey); }
+    .fp-mast { text-align: center; font-size: 14.5cqw; font-weight: 700; letter-spacing: -0.02em; line-height: 1; margin-top: 2.6cqw; }
+    .fp-double { height: 1.6cqw; margin-top: 2.6cqw; border-top: 0.75cqw solid var(--eink-ink); border-bottom: 0.25cqw solid var(--eink-ink); }
+    .fp-kicker { font-size: 2.5cqw; color: var(--eink-grey); text-transform: uppercase; letter-spacing: 0.04em; }
+    .fp-lead { margin-top: 6.5cqw; padding-bottom: 2.4cqw; border-bottom: 0.19cqw solid var(--eink-ink); }
+    .fp-lead h2 { font-size: 7cqw; line-height: 1.14; margin-top: 2.4cqw; }
+    /* Two columns with a rule between, filled from the top until the foot. */
+    .fp-cols {
+      /* Shrinks to its stories, so the rule between the columns ends with them, as on the cover. */
+      flex: 0 1 auto; min-height: 0; overflow: hidden; margin-top: 4.5cqw;
+      columns: 2; column-gap: 5.6cqw; column-rule: 0.125cqw solid var(--eink-ink);
+    }
+    .fp-story { break-inside: avoid; margin-bottom: 4cqw; }
+    .fp-story h3 { font-size: 3.4cqw; line-height: 1.25; margin-top: 1.2cqw; }
+    .fp-foot { margin-top: auto; padding: 0 0 4.4cqw; text-align: center; }
+    .fp-foot .fp-double { margin: 0 0 4.4cqw; }
+    .fp-weather { font-size: 3.25cqw; }
+    .fp-count { font-size: 2.5cqw; color: var(--eink-grey); margin-top: 2.2cqw; }
 
     /* One orchestrated moment: the e-ink full refresh when the issue opens. Black, then white, then the page. */
     .flash {
@@ -223,10 +231,12 @@
     @media (max-width: 760px) {
       .hero { grid-template-columns: minmax(0, 1fr); }
       .reader { width: min(78%, 20rem); }
-      .night { grid-template-columns: minmax(0, 1fr); }
-      .night li { border-top: 0; border-left: 2px solid var(--rule); padding: 0 0 1.75rem 1.5rem; }
-      .night li:last-child { border-left-color: var(--ink); }
-      .night li::before { top: 0.35rem; left: -7px; }
+      /* One unbroken line down the left: no row gap, and it ends at the last dot. */
+      .night { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+      .night li { border-top: 0; border-left: 2px solid var(--rule); padding: 0 0 2.25rem 1.5rem; }
+      .night li:last-child { border-image: linear-gradient(var(--rule) 0.5rem, transparent 0.5rem) 1; padding-bottom: 0; }
+      /* Centered on the time: half its 1.75rem line minus half the 12px dot. */
+      .night li::before { top: calc(0.875rem - 6px); left: -7px; }
       .steps > li { grid-template-columns: 2.25rem minmax(0, 1fr); }
       .steps > li::before { font-size: 1.75rem; }
     }
@@ -251,27 +261,32 @@
       </div>
 
       <div class="device-col">
-        <div class="reader" role="img" aria-label="An e-reader showing the front page of a Morning Ink issue: a local headline and the weather">
+        <div class="reader" role="img" aria-label="An e-reader showing the cover of a Morning Ink issue: the lead story, more headlines in two columns and the weather">
           <div class="screen" aria-hidden="true">
+            <div class="fp-ears"><span>Monday, November 23, 2026</span><span>Issue 14</span></div>
             <div class="fp-mast">Morning Ink</div>
-            <div class="fp-date">Monday, 23 November 2026, No. 14</div>
-            <div class="fp-section">Local</div>
-            <div class="fp-head">City council approves the new tram line to the east side</div>
-            <div class="fp-text">Construction is set to begin in spring. Three stops are planned, the first trams could run in 2029.</div>
-            <hr class="fp-rule">
-            <div class="fp-weather">
-              <div class="fp-temp">9°</div>
-              <div class="fp-text">Fog until ten, then dry and mild</div>
+            <div class="fp-double"></div>
+            <div class="fp-lead">
+              <div class="fp-kicker">Local</div>
+              <h2>City council approves the new tram line to the east side</h2>
             </div>
-            <hr class="fp-rule">
-            <div class="fp-section">Technology</div>
-            <div class="fp-head fp-head-small">Why e-ink screens refresh in black first</div>
-            <hr class="fp-rule">
-            <div class="fp-more">World, 6 articles<br>Technology, 5 articles<br>Newsletters, 3 articles</div>
+            <div class="fp-cols">
+              <div class="fp-story"><div class="fp-kicker">World</div><h3>Talks on the climate fund continue into a second night</h3></div>
+              <div class="fp-story"><div class="fp-kicker">Technology</div><h3>Why e-ink screens refresh in black first</h3></div>
+              <div class="fp-story"><div class="fp-kicker">Newsletters</div><h3>The week in five charts</h3></div>
+              <div class="fp-story"><div class="fp-kicker">Local</div><h3>Library extends its opening hours on Saturdays</h3></div>
+              <div class="fp-story"><div class="fp-kicker">World</div><h3>Rail strike ends after three days</h3></div>
+              <div class="fp-story"><div class="fp-kicker">Technology</div><h3>A new open format for e-book annotations</h3></div>
+            </div>
+            <div class="fp-foot">
+              <div class="fp-double"></div>
+              <div class="fp-weather">Weather for Springfield: Fog, 4–9 °C</div>
+              <div class="fp-count">17 articles in 4 sections</div>
+            </div>
             <div class="flash"></div>
           </div>
         </div>
-        <p class="delivered">Issue No. 14, delivered at <strong>6:02</strong></p>
+        <p class="delivered">Issue 14, delivered at <strong>6:00</strong></p>
       </div>
     </div>
 
@@ -279,15 +294,15 @@
       <div class="wrap">
         <div class="section-head">
           <h2 id="night-title">While you sleep</h2>
-          <p>You pick the sources and the delivery time once. After that, every issue makes its own way to your nightstand.</p>
+          <p>You pick the sources and the delivery time once. Morning Ink starts building as far ahead as you set, so the issue goes out on the minute.</p>
         </div>
         <ol class="night">
-          <li><time>5:30</time><h3>Collect</h3><p>Feeds, FreshRSS, newsletters from your mailbox, Hacker News, Reddit and the news from your town.</p></li>
-          <li><time>5:38</time><h3>Read in full</h3><p>The whole article, not the teaser. Ads, live tickers and cookie notices stay out.</p></li>
-          <li><time>5:45</time><h3>Sort</h3><p>Your filters and interests decide what goes in. The same story from three sources becomes one.</p></li>
-          <li><time>5:52</time><h3>Summarize</h3><p>If you want it: an overview of the most important things, from your own Ollama or any provider.</p></li>
-          <li><time>5:58</time><h3>Set</h3><p>An EPUB with cover, contents and sections, images sized for e-ink.</p></li>
-          <li><time>6:02</time><h3>Deliver</h3><p>By mail to your Kindle. KOReader and other OPDS readers fetch it themselves.</p></li>
+          <li><time>5:00</time><h3>Collect</h3><p>Feeds, FreshRSS, newsletters from your mailbox, Hacker News, Reddit and the news from your town.</p></li>
+          <li><time>5:10</time><h3>Read in full</h3><p>The whole article, not the teaser. Ads, live tickers and cookie notices stay out.</p></li>
+          <li><time>5:20</time><h3>Sort</h3><p>Your filters and interests decide what goes in. The same story from three sources becomes one.</p></li>
+          <li><time>5:30</time><h3>Summarize</h3><p>If you want it: an overview of the most important things, from your own Ollama or any provider.</p></li>
+          <li><time>5:45</time><h3>Set</h3><p>An EPUB with cover, contents and sections, images sized for e-ink.</p></li>
+          <li><time>6:00</time><h3>Deliver</h3><p>By mail to your Kindle. KOReader and other OPDS readers fetch it themselves.</p></li>
         </ol>
       </div>
     </section>
