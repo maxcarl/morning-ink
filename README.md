@@ -21,7 +21,7 @@
 </p>
 
 > [!NOTE]
-> Morning Ink is young. The first release is feature-complete and in its trial run; expect rough edges and [tell us about them](https://github.com/maxcarl/morning-ink/issues).
+> Morning Ink is young: expect rough edges and [tell us about them](https://github.com/maxcarl/morning-ink/issues).
 
 ## Features
 
@@ -143,7 +143,7 @@ The code follows Clean Architecture (`Domain`, `Application`, `Infrastructure`, 
 
 ## Roadmap
 
-The first release is feature-complete and in its seven-day trial run. What could come next is in [docs/roadmap.md](docs/roadmap.md).
+What could come next is in [docs/roadmap.md](docs/roadmap.md).
 
 ## Contributing
 
