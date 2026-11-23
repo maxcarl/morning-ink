@@ -56,7 +56,7 @@
 - **Safe by default:** blocks requests into your home network, encrypts stored passwords, cleans all HTML
 - **Installable as an app** on phone and desktop
 
-Later: Miniflux, more readers (Kobo, reMarkable) and more AI: topic clusters, translation. Morning Ink always works without AI.
+Later: Miniflux, more readers (Kobo, reMarkable) and AI translation. Morning Ink always works without AI.
 
 Not a goal: replacing your RSS reader, running as a public service, or getting around paywalls.
 
