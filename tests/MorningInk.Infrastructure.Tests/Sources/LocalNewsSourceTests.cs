@@ -145,6 +145,9 @@ public sealed class LocalNewsSourceTests : IDisposable
         Assert.Contains("categories=news", search, StringComparison.Ordinal);
         Assert.Contains("format=json", search, StringComparison.Ordinal);
         Assert.Contains("language=de-DE", search, StringComparison.Ordinal);
+
+        // No time range: SearXNG would then ask only engines that support one, and leave out e.g. Yahoo News.
+        Assert.DoesNotContain("time_range", search, StringComparison.Ordinal);
     }
 
     [Fact]

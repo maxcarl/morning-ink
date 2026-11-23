@@ -41,6 +41,23 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Images__MaxPerArticle` | `10` | Images kept per article. |
 | `Images__Quality` | `75` | JPEG quality of the first attempt. |
 
+## Local news with SearXNG
+
+Morning Ink searches SearXNG's `news` category once per place name and reads the results as JSON. Which engines answer is set in SearXNG's `settings.yml`. Some are often blocked or broken for a while (e.g. `bing news` with a "parsing error", `reuters` with an HTTP error); then switch on others:
+
+```yaml
+use_default_settings: true
+engines:
+  - name: duckduckgo news
+    disabled: false
+  - name: yahoo news
+    disabled: false
+  - name: reuters
+    disabled: true
+```
+
+`google news` is better left off: its links lead to news.google.com instead of the publisher, so there is no full text. When nothing comes back, the source test names the engines that failed, and Settings → Local news → "Test search" shows the request to try in SearXNG itself.
+
 ## Behind a reverse proxy
 
 A reverse proxy such as Nginx Proxy Manager, Caddy or Traefik takes the HTTPS connection and passes it on to Morning Ink as plain HTTP. Without further settings, Morning Ink sees every request as "HTTP from the proxy", so:

@@ -83,6 +83,8 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
         var settings = options.Value;
         var country = query.Country ?? settings.Country;
         var language = Countries.LanguageOf(query.Country) ?? settings.Language;
+        // No time range: SearXNG would ask only the engines that support one and silently leave out the others. The
+        // source's maximum age is applied to the results' dates afterwards instead.
         return query.Terms
             .Select(term => Urls.WithQuery(baseUrl.TrimEnd('/') + "/search",
             [
@@ -90,19 +92,9 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
                 ("categories", "news"),
                 ("format", "json"),
                 ("language", $"{language}-{country}"),
-                ("time_range", TimeRange(query.MaxAge)),
             ]))
             .ToList();
     }
-
-    // SearXNG knows day, week, month and year; the source's maximum age cuts off the rest afterwards.
-    private static string TimeRange(TimeSpan maxAge) => maxAge.TotalDays switch
-    {
-        <= 1 => "day",
-        <= 7 => "week",
-        <= 31 => "month",
-        _ => "year",
-    };
 
     // The articles, and the engines that failed as "name (reason)", from [["bing news", "CAPTCHA"], …].
     private static (List<FetchedArticle> Articles, List<string> Unresponsive)? Read(byte[] json)
