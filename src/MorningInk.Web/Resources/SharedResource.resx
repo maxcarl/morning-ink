@@ -115,7 +115,6 @@
   <data name="Profile_CountryHint" xml:space="preserve"><value>Postal codes, weather and local news are looked up in this country.</value></data>
   <data name="Profile_Error_Country" xml:space="preserve"><value>Please choose a country from the list.</value></data>
   <data name="Error_CountryInvalid" xml:space="preserve"><value>Please choose a country from the list.</value></data>
-  <data name="Footer_SourceCode" xml:space="preserve"><value>Source code (AGPL-3.0)</value></data>
   <data name="Theme_Label" xml:space="preserve"><value>Color scheme</value></data>
   <data name="Theme_auto" xml:space="preserve"><value>Auto</value></data>
   <data name="Theme_light" xml:space="preserve"><value>Light</value></data>
@@ -463,6 +462,8 @@
   <data name="Account_WrongCurrent" xml:space="preserve"><value>The current password is not right.</value></data>
   <data name="Users_NotFound" xml:space="preserve"><value>This user no longer exists.</value></data>
   <data name="Source_SearxngNoJson" xml:space="preserve"><value>Your SearXNG does not give out JSON. Add “json” to search.formats in its settings.yml.</value></data>
+  <data name="Account_License" xml:space="preserve"><value>Morning Ink is free software under the AGPL-3.0.</value></data>
+  <data name="Account_SourceCode" xml:space="preserve"><value>Source code</value></data>
   <data name="Account_Reader" xml:space="preserve"><value>E-reader (OPDS)</value></data>
   <data name="Account_ReaderHint" xml:space="preserve"><value>Readers such as KOReader fetch your issues themselves: add the catalog address with your user name and a reader password of its own. It opens only the catalog, so your account password never goes into a reader. Use it over https or only in your home network.</value></data>
   <data name="Account_ReaderCatalog" xml:space="preserve"><value>Catalog address</value></data>

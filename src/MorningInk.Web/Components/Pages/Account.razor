@@ -75,7 +75,12 @@
     </div>
 </div>
 
+@* AGPL section 13: users of a network service get a way to the source. A fork that runs modified code points this to its own repository. *@
+<p class="hint">@T["Account_License"] <a href="@SourceCodeUrl" rel="noopener">@T["Account_SourceCode"]</a></p>
+
 @code {
+    private const string SourceCodeUrl = "https://github.com/maxcarl/morning-ink";
+
     private string? _notice;
     private List<string> _errors = [];
     private string? _readerPassword;

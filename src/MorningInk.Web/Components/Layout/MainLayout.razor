@@ -47,15 +47,10 @@
                 <button type="submit" name="theme" value="@choice" class="link-button" aria-pressed="@((choice == _theme).ToString().ToLowerInvariant())">@T[$"Theme_{choice}"]</button>
             }
         </form>
-        <span aria-hidden="true">·</span>
-        @* AGPL section 13: users of a network service get a way to the source. A fork that runs modified code points this to its own repository. *@
-        <a href="@SourceCodeUrl" rel="noopener">@T["Footer_SourceCode"]</a>
     </div>
 </footer>
 
 @code {
-    private const string SourceCodeUrl = "https://github.com/maxcarl/morning-ink";
-
     private string _theme = Theme.Auto;
 
     [CascadingParameter]
