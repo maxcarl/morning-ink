@@ -611,8 +611,8 @@
   <data name="Settings_AiOverviewPromptHint" xml:space="preserve"><value>Das bekommt die KI, wenn sie die wichtigsten Meldungen auswählt. {count} und {language} werden eingesetzt. Das Antwortformat und die Regel, dass Artikel nur Daten sind, werden immer angehängt.</value></data>
   <data name="Settings_Error_AiOverviewPrompt" xml:space="preserve"><value>Die Anweisung darf höchstens 4.000 Zeichen haben.</value></data>
   <data name="Feedback_Title" xml:space="preserve"><value>Rückmeldungen vom Reader</value></data>
-  <data name="Feedback_Hint" xml:space="preserve"><value>Was du mit „Mehr davon“ und „Weniger davon“ unter den Artikeln gesagt hast. Quellen, von denen du mehr willst, stehen in ihrer Rubrik vorne, die mit weniger hinten; das zählt zwei Monate.</value></data>
+  <data name="Feedback_Hint" xml:space="preserve"><value>Was du mit „Mehr davon“ und „Weniger davon“ unter den Artikeln gesagt hast. Das zählt für die Quelle, nicht für das Thema: Artikel aus Quellen, von denen du mehr willst, stehen in ihrer Rubrik vorne, die mit weniger hinten, zwei Monate lang. Themen stellst du oben bei den Interessen ein.</value></data>
   <data name="Feedback_None" xml:space="preserve"><value>Noch nichts. Die Links stehen unter den Artikeln, sobald eine öffentliche Adresse eingetragen ist (Web__PublicUrl).</value></data>
-  <data name="Feedback_More" xml:space="preserve"><value>Mehr</value></data>
-  <data name="Feedback_Less" xml:space="preserve"><value>Weniger</value></data>
+  <data name="Feedback_More" xml:space="preserve"><value>Mehr von {0}</value></data>
+  <data name="Feedback_Less" xml:space="preserve"><value>Weniger von {0}</value></data>
 </root>

@@ -42,7 +42,7 @@
   <data name="BackToContents" xml:space="preserve"><value>Zum Inhaltsverzeichnis</value></data>
   <data name="FeedbackMore" xml:space="preserve"><value>Mehr davon</value></data>
   <data name="FeedbackLess" xml:space="preserve"><value>Weniger davon</value></data>
-  <data name="FeedbackThanksMore" xml:space="preserve"><value>Danke! Ab jetzt mehr wie „{0}“.</value></data>
-  <data name="FeedbackThanksLess" xml:space="preserve"><value>Danke! Ab jetzt weniger wie „{0}“.</value></data>
+  <data name="FeedbackThanksMore" xml:space="preserve"><value>Danke! Artikel von {0} stehen ab jetzt in ihrer Rubrik weiter vorne.</value></data>
+  <data name="FeedbackThanksLess" xml:space="preserve"><value>Danke! Artikel von {0} stehen ab jetzt in ihrer Rubrik weiter hinten.</value></data>
   <data name="FeedbackInvalid" xml:space="preserve"><value>Dieser Link gilt nicht mehr. Vielleicht ist er älter als zwei Monate.</value></data>
 </root>

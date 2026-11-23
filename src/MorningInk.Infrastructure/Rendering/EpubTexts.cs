@@ -31,9 +31,9 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string FeedbackLess => Get(nameof(FeedbackLess));
 
-    public string FeedbackThanksMore(string title) => string.Format(Culture, Get(nameof(FeedbackThanksMore)), title);
+    public string FeedbackThanksMore(string source) => string.Format(Culture, Get(nameof(FeedbackThanksMore)), source);
 
-    public string FeedbackThanksLess(string title) => string.Format(Culture, Get(nameof(FeedbackThanksLess)), title);
+    public string FeedbackThanksLess(string source) => string.Format(Culture, Get(nameof(FeedbackThanksLess)), source);
 
     public string FeedbackInvalid => Get(nameof(FeedbackInvalid));
 

@@ -280,7 +280,7 @@ public sealed class ProfilePageTests : IDisposable
         }
 
         page = pages.Open<ProfilePage>("Neuer Raspberry Pi");
-        Assert.Contains("Less", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("Less from heise", page.Markup, StringComparison.Ordinal);
         Pages.Button(page, "Remove", 0).Click();
 
         page.WaitForAssertion(() => Assert.DoesNotContain("Neuer Raspberry Pi", page.Markup, StringComparison.Ordinal));

@@ -55,7 +55,8 @@ public sealed class FeedbackRecorder(MorningInkDbContext db, SignedFeedbackLinks
         feedback.At = time.GetUtcNow();
         await db.SaveChangesAsync(cancellationToken);
         var texts = EpubTexts.For(found.Language);
-        return new FeedbackOutcome(kind, found.Title, kind == FeedbackKind.More ? texts.FeedbackThanksMore(found.Title) : texts.FeedbackThanksLess(found.Title));
+        // It moves the source, not the topic: the answer says so, so nobody expects less football after one tap.
+        return new FeedbackOutcome(kind, found.Title, kind == FeedbackKind.More ? texts.FeedbackThanksMore(found.SourceName) : texts.FeedbackThanksLess(found.SourceName));
     }
 
     private static FeedbackOutcome Invalid(string language) => new(null, null, EpubTexts.For(language).FeedbackInvalid);

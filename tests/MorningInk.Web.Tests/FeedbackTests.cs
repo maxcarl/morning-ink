@@ -22,7 +22,7 @@ public sealed class FeedbackTests : IDisposable
         var page = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("More like “Neuer Raspberry Pi”", page, StringComparison.Ordinal);
+        Assert.Contains("Articles from heise now come further up in their section.", page, StringComparison.Ordinal); // the source, not the topic
         await using var scope = _app.Services.CreateAsyncScope();
         Assert.Equal(FeedbackKind.More, (await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Feedback.SingleAsync()).Kind);
     }

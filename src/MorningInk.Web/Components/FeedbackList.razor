@@ -17,9 +17,9 @@ else
                 <div class="row-main">
                     <div class="row-title">
                         <a href="@item.ArticleUrl" rel="noopener noreferrer" target="_blank">@item.ArticleTitle</a>
-                        <span class="badge @(item.Kind == FeedbackKind.More ? "status-ok" : "status-warn")">@T[$"Feedback_{item.Kind}"]</span>
+                        <span class="badge @(item.Kind == FeedbackKind.More ? "status-ok" : "status-warn")">@T[$"Feedback_{item.Kind}", item.SourceName]</span>
                     </div>
-                    <div class="row-meta">@item.SourceName · @item.At.ToLocalTime().ToString("d", CultureInfo.CurrentCulture)</div>
+                    <div class="row-meta">@item.At.ToLocalTime().ToString("d", CultureInfo.CurrentCulture)</div>
                 </div>
                 <button type="button" class="link-button link-danger" @onclick="() => DeleteAsync(item.Id)">@T["Interests_Remove"]<span class="visually-hidden"> – @item.ArticleTitle</span></button>
             </li>
