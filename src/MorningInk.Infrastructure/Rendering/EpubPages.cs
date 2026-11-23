@@ -111,7 +111,8 @@ internal static class EpubPages
 
     /// <param name="section">Shown above the headline, like a newspaper's department line.</param>
     /// <param name="contentsHref">The article's own entry in the contents, to go back to and on with the next one.</param>
-    public static XDocument ArticlePage(IssueArticle item, string section, IReadOnlyList<XNode> body, DateTimeOffset issueTime, string contentsHref, EpubTexts texts)
+    /// <param name="feedback">"More of this" and "less of this"; null when readers cannot reach the instance.</param>
+    public static XDocument ArticlePage(IssueArticle item, string section, IReadOnlyList<XNode> body, DateTimeOffset issueTime, string contentsHref, FeedbackLinks? feedback, EpubTexts texts)
     {
         var article = item.Article;
         var meta = new[]
@@ -137,7 +138,13 @@ internal static class EpubPages
                 new XElement(Xhtml + "p", new XAttribute("class", "original"),
                     IsWebPage(article.Url) ? new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(article.Url)), texts.ReadOriginal) : null,
                     IsWebPage(article.Url) ? " · " : null,
-                    new XElement(Xhtml + "a", new XAttribute("href", contentsHref), texts.BackToContents))));
+                    new XElement(Xhtml + "a", new XAttribute("href", contentsHref), texts.BackToContents)),
+
+                // The reader's answer goes to the instance in the e-reader's browser; the edition learns from it.
+                feedback is null ? null : new XElement(Xhtml + "p", new XAttribute("class", "feedback"),
+                    new XElement(Xhtml + "a", new XAttribute("href", feedback.More.AbsoluteUri), texts.FeedbackMore),
+                    " · ",
+                    new XElement(Xhtml + "a", new XAttribute("href", feedback.Less.AbsoluteUri), texts.FeedbackLess))));
     }
 
     /// <summary>The EPUB 3 table of contents, also shown as a page for readers without their own TOC view.</summary>
@@ -209,6 +216,7 @@ internal static class EpubPages
         figcaption { font-size: 0.85em; color: #444; }
         .original { margin-top: 1.5em; font-size: 0.9em; }
         .back { margin: 0.5em 0 1.5em; font-size: 0.9em; }
+        .feedback { margin-top: 0.5em; font-size: 0.9em; }
         .kicker { font-variant: small-caps; letter-spacing: 0.05em; color: #444; margin: 0; }
         .briefs li { margin-bottom: 0.8em; }
         .summary { border-top: 1px solid #444; border-bottom: 1px solid #444; margin: 0.8em 0; padding: 0.3em 0; font-style: italic; }

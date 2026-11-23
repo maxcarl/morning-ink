@@ -26,6 +26,12 @@ public sealed record IssueContent(
 {
     public IReadOnlyList<IssueExtra> Extras { get; init; } = Extras ?? [];
 
+    /// <summary>
+    /// "More of this" and "less of this" per article, by reference; null when readers cannot reach the instance or
+    /// for a preview, which has no entries to give feedback on.
+    /// </summary>
+    public IReadOnlyDictionary<IssueArticle, FeedbackLinks>? Feedback { get; init; }
+
     /// <summary>Whether the weather opens the issue on its title page, or has a page of its own further down.</summary>
     public bool WeatherOnTitlePage
     {
@@ -78,3 +84,12 @@ public sealed record IssueExtra(IssueExtraKind Kind, string Title, int Before, I
 
 /// <summary>One point of the overview: a sentence about the news, and the article in the issue it is about.</summary>
 public sealed record OverviewItem(string Text, IssueArticle Article);
+
+/// <summary>Signed links for the reader to say "more of this" or "less of this" about an article.</summary>
+public sealed record FeedbackLinks(Uri More, Uri Less);
+
+/// <summary>Makes the feedback links for an entry of an issue; null when readers cannot reach the instance.</summary>
+public interface IFeedbackLinks
+{
+    FeedbackLinks? LinksFor(Guid entryId);
+}

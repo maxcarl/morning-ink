@@ -76,6 +76,7 @@ public static class WebUi
         app.MapThemeSwitch();
         app.MapIssueDownload();
         app.MapSourcesExport();
+        app.MapFeedback();
         app.MapOpds();
         app.MapPreviewFiles();
         app.MapPost("/logout", async (HttpContext context, IAntiforgery antiforgery, SignInManager<AppUser> signIn) =>

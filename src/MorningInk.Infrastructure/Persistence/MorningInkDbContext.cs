@@ -50,6 +50,8 @@ public sealed class MorningInkDbContext(
 
     public DbSet<AiCall> AiCalls => Set<AiCall>();
 
+    public DbSet<Domain.Feedback> Feedback => Set<Domain.Feedback>();
+
     public DbSet<NewsSearchSettings> NewsSearchSettings => Set<NewsSearchSettings>();
 
     // SQLite has no date type: as text, DateTimeOffset cannot be compared or sorted in queries. As a number
@@ -160,6 +162,18 @@ public sealed class MorningInkDbContext(
             ai.Property(a => a.SummaryPrompt).HasMaxLength(AiSettingsStore.MaxPromptLength);
             ai.Property(a => a.OverviewPrompt).HasMaxLength(AiSettingsStore.MaxPromptLength);
             ai.Property(a => a.ApiKey).HasConversion((Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter)new ProtectedStringConverter(DataProtection));
+        });
+
+        builder.Entity<Domain.Feedback>(feedback =>
+        {
+            feedback.HasOne<Profile>().WithMany().HasForeignKey(f => f.ProfileId).OnDelete(DeleteBehavior.Cascade);
+            feedback.Property(f => f.SourceName).HasMaxLength(NameLength);
+            feedback.Property(f => f.ArticleTitle).HasMaxLength(500);
+            feedback.Property(f => f.ArticleUrl).HasMaxLength(UrlLength);
+            feedback.Property(f => f.Kind).HasConversion<string>().HasMaxLength(EnumLength);
+
+            // One answer per edition and article: saying the other later replaces it.
+            feedback.HasIndex(f => new { f.ProfileId, f.ArticleUrl }).IsUnique();
         });
 
         builder.Entity<AiCall>(call =>

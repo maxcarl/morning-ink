@@ -266,6 +266,28 @@ public sealed class ProfilePageTests : IDisposable
         Assert.True((await SectionsAsync(all: true)).Single(s => s.Kind == SectionKind.Weather).Enabled);
     }
 
+    [Fact]
+    public async Task Feedback_from_the_reader_is_listed_and_can_be_taken_back()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            var profile = await db.Profiles.SingleAsync();
+            db.Feedback.Add(new Feedback { UserId = profile.UserId, ProfileId = profile.Id, SourceName = "heise", ArticleTitle = "Neuer Raspberry Pi", ArticleUrl = "https://heise.de/pi", Kind = FeedbackKind.Less, At = DateTimeOffset.UtcNow });
+            await db.SaveChangesAsync();
+        }
+
+        page = pages.Open<ProfilePage>("Neuer Raspberry Pi");
+        Assert.Contains("Less", page.Markup, StringComparison.Ordinal);
+        Pages.Button(page, "Remove", 0).Click();
+
+        page.WaitForAssertion(() => Assert.DoesNotContain("Neuer Raspberry Pi", page.Markup, StringComparison.Ordinal));
+        await using var check = _app.Services.CreateAsyncScope();
+        Assert.Empty(check.ServiceProvider.GetRequiredService<MorningInkDbContext>().Feedback);
+    }
+
     private static void AddSection(IRenderedComponent<ProfilePage> page, string name)
     {
         Pages.Submit(page, ("#new-section", name));

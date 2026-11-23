@@ -324,6 +324,35 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Every_article_carries_feedback_links_for_its_own_entry_in_the_issue()
+    {
+        await PublishAsync();
+
+        var content = _renderer.Rendered.Single();
+        var issue = _store.Issues.Single();
+        foreach (var article in content.Sections.SelectMany(s => s.Articles))
+        {
+            var entry = issue.Entries.Single(e => e.Url == article.Article.Url.AbsoluteUri);
+            Assert.Equal($"https://news.example.com/feedback/more-{entry.Id}", content.Feedback![article].More.AbsoluteUri);
+        }
+    }
+
+    [Fact]
+    public async Task Sources_the_reader_wants_more_of_come_first_within_a_section()
+    {
+        var golem = new Source { UserId = _userId, Name = "golem", Url = "https://golem.de/rss" };
+        _profile.Sections.Single(s => s.Name == "Tech").Sources.Add(golem);
+        Answer(golem, Articles("https://golem.de/older")); // older than heise's article
+        _store.Leanings[golem.Id] = 2;
+        _store.Leanings[_heise.Id] = -1;
+
+        await PublishAsync();
+
+        var tech = _renderer.Rendered.Single().Sections.Single(s => s.Name == "Tech");
+        Assert.Equal(["golem", "heise"], tech.Articles.Select(a => a.SourceName));
+    }
+
+    [Fact]
     public async Task Weather_for_the_region_comes_with_the_issue()
     {
         _profile.Region = "10115";
@@ -602,6 +631,7 @@ public sealed class IssuePublisherTests : IDisposable
             new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], _overview, _geocoder, _weather, time),
             new IssueRelease(_store, [_sources], _seen, _delivery, _files, _notifier, time),
             [_renderer],
+            new FakeFeedbackLinks(),
             _files,
             _locks,
             time);

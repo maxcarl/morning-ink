@@ -47,7 +47,7 @@ public sealed class IssueBuilder(
             ReferenceEqualityComparer.Instance);
         issue.AddLog(time.GetUtcNow(), "Fresh", fresh.Count, bySource.Values.Sum(a => a.Count));
 
-        var plan = Choose(sections, bySource, fresh, profile.Interests, issue);
+        var plan = Choose(sections, bySource, fresh, profile.Interests, loaded.SourceLeanings, issue);
         var content = await ProcessAsync(plan, withAi, issue, cancellationToken);
         if (content.Count == 0)
         {
@@ -116,6 +116,7 @@ public sealed class IssueBuilder(
         Dictionary<Guid, IReadOnlyList<FetchedArticle>> bySource,
         HashSet<FetchedArticle> fresh,
         IReadOnlyList<Interest> interests,
+        IReadOnlyDictionary<Guid, int> leanings,
         Issue issue)
     {
         var taken = new List<Pick>();
@@ -129,8 +130,10 @@ public sealed class IssueBuilder(
             var candidates = unread
                 .Where(candidate => ArticleFilter.Admits(candidate.Article, candidate.Source) && !Interests.Hides(candidate.Article, interests))
 
-                // The edition's interests first, then the newest: when the limit is tight, its topics win.
+                // The edition's interests first, then the sources the reader asked for more of, then the newest: when
+                // the limit is tight, its topics and favourite sources win.
                 .OrderByDescending(candidate => Interests.Score(candidate.Article, interests))
+                .ThenByDescending(candidate => leanings.GetValueOrDefault(candidate.Source.Id))
                 .ThenByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue)
                 .ToList();
             if (unread.Count > candidates.Count)

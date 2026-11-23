@@ -29,4 +29,11 @@ public sealed record ProfileSchedule(Guid ProfileId, TimeOnly DeliveryTime, stri
 
 /// <param name="Profile">The profile, with sections and sources loaded.</param>
 /// <param name="Language">Culture name of the owner, e.g. "de", for texts in the issue.</param>
-public sealed record PublishingProfile(Profile Profile, string Language);
+public sealed record PublishingProfile(Profile Profile, string Language)
+{
+    /// <summary>
+    /// What the reader said about each source lately, "more" counting up and "less" down; sources with more come
+    /// first within a section, after the edition's interests.
+    /// </summary>
+    public IReadOnlyDictionary<Guid, int> SourceLeanings { get; init; } = new Dictionary<Guid, int>();
+}

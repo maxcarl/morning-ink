@@ -75,6 +75,12 @@
                 </details>
                 <InterestsEditor Profile="_profile" UserId="UserId" Cancellation="Closed" Finished="FormFinishedAsync" />
             </section>
+
+            <section aria-labelledby="feedback-heading">
+                <h2 id="feedback-heading" class="department">@T["Feedback_Title"]</h2>
+                <p class="hint">@T["Feedback_Hint"]</p>
+                <FeedbackList Profile="_profile" UserId="UserId" Cancellation="Closed" />
+            </section>
         </div>
     </div>
 </div>

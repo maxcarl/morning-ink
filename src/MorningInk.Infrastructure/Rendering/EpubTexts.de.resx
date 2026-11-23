@@ -40,4 +40,9 @@
   <data name="NoticeDelivered" xml:space="preserve"><value>{0} Nr. {1} ist da: {2} Artikel.</value></data>
   <data name="NoticeFailed" xml:space="preserve"><value>{0} Nr. {1} konnte nicht zugestellt werden: {2}</value></data>
   <data name="BackToContents" xml:space="preserve"><value>Zum Inhaltsverzeichnis</value></data>
+  <data name="FeedbackMore" xml:space="preserve"><value>Mehr davon</value></data>
+  <data name="FeedbackLess" xml:space="preserve"><value>Weniger davon</value></data>
+  <data name="FeedbackThanksMore" xml:space="preserve"><value>Danke! Ab jetzt mehr wie „{0}“.</value></data>
+  <data name="FeedbackThanksLess" xml:space="preserve"><value>Danke! Ab jetzt weniger wie „{0}“.</value></data>
+  <data name="FeedbackInvalid" xml:space="preserve"><value>Dieser Link gilt nicht mehr. Vielleicht ist er älter als zwei Monate.</value></data>
 </root>

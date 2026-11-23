@@ -316,6 +316,51 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("DeliveryAttempt");
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.Feedback", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ArticleTitle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ArticleUrl")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("At")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId", "ArticleUrl")
+                        .IsUnique();
+
+                    b.ToTable("Feedback");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.Issue", b =>
                 {
                     b.Property<Guid>("Id")
@@ -878,6 +923,15 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.HasOne("MorningInk.Domain.Issue", null)
                         .WithMany("Attempts")
                         .HasForeignKey("IssueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MorningInk.Domain.Feedback", b =>
+                {
+                    b.HasOne("MorningInk.Domain.Profile", null)
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

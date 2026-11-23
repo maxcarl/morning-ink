@@ -1,0 +1,63 @@
+@using System.Globalization
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Feedback
+@inject ActionScopes Scopes
+
+@* What the reader said from the e-reader; a slip of the finger is taken back here. *@
+@if (_feedback.Count == 0)
+{
+    <p class="muted">@T["Feedback_None"]</p>
+}
+else
+{
+    <ul class="rows">
+        @foreach (var item in _feedback)
+        {
+            <li class="row" @key="item.Id">
+                <div class="row-main">
+                    <div class="row-title">
+                        <a href="@item.ArticleUrl" rel="noopener noreferrer" target="_blank">@item.ArticleTitle</a>
+                        <span class="badge @(item.Kind == FeedbackKind.More ? "status-ok" : "status-warn")">@T[$"Feedback_{item.Kind}"]</span>
+                    </div>
+                    <div class="row-meta">@item.SourceName · @item.At.ToLocalTime().ToString("d", CultureInfo.CurrentCulture)</div>
+                </div>
+                <button type="button" class="link-button link-danger" @onclick="() => DeleteAsync(item.Id)">@T["Interests_Remove"]<span class="visually-hidden"> – @item.ArticleTitle</span></button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private IReadOnlyList<Feedback> _feedback = [];
+    private Guid? _loadedFor;
+
+    [Parameter, EditorRequired]
+    public Profile? Profile { get; set; }
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Profile is { } profile && profile.Id != _loadedFor)
+        {
+            _loadedFor = profile.Id;
+            await LoadAsync(profile.Id);
+        }
+    }
+
+    private async Task LoadAsync(Guid profileId) =>
+        _feedback = await Scopes.RunAsync<FeedbackStore, IReadOnlyList<Feedback>>(store => store.ListAsync(UserId, profileId, Cancellation));
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await Scopes.RunAsync<FeedbackStore, bool>(store => store.DeleteAsync(UserId, id, Cancellation));
+        if (Profile is { } profile)
+        {
+            await LoadAsync(profile.Id);
+        }
+    }
+}

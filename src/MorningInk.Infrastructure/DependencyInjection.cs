@@ -52,6 +52,7 @@ public static class DependencyInjection
         AddSources(services, configuration);
         AddProcessors(services, configuration);
         services.AddTransient<IRenderer, EpubRenderer>();
+        AddFeedback(services, configuration);
         AddDelivery(services, configuration);
         AddScheduling(services, configuration);
         AddIdentity(services);
@@ -64,6 +65,15 @@ public static class DependencyInjection
         await using var scope = host.Services.CreateAsyncScope();
         var lifetime = scope.ServiceProvider.GetRequiredService<IHostApplicationLifetime>();
         await scope.ServiceProvider.GetRequiredService<DatabaseMigrator>().MigrateAsync(lifetime.ApplicationStopping);
+    }
+
+    private static void AddFeedback(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<WebOptions>().Bind(configuration.GetSection(WebOptions.SectionName));
+        services.AddSingleton<Feedback.SignedFeedbackLinks>();
+        services.AddSingleton<IFeedbackLinks>(provider => provider.GetRequiredService<Feedback.SignedFeedbackLinks>());
+        services.AddScoped<Feedback.FeedbackRecorder>();
+        services.AddScoped<Feedback.FeedbackStore>();
     }
 
     private static void AddStorage(IServiceCollection services, IConfiguration configuration)

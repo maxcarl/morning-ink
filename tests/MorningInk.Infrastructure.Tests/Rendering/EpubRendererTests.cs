@@ -170,6 +170,24 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task Feedback_links_stand_under_the_article_they_are_for()
+    {
+        var issue = SampleIssue();
+        var politics = issue.Sections[0].Articles[0];
+        var links = new FeedbackLinks(new Uri("https://news.example.com/feedback/more"), new Uri("https://news.example.com/feedback/less"));
+        issue = issue with { Feedback = new Dictionary<IssueArticle, FeedbackLinks>(ReferenceEqualityComparer.Instance) { [politics] = links } };
+
+        using var epub = await RenderAsync(issue, "feedback.epub");
+
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "article-1-1.xhtml")));
+        var feedback = page.Descendants(Xhtml + "p").Single(p => (string?)p.Attribute("class") == "feedback");
+        Assert.Equal(
+            [("https://news.example.com/feedback/more", "Mehr davon"), ("https://news.example.com/feedback/less", "Weniger davon")],
+            feedback.Elements(Xhtml + "a").Select(a => ((string?)a.Attribute("href"), a.Value)));
+        Assert.DoesNotContain("feedback", ReadText(epub.Entries.Single(e => e.Name == "article-1-2.xhtml")), StringComparison.Ordinal); // only where there are links
+    }
+
+    [Fact]
     public async Task Script_in_a_title_stays_text()
     {
         using var epub = await RenderAsync();

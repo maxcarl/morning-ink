@@ -139,6 +139,7 @@ public sealed class PublishingTests : IDisposable
             new IssueBuilder(sources, seen, provider.GetServices<IProcessor>(), provider.GetRequiredService<IIssueOverview>(), provider.GetRequiredService<IGeocoder>(), provider.GetRequiredService<IWeatherForecast>(), time),
             new IssueRelease(store, sources, seen, provider.GetRequiredService<IDelivery>(), files, provider.GetRequiredService<MorningInk.Application.Notifications.INotifier>(), time),
             provider.GetServices<IRenderer>(),
+            provider.GetRequiredService<IFeedbackLinks>(),
             files,
             Locks,
             time);

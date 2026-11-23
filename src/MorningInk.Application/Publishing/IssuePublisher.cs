@@ -15,6 +15,7 @@ public sealed class IssuePublisher(
     IssueBuilder builder,
     IssueRelease release,
     IEnumerable<IRenderer> renderers,
+    IFeedbackLinks feedback,
     IIssueFiles files,
     ProfileLocks locks,
     TimeProvider time)
@@ -147,22 +148,18 @@ public sealed class IssuePublisher(
         && issue.FileName is not null
         && File.Exists(files.PathFor(issue.FileName));
 
+    // The entries first, so each article's feedback links can name its entry; then the file.
     private async Task RenderAsync(Issue issue, IssueContent content, IRenderer renderer, CancellationToken cancellationToken)
     {
-        var fileName = $"{issue.Id}{renderer.FileExtension}";
-        var path = files.PathFor(fileName);
-        await using (var file = File.Create(path))
-        {
-            await renderer.RenderAsync(content, file, cancellationToken);
-        }
-
-        issue.FileName = fileName;
-        issue.FileSize = new FileInfo(path).Length;
-        issue.Status = IssueStatus.Rendered;
-        issue.AddLog(time.GetUtcNow(), "Rendered", issue.FileSize / 1024);
+        var links = new Dictionary<IssueArticle, FeedbackLinks>(ReferenceEqualityComparer.Instance);
         foreach (var article in content.Sections.SelectMany(s => s.Articles))
         {
-            issue.Entries.Add(Entry(article.Article, article.SourceName, article.SourceId, duplicate: false));
+            var entry = Entry(article.Article, article.SourceName, article.SourceId, duplicate: false);
+            issue.Entries.Add(entry);
+            if (feedback.LinksFor(entry.Id) is { } pair)
+            {
+                links[article] = pair;
+            }
 
             // Kept as entries too, so they count as seen once the issue is out and do not come alone the next day.
             foreach (var other in article.AlsoAt)
@@ -171,6 +168,17 @@ public sealed class IssuePublisher(
             }
         }
 
+        var fileName = $"{issue.Id}{renderer.FileExtension}";
+        var path = files.PathFor(fileName);
+        await using (var file = File.Create(path))
+        {
+            await renderer.RenderAsync(content with { Feedback = links.Count == 0 ? null : links }, file, cancellationToken);
+        }
+
+        issue.FileName = fileName;
+        issue.FileSize = new FileInfo(path).Length;
+        issue.Status = IssueStatus.Rendered;
+        issue.AddLog(time.GetUtcNow(), "Rendered", issue.FileSize / 1024);
         await store.SaveChangesAsync(cancellationToken);
     }
 

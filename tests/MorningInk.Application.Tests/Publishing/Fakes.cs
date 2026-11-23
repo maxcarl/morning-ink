@@ -14,10 +14,13 @@ internal sealed class FakeStore(Profile profile, string language = "de") : IPubl
 {
     public List<Issue> Issues { get; } = [];
 
+    /// <summary>Feedback from the reader per source, as the store sums it up.</summary>
+    public Dictionary<Guid, int> Leanings { get; } = [];
+
     public int Saves { get; private set; }
 
     public Task<PublishingProfile?> LoadProfileAsync(Guid profileId, CancellationToken cancellationToken) =>
-        Task.FromResult(profileId == profile.Id ? new PublishingProfile(profile, language) : null);
+        Task.FromResult(profileId == profile.Id ? new PublishingProfile(profile, language) { SourceLeanings = Leanings } : null);
 
     public Task<IReadOnlyList<ProfileSchedule>> ListSchedulesAsync(CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<ProfileSchedule>>([new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId)]);
@@ -118,6 +121,12 @@ internal sealed class FakeOverview : IIssueOverview
             ? request.Articles.Take(2).Select(a => new OverviewItem($"Kurz: {a.Article.Article.Title}", a.Article)).ToList()
             : null);
     }
+}
+
+/// <summary>Links that name the entry they are for, so tests can tell which article got which.</summary>
+internal sealed class FakeFeedbackLinks : IFeedbackLinks
+{
+    public FeedbackLinks LinksFor(Guid entryId) => new(new Uri($"https://news.example.com/feedback/more-{entryId}"), new Uri($"https://news.example.com/feedback/less-{entryId}"));
 }
 
 internal sealed class FakeNotifier : MorningInk.Application.Notifications.INotifier
