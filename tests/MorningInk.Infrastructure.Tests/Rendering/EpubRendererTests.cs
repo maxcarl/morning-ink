@@ -143,6 +143,33 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task After_the_summary_a_link_leads_back_to_the_article_in_the_contents()
+    {
+        using var epub = await RenderAsync();
+
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "article-1-1.xhtml")));
+        var back = page.Descendants(Xhtml + "a").Where(a => ((string?)a.Attribute("href"))?.StartsWith("nav.xhtml#", StringComparison.Ordinal) == true).ToList();
+        Assert.Equal(2, back.Count); // after the summary, for whom it is enough, and at the end
+        var summary = page.Descendants(Xhtml + "aside").Single(e => (string?)e.Attribute("class") == "summary");
+        Assert.Contains(back[0], summary.ElementsAfterSelf().First().DescendantsAndSelf()); // right after the summary
+
+        var target = ((string)back[0].Attribute("href")!)["nav.xhtml#".Length..];
+        var nav = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "nav.xhtml")));
+        var entry = Assert.Single(nav.Descendants(), e => (string?)e.Attribute("id") == target);
+        Assert.Equal("article-1-1.xhtml", (string?)entry.Element(Xhtml + "a")?.Attribute("href"));
+        Assert.Equal(nav.Descendants().Count(e => e.Attribute("id") is not null), nav.Descendants().Select(e => (string?)e.Attribute("id")).Where(id => id is not null).Distinct().Count()); // ids are unique
+    }
+
+    [Fact]
+    public async Task Without_a_summary_the_link_is_only_at_the_end()
+    {
+        using var epub = await RenderAsync();
+
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "article-1-2.xhtml")));
+        Assert.Single(page.Descendants(Xhtml + "a"), a => ((string?)a.Attribute("href"))?.StartsWith("nav.xhtml#", StringComparison.Ordinal) == true);
+    }
+
+    [Fact]
     public async Task Script_in_a_title_stays_text()
     {
         using var epub = await RenderAsync();

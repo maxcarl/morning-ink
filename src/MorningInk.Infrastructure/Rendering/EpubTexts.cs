@@ -25,6 +25,8 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string ReadOriginal => Get(nameof(ReadOriginal));
 
+    public string BackToContents => Get(nameof(BackToContents));
+
     public string Briefs => Get(nameof(Briefs));
 
     public string InShort => Get(nameof(InShort));

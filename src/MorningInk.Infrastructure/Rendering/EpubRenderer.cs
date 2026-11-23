@@ -122,7 +122,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
             {
                 var body = bodies[article];
                 items.Add(new(Path.GetFileNameWithoutExtension(HrefOf(article)), HrefOf(article), XhtmlType, InSpine: true));
-                await AddContentAsync(zip, HrefOf(article), EpubPages.ArticlePage(article, section.Name, body.Nodes, issue.PublishedAt, texts), stamp, cancellationToken);
+                await AddContentAsync(zip, HrefOf(article), EpubPages.ArticlePage(article, section.Name, body.Nodes, issue.PublishedAt, $"{NavHref}#{EpubPages.ContentsId(HrefOf(article))}", texts), stamp, cancellationToken);
 
                 foreach (var image in body.Images.Where(images.Add))
                 {

@@ -76,7 +76,7 @@ internal static class EpubPages
             new XElement(Xhtml + "h2", texts.Briefs),
             new XElement(Xhtml + "ul", new XAttribute("class", "briefs"), briefs.Select(a => new XElement(Xhtml + "li",
                 // A brief links to its web page; a newsletter's "mid:" address cannot be opened, so its title stays text.
-                a.Article.Url.Scheme is "http" or "https"
+                IsWebPage(a.Article.Url)
                     ? new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(a.Article.Url)), a.Article.Title)
                     : new XText(a.Article.Title),
                 new XElement(Xhtml + "span", new XAttribute("class", "meta"), " · " + string.Join(" · ", new[]
@@ -93,6 +93,14 @@ internal static class EpubPages
             new XElement(Xhtml + "p", new XAttribute("class", "kicker"), texts.InShort),
             new XElement(Xhtml + "p", article.AiSummary));
 
+    private static bool IsWebPage(Uri url) => url.Scheme is "http" or "https";
+
+    private static XElement BackToContents(string contentsHref, EpubTexts texts) =>
+        new(Xhtml + "p", new XAttribute("class", "back"), new XElement(Xhtml + "a", new XAttribute("href", contentsHref), texts.BackToContents));
+
+    /// <summary>The id of a page's entry in the contents, e.g. "toc-article-1-2", to link right to it.</summary>
+    public static string ContentsId(string href) => $"toc-{Path.GetFileNameWithoutExtension(href)}";
+
     // The same story from other sources, merged into this one.
     private static XElement? AlsoAt(IssueArticle item, EpubTexts texts) => item.AlsoAt.Count == 0
         ? null
@@ -102,7 +110,8 @@ internal static class EpubPages
     public static bool IsBrief(ArticleBody.Result body) => body.Images.Count == 0 && ReadingWords(body.Nodes) == 0;
 
     /// <param name="section">Shown above the headline, like a newspaper's department line.</param>
-    public static XDocument ArticlePage(IssueArticle item, string section, IReadOnlyList<XNode> body, DateTimeOffset issueTime, EpubTexts texts)
+    /// <param name="contentsHref">The article's own entry in the contents, to go back to and on with the next one.</param>
+    public static XDocument ArticlePage(IssueArticle item, string section, IReadOnlyList<XNode> body, DateTimeOffset issueTime, string contentsHref, EpubTexts texts)
     {
         var article = item.Article;
         var meta = new[]
@@ -118,13 +127,17 @@ internal static class EpubPages
                 new XElement(Xhtml + "p", new XAttribute("class", "meta"), string.Join(" · ", meta.Where(m => !string.IsNullOrWhiteSpace(m)))),
                 AlsoAt(item, texts),
                 Summary(article, texts),
+
+                // For a reader whom the summary told enough: straight back to the contents, at this article.
+                string.IsNullOrWhiteSpace(article.AiSummary) ? null : BackToContents(contentsHref, texts),
                 body,
 
-                // Only a web page can be read in the original; a newsletter's "mid:" address cannot be opened.
-                article.Url.Scheme is "http" or "https"
-                    ? new XElement(Xhtml + "p", new XAttribute("class", "original"),
-                        new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(article.Url)), texts.ReadOriginal))
-                    : null));
+                // Only a web page can be read in the original; a newsletter's "mid:" address cannot be opened. The way back
+                // to the contents is there for every article.
+                new XElement(Xhtml + "p", new XAttribute("class", "original"),
+                    IsWebPage(article.Url) ? new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(article.Url)), texts.ReadOriginal) : null,
+                    IsWebPage(article.Url) ? " · " : null,
+                    new XElement(Xhtml + "a", new XAttribute("href", contentsHref), texts.BackToContents))));
     }
 
     /// <summary>The EPUB 3 table of contents, also shown as a page for readers without their own TOC view.</summary>
@@ -135,8 +148,10 @@ internal static class EpubPages
                 new XElement(Xhtml + "h1", texts.Contents),
                 Entries(toc)));
 
+    // Only entries without children get an id: a section shares its href with its first article, and ids must be unique.
     private static XElement Entries(IReadOnlyList<EpubPackage.TocEntry> entries) =>
         new(Xhtml + "ol", entries.Select(entry => new XElement(Xhtml + "li",
+            entry.Children.Count == 0 ? new XAttribute("id", ContentsId(entry.Href)) : null,
             new XElement(Xhtml + "a", new XAttribute("href", entry.Href), entry.Label),
             entry.Children.Count == 0 ? null : Entries(entry.Children))));
 
@@ -193,6 +208,7 @@ internal static class EpubPages
         figure { margin: 1em 0; }
         figcaption { font-size: 0.85em; color: #444; }
         .original { margin-top: 1.5em; font-size: 0.9em; }
+        .back { margin: 0.5em 0 1.5em; font-size: 0.9em; }
         .kicker { font-variant: small-caps; letter-spacing: 0.05em; color: #444; margin: 0; }
         .briefs li { margin-bottom: 0.8em; }
         .summary { border-top: 1px solid #444; border-bottom: 1px solid #444; margin: 0.8em 0; padding: 0.3em 0; font-style: italic; }
