@@ -270,6 +270,14 @@ public sealed class IssueBuilder(
             return [];
         }
 
+        // Unchanged since the last fetch: nothing new, and the stored validators stay valid.
+        if (result is SourceResult.NotModified)
+        {
+            source.RecordSuccess(now, 0);
+            issue.AddLog(now, "Fetched", source.Name, 0);
+            return [];
+        }
+
         var success = (SourceResult.Success)result;
         source.ETag = success.ETag;
         source.LastModified = success.LastModified;

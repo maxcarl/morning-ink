@@ -91,6 +91,22 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Unchanged_source_adds_nothing_and_keeps_its_validators()
+    {
+        _heise.ETag = "\"v1\"";
+        Answer(_heise, new SourceResult.NotModified());
+
+        var result = await PublishAsync();
+
+        var delivered = Assert.IsType<PublishResult.Delivered>(result);
+        Assert.Equal(2, delivered.Articles);
+        Assert.Empty(delivered.UnavailableSources);
+        Assert.Equal("\"v1\"", _heise.ETag);
+        Assert.IsType<SourceHealth.Empty>(_heise.Health(Slot)); // nothing new, not failing
+
+    }
+
+    [Fact]
     public async Task Each_run_keeps_track_of_whether_a_source_works()
     {
         Answer(_heise, new SourceResult.Failure("heise.de could not be reached.", Reason: "Unreachable", Arguments: ["heise.de"]));
