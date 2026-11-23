@@ -448,7 +448,7 @@ Das MVP ist fertig, wenn:
 
 **Offen**
 
-- [ ] Lizenz: AGPL-3.0 (wer es als Dienst anbietet, muss Änderungen offenlegen) oder MIT (maximal frei)?
+- [x] Lizenz: AGPL-3.0-or-later (wer es verändert als Dienst anbietet, muss den Quellcode offenlegen). Die Oberfläche verlinkt den Quellcode in der Fußzeile.
 - [ ] GitHub, Docker Hub und Domain für „morning-ink“ prüfen und reservieren
 
 ## MVP-Aufgaben

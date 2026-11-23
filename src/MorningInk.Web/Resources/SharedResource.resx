@@ -115,6 +115,7 @@
   <data name="Profile_CountryHint" xml:space="preserve"><value>Postal codes, weather and local news are looked up in this country.</value></data>
   <data name="Profile_Error_Country" xml:space="preserve"><value>Please choose a country from the list.</value></data>
   <data name="Error_CountryInvalid" xml:space="preserve"><value>Please choose a country from the list.</value></data>
+  <data name="Footer_SourceCode" xml:space="preserve"><value>Source code (AGPL-3.0)</value></data>
   <data name="Theme_Label" xml:space="preserve"><value>Color scheme</value></data>
   <data name="Theme_auto" xml:space="preserve"><value>Auto</value></data>
   <data name="Theme_light" xml:space="preserve"><value>Light</value></data>

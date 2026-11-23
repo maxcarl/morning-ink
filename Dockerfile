@@ -6,6 +6,8 @@ COPY . .
 RUN dotnet publish src/MorningInk.Web -c Release -a $TARGETARCH -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
+LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later" \
+      org.opencontainers.image.source="https://github.com/maxcarl/morning-ink"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
@@ -14,6 +16,8 @@ RUN apt-get update \
 USER $APP_UID
 WORKDIR /app
 COPY --from=build /app .
+# The image ships third-party binaries: their licenses travel with it.
+COPY LICENSE THIRD-PARTY-NOTICES.md ./
 VOLUME /data
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

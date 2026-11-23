@@ -157,4 +157,6 @@ Morning Ink is for your own reading. Full texts, images and archived issues are 
 
 ## License
 
-Not decided yet.
+Copyright (C) 2026 Maximilian Carl. Morning Ink is free software under the [GNU Affero General Public License v3.0 or later](LICENSE). If you run a modified version as a service for others, you must offer them its source code.
+
+Third-party components and their licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
