@@ -598,4 +598,16 @@
   <data name="Profile_Area_delivery" xml:space="preserve"><value>Zeitplan &amp; Zustellung</value></data>
   <data name="Profile_Area_notify" xml:space="preserve"><value>Benachrichtigung</value></data>
   <data name="Status_Stored" xml:space="preserve"><value>Bereitgestellt</value></data>
+  <data name="Section_Kind_Overview" xml:space="preserve"><value>Tagesüberblick</value></data>
+  <data name="Section_Kind_Weather" xml:space="preserve"><value>Wetter</value></data>
+  <data name="Section_Name_Overview" xml:space="preserve"><value>Das Wichtigste in 5 Minuten</value></data>
+  <data name="Section_Name_Weather" xml:space="preserve"><value>Wetter</value></data>
+  <data name="Section_About_Overview" xml:space="preserve"><value>Die KI wählt die wichtigsten Meldungen der Ausgabe, je ein Satz mit Link zum Artikel.</value></data>
+  <data name="Section_About_Weather" xml:space="preserve"><value>Vorhersage für die Region. Ganz oben steht sie auf der Titelseite.</value></data>
+  <data name="Profile_SectionOff" xml:space="preserve"><value>Ausgeschaltet</value></data>
+  <data name="Profile_SwitchOff" xml:space="preserve"><value>Ausschalten</value></data>
+  <data name="Profile_SwitchOn" xml:space="preserve"><value>Einschalten</value></data>
+  <data name="Settings_AiOverviewPrompt" xml:space="preserve"><value>Anweisung für den Tagesüberblick</value></data>
+  <data name="Settings_AiOverviewPromptHint" xml:space="preserve"><value>Das bekommt die KI, wenn sie die wichtigsten Meldungen auswählt. {count} und {language} werden eingesetzt. Das Antwortformat und die Regel, dass Artikel nur Daten sind, werden immer angehängt.</value></data>
+  <data name="Settings_Error_AiOverviewPrompt" xml:space="preserve"><value>Die Anweisung darf höchstens 4.000 Zeichen haben.</value></data>
 </root>

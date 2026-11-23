@@ -14,6 +14,7 @@ public sealed class IssueBuilder(
     IEnumerable<ISource> sources,
     ISeenArticles seen,
     IEnumerable<IProcessor> processors,
+    IIssueOverview overview,
     IGeocoder geocoder,
     IWeatherForecast weather,
     TimeProvider time)
@@ -30,7 +31,8 @@ public sealed class IssueBuilder(
         CancellationToken cancellationToken)
     {
         var profile = loaded.Profile;
-        var sections = profile.Sections.OrderBy(s => s.Position).ToList();
+        var order = profile.Sections.Where(s => s.Enabled).OrderBy(s => s.Position).ToList();
+        var sections = order.Where(s => s.Kind == SectionKind.Articles).ToList();
 
         // Each source once, even if several sections use it.
         var bySource = new Dictionary<Guid, IReadOnlyList<FetchedArticle>>();
@@ -47,9 +49,64 @@ public sealed class IssueBuilder(
 
         var plan = Choose(sections, bySource, fresh, profile.Interests, issue);
         var content = await ProcessAsync(plan, withAi, issue, cancellationToken);
-        return content.Count == 0
-            ? null
-            : new IssueContent(issue.Id, profile.Title, issue.Number, localTime, loaded.Language, content, problems.Select(p => p.SourceName).ToList(), await WeatherAsync(profile, cancellationToken));
+        if (content.Count == 0)
+        {
+            return null;
+        }
+
+        // An edition without a weather section has it on the title page, as before sections could be placed.
+        var weather = profile.Sections.FirstOrDefault(s => s.Kind == SectionKind.Weather) is not { Enabled: false }
+            ? await WeatherAsync(profile, cancellationToken)
+            : null;
+        var extras = await ExtrasAsync(order, content, weather is not null, loaded, issue, withAi, cancellationToken);
+        return new IssueContent(issue.Id, profile.Title, issue.Number, localTime, loaded.Language, [.. content.Select(c => c.Content)], problems.Select(p => p.SourceName).ToList(), weather, extras);
+    }
+
+    // The pages that are no articles section, each placed before the first articles section that follows it.
+    private async Task<List<IssueExtra>> ExtrasAsync(
+        List<Section> order,
+        List<(Section Section, IssueSection Content)> content,
+        bool hasWeather,
+        PublishingProfile loaded,
+        Issue issue,
+        bool withAi,
+        CancellationToken cancellationToken)
+    {
+        var extras = new List<IssueExtra>();
+        foreach (var section in order.Where(s => s.Kind != SectionKind.Articles))
+        {
+            var before = content.Count(c => c.Section.Position < section.Position);
+            if (section.Kind == SectionKind.Weather && hasWeather)
+            {
+                extras.Add(new IssueExtra(IssueExtraKind.Weather, section.Name, before));
+            }
+            else if (section.Kind == SectionKind.Overview && withAi && await OverviewAsync(content, loaded, issue, cancellationToken) is { Count: > 0 } items)
+            {
+                extras.Add(new IssueExtra(IssueExtraKind.Overview, section.Name, before, items));
+            }
+        }
+
+        return extras;
+    }
+
+    // A bonus like the weather: without AI, or when it fails, the issue comes without the overview.
+    private async Task<IReadOnlyList<OverviewItem>?> OverviewAsync(List<(Section Section, IssueSection Content)> content, PublishingProfile loaded, Issue issue, CancellationToken cancellationToken)
+    {
+        var candidates = content
+            .SelectMany(c => c.Content.Articles.Select(a => new OverviewCandidate(a, c.Section.Sources.FirstOrDefault(s => s.Id == a.SourceId)?.LocalAiOnly ?? false)))
+            .ToList();
+        IReadOnlyList<OverviewItem>? items;
+        try
+        {
+            items = await overview.WriteAsync(new OverviewRequest(loaded.Profile.UserId, loaded.Profile.Title, loaded.Language, candidates), cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            items = null;
+        }
+
+        issue.AddLog(time.GetUtcNow(), items is { Count: > 0 } ? "Overview" : "OverviewSkipped", items?.Count ?? 0);
+        return items;
     }
 
     // All sections are chosen before any article is processed, so a story another section already took is merged
@@ -120,10 +177,10 @@ public sealed class IssueBuilder(
     }
 
     // Full text, cleaning, images and AI: most of the time an issue takes, so the log says how long.
-    private async Task<List<IssueSection>> ProcessAsync(List<(Section Section, List<Pick> Picks)> plan, bool withAi, Issue issue, CancellationToken cancellationToken)
+    private async Task<List<(Section Section, IssueSection Content)>> ProcessAsync(List<(Section Section, List<Pick> Picks)> plan, bool withAi, Issue issue, CancellationToken cancellationToken)
     {
         var started = time.GetUtcNow();
-        var sections = new List<IssueSection>();
+        var sections = new List<(Section Section, IssueSection Content)>();
         foreach (var (section, picks) in plan)
         {
             var articles = new List<IssueArticle>();
@@ -138,11 +195,11 @@ public sealed class IssueBuilder(
 
             if (articles.Count > 0)
             {
-                sections.Add(new IssueSection(section.Name, articles));
+                sections.Add((section, new IssueSection(section.Name, articles)));
             }
         }
 
-        var kept = sections.Sum(s => s.Articles.Count);
+        var kept = sections.Sum(s => s.Content.Articles.Count);
         issue.AddLog(time.GetUtcNow(), "Processed", kept, (int)(time.GetUtcNow() - started).TotalSeconds);
         var dropped = plan.Sum(p => p.Picks.Count) - kept;
         if (dropped > 0)
@@ -150,7 +207,7 @@ public sealed class IssueBuilder(
             issue.AddLog(time.GetUtcNow(), "Dropped", dropped);
         }
 
-        var summaries = sections.Sum(s => s.Articles.Count(a => a.Article.AiSummary is not null));
+        var summaries = sections.Sum(s => s.Content.Articles.Count(a => a.Article.AiSummary is not null));
         if (summaries > 0)
         {
             issue.AddLog(time.GetUtcNow(), "Summaries", summaries);

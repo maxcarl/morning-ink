@@ -219,6 +219,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("OverviewPrompt")
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("Summaries")
                         .HasColumnType("INTEGER");
 
@@ -528,6 +532,14 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MorningInk.Domain.Section", b =>
                 {
                     b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("MaxArticles")

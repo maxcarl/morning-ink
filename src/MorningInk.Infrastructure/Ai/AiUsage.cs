@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
 
@@ -16,7 +17,7 @@ public sealed record AiUsageReport(IReadOnlyList<AiProviderUsage> Providers, int
 /// Each call uses a database context of its own: the issue run's context holds the publisher's unsaved work, which a
 /// save from here must not write early.
 /// </remarks>
-public sealed class AiUsage(IServiceScopeFactory scopes, TimeProvider time)
+public sealed partial class AiUsage(IServiceScopeFactory scopes, TimeProvider time, ILogger<AiUsage> logger)
 {
     private const int RecentCalls = 30;
     private static readonly TimeSpan Day = TimeSpan.FromHours(24);
@@ -24,12 +25,34 @@ public sealed class AiUsage(IServiceScopeFactory scopes, TimeProvider time)
 
     public DateTimeOffset Now => time.GetUtcNow();
 
-    public async Task RecordAsync(AiCall call, CancellationToken cancellationToken)
+    /// <summary>
+    /// Records a request, also a failed one: the text left the instance either way. Recorded even when the run is
+    /// cancelled right after the call; a record that cannot be saved is logged and never costs the result.
+    /// </summary>
+    public async Task RecordAsync(AiCall call)
     {
-        await using var scope = scopes.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        db.AiCalls.Add(call);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await using var scope = scopes.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            db.AiCalls.Add(call);
+            await db.SaveChangesAsync(CancellationToken.None);
+        }
+        catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
+        {
+            LogNotRecorded(logger, e.Message);
+        }
+    }
+
+    /// <summary>Whether the requests of the last 24 hours reached the limit; no limit is never reached.</summary>
+    public async Task<bool> LimitReachedAsync(int? limit, CancellationToken cancellationToken) =>
+        limit is { } most && await Last24HoursAsync(cancellationToken) >= most;
+
+    /// <summary>"192.168.1.20:11434": where the text went, without path or key.</summary>
+    public static string ProviderOf(string endpoint)
+    {
+        var uri = new Uri(endpoint);
+        return $"{uri.Host}:{uri.Port}";
     }
 
     /// <summary>Requests in the last 24 hours, counted for the limit: a rolling window needs no time zone.</summary>
@@ -56,4 +79,7 @@ public sealed class AiUsage(IServiceScopeFactory scopes, TimeProvider time)
         var day = Now - Day;
         return new AiUsageReport(providers, calls.Count(c => c.At >= day), calls.OrderByDescending(c => c.At).Take(RecentCalls).ToList());
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "AI request could not be recorded: {Reason}")]
+    private static partial void LogNotRecorded(ILogger logger, string reason);
 }

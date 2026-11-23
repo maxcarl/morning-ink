@@ -59,6 +59,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         }
 
         profile = new Profile { UserId = userId, Title = DefaultTitle, Recipient = string.Empty };
+        profile.Sections.Add(await WeatherSectionAsync(userId, cancellationToken));
         db.Profiles.Add(profile);
         await db.SaveChangesAsync(cancellationToken);
         await RescheduleAsync(profile, cancellationToken);
@@ -91,6 +92,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
             Region = first.Region,
             Country = first.Country,
         };
+        profile.Sections.Add(await WeatherSectionAsync(userId, cancellationToken));
         db.Profiles.Add(profile);
         await db.SaveChangesAsync(cancellationToken);
         await RescheduleAsync(profile, cancellationToken);
@@ -252,6 +254,13 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         profile.NotifySecret = settings.Channel is NotificationChannel.None or NotificationChannel.Email ? null : secret ?? keptSecret;
         await db.SaveChangesAsync(cancellationToken);
         return [];
+    }
+
+    // Every edition starts with its weather first, so it stands on the title page until moved or switched off.
+    private async Task<Section> WeatherSectionAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var language = await db.DomainUsers.Where(u => u.Id == userId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken);
+        return new Section { Name = language == "de" ? "Wetter" : "Weather", Kind = SectionKind.Weather, Position = 0 };
     }
 
     internal IQueryable<Profile> Query(Guid userId) =>

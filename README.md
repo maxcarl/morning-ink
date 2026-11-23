@@ -39,6 +39,7 @@
 
 - **Filters per source:** words to require or exclude, a minimum length, no live tickers, no marked ads
 - **Archive** to search, download, send again and keep issues
+- **Optional AI overview**, "the most important in 5 minutes", placed and switched like any section
 - **Optional AI summaries** with your own Ollama or any OpenAI-compatible provider; private sources can stay local, a daily limit caps requests, and the settings show which article went to which provider. The instructions are editable
 - **Setup wizard** with sample sources from several countries; first newspaper in minutes
 - **Notifications** by ntfy, Gotify, Telegram or e-mail when an issue is out

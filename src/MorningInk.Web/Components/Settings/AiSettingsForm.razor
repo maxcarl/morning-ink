@@ -46,6 +46,15 @@
                 <div><button type="button" class="link-button" @onclick="RestorePrompt">@T["Settings_AiPromptRestore"]</button></div>
             }
         </div>
+        <div class="field">
+            <label for="ai-overview-prompt">@T["Settings_AiOverviewPrompt"]</label>
+            <textarea id="ai-overview-prompt" class="input" rows="7" maxlength="@AiSettingsStore.MaxPromptLength" @bind="_overviewPrompt" aria-describedby="ai-overview-prompt-hint"></textarea>
+            <span id="ai-overview-prompt-hint" class="hint">@T["Settings_AiOverviewPromptHint"]</span>
+            @if (_overviewPrompt?.Trim() != AiSettingsStore.DefaultOverviewPrompt)
+            {
+                <div><button type="button" class="link-button" @onclick="RestoreOverviewPrompt">@T["Settings_AiPromptRestore"]</button></div>
+            }
+        </div>
         <div class="row-actions">
             <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
             <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestAsync">@(_busy ? T["Settings_AiTesting"] : T["Settings_AiTest"])</button>
@@ -63,6 +72,7 @@
     private bool _enabled = true;
     private int? _limit;
     private string? _prompt;
+    private string? _overviewPrompt;
     private bool _busy;
 
     [Parameter]
@@ -88,14 +98,17 @@
         _enabled = ai.Enabled;
         _limit = ai.DailyLimit;
         _prompt = ai.SummaryPrompt ?? AiSettingsStore.DefaultSummaryPrompt;
+        _overviewPrompt = ai.OverviewPrompt ?? AiSettingsStore.DefaultOverviewPrompt;
     }
 
     // Back to the versioned default; saved as "no own prompt", so later improvements to it arrive.
     private void RestorePrompt() => _prompt = AiSettingsStore.DefaultSummaryPrompt;
 
+    private void RestoreOverviewPrompt() => _overviewPrompt = AiSettingsStore.DefaultOverviewPrompt;
+
     private async Task SaveAsync()
     {
-        var input = new AiSettingsInput(_endpoint, _model, _key, _local, _summaries, _enabled, _limit, _prompt);
+        var input = new AiSettingsInput(_endpoint, _model, _key, _local, _summaries, _enabled, _limit, _prompt, _overviewPrompt);
         var errors = await Scopes.RunAsync<AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Cancellation));
         if (errors.Count > 0)
         {

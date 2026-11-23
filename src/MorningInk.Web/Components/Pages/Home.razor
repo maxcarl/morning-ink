@@ -177,7 +177,7 @@
                 yield return (prefix + T["Dash_NeedRecipient"], href);
             }
 
-            if (edition.Profile.Sections.Count == 0)
+            if (edition.Profile.ArticleSections == 0)
             {
                 yield return (prefix + T["Dash_NeedSections"], href);
             }
@@ -203,7 +203,7 @@
     private string NextFacts(Edition edition)
     {
         var profile = edition.Profile;
-        var facts = new List<string> { $"{T["Quote_Open"]}{profile.Title}{T["Quote_Close"]}", T["Dash_IssueTitle", edition.NextNumber], profile.Sections.Count == 1 ? T["Dash_SectionCount_One"] : T["Dash_SectionCount", profile.Sections.Count] };
+        var facts = new List<string> { $"{T["Quote_Open"]}{profile.Title}{T["Quote_Close"]}", T["Dash_IssueTitle", edition.NextNumber], profile.ArticleSections == 1 ? T["Dash_SectionCount_One"] : T["Dash_SectionCount", profile.ArticleSections] };
         if (!profile.SendByEmail)
         {
             facts.Add(T["Dash_ToFetch"]);

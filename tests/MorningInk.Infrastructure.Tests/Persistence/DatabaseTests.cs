@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
@@ -68,6 +69,33 @@ public sealed class DatabaseTests : IDisposable
         await using var services = await _host.StartAsync();
 
         Assert.False(Directory.Exists(_host.BackupDirectory));
+    }
+
+    [Fact]
+    public async Task Editions_from_before_section_kinds_get_their_weather_first_in_the_owners_language()
+    {
+        await using var services = await _host.StartAsync();
+        await using var scope = services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+        var migrator = db.Database.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrator>();
+
+        // Back to the schema before section kinds, with an edition as it was then.
+        await migrator.MigrateAsync("20261122190845_AddSendByEmail");
+        var user = new User { Name = "max", Language = "de" };
+        db.DomainUsers.Add(user);
+        await db.SaveChangesAsync();
+        var profileId = Guid.NewGuid();
+        await db.Database.ExecuteSqlAsync($"""
+            INSERT INTO "Profiles" ("Id", "UserId", "Title", "Recipient", "DeliveryTime", "TimeZoneId", "LeadTime", "Days", "NotifyChannel", "Interests", "SendByEmail")
+            VALUES ({profileId}, {user.Id}, 'Morning Ink', '', '06:00:00', 'Europe/Berlin', '00:00:00', '[]', 'None', '[]', 1)
+            """);
+        await db.Database.ExecuteSqlAsync($"""INSERT INTO "Section" ("Id", "ProfileId", "Name", "Position") VALUES ({Guid.NewGuid()}, {profileId}, 'Politik', 1)""");
+
+        await migrator.MigrateAsync();
+
+        db.ChangeTracker.Clear();
+        var sections = await db.Profiles.Where(p => p.Id == profileId).SelectMany(p => p.Sections).OrderBy(s => s.Position).ToListAsync();
+        Assert.Equal([("Wetter", SectionKind.Weather, true), ("Politik", SectionKind.Articles, true)], sections.Select(s => (s.Name, s.Kind, s.Enabled)));
     }
 
     public void Dispose() => _host.Dispose();

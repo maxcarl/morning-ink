@@ -31,4 +31,10 @@ public class AiSettings
     /// The rules that keep the article text as data are added by the code and cannot be edited away.
     /// </summary>
     public string? SummaryPrompt { get; set; }
+
+    /// <summary>
+    /// The admin's own instructions for the issue's overview, like <see cref="SummaryPrompt"/>; null uses the default.
+    /// The answer's format and the rule that articles are data are added by the code.
+    /// </summary>
+    public string? OverviewPrompt { get; set; }
 }

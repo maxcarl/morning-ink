@@ -131,7 +131,7 @@
                     break;
 
                 case Step.Done:
-                    <p>@(_profile.SendByEmail ? T["Welcome_DoneLede", _profile.Sections.Count, _profile.Recipient] : T["Welcome_DoneLedeFetch", _profile.Sections.Count])</p>
+                    <p>@(_profile.SendByEmail ? T["Welcome_DoneLede", _profile.ArticleSections, _profile.Recipient] : T["Welcome_DoneLedeFetch", _profile.ArticleSections])</p>
                     @if (!CanSend)
                     {
                         <p class="status status-warn">@(_mailServerSet ? T["Welcome_DoneMissingSetup"] : T["Dash_NeedMail"])</p>

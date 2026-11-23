@@ -54,7 +54,7 @@
             <section aria-labelledby="sections-heading">
                 <h2 id="sections-heading" class="department">@T["Profile_Sections"]</h2>
                 <p class="hint">@T["Profile_SectionsHint"]</p>
-                <SectionsEditor Profile="_profile" Sources="_sources" UserId="UserId" Cancellation="Closed" Finished="FormFinishedAsync" />
+                <SectionsEditor Profile="_profile" Sources="_sources" AiAvailable="_aiAvailable" UserId="UserId" Cancellation="Closed" Finished="FormFinishedAsync" />
             </section>
         </div>
         <div>
@@ -198,6 +198,7 @@
     private Guid? _shownFor;
     private bool _confirmEdition;
     private IReadOnlyList<Source> _sources = [];
+    private bool _aiAvailable;
     private List<string> _errors = [];
     private string? _notice;
 
@@ -222,6 +223,7 @@
     protected override async Task LoadAsync()
     {
         _sources = await UseAsync<SourceCatalog, IReadOnlyList<Source>>(catalog => catalog.ListAsync(UserId, Closed));
+        _aiAvailable = (await UseAsync<MorningInk.Infrastructure.Ai.AiSettingsStore, AiSettings>(store => store.LoadAsync(Closed))) is { Enabled: true, Endpoint: not null };
         await ReloadAsync();
         var profile = _profile!; // ! is safe: ReloadAsync just set it
         _title = profile.Title;

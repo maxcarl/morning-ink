@@ -104,6 +104,22 @@ internal sealed class FakeAiProcessor : IProcessor
         Task.FromResult(article with { AiSummary = "KI" });
 }
 
+/// <summary>Stands for the AI's overview: the first articles, one line each; null as if no AI were set up.</summary>
+internal sealed class FakeOverview : IIssueOverview
+{
+    public bool Available { get; set; } = true;
+
+    public List<OverviewRequest> Requests { get; } = [];
+
+    public Task<IReadOnlyList<OverviewItem>?> WriteAsync(OverviewRequest request, CancellationToken cancellationToken)
+    {
+        Requests.Add(request);
+        return Task.FromResult<IReadOnlyList<OverviewItem>?>(Available
+            ? request.Articles.Take(2).Select(a => new OverviewItem($"Kurz: {a.Article.Article.Title}", a.Article)).ToList()
+            : null);
+    }
+}
+
 internal sealed class FakeNotifier : MorningInk.Application.Notifications.INotifier
 {
     public List<MorningInk.Application.Notifications.Notice> Sent { get; } = [];

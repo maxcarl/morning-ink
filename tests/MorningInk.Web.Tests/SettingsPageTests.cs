@@ -109,11 +109,12 @@ public sealed class SettingsPageTests : IDisposable
         var page = pages.Open<Settings>("No password saved");
         Assert.Contains("two or three plain sentences", page.Find("#ai-prompt").GetAttribute("value") ?? page.Find("#ai-prompt").TextContent, StringComparison.Ordinal); // starts from the default
 
-        Pages.Submit(page, ("#ai-endpoint", ai.Endpoint), ("#ai-model", "qwen2.5:7b"), ("#ai-limit", "50"), ("#ai-prompt", "Ein Satz, bitte."));
+        Assert.Contains("main news of the day", page.Find("#ai-overview-prompt").GetAttribute("value") ?? page.Find("#ai-overview-prompt").TextContent, StringComparison.Ordinal);
+        Pages.Submit(page, ("#ai-endpoint", ai.Endpoint), ("#ai-model", "qwen2.5:7b"), ("#ai-limit", "50"), ("#ai-prompt", "Ein Satz, bitte."), ("#ai-overview-prompt", "Nur Europa."));
         Pages.Shows(page, "Saved.");
 
         var saved = await AiSettingsAsync(app);
-        Assert.Equal((50, "Ein Satz, bitte."), (saved.DailyLimit, saved.SummaryPrompt));
+        Assert.Equal((50, "Ein Satz, bitte.", "Nur Europa."), (saved.DailyLimit, saved.SummaryPrompt, saved.OverviewPrompt));
 
         Pages.Button(page, "Restore default").Click();
         Pages.Submit(page, ("#ai-model", "qwen2.5:7b"));

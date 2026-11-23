@@ -186,6 +186,48 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task Overview_page_stands_at_its_place_and_links_to_the_articles()
+    {
+        var issue = SampleIssue();
+        var politics = issue.Sections[0].Articles[0];
+        issue = issue with { Extras = [new IssueExtra(IssueExtraKind.Overview, "Das Wichtigste in 5 Minuten", 1, [new OverviewItem("Die Wahl ging anders aus.", politics)])] };
+
+        using var epub = await RenderAsync(issue, "overview.epub");
+
+        var spine = Spine(epub);
+        var overview = spine.IndexOf("overview.xhtml");
+        Assert.True(overview > spine.IndexOf("article-1-1.xhtml") && overview < spine.IndexOf("section-2.xhtml")); // between the two sections
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "overview.xhtml")));
+        var link = Assert.Single(page.Descendants(Xhtml + "a"));
+        Assert.Equal(("article-1-1.xhtml", "Die Wahl ging anders aus."), ((string?)link.Attribute("href"), link.Value));
+        Assert.Contains("Das Wichtigste in 5 Minuten", NavEntries(epub));
+    }
+
+    [Fact]
+    public async Task Weather_placed_further_down_gets_a_page_there_instead_of_the_title_page()
+    {
+        var issue = SampleIssue() with { Extras = [new IssueExtra(IssueExtraKind.Weather, "Wetter", 2)] };
+
+        using var epub = await RenderAsync(issue, "weather-page.epub");
+
+        Assert.DoesNotContain("Wetter für Berlin", ReadText(epub.Entries.Single(e => e.Name == "title.xhtml")), StringComparison.Ordinal);
+        Assert.Contains("Wetter für Berlin", ReadText(epub.Entries.Single(e => e.Name == "weather.xhtml")), StringComparison.Ordinal);
+        Assert.Equal("weather.xhtml", Spine(epub)[^1]);
+        Assert.Contains("Wetter", NavEntries(epub));
+    }
+
+    [Fact]
+    public async Task Weather_placed_first_stays_on_the_title_page()
+    {
+        var issue = SampleIssue() with { Extras = [new IssueExtra(IssueExtraKind.Weather, "Wetter", 0)] };
+
+        using var epub = await RenderAsync(issue, "weather-first.epub");
+
+        Assert.Contains("Wetter für Berlin", ReadText(epub.Entries.Single(e => e.Name == "title.xhtml")), StringComparison.Ordinal);
+        Assert.Null(epub.Entries.SingleOrDefault(e => e.Name == "weather.xhtml"));
+    }
+
+    [Fact]
     public async Task Cover_is_a_portrait_jpeg()
     {
         using var epub = await RenderAsync();
@@ -280,6 +322,17 @@ public sealed class EpubRendererTests : IDisposable
 
         return ZipFile.OpenRead(path);
     }
+
+    // The reading order, as file names.
+    private static List<string> Spine(ZipArchive epub)
+    {
+        var opf = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name.EndsWith(".opf", StringComparison.Ordinal))));
+        var hrefs = opf.Descendants(Opf + "item").ToDictionary(i => (string)i.Attribute("id")!, i => (string)i.Attribute("href")!);
+        return [.. opf.Descendants(Opf + "itemref").Select(r => hrefs[(string)r.Attribute("idref")!])];
+    }
+
+    private static List<string> NavEntries(ZipArchive epub) =>
+        [.. XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "nav.xhtml"))).Descendants(Xhtml + "a").Select(a => a.Value)];
 
     private static string ReadText(ZipArchiveEntry entry)
     {

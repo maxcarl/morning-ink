@@ -75,7 +75,7 @@ public sealed class OnboardingTests : IDisposable
     {
         await using var scope = services.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles
-            .Where(p => p.UserId == user).SelectMany(p => p.Sections).Include(s => s.Sources).OrderBy(s => s.Position).ToListAsync();
+            .Where(p => p.UserId == user).SelectMany(p => p.Sections).Where(s => s.Kind == SectionKind.Articles).Include(s => s.Sources).OrderBy(s => s.Position).ToListAsync();
     }
 
     private static async Task<Guid> CreateUserAsync(IServiceProvider services)

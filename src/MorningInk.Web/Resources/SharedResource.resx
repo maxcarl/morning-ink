@@ -598,4 +598,16 @@
   <data name="Profile_Area_delivery" xml:space="preserve"><value>Schedule &amp; delivery</value></data>
   <data name="Profile_Area_notify" xml:space="preserve"><value>Notification</value></data>
   <data name="Status_Stored" xml:space="preserve"><value>Made available</value></data>
+  <data name="Section_Kind_Overview" xml:space="preserve"><value>Overview</value></data>
+  <data name="Section_Kind_Weather" xml:space="preserve"><value>Weather</value></data>
+  <data name="Section_Name_Overview" xml:space="preserve"><value>The most important in 5 minutes</value></data>
+  <data name="Section_Name_Weather" xml:space="preserve"><value>Weather</value></data>
+  <data name="Section_About_Overview" xml:space="preserve"><value>The AI picks the main news of the issue, a sentence each, linked to the article.</value></data>
+  <data name="Section_About_Weather" xml:space="preserve"><value>Forecast for the region. First in the order, it stands on the title page.</value></data>
+  <data name="Profile_SectionOff" xml:space="preserve"><value>Switched off</value></data>
+  <data name="Profile_SwitchOff" xml:space="preserve"><value>Switch off</value></data>
+  <data name="Profile_SwitchOn" xml:space="preserve"><value>Switch on</value></data>
+  <data name="Settings_AiOverviewPrompt" xml:space="preserve"><value>Instructions for the overview</value></data>
+  <data name="Settings_AiOverviewPromptHint" xml:space="preserve"><value>What the AI is told when it picks the main news. {count} and {language} are filled in. The answer format and the rule that articles are only data are always added.</value></data>
+  <data name="Settings_Error_AiOverviewPrompt" xml:space="preserve"><value>The instructions may have at most 4,000 characters.</value></data>
 </root>

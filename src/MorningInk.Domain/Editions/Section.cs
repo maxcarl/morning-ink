@@ -9,12 +9,17 @@ public class Section
 
     public required string Name { get; set; }
 
+    public SectionKind Kind { get; init; } = SectionKind.Articles;
+
+    /// <summary>Off, the section is left out of the issue but keeps its place and settings.</summary>
+    public bool Enabled { get; set; } = true;
+
     /// <summary>Order within the profile; lower comes first.</summary>
     public int Position { get; set; }
 
     /// <summary>Most articles this section may contain; null means no limit.</summary>
     public int? MaxArticles { get; set; }
 
-    /// <summary>Sources feeding this section; a source can feed several sections.</summary>
+    /// <summary>Sources feeding this section; a source can feed several sections. Only articles sections have any.</summary>
     public ICollection<Source> Sources { get; } = [];
 }

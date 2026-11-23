@@ -89,11 +89,34 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
         await AddContentAsync(zip, "cover.jpg", CoverGenerator.Create(EpubPages.Cover(issue, texts)), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPages.StyleSheet, Encoding.UTF8.GetBytes(EpubPages.Css), stamp, cancellationToken);
         await AddContentAsync(zip, TitleHref, EpubPages.TitlePage(issue, texts, HrefOf), stamp, cancellationToken);
-        await AddContentAsync(zip, NavHref, EpubPages.Navigation(issue, texts, TitleHref, SectionHrefOf, s => full[s], HrefOf), stamp, cancellationToken);
+
+        // The reading order, which the contents follow: title page, then sections and extra pages in their order.
+        var toc = new List<EpubPackage.TocEntry> { new(texts.TitlePage, TitleHref, []) };
+
+        // An extra page (overview, weather) before the articles section it was placed before.
+        async Task AddExtrasAsync(int before)
+        {
+            foreach (var extra in issue.Extras.DistinctBy(e => e.Kind).Where(e => e.Before == before))
+            {
+                (string Href, XDocument Page)? page = extra switch
+                {
+                    { Kind: IssueExtraKind.Overview, Items: { Count: > 0 } points } => ("overview.xhtml", EpubPages.OverviewPage(extra.Title, points, texts, HrefOf)),
+                    { Kind: IssueExtraKind.Weather } when issue.Weather is { } forecast && !issue.WeatherOnTitlePage => ("weather.xhtml", EpubPages.WeatherPage(extra.Title, forecast, texts)),
+                    _ => null,
+                };
+                if (page is { } added)
+                {
+                    items.Add(new(Path.GetFileNameWithoutExtension(added.Href), added.Href, XhtmlType, InSpine: true));
+                    await AddContentAsync(zip, added.Href, added.Page, stamp, cancellationToken);
+                    toc.Add(new(extra.Title, added.Href, []));
+                }
+            }
+        }
 
         var images = new HashSet<string>(StringComparer.Ordinal);
         for (var s = 0; s < issue.Sections.Count; s++)
         {
+            await AddExtrasAsync(s);
             var section = issue.Sections[s];
             foreach (var article in full[s])
             {
@@ -114,13 +137,12 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
                 items.Add(new($"s{s + 1}", BriefsHrefOf(s), XhtmlType, InSpine: true));
                 await AddContentAsync(zip, BriefsHrefOf(s), EpubPages.BriefsPage(section, briefs[s], issue.PublishedAt, texts), stamp, cancellationToken);
             }
+
+            toc.Add(new(section.Name, SectionHrefOf(s), [.. full[s].Select(a => new EpubPackage.TocEntry(a.Article.Title, HrefOf(a), []))]));
         }
 
-        var toc = new List<EpubPackage.TocEntry> { new(texts.TitlePage, TitleHref, []) };
-        toc.AddRange(issue.Sections.Select((section, index) => new EpubPackage.TocEntry(
-            section.Name,
-            SectionHrefOf(index),
-            full[index].Select(a => new EpubPackage.TocEntry(a.Article.Title, HrefOf(a), [])).ToList())));
+        await AddExtrasAsync(issue.Sections.Count);
+        await AddContentAsync(zip, NavHref, EpubPages.Navigation(toc, texts), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPackage.NcxFile, EpubPackage.NcxDocument(issue, bookTitle, toc), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPackage.PackageFile, EpubPackage.PackageDocument(issue, bookTitle, CoverId, items), stamp, cancellationToken);
     }

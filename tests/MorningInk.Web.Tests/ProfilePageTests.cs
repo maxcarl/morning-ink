@@ -64,7 +64,7 @@ public sealed class ProfilePageTests : IDisposable
         var page = pages.Open<ProfilePage>("comes out every day");
         AddSection(page, "Technik");
 
-        Pages.Button(page, "Edit").Click();
+        Edit(page, "Technik").Click();
         Assert.DoesNotContain("fremd", page.Markup, StringComparison.Ordinal);
         page.Find("input[type=checkbox]").Change(true);
         page.Find("#name-" + await SectionIdAsync("Technik")).Closest("form")!.Submit();
@@ -83,16 +83,18 @@ public sealed class ProfilePageTests : IDisposable
         AddSection(page, "B");
         AddSection(page, "C");
 
-        // Drag C onto A: C moves to A's place.
+        // Drag C onto A: C moves to A's place, behind the weather the edition starts with.
         var rows = page.FindAll("li[draggable]");
-        rows[2].DragStart();
-        page.FindAll("li[draggable]")[0].Drop();
-        page.WaitForAssertion(async () => Assert.Equal(["C", "A", "B"], (await SectionsAsync()).Select(s => s.Name)));
+        rows[3].DragStart();
+        page.FindAll("li[draggable]")[1].Drop();
+        page.WaitForAssertion(() => Assert.Equal(["Weather", "C", "A", "B"], RowNames(page)));
+        Assert.Equal(["C", "A", "B"], (await SectionsAsync()).Select(s => s.Name));
 
         // The keyboard way: open A and move it down.
-        Pages.Button(page, "Edit", 1).Click();
+        Edit(page, "A").Click();
         Pages.Button(page, "Down").Click();
-        page.WaitForAssertion(async () => Assert.Equal(["C", "B", "A"], (await SectionsAsync()).Select(s => s.Name)));
+        page.WaitForAssertion(() => Assert.Equal(["Weather", "C", "B", "A"], RowNames(page)));
+        Assert.Equal(["C", "B", "A"], (await SectionsAsync()).Select(s => s.Name));
     }
 
     [Fact]
@@ -102,13 +104,14 @@ public sealed class ProfilePageTests : IDisposable
         var page = pages.Open<ProfilePage>("comes out every day");
         AddSection(page, "Politik");
 
-        Pages.Button(page, "Edit").Click();
+        Edit(page, "Politik").Click();
         Pages.Button(page, "Delete section").Click();
         Assert.Contains("Delete Politik?", page.Markup, StringComparison.Ordinal);
         Assert.Single(await SectionsAsync());
 
         Pages.Button(page, "Yes, delete").Click();
-        page.WaitForAssertion(async () => Assert.Empty(await SectionsAsync()));
+        page.WaitForAssertion(() => Assert.Equal(["Weather"], RowNames(page)));
+        Assert.Empty(await SectionsAsync());
     }
 
     [Fact]
@@ -127,7 +130,7 @@ public sealed class ProfilePageTests : IDisposable
         page.Dispose();
         page = pages.Open<ProfilePage>("heise");
 
-        Pages.Button(page, "Edit").Click();
+        Edit(page, "Technik").Click();
         page.Find("input[type=search]").Input("GOL");
 
         Assert.Contains("> heise</label>", page.Markup, StringComparison.Ordinal); // ticked: stays, so saving keeps it
@@ -225,17 +228,64 @@ public sealed class ProfilePageTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task The_overview_is_offered_only_with_ai_and_then_sits_in_the_order_like_a_section()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+        Assert.Empty(page.FindAll("#add-overview")); // no AI set up
+        Assert.Contains("Weather", page.Markup, StringComparison.Ordinal); // every edition starts with its weather
+
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Ai.AiSettingsStore>()
+                .SaveAsync(new MorningInk.Infrastructure.Ai.AiSettingsInput("http://127.0.0.1:11434", "qwen2.5:7b", null, IsLocal: false, Summaries: true), Guid.NewGuid(), CancellationToken.None);
+        }
+
+        page = pages.Open<ProfilePage>("comes out every day");
+        page.Find("#add-overview").Click();
+
+        Pages.Shows(page, "The most important in 5 minutes");
+        var overview = Assert.Single(await SectionsAsync(all: true), s => s.Kind == SectionKind.Overview);
+        Assert.Equal(1, overview.Position); // after the weather
+        Assert.Empty(page.FindAll("#add-overview")); // once per edition
+    }
+
+    [Fact]
+    public async Task A_section_is_switched_off_and_on_without_losing_its_place()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+
+        Pages.Button(page, "Switch off").Click();
+
+        Pages.Shows(page, "Switched off");
+        Assert.False((await SectionsAsync(all: true)).Single(s => s.Kind == SectionKind.Weather).Enabled);
+        Pages.Button(page, "Switch on").Click();
+        page.WaitForAssertion(() => Assert.DoesNotContain("Switched off", page.Markup, StringComparison.Ordinal));
+        Assert.True((await SectionsAsync(all: true)).Single(s => s.Kind == SectionKind.Weather).Enabled);
+    }
+
     private static void AddSection(IRenderedComponent<ProfilePage> page, string name)
     {
         Pages.Submit(page, ("#new-section", name));
         page.WaitForAssertion(() => Assert.Contains($">{name}</div>", page.Markup, StringComparison.Ordinal));
     }
 
-    private async Task<List<Section>> SectionsAsync()
+    // The edit button of the named section: the weather every edition starts with has one too.
+    private static AngleSharp.Dom.IElement Edit(IRenderedComponent<ProfilePage> page, string section) =>
+        page.FindAll("button").Single(b => b.TextContent.Trim().StartsWith("Edit", StringComparison.Ordinal) && b.TextContent.Contains($"– {section}", StringComparison.Ordinal));
+
+    // The sections as the page lists them, by name without their badges.
+    private static List<string> RowNames(IRenderedComponent<ProfilePage> page) =>
+        [.. page.FindAll("li[draggable] .row-title").Select(t => t.ChildNodes.First(n => n.NodeType == AngleSharp.Dom.NodeType.Text && n.TextContent.Trim().Length > 0).TextContent.Trim())];
+
+    // The articles sections, or with all: true also the overview and the weather.
+    private async Task<List<Section>> SectionsAsync(bool all = false)
     {
         await using var scope = _app.Services.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles
-            .SelectMany(p => p.Sections).Include(s => s.Sources).OrderBy(s => s.Position).ToListAsync();
+            .SelectMany(p => p.Sections).Where(s => all || s.Kind == SectionKind.Articles).Include(s => s.Sources).OrderBy(s => s.Position).ToListAsync();
     }
 
     private async Task<Guid> SectionIdAsync(string name) => (await SectionsAsync()).Single(s => s.Name == name).Id;

@@ -23,7 +23,7 @@ internal static class EpubPages
         return Page(texts.TitlePage, texts,
             new XElement(Xhtml + "h1", issue.Title),
             new XElement(Xhtml + "p", new XAttribute("class", "dateline"), DateLine(issue, texts)),
-            issue.Weather is null ? null : WeatherSection(issue.Weather, texts),
+            issue.WeatherOnTitlePage && issue.Weather is { } forecast ? WeatherSection(forecast, texts, texts.WeatherFor(forecast.Place)) : null,
             issue.UnavailableSources.Count == 0 ? null : new XElement(Xhtml + "section",
                 new XElement(Xhtml + "h2", texts.Notes),
                 new XElement(Xhtml + "ul", new XAttribute("class", "notes"), issue.UnavailableSources.Select(n => new XElement(Xhtml + "li", texts.SourceUnavailable(n))))),
@@ -33,14 +33,27 @@ internal static class EpubPages
                     new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title))))));
     }
 
+    /// <summary>The weather on a page of its own, where the edition placed it further down.</summary>
+    public static XDocument WeatherPage(string title, WeatherForecast forecast, EpubTexts texts) =>
+        Page(title, texts,
+            new XElement(Xhtml + "h1", title),
+            WeatherSection(forecast, texts, texts.WeatherFor(forecast.Place)));
+
+    /// <summary>"The most important in 5 minutes": a sentence per main news, each leading to its article.</summary>
+    public static XDocument OverviewPage(string title, IReadOnlyList<OverviewItem> items, EpubTexts texts, Func<IssueArticle, string> hrefOf) =>
+        Page(title, texts,
+            new XElement(Xhtml + "h1", title),
+            new XElement(Xhtml + "ol", new XAttribute("class", "overview"), items.Select(item => new XElement(Xhtml + "li",
+                new XElement(Xhtml + "a", new XAttribute("href", hrefOf(item.Article)), item.Text)))));
+
     // Today in one line plus morning, midday and evening, then one line per following day.
-    private static XElement WeatherSection(WeatherForecast forecast, EpubTexts texts)
+    private static XElement WeatherSection(WeatherForecast forecast, EpubTexts texts, string heading)
     {
         var today = forecast.Days[0];
         var parts = forecast.Today.Select(p =>
             $"{texts.DayPart(p.Part)}: {Join(texts.Weather(p.WeatherCode), texts.Temperature(p.Temperature), Percent(p.PrecipitationProbability))}");
         return new XElement(Xhtml + "section", new XAttribute("class", "weather"),
-            new XElement(Xhtml + "h2", texts.WeatherFor(forecast.Place)),
+            new XElement(Xhtml + "h2", heading),
             new XElement(Xhtml + "p", Join(texts.Weather(today.WeatherCode), texts.TemperatureRange(today.MinTemperature, today.MaxTemperature), Precipitation(today.PrecipitationProbability, texts))),
             forecast.Today.Count == 0 ? null : new XElement(Xhtml + "p", string.Join(" · ", parts)),
             forecast.Days.Count < 2 ? null : new XElement(Xhtml + "ul", forecast.Days.Skip(1).Select(day => new XElement(Xhtml + "li",
@@ -115,18 +128,17 @@ internal static class EpubPages
     }
 
     /// <summary>The EPUB 3 table of contents, also shown as a page for readers without their own TOC view.</summary>
-    /// <param name="sectionHrefOf">Where a section starts: its first full article, or its briefs page.</param>
-    /// <param name="articlesOf">The full articles of a section; briefs have no page of their own and no entry.</param>
-    public static XDocument Navigation(IssueContent issue, EpubTexts texts, string titleHref, Func<int, string> sectionHrefOf, Func<int, IReadOnlyList<IssueArticle>> articlesOf, Func<IssueArticle, string> hrefOf) =>
+    /// <param name="toc">Entries in reading order, the same as the NCX gets; a section lists its full articles.</param>
+    public static XDocument Navigation(IReadOnlyList<EpubPackage.TocEntry> toc, EpubTexts texts) =>
         Page(texts.Contents, texts,
             new XElement(Xhtml + "nav", new XAttribute(Epub + "type", "toc"), new XAttribute("id", "toc"),
                 new XElement(Xhtml + "h1", texts.Contents),
-                new XElement(Xhtml + "ol",
-                    new XElement(Xhtml + "li", new XElement(Xhtml + "a", new XAttribute("href", titleHref), texts.TitlePage)),
-                    issue.Sections.Select((section, index) => new XElement(Xhtml + "li",
-                        new XElement(Xhtml + "a", new XAttribute("href", sectionHrefOf(index)), section.Name),
-                        articlesOf(index).Count == 0 ? null : new XElement(Xhtml + "ol", articlesOf(index).Select(a => new XElement(Xhtml + "li",
-                            new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title)))))))));
+                Entries(toc)));
+
+    private static XElement Entries(IReadOnlyList<EpubPackage.TocEntry> entries) =>
+        new(Xhtml + "ol", entries.Select(entry => new XElement(Xhtml + "li",
+            new XElement(Xhtml + "a", new XAttribute("href", entry.Href), entry.Label),
+            entry.Children.Count == 0 ? null : Entries(entry.Children))));
 
     /// <summary>What the cover shows: the first story of the first section as the lead, then the sections' stories in turn.</summary>
     public static CoverPage Cover(IssueContent issue, EpubTexts texts)

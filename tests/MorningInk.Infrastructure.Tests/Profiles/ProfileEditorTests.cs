@@ -72,6 +72,49 @@ public sealed class ProfileEditorTests : IDisposable
     }
 
     [Fact]
+    public async Task A_new_edition_starts_with_its_weather_first_named_in_the_owners_language()
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max", "de");
+
+        var first = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
+        var second = await EditAsync(services, e => e.CreateAsync(user, "Abendausgabe", CancellationToken.None));
+
+        Assert.All([first, second], profile => Assert.Equal(("Wetter", SectionKind.Weather, 0), (profile.Sections.Single().Name, profile.Sections.Single().Kind, profile.Sections.Single().Position)));
+        Assert.False(first.IsReady); // the weather alone is no newspaper
+    }
+
+    [Fact]
+    public async Task The_overview_is_added_once_and_like_every_section_switched_off_and_on()
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "max");
+        var profileId = await ProfileIdAsync(services, user);
+
+        Assert.True(await SectionsAsync(services, e => e.AddSpecialAsync(user, profileId, SectionKind.Overview, "Das Wichtigste", CancellationToken.None)));
+        Assert.False(await SectionsAsync(services, e => e.AddSpecialAsync(user, profileId, SectionKind.Overview, "Noch einmal", CancellationToken.None)));
+        Assert.False(await SectionsAsync(services, e => e.AddSpecialAsync(user, profileId, SectionKind.Articles, "Kein Sonderfall", CancellationToken.None)));
+        var overview = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single(s => s.Kind == SectionKind.Overview);
+
+        Assert.True(await SectionsAsync(services, e => e.SetEnabledAsync(user, overview.Id, enabled: false, CancellationToken.None)));
+
+        var saved = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single(s => s.Kind == SectionKind.Overview);
+        Assert.False(saved.Enabled);
+        Assert.Equal(1, saved.Position); // after the weather
+    }
+
+    [Fact]
+    public async Task Someone_elses_section_cannot_be_switched_off()
+    {
+        await using var services = await _host.StartAsync();
+        var alice = await CreateUserAsync(services, "alice");
+        var bob = await CreateUserAsync(services, "bob");
+        var weather = (await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None))).Sections.Single();
+
+        Assert.False(await SectionsAsync(services, e => e.SetEnabledAsync(bob, weather.Id, enabled: false, CancellationToken.None)));
+    }
+
+    [Fact]
     public async Task Sections_hold_the_users_sources_in_order()
     {
         await using var services = await _host.StartAsync();
@@ -82,10 +125,10 @@ public sealed class ProfileEditorTests : IDisposable
         await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), "Politik", CancellationToken.None));
         var tech = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single(s => s.Name == "Technik");
         await SectionsAsync(services, e => e.SaveSectionAsync(user, tech.Id, "Tech", 5, [feed], CancellationToken.None));
-        await SectionsAsync(services, e => e.MoveSectionAsync(user, tech.Id, 1, CancellationToken.None));
+        await SectionsAsync(services, e => e.MoveSectionAsync(user, tech.Id, 2, CancellationToken.None)); // the weather is first
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
-        Assert.Equal(["Politik", "Tech"], profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
+        Assert.Equal(["Weather", "Politik", "Tech"], profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
         var saved = profile.Sections.Single(s => s.Name == "Tech");
         Assert.Equal(5, saved.MaxArticles);
         Assert.Equal("heise", Assert.Single(saved.Sources).Name);
@@ -100,6 +143,10 @@ public sealed class ProfileEditorTests : IDisposable
     {
         await using var services = await _host.StartAsync();
         var user = await CreateUserAsync(services, "max");
+
+        // Three sections of the same kind; the weather the edition starts with would only shift the indexes.
+        var weather = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single();
+        await SectionsAsync(services, e => e.DeleteSectionAsync(user, weather.Id, CancellationToken.None));
         foreach (var section in new[] { "A", "B", "C" })
         {
             await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), section, CancellationToken.None));
@@ -276,13 +323,13 @@ public sealed class ProfileEditorTests : IDisposable
         var bob = await CreateUserAsync(services, "bob");
         var bobsFeed = await CreateSourceAsync(services, bob, "bob's feed");
         await SectionsAsync(services, async e => await e.AddSectionAsync(alice, await ProfileIdAsync(services, alice), "News", CancellationToken.None));
-        var section = (await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None))).Sections.Single();
+        var section = (await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None))).Sections.Single(s => s.Name == "News");
 
         await SectionsAsync(services, e => e.SaveSectionAsync(alice, section.Id, "News", null, [bobsFeed], CancellationToken.None));
         var bobDeletes = await SectionsAsync(services, e => e.DeleteSectionAsync(bob, section.Id, CancellationToken.None));
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None));
-        Assert.Empty(profile.Sections.Single().Sources);
+        Assert.Empty(profile.Sections.Single(s => s.Name == "News").Sources);
         Assert.False(bobDeletes);
     }
 
@@ -317,11 +364,11 @@ public sealed class ProfileEditorTests : IDisposable
         return path;
     }
 
-    private static async Task<Guid> CreateUserAsync(IServiceProvider services, string name)
+    private static async Task<Guid> CreateUserAsync(IServiceProvider services, string name, string language = "en")
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var user = new User { Name = name };
+        var user = new User { Name = name, Language = language };
         db.DomainUsers.Add(user);
         await db.SaveChangesAsync();
         return user.Id;

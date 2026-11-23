@@ -139,6 +139,7 @@ public static class DependencyInjection
 
         // Last: summarizes the cleaned full text. Scoped, so one issue run stops asking once the AI has failed.
         services.AddScoped<IProcessor, Ai.AiSummaryProcessor>();
+        services.AddScoped<IIssueOverview, Ai.AiOverviewWriter>();
         services.AddScoped<Ai.AiSettingsStore>();
         services.AddSingleton<Ai.AiChat>();
         services.AddSingleton<Ai.AiUsage>();

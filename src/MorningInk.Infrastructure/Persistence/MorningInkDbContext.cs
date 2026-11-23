@@ -98,6 +98,7 @@ public sealed class MorningInkDbContext(
         builder.Entity<Section>(section =>
         {
             section.Property(s => s.Name).HasMaxLength(NameLength);
+            section.Property(s => s.Kind).HasConversion<string>().HasMaxLength(EnumLength);
             section.HasMany(s => s.Sources).WithMany();
         });
 
@@ -157,6 +158,7 @@ public sealed class MorningInkDbContext(
             ai.Property(a => a.Endpoint).HasMaxLength(500);
             ai.Property(a => a.Model).HasMaxLength(200);
             ai.Property(a => a.SummaryPrompt).HasMaxLength(AiSettingsStore.MaxPromptLength);
+            ai.Property(a => a.OverviewPrompt).HasMaxLength(AiSettingsStore.MaxPromptLength);
             ai.Property(a => a.ApiKey).HasConversion((Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter)new ProtectedStringConverter(DataProtection));
         });
 

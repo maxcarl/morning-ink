@@ -26,6 +26,37 @@ public sealed class SectionEditor(MorningInkDbContext db, ProfileEditor profiles
         return true;
     }
 
+    /// <summary>Adds the overview or the weather at the end of the order; each kind once per edition.</summary>
+    /// <returns>False for an articles section, a kind the edition has already, or an edition not the user's.</returns>
+    public async Task<bool> AddSpecialAsync(Guid userId, Guid profileId, SectionKind kind, string name, CancellationToken cancellationToken)
+    {
+        name = name.Trim();
+        if (kind == SectionKind.Articles || name.Length is 0 or > ProfileEditor.MaxNameLength
+            || await profiles.FindAsync(userId, profileId, cancellationToken) is not { } profile
+            || profile.Sections.Any(s => s.Kind == kind))
+        {
+            return false;
+        }
+
+        var position = profile.Sections.Select(s => s.Position).DefaultIfEmpty(0).Max() + 1;
+        profile.Sections.Add(new Section { Name = name, Kind = kind, Position = position });
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    /// <summary>Switches a section off and on; off, it keeps its place and settings but is left out of the issue.</summary>
+    public async Task<bool> SetEnabledAsync(Guid userId, Guid sectionId, bool enabled, CancellationToken cancellationToken)
+    {
+        if (await OwnerOfSectionAsync(userId, sectionId, cancellationToken) is not { } profile)
+        {
+            return false;
+        }
+
+        profile.Sections.Single(s => s.Id == sectionId).Enabled = enabled;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     /// <param name="sourceIds">Sources to put into the section; ids that are not the user's own are ignored.</param>
     public async Task<bool> SaveSectionAsync(Guid userId, Guid sectionId, string name, int? maxArticles, IReadOnlyCollection<Guid> sourceIds, CancellationToken cancellationToken)
     {
@@ -34,6 +65,14 @@ public sealed class SectionEditor(MorningInkDbContext db, ProfileEditor profiles
         if (section is null || name.Length is 0 or > ProfileEditor.MaxNameLength || maxArticles is < 1 or > MaxSectionArticles)
         {
             return false;
+        }
+
+        // The overview and the weather have a name only: no sources, no limit.
+        if (section.Kind != SectionKind.Articles)
+        {
+            section.Name = name;
+            await db.SaveChangesAsync(cancellationToken);
+            return true;
         }
 
         // Only the user's own sources, whatever the form sent.

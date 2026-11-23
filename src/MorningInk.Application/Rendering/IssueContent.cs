@@ -12,6 +12,7 @@ namespace MorningInk.Application.Rendering;
 /// <param name="Sections">Sections in order, each with its articles.</param>
 /// <param name="UnavailableSources">Names of sources that failed today; the title page mentions them.</param>
 /// <param name="Weather">Forecast for the profile's region; null leaves the weather out.</param>
+/// <param name="Extras">Pages that are no articles section (overview, weather), each with its place among the sections.</param>
 public sealed record IssueContent(
     Guid Id,
     string Title,
@@ -20,8 +21,27 @@ public sealed record IssueContent(
     string Language,
     IReadOnlyList<IssueSection> Sections,
     IReadOnlyList<string> UnavailableSources,
-    WeatherForecast? Weather = null)
+    WeatherForecast? Weather = null,
+    IReadOnlyList<IssueExtra>? Extras = null)
 {
+    public IReadOnlyList<IssueExtra> Extras { get; init; } = Extras ?? [];
+
+    /// <summary>Whether the weather opens the issue on its title page, or has a page of its own further down.</summary>
+    public bool WeatherOnTitlePage
+    {
+        get
+        {
+            if (Weather is null)
+            {
+                return false;
+            }
+
+            // Without a place of its own, or placed first of all, the weather opens the issue.
+            var placed = Extras.FirstOrDefault(e => e.Kind == IssueExtraKind.Weather);
+            return placed is null || (placed.Before == 0 && ReferenceEquals(Extras[0], placed));
+        }
+    }
+
     /// <summary>
     /// Title of the book, e.g. "Morning Ink 2026-11-21": the ISO date makes it unique per day and sorts by date on
     /// the Kindle. Used for the metadata and for the attachment name, which Send to Kindle may show instead.
@@ -44,3 +64,17 @@ public sealed record IssueArticle(FetchedArticle Article, string SourceName, IRe
 
 /// <summary>Another source's article about the same story.</summary>
 public sealed record AlsoReported(string SourceName, FetchedArticle Article, Guid? SourceId = null);
+
+public enum IssueExtraKind
+{
+    Overview,
+    Weather,
+}
+
+/// <summary>A page that is no articles section, with its place in the issue.</summary>
+/// <param name="Before">Index of the articles section it comes before; the number of sections puts it at the end.</param>
+/// <param name="Items">The overview's points; null for the weather, which is in <see cref="IssueContent.Weather"/>.</param>
+public sealed record IssueExtra(IssueExtraKind Kind, string Title, int Before, IReadOnlyList<OverviewItem>? Items = null);
+
+/// <summary>One point of the overview: a sentence about the news, and the article in the issue it is about.</summary>
+public sealed record OverviewItem(string Text, IssueArticle Article);

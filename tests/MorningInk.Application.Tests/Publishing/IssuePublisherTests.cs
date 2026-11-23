@@ -1,5 +1,6 @@
 using MorningInk.Application.Delivery;
 using MorningInk.Application.Publishing;
+using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
 using MorningInk.Domain;
 
@@ -23,6 +24,7 @@ public sealed class IssuePublisherTests : IDisposable
     private readonly FakeGeocoder _geocoder = new();
     private readonly FakeWeather _weather = new();
     private readonly FakeNotifier _notifier = new();
+    private readonly FakeOverview _overview = new();
 
     public IssuePublisherTests()
     {
@@ -241,6 +243,84 @@ public sealed class IssuePublisherTests : IDisposable
         Assert.Equal("max@kindle.com", request.Recipient);
         Assert.Equal("Morning Ink 2026-11-21", request.Title);
         Assert.True(File.Exists(request.FilePath));
+    }
+
+    [Fact]
+    public async Task The_overview_stands_where_its_section_is_and_points_at_articles_of_the_issue()
+    {
+        _profile.Sections.Add(new Section { Name = "Das Wichtigste", Position = 2, Kind = SectionKind.Overview }); // between the two
+        Reorder("Nachrichten", "Das Wichtigste", "Tech");
+
+        await PublishAsync();
+
+        var content = _renderer.Rendered.Single();
+        var overview = Assert.Single(content.Extras);
+        Assert.Equal((IssueExtraKind.Overview, "Das Wichtigste", 1), (overview.Kind, overview.Title, overview.Before)); // after the first section
+        Assert.All(overview.Items!, item => Assert.Contains(content.Sections.SelectMany(s => s.Articles), a => ReferenceEquals(a, item.Article)));
+        Assert.Equal(3, Assert.Single(_overview.Requests).Articles.Count); // every article of the issue was offered
+        Assert.Contains(Assert.Single(_store.Issues).Log, e => e.Event == "Overview" && e.Arguments[0] == "2");
+    }
+
+    [Fact]
+    public async Task Without_ai_the_issue_comes_without_its_overview()
+    {
+        _overview.Available = false;
+        _profile.Sections.Add(new Section { Name = "Das Wichtigste", Position = 0, Kind = SectionKind.Overview });
+
+        var result = await PublishAsync();
+
+        Assert.IsType<PublishResult.Delivered>(result);
+        Assert.Empty(_renderer.Rendered.Single().Extras);
+    }
+
+    [Fact]
+    public async Task The_preview_without_ai_asks_for_no_overview()
+    {
+        _profile.Sections.Add(new Section { Name = "Das Wichtigste", Position = 0, Kind = SectionKind.Overview });
+
+        await CreatePublisher().PreviewAsync(_profile.Id, withAi: false, CancellationToken.None);
+
+        Assert.Empty(_overview.Requests);
+    }
+
+    [Fact]
+    public async Task A_section_switched_off_is_left_out_and_its_sources_are_not_even_asked()
+    {
+        _profile.Sections.Single(s => s.Name == "Tech").Enabled = false;
+
+        await PublishAsync();
+
+        Assert.Equal(["Nachrichten"], _renderer.Rendered.Single().Sections.Select(s => s.Name));
+        Assert.DoesNotContain(_store.Issues.Single().Log, e => e.Event is "Fetched" or "SourceFailed" && e.Arguments[0] == "heise");
+    }
+
+    [Fact]
+    public async Task Weather_further_down_gets_a_page_at_its_place()
+    {
+        _profile.Region = "10115";
+        _profile.Sections.Add(new Section { Name = "Wetter", Position = 3, Kind = SectionKind.Weather });
+
+        await PublishAsync();
+
+        var content = _renderer.Rendered.Single();
+        var placed = Assert.Single(content.Extras);
+        Assert.Equal((IssueExtraKind.Weather, 2), (placed.Kind, placed.Before)); // after both sections
+        Assert.Same(_weather.Forecast, content.Weather);
+        Assert.False(content.WeatherOnTitlePage);
+    }
+
+    [Fact]
+    public async Task Weather_switched_off_is_not_even_fetched()
+    {
+        _profile.Region = "10115";
+        _profile.Sections.Add(new Section { Name = "Wetter", Position = 0, Kind = SectionKind.Weather, Enabled = false });
+
+        await PublishAsync();
+
+        var content = _renderer.Rendered.Single();
+        Assert.Null(content.Weather);
+        Assert.Empty(content.Extras);
+        Assert.Null(_profile.Location); // not even geocoded
     }
 
     [Fact]
@@ -494,6 +574,15 @@ public sealed class IssuePublisherTests : IDisposable
 
     public void Dispose() => _files.Dispose();
 
+    // Sections in this order, numbered from 1.
+    private void Reorder(params string[] names)
+    {
+        for (var i = 0; i < names.Length; i++)
+        {
+            _profile.Sections.Single(s => s.Name == names[i]).Position = i + 1;
+        }
+    }
+
     private void Answer(Source source, SourceResult result) => _sources.Results[source.Id] = () => result;
 
     // Newest first, one hour apart, like a feed delivers them.
@@ -510,7 +599,7 @@ public sealed class IssuePublisherTests : IDisposable
         var time = new FixedTimeProvider(Slot);
         return new(
             _store,
-            new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], _geocoder, _weather, time),
+            new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], _overview, _geocoder, _weather, time),
             new IssueRelease(_store, [_sources], _seen, _delivery, _files, _notifier, time),
             [_renderer],
             _files,

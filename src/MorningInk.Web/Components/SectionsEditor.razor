@@ -3,7 +3,7 @@
 @using MorningInk.Infrastructure.Profiles
 @inject ActionScopes Scopes
 
-@if (_sections.Count == 0)
+@if (!_sections.Any(s => s.Kind == SectionKind.Articles))
 {
     <p class="muted">@T["Profile_NoSections"]</p>
 }
@@ -20,45 +20,67 @@
             <div class="row">
                 <span class="drag-handle" aria-hidden="true">⋮⋮</span>
                 <div class="row-main">
-                    <div class="row-title">@item.Name</div>
+                    <div class="row-title">
+                        @item.Name
+                        @* The kind, unless the name already says it. *@
+                        @if (item.Kind != SectionKind.Articles && item.Name != T[$"Section_Kind_{item.Kind}"] && item.Name != T[$"Section_Name_{item.Kind}"])
+                        {
+                            <span class="badge">@T[$"Section_Kind_{item.Kind}"]</span>
+                        }
+                        @if (!item.Enabled)
+                        {
+                            <span class="badge status-warn">@T["Profile_SectionOff"]</span>
+                        }
+                    </div>
                     <div class="row-meta">@Summary(item)</div>
                 </div>
-                <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="editor-@item.Id" @onclick="() => Toggle(item)">
-                    @(open ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @item.Name</span>
-                </button>
+                <div class="row-actions">
+                    <button type="button" class="link-button" @onclick="() => SetEnabledAsync(item, !item.Enabled)">
+                        @(item.Enabled ? T["Profile_SwitchOff"] : T["Profile_SwitchOn"])<span class="visually-hidden"> – @item.Name</span>
+                    </button>
+                    <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="editor-@item.Id" @onclick="() => Toggle(item)">
+                        @(open ? T["Profile_Close"] : T["Profile_Edit"])<span class="visually-hidden"> – @item.Name</span>
+                    </button>
+                </div>
             </div>
             @if (open)
             {
                 <form id="editor-@item.Id" class="editor-body" @onsubmit="() => SaveSectionAsync(item.Id)">
-                    <fieldset class="field">
-                        <legend class="label">@T["Profile_SectionSources"]</legend>
-                        @if (Sources.Count == 0)
-                        {
-                            <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
-                        }
-                        @if (Sources.Count > SearchFrom)
-                        {
-                            <div class="search">
-                                <label class="visually-hidden" for="find-@item.Id">@T["Profile_FindSource"]</label>
-                                <input id="find-@item.Id" class="input" type="search" placeholder="@T["Profile_FindSource"]" @bind="_find" @bind:event="oninput" />
-                            </div>
-                        }
-                        <div class="choices">
-                            @foreach (var source in Choices())
+                    @if (item.Kind == SectionKind.Articles)
+                    {
+                        <fieldset class="field">
+                            <legend class="label">@T["Profile_SectionSources"]</legend>
+                            @if (Sources.Count == 0)
                             {
-                                <label class="checkbox" @key="source.Id"><input type="checkbox" checked="@_picked.Contains(source.Id)" @onchange="() => Pick(source.Id)" /> @source.Name</label>
+                                <p class="hint"><a href="/sources">@T["Profile_NoSources"]</a></p>
                             }
-                        </div>
-                    </fieldset>
+                            @if (Sources.Count > SearchFrom)
+                            {
+                                <div class="search">
+                                    <label class="visually-hidden" for="find-@item.Id">@T["Profile_FindSource"]</label>
+                                    <input id="find-@item.Id" class="input" type="search" placeholder="@T["Profile_FindSource"]" @bind="_find" @bind:event="oninput" />
+                                </div>
+                            }
+                            <div class="choices">
+                                @foreach (var source in Choices())
+                                {
+                                    <label class="checkbox" @key="source.Id"><input type="checkbox" checked="@_picked.Contains(source.Id)" @onchange="() => Pick(source.Id)" /> @source.Name</label>
+                                }
+                            </div>
+                        </fieldset>
+                    }
                     <div class="inline-form field">
                         <div class="row-main">
                             <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
                             <input id="name-@item.Id" class="input" @bind="_name" required />
                         </div>
-                        <div>
-                            <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
-                            <input id="max-@item.Id" class="input" @bind="_max" inputmode="numeric" placeholder="@T["Profile_Unlimited"]" />
-                        </div>
+                        @if (item.Kind == SectionKind.Articles)
+                        {
+                            <div>
+                                <label class="label" for="max-@item.Id">@T["Profile_MaxArticles"]</label>
+                                <input id="max-@item.Id" class="input" @bind="_max" inputmode="numeric" placeholder="@T["Profile_Unlimited"]" />
+                            </div>
+                        }
                     </div>
                     <div class="row-actions">
                         @if (item.Id == _confirmId)
@@ -93,6 +115,20 @@
         <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
     </div>
 </form>
+@* The overview and the weather once each; the overview only where an AI can write it. *@
+@if ((AiAvailable && !Has(SectionKind.Overview)) || !Has(SectionKind.Weather))
+{
+    <div class="row-actions">
+        @if (AiAvailable && !Has(SectionKind.Overview))
+        {
+            <button id="add-overview" type="button" class="button button-secondary button-small" @onclick="() => AddSpecialAsync(SectionKind.Overview)">+ @T["Section_Kind_Overview"]</button>
+        }
+        @if (!Has(SectionKind.Weather))
+        {
+            <button id="add-weather" type="button" class="button button-secondary button-small" @onclick="() => AddSpecialAsync(SectionKind.Weather)">+ @T["Section_Kind_Weather"]</button>
+        }
+    </div>
+}
 
 @code {
     // Up to this many sources, the list is short enough to scan without a search field.
@@ -122,6 +158,10 @@
     /// <summary>The user's sources, to pick from for a section.</summary>
     [Parameter]
     public IReadOnlyList<Source> Sources { get; set; } = [];
+
+    /// <summary>Whether an AI is set up, so the overview can be offered.</summary>
+    [Parameter]
+    public bool AiAvailable { get; set; }
 
     [Parameter]
     public Guid UserId { get; set; }
@@ -188,8 +228,38 @@
         return pinned.Concat(others);
     }
 
+    private bool Has(SectionKind kind) => _sections.Any(s => s.Kind == kind);
+
+    private async Task AddSpecialAsync(SectionKind kind)
+    {
+        if (Profile is not { } profile)
+        {
+            return;
+        }
+
+        // Named like the kind in the user's language; renamed in the editor like any section.
+        if (!await Scopes.RunAsync<SectionEditor, bool>(editor => editor.AddSpecialAsync(UserId, profile.Id, kind, T[$"Section_Name_{kind}"], Cancellation)))
+        {
+            await Finished.InvokeAsync(FormOutcome.Failed(T["Profile_SectionInvalid"]));
+            return;
+        }
+
+        await Finished.InvokeAsync(new FormOutcome(T["Profile_Saved"]));
+    }
+
+    private async Task SetEnabledAsync(Section section, bool enabled)
+    {
+        await Scopes.RunAsync<SectionEditor, bool>(editor => editor.SetEnabledAsync(UserId, section.Id, enabled, Cancellation));
+        await Finished.InvokeAsync(new FormOutcome(null));
+    }
+
     private string Summary(Section section)
     {
+        if (section.Kind != SectionKind.Articles)
+        {
+            return T[$"Section_About_{section.Kind}"];
+        }
+
         var parts = new List<string>
         {
             section.Sources.Count == 0 ? T["Profile_SectionEmpty"] : string.Join(", ", section.Sources.Select(s => s.Name)),

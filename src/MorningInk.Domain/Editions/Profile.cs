@@ -19,8 +19,11 @@ public class Profile
     /// </summary>
     public bool SendByEmail { get; set; } = true;
 
-    /// <summary>Whether issues can go out: sections to fill, and a recipient when they are mailed.</summary>
-    public bool IsReady => Sections.Count > 0 && (!SendByEmail || !string.IsNullOrEmpty(Recipient));
+    /// <summary>Whether issues can go out: an articles section to fill, and a recipient when they are mailed.</summary>
+    public bool IsReady => ArticleSections > 0 && (!SendByEmail || !string.IsNullOrEmpty(Recipient));
+
+    /// <summary>Sections that hold articles; the overview and the weather only add to them.</summary>
+    public int ArticleSections => Sections.Count(s => s.Kind == SectionKind.Articles);
 
     /// <summary>Postal code or town for local news and weather; null leaves both out.</summary>
     public string? Region { get; set; }

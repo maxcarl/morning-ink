@@ -10,8 +10,9 @@ namespace MorningInk.Infrastructure.Ai;
 /// <param name="Enabled">Off pauses the AI without forgetting address, model and key.</param>
 /// <param name="DailyLimit">Most requests in 24 hours; null or empty for no limit.</param>
 /// <param name="SummaryPrompt">Own instructions for summaries; empty or the unchanged default keeps the default.</param>
+/// <param name="OverviewPrompt">Own instructions for the issue's overview, the same way.</param>
 public sealed record AiSettingsInput(
-    string? Endpoint, string? Model, string? ApiKey, bool IsLocal, bool Summaries, bool Enabled = true, int? DailyLimit = null, string? SummaryPrompt = null);
+    string? Endpoint, string? Model, string? ApiKey, bool IsLocal, bool Summaries, bool Enabled = true, int? DailyLimit = null, string? SummaryPrompt = null, string? OverviewPrompt = null);
 
 /// <summary>The instance's AI provider settings, in the database.</summary>
 public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowlist)
@@ -21,12 +22,15 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
     /// <summary>The default summary instructions, which the settings page shows to start editing from.</summary>
     public static string DefaultSummaryPrompt => AiSummaryProcessor.DefaultPrompt;
 
+    /// <summary>The default overview instructions, likewise.</summary>
+    public static string DefaultOverviewPrompt => AiOverviewWriter.DefaultPrompt;
+
     private const string ApiPath = "/v1";
 
     public async Task<AiSettings> LoadAsync(CancellationToken cancellationToken) =>
         await db.AiSettings.AsNoTracking().SingleOrDefaultAsync(cancellationToken) ?? new AiSettings();
 
-    /// <summary>Saves the settings, or returns the invalid fields: Endpoint, Model, DailyLimit, SummaryPrompt.</summary>
+    /// <summary>Saves the settings, or returns the invalid fields: Endpoint, Model, DailyLimit, SummaryPrompt, OverviewPrompt.</summary>
     /// <param name="adminId">The admin saving; a local provider's host is allowed in the home network in their name.</param>
     public async Task<IReadOnlyList<string>> SaveAsync(AiSettingsInput input, Guid adminId, CancellationToken cancellationToken)
     {
@@ -48,10 +52,16 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
             errors.Add("DailyLimit");
         }
 
-        var prompt = input.SummaryPrompt?.Trim();
-        if (prompt?.Length > MaxPromptLength)
+        var summaryPrompt = input.SummaryPrompt?.Trim();
+        if (summaryPrompt?.Length > MaxPromptLength)
         {
             errors.Add("SummaryPrompt");
+        }
+
+        var overviewPrompt = input.OverviewPrompt?.Trim();
+        if (overviewPrompt?.Length > MaxPromptLength)
+        {
+            errors.Add("OverviewPrompt");
         }
 
         if (errors.Count > 0)
@@ -68,8 +78,8 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
         settings.Enabled = input.Enabled;
         settings.DailyLimit = input.DailyLimit;
 
-        // Stored only when it differs from the default, so improvements to the default reach everyone else.
-        settings.SummaryPrompt = string.IsNullOrEmpty(prompt) || prompt == AiSummaryProcessor.DefaultPrompt ? null : prompt;
+        settings.SummaryPrompt = OwnPrompt(summaryPrompt, AiSummaryProcessor.DefaultPrompt);
+        settings.OverviewPrompt = OwnPrompt(overviewPrompt, AiOverviewWriter.DefaultPrompt);
         if (!string.IsNullOrEmpty(input.ApiKey))
         {
             settings.ApiKey = input.ApiKey;
@@ -99,4 +109,8 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
 
         return uri.AbsolutePath is "/" or "" ? new Uri(uri, ApiPath) : uri;
     }
+
+    // Stored only when it differs from the default, so improvements to the default reach everyone else.
+    private static string? OwnPrompt(string? typed, string defaultPrompt) =>
+        string.IsNullOrEmpty(typed) || typed == defaultPrompt ? null : typed;
 }

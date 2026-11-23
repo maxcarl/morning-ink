@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using MorningInk.Application.Processing;
@@ -24,10 +22,10 @@ internal sealed partial class AiSummaryProcessor(AiSettingsStore store, AiChat c
     private const int MaxOutputTokens = 300;
 
     /// <summary>The versioned default instructions, which the admin may replace on the settings page.</summary>
-    public static readonly string DefaultPrompt = LoadPrompt("summarize.txt").Trim();
+    public static readonly string DefaultPrompt = AiText.Prompt("summarize.txt");
 
     // Always appended, also to the admin's own instructions: the article stays data, whatever the prompt says.
-    private static readonly string Fence = LoadPrompt("fence.txt").Trim();
+    private static readonly string Fence = AiText.Prompt("fence.txt");
 
     private AiSettings? _settings;
 
@@ -48,16 +46,16 @@ internal sealed partial class AiSummaryProcessor(AiSettingsStore store, AiChat c
             return article;
         }
 
-        var text = PlainText(article.Content ?? article.Summary);
+        var text = AiText.Plain(article.Content ?? article.Summary);
         if (text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length < MinWords)
         {
             return article;
         }
 
-        if (settings.DailyLimit is { } limit && await usage.Last24HoursAsync(cancellationToken) >= limit)
+        if (await usage.LimitReachedAsync(settings.DailyLimit, cancellationToken))
         {
             _unavailable = true;
-            LogLimit(logger, limit);
+            LogLimit(logger);
             return article;
         }
 
@@ -84,75 +82,31 @@ internal sealed partial class AiSummaryProcessor(AiSettingsStore store, AiChat c
         }
         finally
         {
-            // Failed calls count too: the text left the instance either way.
-            await RecordAsync(new AiCall
+            await usage.RecordAsync(new AiCall
             {
                 At = usage.Now,
-                Provider = Provider(endpoint),
+                Provider = AiUsage.ProviderOf(endpoint),
                 Model = model,
                 IsLocal = settings.IsLocal,
                 UserId = source.UserId,
-                SourceName = Shorten(source.Name, 200),
-                ArticleTitle = Shorten(article.Title, 500),
-                ArticleUrl = Shorten(article.Url.AbsoluteUri, 2000),
+                SourceName = AiText.Shorten(source.Name, 200),
+                ArticleTitle = AiText.Shorten(article.Title, 500),
+                ArticleUrl = AiText.Shorten(article.Url.AbsoluteUri, 2000),
                 Characters = input.Length,
                 Succeeded = summary is not null,
             });
         }
     }
 
-    private async Task RecordAsync(AiCall call)
-    {
-        try
-        {
-            // Recorded even when the run is cancelled right after the call: the text has left the instance.
-            await usage.RecordAsync(call, CancellationToken.None);
-        }
-        catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
-        {
-            // The record is for transparency; losing one must not cost the summary.
-            LogNotRecorded(logger, e.Message);
-        }
-    }
-
-    // "192.168.1.20:11434": where the text went, without path or key.
-    private static string Provider(string endpoint)
-    {
-        var uri = new Uri(endpoint);
-        return $"{uri.Host}:{uri.Port}";
-    }
-
-    private static string Shorten(string text, int length) => text.Length <= length ? text : text[..length];
-
-    // Plain sentences only: markup is removed, and an empty or overlong answer is no summary.
+    // Plain sentences only, and an empty or overlong answer is no summary.
     private static string? Checked(string? answer)
     {
-        var text = Whitespace().Replace(Tags().Replace(answer ?? string.Empty, string.Empty), " ").Trim();
+        var text = AiText.Sentences(answer);
         return text.Length is 0 or > MaxSummaryCharacters ? null : text;
     }
 
-    // Tags removed, entities left encoded: "&lt;/article&gt;" in a text cannot close the fence around it.
-    private static string PlainText(string? html) => Whitespace().Replace(Tags().Replace(html ?? string.Empty, " "), " ").Trim();
-
-    private static string LoadPrompt(string name)
-    {
-        using var stream = typeof(AiSummaryProcessor).Assembly.GetManifestResourceStream($"MorningInk.Infrastructure.Ai.Prompts.{name}")
-            ?? throw new InvalidOperationException($"Prompt {name} is missing from the assembly.");
-        using var reader = new StreamReader(stream);
-        return reader.ReadToEnd();
-    }
-
-    [GeneratedRegex("<[^>]*>", RegexOptions.None, matchTimeoutMilliseconds: 100)]
-    private static partial Regex Tags();
-
-    [GeneratedRegex(@"\s+", RegexOptions.None, matchTimeoutMilliseconds: 100)]
-    private static partial Regex Whitespace();
-
-    [LoggerMessage(Level = LogLevel.Warning, Message = "AI daily limit of {Limit} requests reached, the rest of this issue comes without summaries")]
-    private static partial void LogLimit(ILogger logger, int limit);
-
-    [LoggerMessage(Level = LogLevel.Warning, Message = "AI request could not be recorded: {Reason}")]
-    private static partial void LogNotRecorded(ILogger logger, string reason);
+    [LoggerMessage(Level = LogLevel.Warning, Message = "AI daily limit reached, the rest of this issue comes without summaries")]
+    private static partial void LogLimit(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "AI not available, the rest of this issue comes without summaries: {Reason}")]
     private static partial void LogUnavailable(ILogger logger, string reason);
