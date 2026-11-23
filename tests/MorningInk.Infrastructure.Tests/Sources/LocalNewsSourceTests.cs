@@ -28,6 +28,7 @@ public sealed class LocalNewsSourceTests : IDisposable
             "/news/search" when query["fail"] is null => "LocalNews/bingnews-muenchen.xml",
             "/searxng/search" => "LocalNews/searxng-aachen.json",
             "/searxng-blocked/search" => "LocalNews/searxng-engines-failed.json",
+            "/searxng-half/search" when query["q"] == "Aachen" => "LocalNews/searxng-aachen.json", // the district's search fails
             "/searxng-locked/search" => "forbidden",
             _ => null,
         };
@@ -161,6 +162,14 @@ public sealed class LocalNewsSourceTests : IDisposable
 
         Assert.Equal("SearxngEnginesFailed", failure.Reason);
         Assert.Equal(["bing news (CAPTCHA), duckduckgo news (timeout)"], failure.Arguments);
+    }
+
+    [Fact]
+    public async Task One_place_name_failing_keeps_what_the_other_found()
+    {
+        var articles = Assert.IsType<SourceResult.Success>(await FetchAsync(Local("52062"), searxng: "/searxng-half")).Articles;
+
+        Assert.Equal(3, articles.Count);
     }
 
     [Fact]

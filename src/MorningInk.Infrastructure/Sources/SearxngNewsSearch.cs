@@ -26,27 +26,26 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
     {
         var articles = new List<FetchedArticle>();
         var unresponsive = new List<string>();
+        SourceResult.Failure? failure = null;
+        var answered = false;
         foreach (var request in RequestUrls(query, baseUrl))
         {
-            var fetched = await http.GetAsync(request, cancellationToken: cancellationToken);
-            if (fetched is not FetchResult.Success page)
+            // One place name failing keeps what the others found; it only counts when none answered.
+            var (found, failed, problem) = await SearchOneAsync(request, cancellationToken);
+            if (problem is not null)
             {
-                return fetched switch
-                {
-                    FetchResult.Failure { Error: FetchError.HttpError, Arguments: [_, Forbidden] } =>
-                        new SourceResult.Failure("SearXNG refused the JSON format; add \"json\" to search.formats in its settings.yml.", Reason: "SearxngNoJson"),
-                    FetchResult.Failure failure => failure.ToSourceFailure(),
-                    _ => new SourceResult.Failure("The news search did not answer.", Reason: "NewsSearchNoAnswer"),
-                };
+                failure ??= problem;
+                continue;
             }
 
-            if (Read(page.Content) is not var (found, failed))
-            {
-                return new SourceResult.Failure("The news search returned no readable answer.", Reason: "NewsSearchNoFeed");
-            }
-
+            answered = true;
             articles.AddRange(found);
             unresponsive.AddRange(failed);
+        }
+
+        if (!answered && failure is not null)
+        {
+            return failure;
         }
 
         // Nothing found and engines failing, e.g. blocked by a CAPTCHA: that is the reason, not a quiet day.
@@ -57,6 +56,25 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
         }
 
         return new SourceResult.Success(articles.DistinctBy(a => a.Url).ToList(), ETag: null, LastModified: null);
+    }
+
+    private async Task<(List<FetchedArticle> Found, List<string> Failed, SourceResult.Failure? Problem)> SearchOneAsync(Uri request, CancellationToken cancellationToken)
+    {
+        var fetched = await http.GetAsync(request, cancellationToken: cancellationToken);
+        if (fetched is not FetchResult.Success page)
+        {
+            return ([], [], fetched switch
+            {
+                FetchResult.Failure { Error: FetchError.HttpError, Arguments: [_, Forbidden] } =>
+                    new SourceResult.Failure("SearXNG refused the JSON format; add \"json\" to search.formats in its settings.yml.", Reason: "SearxngNoJson"),
+                FetchResult.Failure failure => failure.ToSourceFailure(),
+                _ => new SourceResult.Failure("The news search did not answer.", Reason: "NewsSearchNoAnswer"),
+            });
+        }
+
+        return Read(page.Content) is var (found, failed)
+            ? (found, failed, null)
+            : ([], [], new SourceResult.Failure("The news search returned no readable answer.", Reason: "NewsSearchNoFeed"));
     }
 
     /// <summary>The searches as sent, one per term, so they can be tried in SearXNG's own page when nothing comes back.</summary>
