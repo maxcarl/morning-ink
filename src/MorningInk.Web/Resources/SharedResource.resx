@@ -271,9 +271,9 @@
   <data name="Error_MinWordsInvalid" xml:space="preserve"><value>The minimum length must be at least 1 word.</value></data>
   <data name="Error_KeywordsInvalid" xml:space="preserve"><value>At most 50 words of up to 100 characters each.</value></data>
   <data name="Settings_Ai" xml:space="preserve"><value>AI (optional)</value></data>
-  <data name="Settings_AiHint" xml:space="preserve"><value>An OpenAI-compatible provider such as Ollama, LM Studio or OpenRouter. Without it, issues come without summaries.</value></data>
+  <data name="Settings_AiHint" xml:space="preserve"><value>An OpenAI-compatible provider: Ollama or LM Studio at home, or a cloud service such as OpenAI, Anthropic (Claude) or OpenRouter. Without it, issues come without summaries.</value></data>
   <data name="Settings_AiEndpoint" xml:space="preserve"><value>Address</value></data>
-  <data name="Settings_AiEndpointHint" xml:space="preserve"><value>For Ollama the server's address with port 11434; "/v1" is added by itself.</value></data>
+  <data name="Settings_AiEndpointHint" xml:space="preserve"><value>For Ollama the server's address with port 11434; "/v1" is added by itself. OpenAI: https://api.openai.com, Claude: https://api.anthropic.com.</value></data>
   <data name="Settings_AiModel" xml:space="preserve"><value>Model</value></data>
   <data name="Settings_AiKey" xml:space="preserve"><value>API key</value></data>
   <data name="Settings_AiKeySaved" xml:space="preserve"><value>A key is saved. Leave empty to keep it.</value></data>

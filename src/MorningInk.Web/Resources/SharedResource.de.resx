@@ -271,9 +271,9 @@
   <data name="Error_MinWordsInvalid" xml:space="preserve"><value>Die Mindestlänge muss mindestens 1 Wort sein.</value></data>
   <data name="Error_KeywordsInvalid" xml:space="preserve"><value>Höchstens 50 Wörter mit je bis zu 100 Zeichen.</value></data>
   <data name="Settings_Ai" xml:space="preserve"><value>KI (optional)</value></data>
-  <data name="Settings_AiHint" xml:space="preserve"><value>Ein OpenAI-kompatibler Anbieter wie Ollama, LM Studio oder OpenRouter. Ohne KI kommen die Ausgaben ohne Zusammenfassungen.</value></data>
+  <data name="Settings_AiHint" xml:space="preserve"><value>Ein OpenAI-kompatibler Anbieter: Ollama oder LM Studio zu Hause, oder ein Cloud-Dienst wie OpenAI, Anthropic (Claude) oder OpenRouter. Ohne KI kommen die Ausgaben ohne Zusammenfassungen.</value></data>
   <data name="Settings_AiEndpoint" xml:space="preserve"><value>Adresse</value></data>
-  <data name="Settings_AiEndpointHint" xml:space="preserve"><value>Für Ollama die Adresse des Servers mit Port 11434; „/v1“ wird selbst ergänzt.</value></data>
+  <data name="Settings_AiEndpointHint" xml:space="preserve"><value>Für Ollama die Adresse des Servers mit Port 11434; „/v1“ wird selbst ergänzt. OpenAI: https://api.openai.com, Claude: https://api.anthropic.com.</value></data>
   <data name="Settings_AiModel" xml:space="preserve"><value>Modell</value></data>
   <data name="Settings_AiKey" xml:space="preserve"><value>API-Schlüssel</value></data>
   <data name="Settings_AiKeySaved" xml:space="preserve"><value>Ein Schlüssel ist gespeichert. Leer lassen, um ihn zu behalten.</value></data>
