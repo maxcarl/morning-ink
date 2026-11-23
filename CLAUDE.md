@@ -1,114 +1,70 @@
 # CLAUDE.md – Morning Ink
 
-Morning Ink ist ein selbst gehosteter Dienst, der jeden Morgen aus RSS-Feeds und anderen Quellen eine persönliche Zeitung baut (EPUB) und sie an Kindle und andere E-Reader liefert. Er läuft als ein einziger Docker-Container, mit Weboberfläche und optionaler KI.
+Self-hosted service that builds a personal newspaper (EPUB) from feeds and other sources every morning and delivers it to Kindle and other e-readers. One Docker container, Blazor web UI, optional AI. Features: [README](README.md), ideas: [docs/roadmap.md](docs/roadmap.md), settings: [docs/configuration.md](docs/configuration.md).
 
-Das vollständige Konzept steht in `docs/konzept.md`. Lies den passenden Abschnitt, bevor du an einem Bereich arbeitest. Die Aufgaben des MVP stehen dort am Ende unter „MVP-Aufgaben“.
-
-## Tech-Stack
-
-- .NET 10 (LTS), C#, ASP.NET Core, Blazor Web App
-- EF Core mit SQLite (Postgres optional später)
-- Quartz.NET für Zeitpläne
-- SmartReader (Volltext), AngleSharp und HtmlSanitizer (HTML), SkiaSharp (Bilder)
-- MailKit (SMTP/IMAP), eigener EPUB-Writer
-- Microsoft.Extensions.AI für KI-Anbieter (Ollama, OpenAI-kompatibel, Anthropic)
-- Tests: xUnit, bUnit (interaktive Seiten), Testcontainers, NetArchTest
-- Docker-Image für amd64 und arm64
-
-## Befehle
+## Commands
 
 ```bash
-dotnet build                                   # muss ohne Warnungen durchlaufen
-dotnet test                                    # alle Tests
-dotnet format --verify-no-changes              # Formatierung prüfen (läuft auch in der CI)
-dotnet run --project src/MorningInk.Web        # lokal starten
-docker compose up --build                      # als Container starten
+dotnet build                          # must build without warnings
+dotnet test                           # all tests
+dotnet format --verify-no-changes     # formatting, also in CI
+dotnet run --project src/MorningInk.Web
+docker compose up --build
 ```
 
-## Projektstruktur
+## Architecture
 
-```
-src/
-  MorningInk.Domain/          # Modelle, Regeln, Value Objects – keine Abhängigkeiten
-  MorningInk.Application/     # Anwendungsfälle, Schnittstellen (ISource, IProcessor, IRenderer, IDelivery)
-  MorningInk.Infrastructure/  # EF Core, HTTP, Mail, KI, Dateisystem, Implementierungen der Schnittstellen
-  MorningInk.Web/             # Blazor-UI, API, Composition Root (DI-Registrierung)
-tests/
-  MorningInk.Domain.Tests/
-  MorningInk.Application.Tests/
-  MorningInk.Infrastructure.Tests/   # Integrationstests, gespeicherte Beispielseiten unter TestData/
-  MorningInk.Architecture.Tests/     # prüft die Schichtgrenzen
-  MorningInk.Web.Tests/              # startet die App im Speicher: Login, Einrichtung, keine Seite ohne Login
-docs/
-  konzept.md
-  adr/                        # Architektur-Entscheidungen
-```
+- Clean Architecture: `Domain` → `Application` → `Infrastructure` / `Web`. Dependencies point inward only; `Domain` and `Application` reference no EF Core, ASP.NET or HTTP libraries. Architecture tests enforce this; never weaken them.
+- Extensions go through interfaces (`ISource`, `IProcessor`, `IRenderer`, `IDelivery`): a new source is a new class plus registration, without reworking existing code.
+- Multi-user from the ground up: profiles, sources and credentials always belong to a user.
+- `Web` is the composition root; registrations live in per-layer extension methods, `Program.cs` stays short.
 
-## Architekturregeln
+## Decisions
 
-- Clean Architecture: Abhängigkeiten zeigen nur nach innen. `Domain` kennt nichts, `Application` kennt nur `Domain`, `Infrastructure` und `Web` kennen beide.
-- `Domain` und `Application` referenzieren weder EF Core noch ASP.NET noch HTTP-Bibliotheken.
-- Erweiterungen laufen über Schnittstellen: Eine neue Quelle ist eine neue Klasse, die `ISource` implementiert, plus Registrierung. Bestehender Code wird dafür nicht umgebaut.
-- Die Architekturtests müssen grün bleiben. Schwäche sie nie ab, um etwas zum Laufen zu bringen.
-- Das Datenmodell ist von Anfang an mehrbenutzerfähig: Profile, Quellen und Zugänge gehören immer einem Benutzer.
+- **Secrets** are encrypted with ASP.NET Data Protection via an EF value converter; the key ring is in `/data/keys`, application name fixed to `MorningInk`. Losing the keys means re-entering secrets.
+- **Web UI** renders statically by default; pages that gain from it use interactive server rendering. No page has to work in the Kindle browser. Feedback links from the EPUB hit a minimal signed GET endpoint, not a UI page. Sign-in and setup stay static.
+- **Local news** come from Bing News RSS (article URL from the link's `url` parameter, so full text works) or a self-hosted SearXNG, behind `INewsSearch`. The searched town goes to that provider.
+- **AI** is one provider type: an OpenAI-compatible chat endpoint through Microsoft.Extensions.AI (covers Ollama, LM Studio, OpenAI, Anthropic, OpenRouter). Settings live in the database, the key encrypted. Marking the provider local allows its host in the home network. AI never costs an article: any failure leaves the article as it is, and the rest of the run stops asking.
 
-## Code-Regeln
+## Code
 
-- Code, Bezeichner, Kommentare und Commit-Messages auf Englisch. Texte in der Oberfläche über Ressourcendateien (Deutsch und Englisch).
-- Nullable ist aktiviert, Warnungen gelten als Fehler. Keine `!`-Unterdrückung ohne Kommentar, warum es sicher ist.
-- Kleine Klassen mit einer Aufgabe, sprechende Namen, keine magischen Strings oder Zahlen.
-- Dependency Injection überall. Einstellungen über das Options-Pattern.
-- `TimeProvider` statt `DateTime.Now` oder `DateTimeOffset.UtcNow`, damit Zeitpläne testbar sind.
-- HTTP nur über `IHttpClientFactory` und den sicheren Client (siehe Sicherheit), nie `new HttpClient()`.
-- Erwartbare Fehler (Quelle offline, Login abgelaufen, Feed ungültig) als Ergebnis-Typ zurückgeben, nicht als Exception. Exceptions nur für echte Programmfehler.
-- Strukturiertes Logging mit Platzhaltern, nie String-Interpolation im Log-Aufruf.
-- `async` durchgehend, `CancellationToken` an jede asynchrone Methode weiterreichen.
+- Code, identifiers, comments, commits and docs in English. UI texts in resource files, English and German.
+- Nullable on, warnings are errors. No `!` without a comment on why it is safe.
+- Small single-purpose classes, no magic strings or numbers, DI everywhere, options pattern for settings.
+- `TimeProvider`, never `DateTime.Now`/`UtcNow`. HTTP only via `IHttpClientFactory` and the safe client.
+- Expected failures (source offline, login expired, invalid feed) are result types, not exceptions.
+- Structured logging with placeholders. `async` throughout, pass `CancellationToken` on.
+- XML doc comments on public types and members, plus comments that explain why.
 
-## Sicherheitsregeln (nicht verhandelbar)
+## Security (non-negotiable)
 
-Alles von außen ist nicht vertrauenswürdig: URLs, Feeds, Webseiten, Mails, KI-Antworten, Benutzereingaben.
+Everything from outside is untrusted: URLs, feeds, pages, mails, AI answers, user input.
 
-- **Abruf:** Nur `http` und `https`. Interne Adressen (localhost, 10.x, 172.16–31.x, 192.168.x, Link-Local, IPv6-Äquivalente) sind gesperrt, geprüft nach DNS-Auflösung und nach jeder Weiterleitung. Ausnahmen nur über die explizite Allowlist. Maximal 5 Weiterleitungen, Größenlimit, Timeouts.
-- **Zugangsdaten:** Nur an die eigene Domain senden. Bei Domainwechsel durch Weiterleitung fallen Header und Cookies weg. Gespeichert werden sie nur verschlüsselt (Data Protection), sie erscheinen nie in Logs, Exporten oder Fehlermeldungen.
-- **XML:** Externe Entities und DTD-Verarbeitung aus.
-- **HTML:** Vor EPUB und Web-Ansicht über eine strikte Allowlist bereinigen. Kein Script, keine Event-Handler, kein `style` mit URLs.
-- **Bilder:** Pixel- und Größenlimit prüfen, bevor dekodiert wird, immer neu kodieren.
-- **Dateien:** Dateinamen nie aus Fremdinhalt übernehmen, sondern aus Hash oder ID bilden. Alle Pfade bleiben unter dem Datenverzeichnis.
-- **Datenbank:** Nur EF Core bzw. parametrisierte Abfragen. Kein zusammengesetztes SQL.
-- **E-Mail:** Betreff und Dateinamen ohne Zeilenumbrüche.
-- **Web:** Jede Seite und jede Datei braucht Login. CSRF-Schutz für Formulare. Content-Security-Policy, Artikelvorschau in einer Sandbox-iframe.
-- **Externe Programme:** Argumente als Liste, nie über eine Shell.
-- **Feedback-Links im EPUB:** signiert (HMAC) und mit Ablaufdatum.
-
-## KI-Regeln
-
-- Artikeltext geht klar abgegrenzt als Daten an das Modell, nie als Teil der Anweisung.
-- Die KI bekommt keine Werkzeuge mit Nebenwirkungen. Ihre Antworten werden gegen ein Schema geprüft und können nie Einstellungen ändern.
-- Quellen mit „nur lokale KI“ gehen nie an einen Cloud-Anbieter.
-- Ohne erreichbare KI muss die Ausgabe trotzdem erscheinen, nur ohne KI-Extras.
-- Standard-Prompts liegen versioniert im Repo. Vom Benutzer angepasste Prompts werden bei Updates nie überschrieben.
+- **Fetching:** `http`/`https` only. Internal addresses (loopback, private ranges, link-local, IPv6 equivalents) blocked after DNS resolution and after every redirect; exceptions only via the explicit allowlist. Max 5 redirects, size limit, timeouts.
+- **Credentials:** sent only to their own domain; headers and cookies dropped on a cross-domain redirect. Stored encrypted, never in logs, exports or error messages.
+- **XML:** no external entities, no DTD processing.
+- **HTML:** strict allowlist sanitizing before EPUB and web view. No scripts, event handlers or `style` with URLs.
+- **Images:** check pixel and byte limits before decoding, always re-encode.
+- **Files:** names from hash or ID, never from foreign content; all paths stay under the data directory.
+- **Database:** EF Core or parameterized queries only.
+- **Mail:** no line breaks in subjects and file names.
+- **Web:** every page and file needs a login; CSRF protection; CSP; article preview in a sandboxed iframe.
+- **External programs:** arguments as a list, never through a shell.
+- **EPUB feedback links:** HMAC-signed with expiry.
+- **AI:** article text goes to the model fenced as data, never as instructions. No tools with side effects; answers are validated and can never change settings. "Local AI only" sources never go to a cloud provider. Without AI the issue still appears. Default prompts are versioned in the repo; user prompts are never overwritten.
 
 ## Tests
 
-- Schreib zuerst die Tests aus dem Abnahmekriterium der Aufgabe, dann die Umsetzung.
-- Unit-Tests für `Domain` und `Application`, Integrationstests für `Infrastructure`.
-- Keine echten Netzwerkaufrufe in Tests. Gespeicherte Feeds und Seiten liegen unter `TestData/`.
-- Jedes erzeugte EPUB wird in der CI mit epubcheck geprüft.
-- Sicherheitsregeln bekommen eigene Tests, z. B. für Weiterleitungen ins Heimnetz und für `file:`-URLs.
+- Write the tests for the task's acceptance criterion first.
+- Unit tests for `Domain` and `Application`, integration tests for `Infrastructure`, in-memory app tests and bUnit for `Web`.
+- No real network calls; saved feeds and pages live under `TestData/`, with neutral names and places.
+- Every EPUB the tests build is checked with epubcheck in CI.
+- Security rules get their own tests (redirects into the home network, `file:` URLs, …).
 
-## Arbeitsweise
+## Workflow
 
-- Eine Aufgabe (ein Issue) pro Sitzung. Fass keinen Code an, der nicht zur Aufgabe gehört.
-- Neue NuGet-Pakete nur nach Rückfrage. Lizenz prüfen und im PR nennen.
-- Größere Entscheidungen als kurze ADR unter `docs/adr/` festhalten.
-- Kleine Commits mit Conventional Commits (`feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`).
-- Wenn das Konzept und eine Aufgabe sich widersprechen oder etwas unklar ist: nachfragen, nicht raten.
-- Ändert sich durch die Arbeit etwas am Konzept, schlag die Änderung an `docs/konzept.md` mit vor.
-
-## Definition of Done
-
-- Das „Fertig, wenn“ der Aufgabe ist erfüllt und durch Tests belegt.
-- `dotnet build` ohne Warnungen, `dotnet test` grün, `dotnet format` ohne Änderungen.
-- Architekturtests grün.
-- Keine Geheimnisse, Zugangsdaten oder persönlichen Daten im Code, in Tests oder in Logs.
-- Neue Einstellungen sind dokumentiert, neue UI-Texte stehen in beiden Ressourcendateien.
+- One task per session; don't touch unrelated code.
+- Ask before adding a NuGet package; check its license and add it to `THIRD-PARTY-NOTICES.md`.
+- Small commits, Conventional Commits (`feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`).
+- When something is unclear or contradicts the roadmap: ask, don't guess.
+- Done means: acceptance criterion met and tested, build without warnings, tests green, format clean, no secrets or personal data, new settings documented in `docs/configuration.md`, new UI texts in both resource files.

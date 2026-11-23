@@ -8,7 +8,7 @@ namespace MorningInk.Infrastructure.Sources;
 
 /// <summary>
 /// News search via Bing News RSS. Unlike Google News, its links carry the publisher's address and each result has a
-/// teaser, so local news can be read in full like any feed (see ADR 0003). The search terms, i.e. towns, go to Microsoft.
+/// teaser, so local news can be read in full like any feed. The search terms, i.e. towns, go to Microsoft.
 /// </summary>
 /// <remarks>The RSS output is not an official API; should it change, the source reports a failure and the issue appears without it.</remarks>
 internal sealed class BingNewsSearch(SafeHttpClient http, IOptions<NewsSearchOptions> options)

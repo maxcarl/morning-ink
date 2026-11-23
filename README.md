@@ -139,13 +139,11 @@ dotnet format --verify-no-changes     # formatting check, also run in CI
 dotnet run --project src/MorningInk.Web
 ```
 
-The code follows Clean Architecture (`Domain`, `Application`, `Infrastructure`, `Web`), and architecture tests enforce the layer boundaries. Design decisions are in [docs/adr](docs/adr). The full design, in German, is in [docs/konzept.md](docs/konzept.md).
+The code follows Clean Architecture (`Domain`, `Application`, `Infrastructure`, `Web`), and architecture tests enforce the layer boundaries. Conventions and design decisions are in [CLAUDE.md](CLAUDE.md).
 
 ## Roadmap
 
-1. **First release:** feeds, full text, local news, weather, EPUB, Kindle delivery, web UI, setup wizard. Done except the seven-day trial run. Progress: [concept](docs/konzept.md#mvp-aufgaben).
-2. **Comfort:** several editions, filters, merged duplicates and the archive are done. Next: preview, OPML import, interests, several users, OPDS and more readers.
-3. **AI:** summaries, an earlier start for slow models, a daily limit, a record of requests, the daily overview, neutral headlines and interests by AI are done. Next: topic clusters, translation.
+The first release is feature-complete and in its seven-day trial run. What could come next is in [docs/roadmap.md](docs/roadmap.md).
 
 ## Contributing
 
