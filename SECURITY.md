@@ -6,7 +6,7 @@ Morning Ink fetches untrusted content from the internet and stores credentials, 
 
 Please **do not open a public issue**. Report it privately through [GitHub's vulnerability reporting](https://github.com/maxcarl/morning-ink/security/advisories/new) instead.
 
-Include what you found, how to reproduce it and which version or image tag you used. You will get an answer within a week. Once a fix is released, the advisory is published with credit to you, unless you prefer otherwise.
+Include what you found, how to reproduce it and which version or image tag you used. Morning Ink is maintained in spare time, so there is no guaranteed response time, but reports are taken seriously and answered as soon as possible. Once a fix is released, the advisory is published with credit to you, unless you prefer otherwise.
 
 ## Supported versions
 
