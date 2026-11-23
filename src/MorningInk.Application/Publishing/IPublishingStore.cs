@@ -36,4 +36,10 @@ public sealed record PublishingProfile(Profile Profile, string Language)
     /// first within a section, after the edition's interests.
     /// </summary>
     public IReadOnlyDictionary<Guid, int> SourceLeanings { get; init; } = new Dictionary<Guid, int>();
+
+    /// <summary>Headlines the reader lately wanted more of, newest first: with AI, similar articles come first too.</summary>
+    public IReadOnlyList<string> LikedTitles { get; init; } = [];
+
+    /// <summary>Headlines the reader lately wanted less of, newest first: with AI, similar articles go to the back.</summary>
+    public IReadOnlyList<string> DislikedTitles { get; init; } = [];
 }

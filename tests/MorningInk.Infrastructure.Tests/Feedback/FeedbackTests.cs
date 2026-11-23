@@ -94,6 +94,8 @@ public sealed class FeedbackTests : IDisposable
         var loaded = await check.ServiceProvider.GetRequiredService<IPublishingStore>().LoadProfileAsync(profileId, CancellationToken.None);
 
         Assert.Equal(1, loaded!.SourceLeanings[source]);
+        Assert.Equal(["a", "b"], loaded.LikedTitles); // newest first: examples for the AI
+        Assert.Equal(["c"], loaded.DislikedTitles);
     }
 
     public void Dispose() => _host.Dispose();

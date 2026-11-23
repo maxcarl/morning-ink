@@ -28,4 +28,7 @@ public sealed record FetchedArticle(
     /// only bring the discussion page around it.
     /// </summary>
     public bool IsComplete { get; init; }
+
+    /// <summary>The source's own headline, when the AI rewrote a lurid one plainly into <see cref="Title"/>.</summary>
+    public string? OriginalTitle { get; init; }
 }

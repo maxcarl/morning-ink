@@ -212,12 +212,23 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("HeadlinesPrompt")
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("InterestsPrompt")
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsLocal")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Model")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("NeutralHeadlines")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("OverviewPrompt")
                         .HasMaxLength(4000)

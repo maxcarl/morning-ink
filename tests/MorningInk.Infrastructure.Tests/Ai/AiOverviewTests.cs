@@ -106,15 +106,15 @@ public sealed class AiOverviewTests : IDisposable
 
     public void Dispose() => _host.Dispose();
 
-    private static List<OverviewCandidate> Articles(params string[] titles) =>
-        [.. titles.Select((title, i) => new OverviewCandidate(
+    private static List<AiCandidate> Articles(params string[] titles) =>
+        [.. titles.Select((title, i) => new AiCandidate(
             new IssueArticle(new FetchedArticle(null, title, new Uri($"https://example.com/{i}"), null, null, $"<p>Anriss zu {title}.</p>", null), "Feed"),
             LocalAiOnly: false))];
 
-    private static async Task<IReadOnlyList<OverviewItem>?> WriteAsync(IServiceProvider services, List<OverviewCandidate> articles)
+    private static async Task<IReadOnlyList<OverviewItem>?> WriteAsync(IServiceProvider services, List<AiCandidate> articles)
     {
         await using var scope = services.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<IIssueOverview>().WriteAsync(new OverviewRequest(Guid.NewGuid(), "Morning Ink", "de", articles), CancellationToken.None);
+        return await scope.ServiceProvider.GetRequiredService<IIssueOverview>().WriteAsync(new IssueAiRequest(Guid.NewGuid(), "Morning Ink", "de", articles), CancellationToken.None);
     }
 
     private async Task<ServiceProvider> StartAsync(FakeChatServer ai, bool isLocal = true, int? dailyLimit = null, string? overviewPrompt = null)

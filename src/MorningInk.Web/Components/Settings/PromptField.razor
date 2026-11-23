@@ -1,0 +1,37 @@
+@using MorningInk.Infrastructure.Ai
+
+@* One editable AI prompt: starts from the versioned default and can always go back to it. *@
+<div class="field">
+    <label for="@Id">@Label</label>
+    <textarea id="@Id" class="input" rows="7" maxlength="@AiSettingsStore.MaxPromptLength" value="@Value" @onchange="ChangedAsync" aria-describedby="@HintId"></textarea>
+    <span id="@HintId" class="hint">@Hint</span>
+    @if (Value?.Trim() != Default)
+    {
+        @* Saved as "no own prompt", so later improvements to the default arrive. *@
+        <div><button type="button" class="link-button" @onclick="() => ValueChanged.InvokeAsync(Default)">@T["Settings_AiPromptRestore"]</button></div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Hint { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Default { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    private string HintId => $"{Id}-hint";
+
+    private Task ChangedAsync(ChangeEventArgs e) => ValueChanged.InvokeAsync(e.Value?.ToString());
+}

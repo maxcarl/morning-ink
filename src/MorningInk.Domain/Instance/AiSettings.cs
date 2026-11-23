@@ -37,4 +37,13 @@ public class AiSettings
     /// The answer's format and the rule that articles are data are added by the code.
     /// </summary>
     public string? OverviewPrompt { get; set; }
+
+    /// <summary>Whether lurid headlines are rewritten plainly; off by default, since it changes what the publisher wrote.</summary>
+    public bool NeutralHeadlines { get; set; }
+
+    /// <summary>The admin's own instructions for neutral headlines, like <see cref="SummaryPrompt"/>; null uses the default.</summary>
+    public string? HeadlinesPrompt { get; set; }
+
+    /// <summary>The admin's own instructions for recognizing interests, like <see cref="SummaryPrompt"/>; null uses the default.</summary>
+    public string? InterestsPrompt { get; set; }
 }

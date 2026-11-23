@@ -4,11 +4,15 @@ using MorningInk.Domain;
 namespace MorningInk.Application.Processing;
 
 /// <summary>An edition's interests applied to an article: a score to sort by, and topics to leave out.</summary>
-/// <remarks>The keywords decide; an AI that recognizes a topic without its exact keywords can come later.</remarks>
+/// <remarks>
+/// An article is about an interest when one of its keywords is in headline or teaser, or when the AI recognized the
+/// topic in it. Without AI the keywords decide alone.
+/// </remarks>
 public static class Interests
 {
-    public static int Score(FetchedArticle article, IReadOnlyList<Interest> interests) =>
-        interests.Where(i => Matches(article, i)).Sum(i => i.Weight switch
+    /// <param name="recognized">The interests the AI found in this article; null without AI.</param>
+    public static int Score(FetchedArticle article, IReadOnlyList<Interest> interests, IReadOnlySet<Interest>? recognized = null) =>
+        interests.Where(i => Matches(article, i, recognized)).Sum(i => i.Weight switch
         {
             InterestWeight.StrongPrefer => 2,
             InterestWeight.Prefer => 1,
@@ -16,9 +20,10 @@ public static class Interests
             _ => 0,
         });
 
-    public static bool Hides(FetchedArticle article, IReadOnlyList<Interest> interests) =>
-        interests.Any(i => i.Weight == InterestWeight.Hide && Matches(article, i));
+    /// <param name="recognized">The interests the AI found in this article; null without AI.</param>
+    public static bool Hides(FetchedArticle article, IReadOnlyList<Interest> interests, IReadOnlySet<Interest>? recognized = null) =>
+        interests.Any(i => i.Weight == InterestWeight.Hide && Matches(article, i, recognized));
 
-    private static bool Matches(FetchedArticle article, Interest interest) =>
-        interest.Keywords.Any(keyword => ArticleFilter.Mentions(article, keyword));
+    public static bool Matches(FetchedArticle article, Interest interest, IReadOnlySet<Interest>? recognized = null) =>
+        recognized?.Contains(interest) == true || interest.Keywords.Any(keyword => ArticleFilter.Mentions(article, keyword));
 }

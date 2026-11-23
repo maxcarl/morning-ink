@@ -39,6 +39,7 @@
   <data name="NoticeTest" xml:space="preserve"><value>Testnachricht von Morning Ink: Benachrichtigungen kommen hier an.</value></data>
   <data name="NoticeDelivered" xml:space="preserve"><value>{0} Nr. {1} ist da: {2} Artikel.</value></data>
   <data name="NoticeFailed" xml:space="preserve"><value>{0} Nr. {1} konnte nicht zugestellt werden: {2}</value></data>
+  <data name="OriginalTitle" xml:space="preserve"><value>Originaltitel: {0}</value></data>
   <data name="BackToContents" xml:space="preserve"><value>Zum Inhaltsverzeichnis</value></data>
   <data name="FeedbackMore" xml:space="preserve"><value>Mehr davon</value></data>
   <data name="FeedbackLess" xml:space="preserve"><value>Weniger davon</value></data>

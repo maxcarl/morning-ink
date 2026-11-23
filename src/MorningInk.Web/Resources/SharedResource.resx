@@ -392,8 +392,8 @@
   <data name="Sources_Reason_NotIncluded" xml:space="preserve"><value>None of the required words</value></data>
   <data name="Sources_Reason_TooShort" xml:space="preserve"><value>Fewer than {0} words</value></data>
   <data name="Interests_How" xml:space="preserve"><value>How it works</value></data>
-  <data name="Interests_HowTopic" xml:space="preserve"><value>The topic is just a name for you, e.g. “Football”. It is not searched for.</value></data>
-  <data name="Interests_HowKeywords" xml:space="preserve"><value>The keywords decide: if one of them is in the headline or teaser, the article belongs to the topic. Whole words count, upper or lower case: “football” finds “football-mad”, not “footballer”. A star at the end counts every word that starts so: “football*” also finds “footballer” and “footballers”.</value></data>
+  <data name="Interests_HowTopic" xml:space="preserve"><value>The topic is its name, e.g. “Football”. With AI, the AI reads the topic and recognizes fitting articles without a keyword, like “Kane scores twice”. Without AI the topic is not searched for.</value></data>
+  <data name="Interests_HowKeywords" xml:space="preserve"><value>The keywords always count, with or without AI: if one of them is in the headline or teaser, the article belongs to the topic. Whole words count, upper or lower case: “football” finds “football-mad”, not “footballer”. A star at the end counts every word that starts so: “football*” also finds “footballer” and “footballers”.</value></data>
   <data name="Interests_HowWeight" xml:space="preserve"><value>“Leave out” always removes matching articles. “Prefer” and “less” only change the order: when a section has more articles than its limit, preferred ones come first and “less” ones last, so those are dropped first.</value></data>
   <data name="Interests_HowExamples" xml:space="preserve"><value>Examples to leave out:</value></data>
   <data name="Interests_ExampleFootball" xml:space="preserve"><value>Football: football*, Premier League, Champions League, World Cup, penalty</value></data>
@@ -611,7 +611,7 @@
   <data name="Settings_AiOverviewPromptHint" xml:space="preserve"><value>What the AI is told when it picks the main news. {count} and {language} are filled in. The answer format and the rule that articles are only data are always added.</value></data>
   <data name="Settings_Error_AiOverviewPrompt" xml:space="preserve"><value>The instructions may have at most 4,000 characters.</value></data>
   <data name="Feedback_Title" xml:space="preserve"><value>Feedback from the reader</value></data>
-  <data name="Feedback_Hint" xml:space="preserve"><value>What you said with “More of this” and “Less of this” under the articles. It counts for the source, not the topic: articles from sources you want more of come first within their section, those you want less of last, for two months. Topics are set above, under interests.</value></data>
+  <data name="Feedback_Hint" xml:space="preserve"><value>What you said with “More of this” and “Less of this” under the articles, for two months. Without AI it counts for the source only: articles from sources you want more of come first within their section, those you want less of last. With AI it counts for the topic too: new articles like the ones you liked move forward, those like the ones you disliked move back. Nothing is left out this way; only the interests above do that.</value></data>
   <data name="Feedback_None" xml:space="preserve"><value>Nothing yet. The links appear under the articles once a public address is set (Web__PublicUrl).</value></data>
   <data name="Feedback_More" xml:space="preserve"><value>More from {0}</value></data>
   <data name="Feedback_Less" xml:space="preserve"><value>Less from {0}</value></data>
@@ -633,4 +633,20 @@
   <data name="Source_SubredditInvalid" xml:space="preserve"><value>This Reddit source names no subreddit.</value></data>
   <data name="Source_CommunityNoAnswer" xml:space="preserve"><value>{0} did not answer.</value></data>
   <data name="Source_CommunityNoList" xml:space="preserve"><value>{0} returned no readable list.</value></data>
+  <data name="Settings_AiHeadlines" xml:space="preserve"><value>Plain headlines</value></data>
+  <data name="Settings_AiHeadlinesHint" xml:space="preserve"><value>The AI rewrites lurid headlines plainly, one request per issue. The original headline stays below in small print.</value></data>
+  <data name="Settings_AiPrompts" xml:space="preserve"><value>Instructions for the AI</value></data>
+  <data name="Settings_AiHeadlinesPrompt" xml:space="preserve"><value>Instructions for plain headlines</value></data>
+  <data name="Settings_AiHeadlinesPromptHint" xml:space="preserve"><value>What the AI is told with all headlines of the issue. The answer format and the rule that articles are only data are always added.</value></data>
+  <data name="Settings_AiInterestsPrompt" xml:space="preserve"><value>Instructions for interests</value></data>
+  <data name="Settings_AiInterestsPromptHint" xml:space="preserve"><value>What the AI is told when it sorts new articles into an edition's interests, 40 articles at a time. The answer format and the rule that topics and articles are only data are always added.</value></data>
+  <data name="Settings_Error_AiHeadlinesPrompt" xml:space="preserve"><value>The instructions may have at most 4,000 characters.</value></data>
+  <data name="Settings_Error_AiInterestsPrompt" xml:space="preserve"><value>The instructions may have at most 4,000 characters.</value></data>
+  <data name="Log_Overview" xml:space="preserve"><value>Overview with {0} items</value></data>
+  <data name="Log_OverviewSkipped" xml:space="preserve"><value>No overview: AI not set up or not reachable</value></data>
+  <data name="Log_Headlines" xml:space="preserve"><value>{0} headlines rewritten plainly</value></data>
+  <data name="Log_InterestsRecognized" xml:space="preserve"><value>AI recognized interests in {0} articles</value></data>
+  <data name="Log_InterestMatched" xml:space="preserve"><value>Interest “{0}” fits {1} new articles</value></data>
+  <data name="Log_LikedMatched" xml:space="preserve"><value>{0} new articles are like those you wanted more of</value></data>
+  <data name="Log_DislikedMatched" xml:space="preserve"><value>{0} new articles are like those you wanted less of</value></data>
 </root>

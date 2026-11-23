@@ -25,6 +25,8 @@ public sealed class IssuePublisherTests : IDisposable
     private readonly FakeWeather _weather = new();
     private readonly FakeNotifier _notifier = new();
     private readonly FakeOverview _overview = new();
+    private readonly FakeHeadlines _headlines = new();
+    private readonly FakeInterestMatcher _matcher = new();
 
     public IssuePublisherTests()
     {
@@ -526,6 +528,99 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task The_ai_recognizes_an_interest_without_its_keywords_and_the_log_names_it()
+    {
+        _profile.Interests = [new Interest { Topic = "Fußball", Keywords = ["Bundesliga"], Weight = InterestWeight.Hide }];
+        _matcher.Topics["Kane"] = "Fußball";
+        Answer(_tagesschau, Titled("Kane trifft doppelt für die Bayern", "Haushalt beschlossen"));
+
+        await PublishAsync();
+
+        var news = Assert.Single(_renderer.Rendered).Sections.Single(s => s.Name == "Nachrichten");
+        Assert.Equal(["Haushalt beschlossen"], news.Articles.Select(a => a.Article.Title));
+        var log = Assert.Single(_store.Issues).Log;
+        Assert.Contains(log, e => e.Event == "InterestMatched" && e.Arguments.SequenceEqual(["Fußball", "1"]));
+        Assert.Contains(log, e => e.Event == "InterestsRecognized" && e.Arguments[0] == "1");
+    }
+
+    [Fact]
+    public async Task Without_ai_only_the_keywords_count()
+    {
+        _profile.Interests = [new Interest { Topic = "Fußball", Keywords = ["Bundesliga"], Weight = InterestWeight.Hide }];
+        _matcher.Topics["Kane"] = "Fußball";
+        _matcher.Available = false;
+        Answer(_tagesschau, Titled("Kane trifft doppelt für die Bayern", "Bundesliga: Spieltag", "Haushalt beschlossen"));
+
+        await PublishAsync();
+
+        var news = Assert.Single(_renderer.Rendered).Sections.Single(s => s.Name == "Nachrichten");
+        Assert.Equal(["Kane trifft doppelt für die Bayern", "Haushalt beschlossen"], news.Articles.Select(a => a.Article.Title));
+        Assert.Contains(Assert.Single(_store.Issues).Log, e => e.Event == "InterestMatched" && e.Arguments.SequenceEqual(["Fußball", "1"]));
+    }
+
+    [Fact]
+    public async Task The_preview_without_ai_does_not_ask_it_about_interests()
+    {
+        _profile.Interests = [new Interest { Topic = "Fußball", Keywords = ["Bundesliga"], Weight = InterestWeight.Hide }];
+
+        await CreatePublisher().PreviewAsync(_profile.Id, withAi: false, CancellationToken.None);
+
+        Assert.Empty(_matcher.Requests);
+    }
+
+    [Fact]
+    public async Task Articles_like_the_ones_the_reader_wanted_more_of_come_first()
+    {
+        _store.Liked.Add("Rakete erreicht den Mond");
+        _store.Disliked.Add("Promi heiratet");
+        _matcher.Topics["Raumfahrt"] = "Similar to these articles the reader wanted more of";
+        _profile.Sections.Single(s => s.Name == "Nachrichten").MaxArticles = 1;
+        Answer(_tagesschau, Titled("Neues vom Wetter", "Raumfahrt: Start geglückt"));
+
+        await PublishAsync();
+
+        var liked = Assert.Single(_matcher.Requests).Interests.Single(i => i.Weight == InterestWeight.Prefer);
+        Assert.Contains("\"Rakete erreicht den Mond\"", liked.Topic, StringComparison.Ordinal); // the titles go to the AI as examples
+        Assert.Contains(_matcher.Requests[0].Interests, i => i.Weight == InterestWeight.Less && i.Topic.Contains("Promi heiratet", StringComparison.Ordinal));
+        var news = Assert.Single(_renderer.Rendered).Sections.Single(s => s.Name == "Nachrichten");
+        Assert.Equal("Raumfahrt: Start geglückt", Assert.Single(news.Articles).Article.Title); // older, but like a liked one
+        Assert.Contains(_store.Issues.Single().Log, e => e.Event == "LikedMatched" && e.Arguments[0] == "1");
+    }
+
+    [Fact]
+    public async Task A_failing_interest_step_costs_only_the_ai_sorting()
+    {
+        _profile.Interests = [new Interest { Topic = "Fußball", Keywords = ["Bundesliga"], Weight = InterestWeight.Hide }];
+        _matcher.Throws = true;
+
+        Assert.IsType<PublishResult.Delivered>(await PublishAsync());
+    }
+
+    [Fact]
+    public async Task A_lurid_headline_is_replaced_and_the_original_kept_before_the_overview_quotes_it()
+    {
+        _profile.Sections.Add(new Section { Name = "Das Wichtigste", Position = 0, Kind = SectionKind.Overview });
+        Answer(_tagesschau, Titled("Unglaublich, was in Berlin passiert", "Haushalt beschlossen"));
+
+        await PublishAsync();
+
+        var article = Assert.Single(_renderer.Rendered).Sections.SelectMany(s => s.Articles).Single(a => a.Article.OriginalTitle is not null).Article;
+        Assert.Equal(("Sachlich: Unglaublich, was in Berlin passiert", "Unglaublich, was in Berlin passiert"), (article.Title, article.OriginalTitle));
+        Assert.Contains(Assert.Single(_overview.Requests).Articles, a => a.Article.Article.Title.StartsWith("Sachlich", StringComparison.Ordinal));
+        Assert.Contains(_store.Issues.Single().Log, e => e.Event == "Headlines" && e.Arguments[0] == "1");
+    }
+
+    [Fact]
+    public async Task The_preview_without_ai_keeps_the_headlines()
+    {
+        Answer(_tagesschau, Titled("Unglaublich, was in Berlin passiert"));
+
+        await CreatePublisher().PreviewAsync(_profile.Id, withAi: false, CancellationToken.None);
+
+        Assert.All(Assert.Single(_renderer.Rendered).Sections.SelectMany(s => s.Articles), a => Assert.Null(a.Article.OriginalTitle));
+    }
+
+    [Fact]
     public async Task Building_an_issue_is_logged_step_by_step()
     {
         Answer(_heise, new SourceResult.Failure("heise.de could not be reached."));
@@ -620,6 +715,12 @@ public sealed class IssuePublisherTests : IDisposable
         ETag: null,
         LastModified: null);
 
+    // Newest first, like Articles, with headlines to match interests and rewrite.
+    private static SourceResult.Success Titled(params string[] titles) => new(
+        titles.Select((title, i) => new FetchedArticle($"id:{i}", title, new Uri($"https://tagesschau.de/{i}"), Slot.AddHours(-1 - i), null, null, "<p>Text</p>")).ToList(),
+        ETag: null,
+        LastModified: null);
+
     private Task<PublishResult> PublishAsync(DateTimeOffset? slot = null) =>
         CreatePublisher().PublishAsync(_profile.Id, slot ?? Slot, CancellationToken.None);
 
@@ -628,7 +729,7 @@ public sealed class IssuePublisherTests : IDisposable
         var time = new FixedTimeProvider(Slot);
         return new(
             _store,
-            new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], _overview, _geocoder, _weather, time),
+            new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], new IssueAiSteps(_matcher, _headlines, _overview, time), _geocoder, _weather, time),
             new IssueRelease(_store, [_sources], _seen, _delivery, _files, _notifier, time),
             [_renderer],
             new FakeFeedbackLinks(),

@@ -12,6 +12,9 @@ internal sealed class PublishingStore(MorningInkDbContext db, TimeProvider time)
     // Feedback counts this long, so a taste can change again.
     private static readonly TimeSpan FeedbackWindow = TimeSpan.FromDays(60);
 
+    // The newest answers the AI gets as examples of what the reader likes and does not; more make the request long for little gain.
+    private const int FeedbackExamples = 10;
+
     public async Task<PublishingProfile?> LoadProfileAsync(Guid profileId, CancellationToken cancellationToken)
     {
         var profile = await db.Profiles
@@ -29,20 +32,22 @@ internal sealed class PublishingStore(MorningInkDbContext db, TimeProvider time)
         var language = countryLanguage is not null && Rendering.EpubTexts.Exist(countryLanguage)
             ? countryLanguage
             : await db.DomainUsers.Where(u => u.Id == profile.UserId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken);
-        return new PublishingProfile(profile, language ?? FallbackLanguage) { SourceLeanings = await LeaningsAsync(profileId, cancellationToken) };
-    }
-
-    // Per source: one up for every "more", one down for every "less", within the window.
-    private async Task<Dictionary<Guid, int>> LeaningsAsync(Guid profileId, CancellationToken cancellationToken)
-    {
         var since = time.GetUtcNow() - FeedbackWindow;
         var feedback = await db.Feedback
-            .Where(f => f.ProfileId == profileId && f.SourceId != null && f.At >= since)
-            .Select(f => new { f.SourceId, f.Kind })
+            .Where(f => f.ProfileId == profileId && f.At >= since)
+            .OrderByDescending(f => f.At)
+            .Select(f => new { f.SourceId, f.Kind, f.ArticleTitle })
             .ToListAsync(cancellationToken);
-        return feedback
-            .GroupBy(f => f.SourceId!.Value) // ! is safe: filtered in the query
-            .ToDictionary(g => g.Key, g => g.Sum(f => f.Kind == FeedbackKind.More ? 1 : -1));
+        return new PublishingProfile(profile, language ?? FallbackLanguage)
+        {
+            // Per source: one up for every "more", one down for every "less", within the window.
+            SourceLeanings = feedback
+                .Where(f => f.SourceId is not null)
+                .GroupBy(f => f.SourceId!.Value) // ! is safe: filtered just above
+                .ToDictionary(g => g.Key, g => g.Sum(f => f.Kind == FeedbackKind.More ? 1 : -1)),
+            LikedTitles = [.. feedback.Where(f => f.Kind == FeedbackKind.More).Select(f => f.ArticleTitle).Take(FeedbackExamples)],
+            DislikedTitles = [.. feedback.Where(f => f.Kind == FeedbackKind.Less).Select(f => f.ArticleTitle).Take(FeedbackExamples)],
+        };
     }
 
     public async Task<IReadOnlyList<ProfileSchedule>> ListSchedulesAsync(CancellationToken cancellationToken) =>

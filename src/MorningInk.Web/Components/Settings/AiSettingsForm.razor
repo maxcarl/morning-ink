@@ -38,23 +38,18 @@
             <span id="ai-limit-hint" class="hint">@T["Settings_AiLimitHint"]</span>
         </div>
         <div class="field">
-            <label for="ai-prompt">@T["Settings_AiPrompt"]</label>
-            <textarea id="ai-prompt" class="input" rows="7" maxlength="@AiSettingsStore.MaxPromptLength" @bind="_prompt" aria-describedby="ai-prompt-hint"></textarea>
-            <span id="ai-prompt-hint" class="hint">@T["Settings_AiPromptHint"]</span>
-            @if (_prompt?.Trim() != AiSettingsStore.DefaultSummaryPrompt)
-            {
-                <div><button type="button" class="link-button" @onclick="RestorePrompt">@T["Settings_AiPromptRestore"]</button></div>
-            }
+            <label class="checkbox"><input id="ai-headlines" type="checkbox" @bind="_neutralHeadlines" aria-describedby="ai-headlines-hint" /> @T["Settings_AiHeadlines"]</label>
+            <span id="ai-headlines-hint" class="hint">@T["Settings_AiHeadlinesHint"]</span>
         </div>
-        <div class="field">
-            <label for="ai-overview-prompt">@T["Settings_AiOverviewPrompt"]</label>
-            <textarea id="ai-overview-prompt" class="input" rows="7" maxlength="@AiSettingsStore.MaxPromptLength" @bind="_overviewPrompt" aria-describedby="ai-overview-prompt-hint"></textarea>
-            <span id="ai-overview-prompt-hint" class="hint">@T["Settings_AiOverviewPromptHint"]</span>
-            @if (_overviewPrompt?.Trim() != AiSettingsStore.DefaultOverviewPrompt)
-            {
-                <div><button type="button" class="link-button" @onclick="RestoreOverviewPrompt">@T["Settings_AiPromptRestore"]</button></div>
-            }
-        </div>
+
+        @* Folded away: most never change them, and four long fields make the page long on a phone. *@
+        <details class="field" open="@_promptsOpen">
+            <summary class="link-button">@T["Settings_AiPrompts"]</summary>
+            <PromptField Id="ai-prompt" Label="@T["Settings_AiPrompt"]" Hint="@T["Settings_AiPromptHint"]" Default="@AiSettingsStore.DefaultSummaryPrompt" @bind-Value="_prompt" />
+            <PromptField Id="ai-overview-prompt" Label="@T["Settings_AiOverviewPrompt"]" Hint="@T["Settings_AiOverviewPromptHint"]" Default="@AiSettingsStore.DefaultOverviewPrompt" @bind-Value="_overviewPrompt" />
+            <PromptField Id="ai-headlines-prompt" Label="@T["Settings_AiHeadlinesPrompt"]" Hint="@T["Settings_AiHeadlinesPromptHint"]" Default="@AiSettingsStore.DefaultHeadlinesPrompt" @bind-Value="_headlinesPrompt" />
+            <PromptField Id="ai-interests-prompt" Label="@T["Settings_AiInterestsPrompt"]" Hint="@T["Settings_AiInterestsPromptHint"]" Default="@AiSettingsStore.DefaultInterestsPrompt" @bind-Value="_interestsPrompt" />
+        </details>
         <div class="row-actions">
             <button type="submit" class="button" disabled="@_busy">@T["Settings_Save"]</button>
             <button type="button" class="button button-secondary" disabled="@_busy" @onclick="TestAsync">@(_busy ? T["Settings_AiTesting"] : T["Settings_AiTest"])</button>
@@ -73,6 +68,10 @@
     private int? _limit;
     private string? _prompt;
     private string? _overviewPrompt;
+    private string? _headlinesPrompt;
+    private string? _interestsPrompt;
+    private bool _neutralHeadlines;
+    private bool _promptsOpen;
     private bool _busy;
 
     [Parameter]
@@ -99,16 +98,17 @@
         _limit = ai.DailyLimit;
         _prompt = ai.SummaryPrompt ?? AiSettingsStore.DefaultSummaryPrompt;
         _overviewPrompt = ai.OverviewPrompt ?? AiSettingsStore.DefaultOverviewPrompt;
+        _headlinesPrompt = ai.HeadlinesPrompt ?? AiSettingsStore.DefaultHeadlinesPrompt;
+        _interestsPrompt = ai.InterestsPrompt ?? AiSettingsStore.DefaultInterestsPrompt;
+        _neutralHeadlines = ai.NeutralHeadlines;
+
+        // Open when one is the admin's own, so a changed prompt is never out of sight.
+        _promptsOpen = new[] { ai.SummaryPrompt, ai.OverviewPrompt, ai.HeadlinesPrompt, ai.InterestsPrompt }.Any(p => p is not null);
     }
-
-    // Back to the versioned default; saved as "no own prompt", so later improvements to it arrive.
-    private void RestorePrompt() => _prompt = AiSettingsStore.DefaultSummaryPrompt;
-
-    private void RestoreOverviewPrompt() => _overviewPrompt = AiSettingsStore.DefaultOverviewPrompt;
 
     private async Task SaveAsync()
     {
-        var input = new AiSettingsInput(_endpoint, _model, _key, _local, _summaries, _enabled, _limit, _prompt, _overviewPrompt);
+        var input = new AiSettingsInput(_endpoint, _model, _key, _local, _summaries, _enabled, _limit, _prompt, _overviewPrompt, _neutralHeadlines, _headlinesPrompt, _interestsPrompt);
         var errors = await Scopes.RunAsync<AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Cancellation));
         if (errors.Count > 0)
         {

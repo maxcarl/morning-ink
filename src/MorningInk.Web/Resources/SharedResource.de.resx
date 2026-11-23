@@ -392,8 +392,8 @@
   <data name="Sources_Reason_NotIncluded" xml:space="preserve"><value>Keins der gewünschten Wörter</value></data>
   <data name="Sources_Reason_TooShort" xml:space="preserve"><value>Weniger als {0} Wörter</value></data>
   <data name="Interests_How" xml:space="preserve"><value>So funktioniert’s</value></data>
-  <data name="Interests_HowTopic" xml:space="preserve"><value>Thema ist nur ein Name für dich, z. B. „Fußball“. Danach wird nicht gesucht.</value></data>
-  <data name="Interests_HowKeywords" xml:space="preserve"><value>Die Stichwörter entscheiden: Steht eins davon in Überschrift oder Anriss, gehört der Artikel zum Thema. Es zählen ganze Wörter, groß oder klein egal: „Fußball“ findet „Fußball-WM“, aber nicht „Fußballer“. Mit Stern am Ende zählt jedes Wort, das so anfängt: „Fußball*“ findet auch „Fußballer“ und „Fußballspiel“.</value></data>
+  <data name="Interests_HowTopic" xml:space="preserve"><value>Das Thema ist der Name, z. B. „Fußball“. Mit KI liest sie das Thema und erkennt passende Artikel auch ohne Stichwort, etwa „Kane trifft doppelt“. Ohne KI wird nach dem Thema nicht gesucht.</value></data>
+  <data name="Interests_HowKeywords" xml:space="preserve"><value>Die Stichwörter wirken immer, mit und ohne KI: Steht eins davon in Überschrift oder Anriss, gehört der Artikel zum Thema. Es zählen ganze Wörter, groß oder klein egal: „Fußball“ findet „Fußball-WM“, aber nicht „Fußballer“. Mit Stern am Ende zählt jedes Wort, das so anfängt: „Fußball*“ findet auch „Fußballer“ und „Fußballspiel“.</value></data>
   <data name="Interests_HowWeight" xml:space="preserve"><value>„Auslassen“ nimmt passende Artikel immer heraus. „Bevorzugen“ und „weniger“ ändern nur die Reihenfolge: Hat eine Rubrik mehr Artikel als ihr Limit, kommen bevorzugte zuerst und „weniger“ zuletzt, sodass sie eher wegfallen.</value></data>
   <data name="Interests_HowExamples" xml:space="preserve"><value>Beispiele zum Auslassen:</value></data>
   <data name="Interests_ExampleFootball" xml:space="preserve"><value>Fußball: Fußball*, Bundesliga, Champions League, DFB, Elfmeter</value></data>
@@ -611,7 +611,7 @@
   <data name="Settings_AiOverviewPromptHint" xml:space="preserve"><value>Das bekommt die KI, wenn sie die wichtigsten Meldungen auswählt. {count} und {language} werden eingesetzt. Das Antwortformat und die Regel, dass Artikel nur Daten sind, werden immer angehängt.</value></data>
   <data name="Settings_Error_AiOverviewPrompt" xml:space="preserve"><value>Die Anweisung darf höchstens 4.000 Zeichen haben.</value></data>
   <data name="Feedback_Title" xml:space="preserve"><value>Rückmeldungen vom Reader</value></data>
-  <data name="Feedback_Hint" xml:space="preserve"><value>Was du mit „Mehr davon“ und „Weniger davon“ unter den Artikeln gesagt hast. Das zählt für die Quelle, nicht für das Thema: Artikel aus Quellen, von denen du mehr willst, stehen in ihrer Rubrik vorne, die mit weniger hinten, zwei Monate lang. Themen stellst du oben bei den Interessen ein.</value></data>
+  <data name="Feedback_Hint" xml:space="preserve"><value>Was du mit „Mehr davon“ und „Weniger davon“ unter den Artikeln gesagt hast, zwei Monate lang. Ohne KI zählt das nur für die Quelle: Artikel aus Quellen, von denen du mehr willst, stehen in ihrer Rubrik vorne, die mit weniger hinten. Mit KI zählt es auch für das Thema: Neue Artikel, die den gemochten ähneln, rücken nach vorn, die den abgelehnten ähneln, nach hinten. Ausgelassen wird dadurch nichts, das geht nur über die Interessen oben.</value></data>
   <data name="Feedback_None" xml:space="preserve"><value>Noch nichts. Die Links stehen unter den Artikeln, sobald eine öffentliche Adresse eingetragen ist (Web__PublicUrl).</value></data>
   <data name="Feedback_More" xml:space="preserve"><value>Mehr von {0}</value></data>
   <data name="Feedback_Less" xml:space="preserve"><value>Weniger von {0}</value></data>
@@ -633,4 +633,20 @@
   <data name="Source_SubredditInvalid" xml:space="preserve"><value>Diese Reddit-Quelle nennt kein Subreddit.</value></data>
   <data name="Source_CommunityNoAnswer" xml:space="preserve"><value>{0} hat nicht geantwortet.</value></data>
   <data name="Source_CommunityNoList" xml:space="preserve"><value>{0} lieferte keine lesbare Liste.</value></data>
+  <data name="Settings_AiHeadlines" xml:space="preserve"><value>Sachliche Überschriften</value></data>
+  <data name="Settings_AiHeadlinesHint" xml:space="preserve"><value>Die KI formuliert reißerische Überschriften sachlich um, eine Anfrage pro Ausgabe. Der Originaltitel steht klein darunter.</value></data>
+  <data name="Settings_AiPrompts" xml:space="preserve"><value>Anweisungen an die KI</value></data>
+  <data name="Settings_AiHeadlinesPrompt" xml:space="preserve"><value>Anweisung für sachliche Überschriften</value></data>
+  <data name="Settings_AiHeadlinesPromptHint" xml:space="preserve"><value>Das bekommt die KI mit allen Überschriften der Ausgabe. Das Antwortformat und die Regel, dass Artikel nur Daten sind, werden immer angehängt.</value></data>
+  <data name="Settings_AiInterestsPrompt" xml:space="preserve"><value>Anweisung für Interessen</value></data>
+  <data name="Settings_AiInterestsPromptHint" xml:space="preserve"><value>Das bekommt die KI, wenn sie neue Artikel den Interessen einer Ausgabe zuordnet, in Paketen zu 40 Artikeln. Das Antwortformat und die Regel, dass Themen und Artikel nur Daten sind, werden immer angehängt.</value></data>
+  <data name="Settings_Error_AiHeadlinesPrompt" xml:space="preserve"><value>Die Anweisung darf höchstens 4.000 Zeichen haben.</value></data>
+  <data name="Settings_Error_AiInterestsPrompt" xml:space="preserve"><value>Die Anweisung darf höchstens 4.000 Zeichen haben.</value></data>
+  <data name="Log_Overview" xml:space="preserve"><value>Tagesüberblick mit {0} Meldungen</value></data>
+  <data name="Log_OverviewSkipped" xml:space="preserve"><value>Kein Tagesüberblick: KI nicht eingerichtet oder nicht erreichbar</value></data>
+  <data name="Log_Headlines" xml:space="preserve"><value>{0} Überschriften sachlich umformuliert</value></data>
+  <data name="Log_InterestsRecognized" xml:space="preserve"><value>KI hat in {0} Artikeln Interessen erkannt</value></data>
+  <data name="Log_InterestMatched" xml:space="preserve"><value>Interesse „{0}“ passt zu {1} neuen Artikeln</value></data>
+  <data name="Log_LikedMatched" xml:space="preserve"><value>{0} neue Artikel ähneln denen, von denen du mehr wolltest</value></data>
+  <data name="Log_DislikedMatched" xml:space="preserve"><value>{0} neue Artikel ähneln denen, von denen du weniger wolltest</value></data>
 </root>

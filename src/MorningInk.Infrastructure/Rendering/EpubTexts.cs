@@ -27,6 +27,8 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string BackToContents => Get(nameof(BackToContents));
 
+    public string OriginalTitle(string title) => string.Format(Culture, Get(nameof(OriginalTitle)), title);
+
     public string FeedbackMore => Get(nameof(FeedbackMore));
 
     public string FeedbackLess => Get(nameof(FeedbackLess));

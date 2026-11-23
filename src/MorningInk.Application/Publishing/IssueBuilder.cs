@@ -8,13 +8,14 @@ namespace MorningInk.Application.Publishing;
 
 /// <summary>
 /// Puts an issue's content together: fetch every source once, drop what the user has seen, choose per section,
-/// then fetch full texts, clean, convert images and summarize. A failed source only costs its own articles.
+/// then fetch full texts, clean, convert images and summarize. A failed source only costs its own articles. The AI
+/// steps over the whole issue are in <see cref="IssueAiSteps"/>.
 /// </summary>
 public sealed class IssueBuilder(
     IEnumerable<ISource> sources,
     ISeenArticles seen,
     IEnumerable<IProcessor> processors,
-    IIssueOverview overview,
+    IssueAiSteps ai,
     IGeocoder geocoder,
     IWeatherForecast weather,
     TimeProvider time)
@@ -47,11 +48,19 @@ public sealed class IssueBuilder(
             ReferenceEqualityComparer.Instance);
         issue.AddLog(time.GetUtcNow(), "Fresh", fresh.Count, bySource.Values.Sum(a => a.Count));
 
-        var plan = Choose(sections, bySource, fresh, profile.Interests, loaded.SourceLeanings, issue);
+        var interests = IssueAiSteps.InterestsOf(loaded);
+        var recognized = await ai.RecognizeAsync(loaded, interests, Admitted(sections, bySource, fresh), withAi, issue, cancellationToken);
+        var plan = Choose(sections, bySource, fresh, interests.All, recognized, loaded.SourceLeanings, issue);
         var content = await ProcessAsync(plan, withAi, issue, cancellationToken);
         if (content.Count == 0)
         {
             return null;
+        }
+
+        // Before the overview, so it quotes the plain headlines.
+        if (withAi)
+        {
+            content = await ai.HeadlinesAsync(content, loaded, issue, cancellationToken);
         }
 
         // An edition without a weather section has it on the title page, as before sections could be placed.
@@ -80,7 +89,7 @@ public sealed class IssueBuilder(
             {
                 extras.Add(new IssueExtra(IssueExtraKind.Weather, section.Name, before));
             }
-            else if (section.Kind == SectionKind.Overview && withAi && await OverviewAsync(content, loaded, issue, cancellationToken) is { Count: > 0 } items)
+            else if (section.Kind == SectionKind.Overview && withAi && await ai.OverviewAsync(content, loaded, issue, cancellationToken) is { Count: > 0 } items)
             {
                 extras.Add(new IssueExtra(IssueExtraKind.Overview, section.Name, before, items));
             }
@@ -89,25 +98,13 @@ public sealed class IssueBuilder(
         return extras;
     }
 
-    // A bonus like the weather: without AI, or when it fails, the issue comes without the overview.
-    private async Task<IReadOnlyList<OverviewItem>?> OverviewAsync(List<(Section Section, IssueSection Content)> content, PublishingProfile loaded, Issue issue, CancellationToken cancellationToken)
-    {
-        var candidates = content
-            .SelectMany(c => c.Content.Articles.Select(a => new OverviewCandidate(a, c.Section.Sources.FirstOrDefault(s => s.Id == a.SourceId)?.LocalAiOnly ?? false)))
-            .ToList();
-        IReadOnlyList<OverviewItem>? items;
-        try
-        {
-            items = await overview.WriteAsync(new OverviewRequest(loaded.Profile.UserId, loaded.Profile.Title, loaded.Language, candidates), cancellationToken);
-        }
-        catch (Exception e) when (e is not OperationCanceledException)
-        {
-            items = null;
-        }
-
-        issue.AddLog(time.GetUtcNow(), items is { Count: > 0 } ? "Overview" : "OverviewSkipped", items?.Count ?? 0);
-        return items;
-    }
+    // The new articles the sections could take, each once: what the AI looks at to recognize the interests.
+    private static List<(FetchedArticle Article, Source Source)> Admitted(List<Section> sections, Dictionary<Guid, IReadOnlyList<FetchedArticle>> bySource, HashSet<FetchedArticle> fresh) =>
+        [
+            .. sections.SelectMany(s => s.Sources).DistinctBy(s => s.Id)
+                .SelectMany(source => bySource[source.Id].Where(fresh.Contains).Select(article => (article, source)))
+                .Where(candidate => ArticleFilter.Admits(candidate.article, candidate.source)),
+        ];
 
     // All sections are chosen before any article is processed, so a story another section already took is merged
     // into that one instead of appearing twice.
@@ -116,6 +113,7 @@ public sealed class IssueBuilder(
         Dictionary<Guid, IReadOnlyList<FetchedArticle>> bySource,
         HashSet<FetchedArticle> fresh,
         IReadOnlyList<Interest> interests,
+        IReadOnlyDictionary<FetchedArticle, HashSet<Interest>> recognized,
         IReadOnlyDictionary<Guid, int> leanings,
         Issue issue)
     {
@@ -128,11 +126,11 @@ public sealed class IssueBuilder(
                 .Where(candidate => fresh.Contains(candidate.Article))
                 .ToList();
             var candidates = unread
-                .Where(candidate => ArticleFilter.Admits(candidate.Article, candidate.Source) && !Interests.Hides(candidate.Article, interests))
+                .Where(candidate => ArticleFilter.Admits(candidate.Article, candidate.Source) && !Interests.Hides(candidate.Article, interests, recognized.GetValueOrDefault(candidate.Article)))
 
                 // The edition's interests first, then the sources the reader asked for more of, then the newest: when
                 // the limit is tight, its topics and favourite sources win.
-                .OrderByDescending(candidate => Interests.Score(candidate.Article, interests))
+                .OrderByDescending(candidate => Interests.Score(candidate.Article, interests, recognized.GetValueOrDefault(candidate.Article)))
                 .ThenByDescending(candidate => leanings.GetValueOrDefault(candidate.Source.Id))
                 .ThenByDescending(candidate => candidate.Article.PublishedAt ?? DateTimeOffset.MinValue)
                 .ToList();

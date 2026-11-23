@@ -150,9 +150,12 @@ public static class DependencyInjection
         services.AddTransient<IProcessor, SanitizingProcessor>();
         services.AddTransient<IProcessor, ImageProcessor>();
 
-        // Last: summarizes the cleaned full text. Scoped, so one issue run stops asking once the AI has failed.
+        // Last: summarizes the cleaned full text. Scoped like every AI step, so one issue run stops asking once the AI has failed.
         services.AddScoped<IProcessor, Ai.AiSummaryProcessor>();
         services.AddScoped<IIssueOverview, Ai.AiOverviewWriter>();
+        services.AddScoped<IHeadlineEditor, Ai.AiHeadlineEditor>();
+        services.AddScoped<IInterestMatcher, Ai.AiInterestMatcher>();
+        services.AddScoped<Ai.AiRequests>();
         services.AddScoped<Ai.AiSettingsStore>();
         services.AddSingleton<Ai.AiChat>();
         services.AddSingleton<Ai.AiUsage>();

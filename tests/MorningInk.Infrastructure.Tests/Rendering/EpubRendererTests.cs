@@ -231,6 +231,22 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task A_rewritten_headline_shows_the_original_below_it_and_the_contents_the_plain_one()
+    {
+        var issue = SampleIssue();
+        var plain = issue.Sections[0].Articles[0] with { Article = issue.Sections[0].Articles[0].Article with { Title = "Wahl: Beteiligung bei 78 Prozent", OriginalTitle = "Du glaubst nicht, wie diese Wahl ausging" } };
+        issue = issue with { Sections = [issue.Sections[0] with { Articles = [plain, .. issue.Sections[0].Articles.Skip(1)] }, .. issue.Sections.Skip(1)] };
+
+        using var epub = await RenderAsync(issue, "headline.epub");
+
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "article-1-1.xhtml")));
+        Assert.Equal("Wahl: Beteiligung bei 78 Prozent", page.Descendants(Xhtml + "h1").Single().Value);
+        var original = page.Descendants(Xhtml + "p").Single(p => (string?)p.Attribute("class") == "original-title");
+        Assert.Equal("Originaltitel: Du glaubst nicht, wie diese Wahl ausging", original.Value);
+        Assert.Contains("Wahl: Beteiligung bei 78 Prozent", NavEntries(epub));
+    }
+
+    [Fact]
     public async Task Overview_page_stands_at_its_place_and_links_to_the_articles()
     {
         var issue = SampleIssue();

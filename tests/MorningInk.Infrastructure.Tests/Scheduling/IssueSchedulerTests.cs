@@ -177,7 +177,7 @@ public sealed class IssueSchedulerTests : IDisposable
             ["Smtp:Security"] = "None",
             ["Smtp:FromAddress"] = "morning-ink@example.com",
         },
-        services => services.AddSingleton<ProfileLocks>().AddScoped<IssueBuilder>().AddScoped<IssueRelease>().AddScoped<IssuePublisher>());
+        services => services.AddSingleton<ProfileLocks>().AddScoped<IssueBuilder>().AddScoped<IssueAiSteps>().AddScoped<IssueRelease>().AddScoped<IssuePublisher>());
 
     private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime, List<DayOfWeek>? days = null, TimeSpan? leadTime = null)
     {

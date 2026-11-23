@@ -17,10 +17,14 @@ internal sealed class FakeStore(Profile profile, string language = "de") : IPubl
     /// <summary>Feedback from the reader per source, as the store sums it up.</summary>
     public Dictionary<Guid, int> Leanings { get; } = [];
 
+    public List<string> Liked { get; } = [];
+
+    public List<string> Disliked { get; } = [];
+
     public int Saves { get; private set; }
 
     public Task<PublishingProfile?> LoadProfileAsync(Guid profileId, CancellationToken cancellationToken) =>
-        Task.FromResult(profileId == profile.Id ? new PublishingProfile(profile, language) { SourceLeanings = Leanings } : null);
+        Task.FromResult(profileId == profile.Id ? new PublishingProfile(profile, language) { SourceLeanings = Leanings, LikedTitles = Liked, DislikedTitles = Disliked } : null);
 
     public Task<IReadOnlyList<ProfileSchedule>> ListSchedulesAsync(CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<ProfileSchedule>>([new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId)]);
@@ -112,13 +116,56 @@ internal sealed class FakeOverview : IIssueOverview
 {
     public bool Available { get; set; } = true;
 
-    public List<OverviewRequest> Requests { get; } = [];
+    public List<IssueAiRequest> Requests { get; } = [];
 
-    public Task<IReadOnlyList<OverviewItem>?> WriteAsync(OverviewRequest request, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<OverviewItem>?> WriteAsync(IssueAiRequest request, CancellationToken cancellationToken)
     {
         Requests.Add(request);
         return Task.FromResult<IReadOnlyList<OverviewItem>?>(Available
             ? request.Articles.Take(2).Select(a => new OverviewItem($"Kurz: {a.Article.Article.Title}", a.Article)).ToList()
+            : null);
+    }
+}
+
+/// <summary>Stands for neutral headlines: rewrites every headline that starts with "Unglaublich".</summary>
+internal sealed class FakeHeadlines : IHeadlineEditor
+{
+    public Task<IReadOnlyList<Headline>?> RewriteAsync(IssueAiRequest request, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Headline>?>([.. request.Articles
+            .Where(a => a.Article.Article.Title.StartsWith("Unglaublich", StringComparison.Ordinal))
+            .Select(a => new Headline(a.Article, "Sachlich: " + a.Article.Article.Title))]);
+}
+
+/// <summary>
+/// Stands for the AI recognizing interests: an article is about every interest whose topic it names as a word in
+/// <see cref="Topics"/>, e.g. "Kane" → "Fußball". Off, it answers like an AI that is not set up.
+/// </summary>
+internal sealed class FakeInterestMatcher : IInterestMatcher
+{
+    public bool Available { get; set; } = true;
+
+    public bool Throws { get; set; }
+
+    /// <summary>Title word → the start of the topic it belongs to.</summary>
+    public Dictionary<string, string> Topics { get; } = [];
+
+    public List<InterestRequest> Requests { get; } = [];
+
+    public Task<IReadOnlyList<InterestMatch>?> MatchAsync(InterestRequest request, CancellationToken cancellationToken)
+    {
+        Requests.Add(request);
+        if (Throws)
+        {
+            throw new InvalidOperationException("Matcher bug");
+        }
+
+        return Task.FromResult<IReadOnlyList<InterestMatch>?>(Available
+            ? [.. from candidate in request.Articles
+                  from topic in Topics
+                  where candidate.Article.Title.Contains(topic.Key, StringComparison.Ordinal)
+                  from interest in request.Interests
+                  where interest.Topic.StartsWith(topic.Value, StringComparison.Ordinal)
+                  select new InterestMatch(candidate.Article, interest)]
             : null);
     }
 }

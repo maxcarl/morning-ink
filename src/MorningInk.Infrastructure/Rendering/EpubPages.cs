@@ -125,6 +125,9 @@ internal static class EpubPages
             new XElement(Xhtml + "article",
                 new XElement(Xhtml + "p", new XAttribute("class", "kicker"), section),
                 new XElement(Xhtml + "h1", article.Title),
+
+                // The AI rewrote a lurid headline: what the publisher wrote stays visible, small, under the plain one.
+                article.OriginalTitle is null ? null : new XElement(Xhtml + "p", new XAttribute("class", "original-title"), texts.OriginalTitle(article.OriginalTitle)),
                 new XElement(Xhtml + "p", new XAttribute("class", "meta"), string.Join(" · ", meta.Where(m => !string.IsNullOrWhiteSpace(m)))),
                 AlsoAt(item, texts),
                 Summary(article, texts),
@@ -215,6 +218,7 @@ internal static class EpubPages
         figure { margin: 1em 0; }
         figcaption { font-size: 0.85em; color: #444; }
         .original { margin-top: 1.5em; font-size: 0.9em; }
+        .original-title { margin: -0.3em 0 0.5em; font-size: 0.85em; font-style: italic; color: #444; }
         .back { margin: 0.5em 0 1.5em; font-size: 0.9em; }
         .feedback { margin-top: 0.5em; font-size: 0.9em; }
         .kicker { font-variant: small-caps; letter-spacing: 0.05em; color: #444; margin: 0; }

@@ -123,6 +123,25 @@ public sealed class SettingsPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Admin_switches_on_plain_headlines_and_edits_the_headline_and_interest_prompts()
+    {
+        using var ai = new MorningInk.Infrastructure.Tests.Ai.FakeChatServer();
+        using var app = new TestApp();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Settings>("No password saved");
+        Assert.False(page.Find("#ai-headlines").HasAttribute("checked")); // off by default
+        Assert.Contains("inform instead of lure", page.Find("#ai-headlines-prompt").GetAttribute("value") ?? page.Find("#ai-headlines-prompt").TextContent, StringComparison.Ordinal);
+
+        page.Find("#ai-headlines").Change(true);
+        Pages.Submit(page, ("#ai-endpoint", ai.Endpoint), ("#ai-model", "qwen2.5:7b"), ("#ai-headlines-prompt", "Nur Ausrufezeichen."), ("#ai-interests-prompt", "Streng zuordnen."));
+        Pages.Shows(page, "Saved.");
+
+        var saved = await AiSettingsAsync(app);
+        Assert.Equal((true, "Nur Ausrufezeichen.", "Streng zuordnen."), (saved.NeutralHeadlines, saved.HeadlinesPrompt, saved.InterestsPrompt));
+        Assert.True(page.Find("details").HasAttribute("open")); // own prompts stay in sight
+    }
+
+    [Fact]
     public async Task Admin_sees_which_articles_went_to_which_provider()
     {
         using var app = new TestApp();

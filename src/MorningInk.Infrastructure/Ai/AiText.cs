@@ -1,4 +1,8 @@
+using System.Globalization;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using MorningInk.Application.Sources;
 
 namespace MorningInk.Infrastructure.Ai;
 
@@ -21,6 +25,65 @@ internal static partial class AiText
     public static string Sentences(string? answer) => Whitespace().Replace(Tags().Replace(answer ?? string.Empty, string.Empty), " ").Trim();
 
     public static string Shorten(string text, int length) => text.Length <= length ? text : text[..length];
+
+    /// <summary>"[1] Title\nTeaser" per article: the number is all an answer may point to.</summary>
+    public static string Numbered(IReadOnlyList<FetchedArticle> articles, int teaserCharacters)
+    {
+        var text = new StringBuilder();
+        for (var i = 0; i < articles.Count; i++)
+        {
+            var article = articles[i];
+            var teaser = Plain(article.AiSummary ?? article.Summary ?? article.Content);
+            text.Append(CultureInfo.InvariantCulture, $"[{i + 1}] {Plain(article.Title)}\n{Shorten(teaser, teaserCharacters)}\n\n");
+        }
+
+        return text.ToString().TrimEnd();
+    }
+
+    /// <summary>
+    /// The entries of an answer in the form {"<paramref name="list"/>":[{...}]}; null when the answer is no JSON of
+    /// that form. A code fence around it is taken off, since models like to add one.
+    /// </summary>
+    public static IReadOnlyList<JsonElement>? Entries(string? answer, string list)
+    {
+        var json = (answer ?? string.Empty).Trim();
+        if (json.StartsWith("```", StringComparison.Ordinal))
+        {
+            json = json.Trim('`').Trim();
+            json = json.StartsWith("json", StringComparison.OrdinalIgnoreCase) ? json[4..] : json;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            return document.RootElement.ValueKind == JsonValueKind.Object
+                && document.RootElement.TryGetProperty(list, out var entries)
+                && entries.ValueKind == JsonValueKind.Array
+                ? [.. entries.EnumerateArray().Select(e => e.Clone())]
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>A number from 1 to <paramref name="count"/>, as the data was numbered; null for anything else.</summary>
+    public static int? Number(JsonElement value, int count) =>
+        value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number) && number >= 1 && number <= count ? number : null;
+
+    /// <summary>The model writes in the reader's language, named in English: "German", not "Deutsch" or "de".</summary>
+    public static string LanguageName(string culture)
+    {
+        try
+        {
+            return CultureInfo.GetCultureInfo(culture).EnglishName;
+        }
+        catch (CultureNotFoundException)
+        {
+            return "English";
+        }
+    }
 
     [GeneratedRegex("<[^>]*>", RegexOptions.None, matchTimeoutMilliseconds: 100)]
     private static partial Regex Tags();

@@ -10,6 +10,7 @@ public static class ApplicationServices
         // Singleton, so the per-profile lock holds across all runs.
         services.AddSingleton<ProfileLocks>();
         services.AddScoped<IssueBuilder>();
+        services.AddScoped<IssueAiSteps>();
         services.AddScoped<IssueRelease>();
         services.AddScoped<IssuePublisher>();
         return services;
