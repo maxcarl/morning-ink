@@ -33,7 +33,8 @@ public sealed record SourceSettings(
     bool MarkReadAfterDelivery = true,
     bool LoadImages = true,
     string? Sender = null,
-    bool SkipMedia = true)
+    bool SkipMedia = true,
+    int? MinScore = null)
 {
     private static readonly char[] Separators = [',', ';', '\n', '\r'];
 
@@ -58,6 +59,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     private const int MaxMinWords = 10_000;
     private const int MaxKeywords = 50;
     private const int MaxKeywordLength = 100;
+    private const int MaxMinScore = 100_000;
 
     public async Task<IReadOnlyList<Source>> ListAsync(Guid userId, CancellationToken cancellationToken) =>
         await db.Sources.Where(s => s.UserId == userId).OrderBy(s => s.Name).AsNoTracking().ToListAsync(cancellationToken);
@@ -112,6 +114,25 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     public async Task<string> ExportOpmlAsync(Guid userId, CancellationToken cancellationToken) =>
         Opml.Write(await db.Sources.Where(s => s.UserId == userId && s.Kind == SourceKind.Rss && s.Url != null).OrderBy(s => s.Name).AsNoTracking().ToListAsync(cancellationToken));
 
+    /// <summary>Hacker News stories from <paramref name="minScore"/> points on.</summary>
+    public Task<SourceSaveResult> AddHackerNewsAsync(Guid userId, int minScore, CancellationToken cancellationToken) =>
+        minScore is < 0 or > MaxMinScore
+            ? Task.FromResult<SourceSaveResult>(new SourceSaveResult.Invalid("MinScoreInvalid"))
+            : SaveAsync(new Source { UserId = userId, Name = "Hacker News", Kind = SourceKind.HackerNews, Url = "https://news.ycombinator.com", MinScore = minScore }, cancellationToken);
+
+    /// <summary>The day's top posts of a subreddit, written as "selfhosted", "r/selfhosted" or its address.</summary>
+    public Task<SourceSaveResult> AddRedditAsync(Guid userId, string subreddit, int minScore, CancellationToken cancellationToken)
+    {
+        if (RedditSource.Subreddit(subreddit) is not { } name)
+        {
+            return Task.FromResult<SourceSaveResult>(new SourceSaveResult.Invalid("SubredditInvalid"));
+        }
+
+        return minScore is < 0 or > MaxMinScore
+            ? Task.FromResult<SourceSaveResult>(new SourceSaveResult.Invalid("MinScoreInvalid"))
+            : SaveAsync(new Source { UserId = userId, Name = $"r/{name}", Kind = SourceKind.Reddit, Url = $"https://www.reddit.com/r/{name}", MinScore = minScore }, cancellationToken);
+    }
+
     /// <param name="country">ISO code the place is in, e.g. "AT"; empty searches worldwide.</param>
     public Task<SourceSaveResult> AddLocalAsync(Guid userId, string name, string place, string? country, CancellationToken cancellationToken)
     {
@@ -140,6 +161,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
             : settings.MinWords is < 1 or > MaxMinWords ? "MinWordsInvalid"
             : new[] { settings.IncludeKeywords, settings.ExcludeKeywords }.Any(k => k.Count > MaxKeywords || k.Any(w => w.Length > MaxKeywordLength)) ? "KeywordsInvalid"
             : settings.Sender?.Trim().Length > MaxNameLength ? "SenderTooLong"
+            : settings.MinScore is < 0 or > MaxMinScore ? "MinScoreInvalid"
             : null;
         if (reason is not null)
         {
@@ -166,6 +188,11 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         if (source.Kind == SourceKind.Newsletter)
         {
             source.Sender = string.IsNullOrWhiteSpace(settings.Sender) ? null : settings.Sender.Trim();
+        }
+
+        if (source.Kind is SourceKind.HackerNews or SourceKind.Reddit)
+        {
+            source.MinScore = settings.MinScore;
         }
 
         await db.SaveChangesAsync(cancellationToken);

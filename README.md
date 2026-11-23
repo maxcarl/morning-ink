@@ -30,6 +30,7 @@
 - **RSS and Atom feeds** with full text, cleaned up for e-ink
 - **Your FreshRSS:** its categories as sources, unread articles only, marked read once the issue is out
 - **Newsletters from your mailbox** over IMAP, read only: nothing there is marked, moved or deleted
+- **Hacker News and Reddit** from a minimum score, with the linked articles in full
 - **OPML import and export** to move feeds from or to another reader
 - **Local news and weather** for your town, with the articles themselves, not just headlines
 - **EPUB with cover, contents and sections**, the same story from several sources merged into one

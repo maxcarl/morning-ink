@@ -14,4 +14,10 @@ public enum SourceKind
 
     /// <summary>Newsletters in a folder of the user's mailbox, read over IMAP without changing anything there.</summary>
     Newsletter,
+
+    /// <summary>Hacker News stories from a minimum number of points on.</summary>
+    HackerNews,
+
+    /// <summary>The day's top posts of one subreddit, from a minimum score on.</summary>
+    Reddit,
 }

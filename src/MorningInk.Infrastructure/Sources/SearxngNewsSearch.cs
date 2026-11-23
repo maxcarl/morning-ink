@@ -124,8 +124,8 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
 
     private static FetchedArticle? ToArticle(JsonElement result)
     {
-        var title = Text(result, "title")?.Trim();
-        var link = Text(result, "url");
+        var title = Json.Text(result, "title")?.Trim();
+        var link = Json.Text(result, "url");
 
         // Results are untrusted: only web links to an article, never "javascript:" or "file:".
         if (string.IsNullOrEmpty(title) || !Uri.TryCreate(link, UriKind.Absolute, out var url) || UrlPolicy.Check(url) is not null)
@@ -134,19 +134,16 @@ public sealed class SearxngNewsSearch(SafeHttpClient http, IOptions<NewsSearchOp
         }
 
         // The teaser is plain text, escaped so the HTML cleaning never takes a "<" in it for a tag.
-        var teaser = Text(result, "content")?.Trim();
+        var teaser = Json.Text(result, "content")?.Trim();
         return new FetchedArticle(
             Id: null,
             Title: title,
             Url: url,
-            PublishedAt: Date(Text(result, "publishedDate")),
+            PublishedAt: Date(Json.Text(result, "publishedDate")),
             Author: null,
             Summary: string.IsNullOrEmpty(teaser) ? null : $"<p>{System.Security.SecurityElement.Escape(teaser)}</p>",
             Content: null);
     }
-
-    private static string? Text(JsonElement result, string name) =>
-        result.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 
     // ISO dates, with or without offset; without one, SearXNG means UTC.
     private static DateTimeOffset? Date(string? text) =>

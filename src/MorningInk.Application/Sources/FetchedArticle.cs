@@ -21,4 +21,11 @@ public sealed record FetchedArticle(
     string? Content,
     string? AiSummary = null,
     IReadOnlyList<string>? Categories = null,
-    string? MediaType = null);
+    string? MediaType = null)
+{
+    /// <summary>
+    /// Whether <see cref="Content"/> is the whole text already, e.g. a Reddit post: fetching <see cref="Url"/> would
+    /// only bring the discussion page around it.
+    /// </summary>
+    public bool IsComplete { get; init; }
+}

@@ -32,6 +32,8 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `NewsSearch__SearxngUrl` | – | Your own SearXNG, e.g. `https://searx.example.com`; also under Settings → Local news, where this variable shows read-only. Set, it replaces Bing for local news and the towns stay with your instance. It must allow JSON (`search.formats: [html, json]` in its `settings.yml`); saving it on the settings page allows its host in the home network; set by variable, allow it with `Http__AllowedHosts__0`. |
 | `NewsSearch__Language`, `NewsSearch__Country` | `de`, `DE` | News edition when a local source has no country; with a country, its own edition is used (e.g. `en`/`US`). |
 | `Notifications__TelegramApiUrl` | `https://api.telegram.org` | Telegram Bot API for edition notifications; can be a self-hosted Bot API server. ntfy, Gotify and Telegram tokens are set per edition in the UI and stored encrypted. |
+| `Community__HackerNewsApi` | Algolia HN Search | Where Hacker News stories are searched, with their points. |
+| `Community__RedditUrl` | `https://www.reddit.com` | Where subreddits are read as JSON (`/r/{name}/top.json`). |
 | `Web__PublicUrl` | – | The address readers reach Morning Ink at, e.g. `https://news.example.com`. Then every article in the issue has “More of this” and “Less of this” links that open there in the e-reader's browser, signed and valid for two months. Without it, issues have no such links. |
 | `ReverseProxy__Addresses__0`, `__1`, … | – | IP addresses of reverse proxies whose `X-Forwarded-*` headers are believed, see [behind a reverse proxy](#behind-a-reverse-proxy). |
 | `Images__MinDimension` | `100` | Images narrower or lower than this (icons, avatars, tracking pixels) are dropped. |

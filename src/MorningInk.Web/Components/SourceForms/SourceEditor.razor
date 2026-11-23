@@ -52,6 +52,14 @@
             <label class="checkbox"><input id="source-mark-read" type="checkbox" @bind="_edit.MarkReadAfterDelivery" /> @T["Sources_MarkRead"]</label>
         </div>
     }
+    @if (Source.Kind is SourceKind.HackerNews or SourceKind.Reddit)
+    {
+        <div class="field">
+            <label for="source-minscore">@T["Sources_MinScore"]</label>
+            <input id="source-minscore" class="input input-short" type="number" min="0" @bind="_edit.MinScore" aria-describedby="source-minscore-hint" />
+            <span id="source-minscore-hint" class="hint">@T["Sources_MinScoreHint"]</span>
+        </div>
+    }
     @if (Source.Kind == SourceKind.Newsletter)
     {
         <div class="field">
@@ -100,6 +108,7 @@
         SkipMedia = Source.SkipMedia,
         LoadImages = Source.LoadImages,
         Sender = Source.Sender,
+        MinScore = Source.MinScore,
     };
 
     private async Task SaveAsync()
@@ -118,7 +127,8 @@
             _edit.MarkReadAfterDelivery,
             _edit.LoadImages,
             _edit.Sender,
-            _edit.SkipMedia);
+            _edit.SkipMedia,
+            _edit.MinScore);
         var result = await Scopes.RunAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, Source.Id, settings, Cancellation));
         _busy = false;
         await Finished.InvokeAsync(result is SourceSaveResult.Invalid invalid ? FormOutcome.Failed(T[$"Error_{invalid.Reason}"]) : new FormOutcome(T["Profile_Saved"]));
@@ -152,5 +162,7 @@
         public bool LoadImages { get; set; } = true;
 
         public string? Sender { get; set; }
+
+        public int? MinScore { get; set; }
     }
 }

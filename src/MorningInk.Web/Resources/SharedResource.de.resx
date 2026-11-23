@@ -615,4 +615,22 @@
   <data name="Feedback_None" xml:space="preserve"><value>Noch nichts. Die Links stehen unter den Artikeln, sobald eine öffentliche Adresse eingetragen ist (Web__PublicUrl).</value></data>
   <data name="Feedback_More" xml:space="preserve"><value>Mehr von {0}</value></data>
   <data name="Feedback_Less" xml:space="preserve"><value>Weniger von {0}</value></data>
+  <data name="Sources_AddTab_community" xml:space="preserve"><value>Hacker News, Reddit</value></data>
+  <data name="Sources_CommunityHint" xml:space="preserve"><value>Was eine Community über den Tag nach oben gewählt hat. Link-Beiträge bringen den ganzen Artikel, Textbeiträge ihren eigenen Text. Angepinnte, Video- und NSFW-Beiträge bleiben draußen.</value></data>
+  <data name="Sources_HackerNews" xml:space="preserve"><value>Hacker News ab Punkten</value></data>
+  <data name="Sources_HackerNewsAdd" xml:space="preserve"><value>Hacker News hinzufügen</value></data>
+  <data name="Sources_Reddit" xml:space="preserve"><value>Subreddit und Mindestpunkte</value></data>
+  <data name="Sources_RedditAdd" xml:space="preserve"><value>Subreddit hinzufügen</value></data>
+  <data name="Sources_MinScore" xml:space="preserve"><value>Mindestpunkte</value></data>
+  <data name="Sources_MinScoreHint" xml:space="preserve"><value>Nur Beiträge mit mindestens so vielen Punkten (Hacker News) oder Upvotes (Reddit) des Tages.</value></data>
+  <data name="Sources_FromPoints" xml:space="preserve"><value>ab {0} Punkten</value></data>
+  <data name="Kind_HackerNews" xml:space="preserve"><value>Hacker News</value></data>
+  <data name="Kind_Reddit" xml:space="preserve"><value>Reddit</value></data>
+  <data name="Sources_Group_HackerNews" xml:space="preserve"><value>Hacker News</value></data>
+  <data name="Sources_Group_Reddit" xml:space="preserve"><value>Reddit</value></data>
+  <data name="Error_SubredditInvalid" xml:space="preserve"><value>Das ist kein Subreddit. Gib seinen Namen ein, z. B. r/selfhosted.</value></data>
+  <data name="Error_MinScoreInvalid" xml:space="preserve"><value>Die Mindestpunkte müssen eine Zahl von 0 bis 100.000 sein.</value></data>
+  <data name="Source_SubredditInvalid" xml:space="preserve"><value>Diese Reddit-Quelle nennt kein Subreddit.</value></data>
+  <data name="Source_CommunityNoAnswer" xml:space="preserve"><value>{0} hat nicht geantwortet.</value></data>
+  <data name="Source_CommunityNoList" xml:space="preserve"><value>{0} lieferte keine lesbare Liste.</value></data>
 </root>

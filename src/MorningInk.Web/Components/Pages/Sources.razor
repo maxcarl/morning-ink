@@ -119,7 +119,7 @@
     private bool _busy;
 
     // FreshRSS: the password stays only until the sources are added, then it is stored encrypted with them.
-    private static readonly string[] AddTabs = ["feed", "local", "freshrss", "newsletter", "opml"];
+    private static readonly string[] AddTabs = ["feed", "local", "freshrss", "newsletter", "community", "opml"];
     private string _addTab = "feed";
 
     // Form fields
@@ -128,6 +128,9 @@
     private string _feedName = string.Empty;
     private bool _fullText = true;
     private string _place = string.Empty;
+    private int _hackerNewsMin = 100;
+    private string _redditName = string.Empty;
+    private int _redditMin = 100;
     private string? _country;
 
     private bool Adding => _found is not null || _blockedHost is not null || _error is not null;
@@ -203,6 +206,27 @@
         <div id="add-newsletter" role="tabpanel" aria-labelledby="add-tab-newsletter" hidden="@(_addTab != "newsletter")">
             <NewsletterForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
         </div>
+        <div id="add-community" role="tabpanel" aria-labelledby="add-tab-community" hidden="@(_addTab != "community")">
+            @* What a community voted up, from a minimum score on: the score keeps the noise out. *@
+            <p class="hint">@T["Sources_CommunityHint"]</p>
+            <form @onsubmit="AddHackerNewsAsync" class="field">
+                <label class="label" for="hn-min">@T["Sources_HackerNews"]</label>
+                <div class="inline-form">
+                    <input id="hn-min" class="input input-short" type="number" min="0" @bind="_hackerNewsMin" aria-describedby="hn-min-hint" />
+                    <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_HackerNewsAdd"]</button>
+                </div>
+                <span id="hn-min-hint" class="hint">@T["Sources_MinScoreHint"]</span>
+            </form>
+            <form @onsubmit="AddRedditAsync" class="field">
+                <label class="label" for="reddit-name">@T["Sources_Reddit"]</label>
+                <div class="inline-form">
+                    <input id="reddit-name" class="input" spellcheck="false" autocapitalize="none" @bind="_redditName" placeholder="r/selfhosted" required />
+                    <label class="visually-hidden" for="reddit-min">@T["Sources_MinScore"]</label>
+                    <input id="reddit-min" class="input input-short" type="number" min="0" @bind="_redditMin" />
+                    <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_RedditAdd"]</button>
+                </div>
+            </form>
+        </div>
         <div id="add-opml" role="tabpanel" aria-labelledby="add-tab-opml" hidden="@(_addTab != "opml")">
             @* Moving from another reader: its OPML export in, our feeds out. *@
             <div class="field">
@@ -264,6 +288,17 @@
         var place = _place.Trim();
         return RunAsync(() => SaveAsync(catalog => catalog.AddLocalAsync(UserId, $"{T["Sources_Local"]} {place}", place, _country, Closed)));
     }
+
+    private Task AddHackerNewsAsync() => RunAsync(() => SaveAsync(catalog => catalog.AddHackerNewsAsync(UserId, _hackerNewsMin, Closed)));
+
+    private Task AddRedditAsync() => RunAsync(async () =>
+    {
+        await SaveAsync(catalog => catalog.AddRedditAsync(UserId, _redditName, _redditMin, Closed));
+        if (_error is null)
+        {
+            _redditName = string.Empty;
+        }
+    });
 
     private Task ImportOpmlAsync(InputFileChangeEventArgs e) => RunAsync(async () =>
     {
@@ -423,6 +458,7 @@
             source.Kind == SourceKind.Local ? source.Place : source.Url,
             source.Kind == SourceKind.Newsletter ? source.Stream : null,
             source.Kind == SourceKind.Newsletter && source.Sender is { } sender ? T["Sources_NewsletterFrom", sender].Value : null,
+            source.MinScore is { } minScore ? T["Sources_FromPoints", minScore].Value : null,
         };
         if (source.IncludeKeywords.Count + source.ExcludeKeywords.Count > 0 || source.MinWords is not null || source.SkipLiveTickers)
         {

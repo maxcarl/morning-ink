@@ -51,7 +51,7 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
         using var json = Parse(answer.Body);
         var categories = json?.RootElement.TryGetProperty("tags", out var tags) == true && tags.ValueKind == JsonValueKind.Array
             ? tags.EnumerateArray()
-                .Select(t => Text(t, "id"))
+                .Select(t => Json.Text(t, "id"))
                 .OfType<string>()
                 .Where(id => id.StartsWith(LabelPrefix, StringComparison.Ordinal))
                 .Select(id => new FreshRssCategory(id, id[LabelPrefix.Length..]))
@@ -155,7 +155,7 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
 
     private static FetchedArticle? ToArticle(JsonElement item)
     {
-        var title = Text(item, "title")?.Trim();
+        var title = Json.Text(item, "title")?.Trim();
         var link = FirstHref(item, "canonical") ?? FirstHref(item, "alternate");
 
         // Articles are untrusted: only web links, never "javascript:" or "file:".
@@ -164,25 +164,22 @@ public sealed class FreshRssClient(IHttpClientFactory httpClients)
             return null;
         }
 
-        var origin = item.TryGetProperty("origin", out var o) ? Text(o, "title") : null;
-        var content = item.TryGetProperty("summary", out var summary) ? Text(summary, "content") : null;
+        var origin = item.TryGetProperty("origin", out var o) ? Json.Text(o, "title") : null;
+        var content = item.TryGetProperty("summary", out var summary) ? Json.Text(summary, "content") : null;
         return new FetchedArticle(
-            Id: Text(item, "id"),
+            Id: Json.Text(item, "id"),
             Title: title,
             Url: url,
             PublishedAt: item.TryGetProperty("published", out var published) && published.TryGetInt64(out var seconds) ? DateTimeOffset.FromUnixTimeSeconds(seconds) : null,
-            Author: Text(item, "author") is { Length: > 0 } author ? author : origin,
+            Author: Json.Text(item, "author") is { Length: > 0 } author ? author : origin,
             Summary: null,
             Content: content);
     }
 
     private static string? FirstHref(JsonElement item, string name) =>
         item.TryGetProperty(name, out var links) && links.ValueKind == JsonValueKind.Array
-            ? links.EnumerateArray().Select(l => Text(l, "href")).FirstOrDefault(h => !string.IsNullOrEmpty(h))
+            ? links.EnumerateArray().Select(l => Json.Text(l, "href")).FirstOrDefault(h => !string.IsNullOrEmpty(h))
             : null;
-
-    private static string? Text(JsonElement element, string name) =>
-        element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 
     /// <summary>What FreshRSS answered: a body, or why there is none.</summary>
     public sealed class Answer

@@ -11,7 +11,7 @@ internal sealed partial class FullTextProcessor(SafeHttpClient http, ILogger<Ful
 {
     public async Task<FetchedArticle> ProcessAsync(FetchedArticle article, Source source, CancellationToken cancellationToken)
     {
-        if (!source.FetchFullText)
+        if (!source.FetchFullText || article.IsComplete)
         {
             return article;
         }

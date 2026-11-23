@@ -74,6 +74,9 @@ public class Source
     /// </summary>
     public bool LoadImages { get; set; } = true;
 
+    /// <summary>For Hacker News and Reddit: only what the community voted up at least this far.</summary>
+    public int? MinScore { get; set; }
+
     /// <summary>For newsletters: only mails whose sender address contains this, e.g. "substack.com"; null takes all.</summary>
     public string? Sender { get; set; }
 

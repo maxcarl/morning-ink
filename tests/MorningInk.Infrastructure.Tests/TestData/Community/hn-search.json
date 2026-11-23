@@ -1,0 +1,35 @@
+{
+  "hits": [
+    {
+      "objectID": "41000001",
+      "title": "A new approach to garbage collection",
+      "url": "https://blog.example.com/gc",
+      "author": "alice",
+      "points": 412,
+      "num_comments": 128,
+      "created_at_i": 1795240800,
+      "story_text": null
+    },
+    {
+      "objectID": "41000002",
+      "title": "Ask HN: What are you working on?",
+      "url": null,
+      "author": "bob",
+      "points": 230,
+      "num_comments": 501,
+      "created_at_i": 1795237200,
+      "story_text": "<p>Share what you are building this month.</p>"
+    },
+    {
+      "objectID": "41000003",
+      "title": "Bad link",
+      "url": "javascript:alert(1)",
+      "author": "mallory",
+      "points": 150,
+      "num_comments": 3,
+      "created_at_i": 1795233600,
+      "story_text": null
+    }
+  ],
+  "nbHits": 3
+}

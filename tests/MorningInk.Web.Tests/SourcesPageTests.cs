@@ -213,6 +213,24 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Hacker_news_and_a_subreddit_are_added_with_their_minimum_score()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Sources>("0 feeds");
+
+        Pages.Submit(page, ("#hn-min", "200"));
+        Pages.Shows(page, "Source added.");
+        Pages.Submit(page, ("#reddit-name", "r/selfhosted"), ("#reddit-min", "50"));
+        Pages.Shows(page, "r/selfhosted");
+
+        var sources = await SourcesAsync(app);
+        Assert.Equal((SourceKind.HackerNews, 200), (sources.Single(s => s.Name == "Hacker News").Kind, sources.Single(s => s.Name == "Hacker News").MinScore));
+        Assert.Equal((SourceKind.Reddit, 50), (sources.Single(s => s.Name == "r/selfhosted").Kind, sources.Single(s => s.Name == "r/selfhosted").MinScore));
+        Assert.Contains("from 200 points", page.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Opml_file_from_another_reader_adds_its_feeds()
     {
         using var app = AllowingFeeds();

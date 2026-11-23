@@ -615,4 +615,22 @@
   <data name="Feedback_None" xml:space="preserve"><value>Nothing yet. The links appear under the articles once a public address is set (Web__PublicUrl).</value></data>
   <data name="Feedback_More" xml:space="preserve"><value>More from {0}</value></data>
   <data name="Feedback_Less" xml:space="preserve"><value>Less from {0}</value></data>
+  <data name="Sources_AddTab_community" xml:space="preserve"><value>Hacker News, Reddit</value></data>
+  <data name="Sources_CommunityHint" xml:space="preserve"><value>What a community voted up during the day. Link posts bring the full article; text posts their own text. Pinned, video and NSFW posts are left out.</value></data>
+  <data name="Sources_HackerNews" xml:space="preserve"><value>Hacker News from points</value></data>
+  <data name="Sources_HackerNewsAdd" xml:space="preserve"><value>Add Hacker News</value></data>
+  <data name="Sources_Reddit" xml:space="preserve"><value>Subreddit and minimum score</value></data>
+  <data name="Sources_RedditAdd" xml:space="preserve"><value>Add subreddit</value></data>
+  <data name="Sources_MinScore" xml:space="preserve"><value>Minimum score</value></data>
+  <data name="Sources_MinScoreHint" xml:space="preserve"><value>Only posts with at least this many points (Hacker News) or upvotes (Reddit) of the day.</value></data>
+  <data name="Sources_FromPoints" xml:space="preserve"><value>from {0} points</value></data>
+  <data name="Kind_HackerNews" xml:space="preserve"><value>Hacker News</value></data>
+  <data name="Kind_Reddit" xml:space="preserve"><value>Reddit</value></data>
+  <data name="Sources_Group_HackerNews" xml:space="preserve"><value>Hacker News</value></data>
+  <data name="Sources_Group_Reddit" xml:space="preserve"><value>Reddit</value></data>
+  <data name="Error_SubredditInvalid" xml:space="preserve"><value>That is no subreddit. Enter its name, e.g. r/selfhosted.</value></data>
+  <data name="Error_MinScoreInvalid" xml:space="preserve"><value>The minimum score must be a number from 0 to 100,000.</value></data>
+  <data name="Source_SubredditInvalid" xml:space="preserve"><value>This Reddit source names no subreddit.</value></data>
+  <data name="Source_CommunityNoAnswer" xml:space="preserve"><value>{0} did not answer.</value></data>
+  <data name="Source_CommunityNoList" xml:space="preserve"><value>{0} returned no readable list.</value></data>
 </root>

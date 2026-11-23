@@ -112,6 +112,9 @@ public static class DependencyInjection
         services.AddTransient<FreshRssClient>();
         services.AddTransient<ISource, NewsletterSource>();
         services.AddTransient<NewsletterClient>();
+        services.AddTransient<ISource, HackerNewsSource>();
+        services.AddTransient<ISource, RedditSource>();
+        services.AddOptions<CommunityOptions>().Bind(configuration.GetSection(CommunityOptions.SectionName));
         services.AddTransient<FeedDiscovery>();
         services.AddScoped<SourceCatalog>();
         services.AddScoped<ConnectedSources>();
