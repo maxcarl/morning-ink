@@ -234,6 +234,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("RecognizeInterests")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("Summaries")
                         .HasColumnType("INTEGER");
 

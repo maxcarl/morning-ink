@@ -132,12 +132,14 @@ public sealed class SettingsPageTests : IDisposable
         Assert.False(page.Find("#ai-headlines").HasAttribute("checked")); // off by default
         Assert.Contains("inform instead of lure", page.Find("#ai-headlines-prompt").GetAttribute("value") ?? page.Find("#ai-headlines-prompt").TextContent, StringComparison.Ordinal);
 
+        Assert.True(page.Find("#ai-interests").HasAttribute("checked")); // on by default
         page.Find("#ai-headlines").Change(true);
+        page.Find("#ai-interests").Change(false);
         Pages.Submit(page, ("#ai-endpoint", ai.Endpoint), ("#ai-model", "qwen2.5:7b"), ("#ai-headlines-prompt", "Nur Ausrufezeichen."), ("#ai-interests-prompt", "Streng zuordnen."));
         Pages.Shows(page, "Saved.");
 
         var saved = await AiSettingsAsync(app);
-        Assert.Equal((true, "Nur Ausrufezeichen.", "Streng zuordnen."), (saved.NeutralHeadlines, saved.HeadlinesPrompt, saved.InterestsPrompt));
+        Assert.Equal((true, false, "Nur Ausrufezeichen.", "Streng zuordnen."), (saved.NeutralHeadlines, saved.RecognizeInterests, saved.HeadlinesPrompt, saved.InterestsPrompt));
         Assert.True(page.Find("details").HasAttribute("open")); // own prompts stay in sight
     }
 

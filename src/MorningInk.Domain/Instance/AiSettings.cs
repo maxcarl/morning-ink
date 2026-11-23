@@ -38,6 +38,9 @@ public class AiSettings
     /// </summary>
     public string? OverviewPrompt { get; set; }
 
+    /// <summary>Whether the AI recognizes the editions' interests by topic; without it, only their keywords count.</summary>
+    public bool RecognizeInterests { get; set; } = true;
+
     /// <summary>Whether lurid headlines are rewritten plainly; off by default, since it changes what the publisher wrote.</summary>
     public bool NeutralHeadlines { get; set; }
 

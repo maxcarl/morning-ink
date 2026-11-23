@@ -42,6 +42,11 @@
             <span id="ai-headlines-hint" class="hint">@T["Settings_AiHeadlinesHint"]</span>
         </div>
 
+        <div class="field">
+            <label class="checkbox"><input id="ai-interests" type="checkbox" @bind="_recognizeInterests" aria-describedby="ai-interests-hint" /> @T["Settings_AiInterests"]</label>
+            <span id="ai-interests-hint" class="hint">@T["Settings_AiInterestsHint"]</span>
+        </div>
+
         @* Folded away: most never change them, and four long fields make the page long on a phone. *@
         <details class="field" open="@_promptsOpen">
             <summary class="link-button">@T["Settings_AiPrompts"]</summary>
@@ -71,6 +76,7 @@
     private string? _headlinesPrompt;
     private string? _interestsPrompt;
     private bool _neutralHeadlines;
+    private bool _recognizeInterests = true;
     private bool _promptsOpen;
     private bool _busy;
 
@@ -101,6 +107,7 @@
         _headlinesPrompt = ai.HeadlinesPrompt ?? AiSettingsStore.DefaultHeadlinesPrompt;
         _interestsPrompt = ai.InterestsPrompt ?? AiSettingsStore.DefaultInterestsPrompt;
         _neutralHeadlines = ai.NeutralHeadlines;
+        _recognizeInterests = ai.RecognizeInterests;
 
         // Open when one is the admin's own, so a changed prompt is never out of sight.
         _promptsOpen = new[] { ai.SummaryPrompt, ai.OverviewPrompt, ai.HeadlinesPrompt, ai.InterestsPrompt }.Any(p => p is not null);
@@ -108,7 +115,7 @@
 
     private async Task SaveAsync()
     {
-        var input = new AiSettingsInput(_endpoint, _model, _key, _local, _summaries, _enabled, _limit, _prompt, _overviewPrompt, _neutralHeadlines, _headlinesPrompt, _interestsPrompt);
+        var input = new AiSettingsInput(_endpoint, _model, _key, _local, _summaries, _enabled, _limit, _prompt, _overviewPrompt, _neutralHeadlines, _headlinesPrompt, _interestsPrompt, _recognizeInterests);
         var errors = await Scopes.RunAsync<AiSettingsStore, IReadOnlyList<string>>(store => store.SaveAsync(input, UserId, Cancellation));
         if (errors.Count > 0)
         {

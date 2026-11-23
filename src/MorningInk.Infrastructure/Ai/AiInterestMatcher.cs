@@ -30,7 +30,7 @@ internal sealed class AiInterestMatcher(AiRequests ai) : IInterestMatcher
 
     public async Task<IReadOnlyList<InterestMatch>?> MatchAsync(InterestRequest request, CancellationToken cancellationToken)
     {
-        if (request.Interests.Count == 0 || await ai.SettingsAsync(cancellationToken) is not { } settings)
+        if (request.Interests.Count == 0 || await ai.SettingsAsync(cancellationToken) is not { RecognizeInterests: true } settings)
         {
             return null;
         }

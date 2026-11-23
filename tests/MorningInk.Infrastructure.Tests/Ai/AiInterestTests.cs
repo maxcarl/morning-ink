@@ -100,6 +100,16 @@ public sealed class AiInterestTests : IDisposable
     }
 
     [Fact]
+    public async Task Switched_off_nothing_goes_to_the_ai()
+    {
+        using var ai = new FakeChatServer(_ => """{"matches":[]}""");
+        await using var services = await StartAsync(ai, recognize: false);
+
+        Assert.Null(await MatchAsync(services, Articles("Eins"), Football));
+        Assert.Empty(ai.Bodies);
+    }
+
+    [Fact]
     public async Task Without_ai_nothing_is_matched()
     {
         await using var services = await _host.StartAsync();
@@ -118,12 +128,12 @@ public sealed class AiInterestTests : IDisposable
         return await scope.ServiceProvider.GetRequiredService<IInterestMatcher>().MatchAsync(new InterestRequest(Guid.NewGuid(), "Morning Ink", interests, articles), CancellationToken.None);
     }
 
-    private async Task<ServiceProvider> StartAsync(FakeChatServer ai, bool isLocal = true, int? dailyLimit = null, string? prompt = null)
+    private async Task<ServiceProvider> StartAsync(FakeChatServer ai, bool isLocal = true, int? dailyLimit = null, string? prompt = null, bool recognize = true)
     {
         var services = await _host.StartAsync(new() { ["Http:AllowedHosts:0"] = $"127.0.0.1:{ai.Port}" });
         await using var scope = services.CreateAsyncScope();
         var errors = await scope.ServiceProvider.GetRequiredService<AiSettingsStore>()
-            .SaveAsync(new AiSettingsInput(ai.Endpoint, "qwen2.5:7b", ApiKey: null, isLocal, Summaries: true, DailyLimit: dailyLimit, InterestsPrompt: prompt), Guid.NewGuid(), CancellationToken.None);
+            .SaveAsync(new AiSettingsInput(ai.Endpoint, "qwen2.5:7b", ApiKey: null, isLocal, Summaries: true, DailyLimit: dailyLimit, InterestsPrompt: prompt, RecognizeInterests: recognize), Guid.NewGuid(), CancellationToken.None);
         Assert.Empty(errors);
         return services;
     }

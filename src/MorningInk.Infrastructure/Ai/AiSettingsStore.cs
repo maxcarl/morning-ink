@@ -13,6 +13,7 @@ namespace MorningInk.Infrastructure.Ai;
 /// <param name="OverviewPrompt">Own instructions for the issue's overview, the same way.</param>
 /// <param name="NeutralHeadlines">Whether lurid headlines are rewritten plainly.</param>
 /// <param name="HeadlinesPrompt">Own instructions for that, the same way.</param>
+/// <param name="RecognizeInterests">Whether the AI recognizes interests by topic.</param>
 /// <param name="InterestsPrompt">Own instructions for recognizing interests, the same way.</param>
 public sealed record AiSettingsInput(
     string? Endpoint,
@@ -26,7 +27,8 @@ public sealed record AiSettingsInput(
     string? OverviewPrompt = null,
     bool NeutralHeadlines = false,
     string? HeadlinesPrompt = null,
-    string? InterestsPrompt = null);
+    string? InterestsPrompt = null,
+    bool RecognizeInterests = true);
 
 /// <summary>The instance's AI provider settings, in the database.</summary>
 public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowlist)
@@ -97,6 +99,7 @@ public sealed class AiSettingsStore(MorningInkDbContext db, HostAllowlist allowl
         settings.DailyLimit = input.DailyLimit;
 
         settings.NeutralHeadlines = input.NeutralHeadlines;
+        settings.RecognizeInterests = input.RecognizeInterests;
         settings.SummaryPrompt = OwnPrompt(prompts[nameof(input.SummaryPrompt)]);
         settings.OverviewPrompt = OwnPrompt(prompts[nameof(input.OverviewPrompt)]);
         settings.HeadlinesPrompt = OwnPrompt(prompts[nameof(input.HeadlinesPrompt)]);

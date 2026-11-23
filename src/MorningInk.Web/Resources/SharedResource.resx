@@ -649,4 +649,6 @@
   <data name="Log_InterestMatched" xml:space="preserve"><value>Interest “{0}” fits {1} new articles</value></data>
   <data name="Log_LikedMatched" xml:space="preserve"><value>{0} new articles are like those you wanted more of</value></data>
   <data name="Log_DislikedMatched" xml:space="preserve"><value>{0} new articles are like those you wanted less of</value></data>
+  <data name="Settings_AiInterests" xml:space="preserve"><value>Recognize interests by AI</value></data>
+  <data name="Settings_AiInterestsHint" xml:space="preserve"><value>The AI sorts new articles into the editions' interests, also without a matching keyword, and takes the reader's feedback as examples. One request per 40 new articles. Off: only the keywords count.</value></data>
 </root>

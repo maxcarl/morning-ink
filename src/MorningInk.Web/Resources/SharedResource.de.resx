@@ -649,4 +649,6 @@
   <data name="Log_InterestMatched" xml:space="preserve"><value>Interesse „{0}“ passt zu {1} neuen Artikeln</value></data>
   <data name="Log_LikedMatched" xml:space="preserve"><value>{0} neue Artikel ähneln denen, von denen du mehr wolltest</value></data>
   <data name="Log_DislikedMatched" xml:space="preserve"><value>{0} neue Artikel ähneln denen, von denen du weniger wolltest</value></data>
+  <data name="Settings_AiInterests" xml:space="preserve"><value>Interessen per KI erkennen</value></data>
+  <data name="Settings_AiInterestsHint" xml:space="preserve"><value>Die KI ordnet neue Artikel den Interessen der Ausgaben zu, auch ohne passendes Stichwort, und nimmt die Rückmeldungen vom Reader als Beispiele. Eine Anfrage pro 40 neue Artikel. Aus: Es zählen nur die Stichwörter.</value></data>
 </root>
