@@ -26,7 +26,7 @@ public sealed class SettingsPageTests : IDisposable
         Pages.Submit(page,
             ("#host", "127.0.0.1"),
             ("#port", _smtp.Port.ToString(CultureInfo.InvariantCulture)),
-            ("#smtp-username", "max"),
+            ("#smtp-username", "alex"),
             ("#smtp-password", Password),
             ("#from", "morning-ink@example.com"),
             ("#from-name", "Morning Ink"));
@@ -34,10 +34,10 @@ public sealed class SettingsPageTests : IDisposable
         Assert.DoesNotContain(Password, page.Markup, StringComparison.Ordinal);
         Assert.Contains("A password is saved.", page.Markup, StringComparison.Ordinal);
 
-        Pages.Submit(page, ("#test-recipient", "max_abc@kindle.com"));
+        Pages.Submit(page, ("#test-recipient", "name_abc@kindle.com"));
 
-        Pages.Shows(page, "Test mail sent to max_abc@kindle.com");
-        Assert.Equal("max\0" + Password, Assert.Single(_smtp.Logins));
+        Pages.Shows(page, "Test mail sent to name_abc@kindle.com");
+        Assert.Equal("alex\0" + Password, Assert.Single(_smtp.Logins));
         Assert.Single(Assert.Single(_smtp.Messages).Attachments);
     }
 

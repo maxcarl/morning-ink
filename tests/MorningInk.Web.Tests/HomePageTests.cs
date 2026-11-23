@@ -77,7 +77,7 @@ public sealed class HomePageTests : IDisposable
         {
             var editor = scope.ServiceProvider.GetRequiredService<ProfileEditor>();
             var userId = await UserIdAsync(scope);
-            await editor.SaveSettingsAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None);
+            await editor.SaveSettingsAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "name_abc@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None);
             await scope.ServiceProvider.GetRequiredService<SectionEditor>().AddSectionAsync(userId, (await editor.GetOrCreateAsync(userId, CancellationToken.None)).Id, "Politik", CancellationToken.None);
         }
 

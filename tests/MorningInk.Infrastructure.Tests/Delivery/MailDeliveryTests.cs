@@ -7,7 +7,7 @@ namespace MorningInk.Infrastructure.Tests.Delivery;
 
 public sealed class MailDeliveryTests : IDisposable
 {
-    private const string Kindle = "max_abc@kindle.com";
+    private const string Kindle = "name_abc@kindle.com";
     private const string Title = "Morning Ink 2026-11-21";
 
     private readonly string _directory = Directory.CreateTempSubdirectory("morning-ink-").FullName;
@@ -78,9 +78,9 @@ public sealed class MailDeliveryTests : IDisposable
     {
         using var server = new FakeSmtpServer();
 
-        await DeliverAsync(server, new DeliveryRequest(Kindle, Title, WriteFile(10), ".epub", "application/epub+zip"), username: "max", password: "geheim");
+        await DeliverAsync(server, new DeliveryRequest(Kindle, Title, WriteFile(10), ".epub", "application/epub+zip"), username: "user", password: "secret");
 
-        Assert.Equal("max\0geheim", Assert.Single(server.Logins));
+        Assert.Equal("user\0secret", Assert.Single(server.Logins));
     }
 
     [Fact]

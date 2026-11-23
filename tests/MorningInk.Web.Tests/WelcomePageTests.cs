@@ -45,7 +45,7 @@ public sealed class WelcomePageTests : IDisposable
 
         // 1: where the issue goes
         page.Find("#country").Change("DE");
-        Pages.Submit(page, ("#recipient", "max_abc@kindle.com"), ("#time", Pages.BrowserTime("06:00")));
+        Pages.Submit(page, ("#recipient", "name_abc@kindle.com"), ("#time", Pages.BrowserTime("06:00")));
 
         // 2: mail server, then the test mail
         Pages.Shows(page, "Step 2");
@@ -53,10 +53,10 @@ public sealed class WelcomePageTests : IDisposable
         Pages.Submit(page,
             ("#host", "127.0.0.1"),
             ("#port", _smtp.Port.ToString(CultureInfo.InvariantCulture)),
-            ("#smtp-username", "max"),
+            ("#smtp-username", "alex"),
             ("#smtp-password", "correct-horse-battery-staple"),
             ("#from", "morning-ink@example.com"));
-        Pages.Shows(page, "Test mail sent to max_abc@kindle.com");
+        Pages.Shows(page, "Test mail sent to name_abc@kindle.com");
         Assert.Contains("morning-ink@example.com", page.Markup, StringComparison.Ordinal); // to put on Amazon's approved list
         Pages.Button(page, "Next").Click();
 

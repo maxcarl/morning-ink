@@ -21,8 +21,8 @@ public sealed class PublishingStoreTests : IDisposable
         await using (var scope = services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Persistence.MorningInkDbContext>();
-            var user = new User { Name = "max", Language = userLanguage };
-            var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max@kindle.com", Country = country };
+            var user = new User { Name = "alex", Language = userLanguage };
+            var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "alex@kindle.com", Country = country };
             db.AddRange(user, profile);
             await db.SaveChangesAsync();
             profileId = profile.Id;

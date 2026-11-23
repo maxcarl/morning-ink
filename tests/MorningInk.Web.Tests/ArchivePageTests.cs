@@ -34,7 +34,7 @@ public sealed class ArchivePageTests : IDisposable
 
         Pages.Button(page, "Send again").Click();
 
-        Pages.Shows(page, "Sent again to max_abc@kindle.com.");
+        Pages.Shows(page, "Sent again to name_abc@kindle.com.");
         Assert.Single(_smtp.Messages);
     }
 
@@ -115,7 +115,7 @@ public sealed class ArchivePageTests : IDisposable
         var userId = await db.DomainUsers.Where(u => u.Name == TestApp.AdminName).Select(u => u.Id).SingleAsync();
         var editor = scope.ServiceProvider.GetRequiredService<ProfileEditor>();
         var profile = await editor.GetOrCreateAsync(userId, CancellationToken.None);
-        await editor.SaveSettingsAsync(userId, profile.Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None);
+        await editor.SaveSettingsAsync(userId, profile.Id, new ProfileSettings("Morning Ink", "name_abc@kindle.com", "06:00", "Europe/Berlin", null), CancellationToken.None);
         var slot = new DateTimeOffset(2026, 11, 20, 5, 0, 0, TimeSpan.Zero);
         var issue = new Issue { ProfileId = profile.Id, Number = 1, ScheduledFor = slot, CreatedAt = slot, Status = IssueStatus.Delivered, DeliveredAt = slot };
         issue.FileName = $"{issue.Id}.epub";

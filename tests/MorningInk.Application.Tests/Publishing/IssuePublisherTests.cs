@@ -32,7 +32,7 @@ public sealed class IssuePublisherTests : IDisposable
     {
         _tagesschau = new Source { UserId = _userId, Name = "tagesschau", Url = "https://tagesschau.de/rss" };
         _heise = new Source { UserId = _userId, Name = "heise", Url = "https://heise.de/rss" };
-        _profile = new Profile { UserId = _userId, Title = "Morning Ink", Recipient = "max@kindle.com" };
+        _profile = new Profile { UserId = _userId, Title = "Morning Ink", Recipient = "alex@kindle.com" };
         _profile.Sections.Add(new Section { Name = "Nachrichten", Position = 1, Sources = { _tagesschau } });
         _profile.Sections.Add(new Section { Name = "Tech", Position = 2, Sources = { _heise } });
         _store = new FakeStore(_profile);
@@ -242,7 +242,7 @@ public sealed class IssuePublisherTests : IDisposable
         Assert.Equal(TimeSpan.FromHours(1), content.PublishedAt.Offset);
         Assert.Equal("de", content.Language);
         var request = Assert.Single(_delivery.Requests);
-        Assert.Equal("max@kindle.com", request.Recipient);
+        Assert.Equal("alex@kindle.com", request.Recipient);
         Assert.Equal("Morning Ink 2026-11-21", request.Title);
         Assert.True(File.Exists(request.FilePath));
     }

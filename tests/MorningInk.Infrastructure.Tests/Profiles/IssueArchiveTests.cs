@@ -20,7 +20,7 @@ public sealed class IssueArchiveTests : IDisposable
     public async Task Lists_only_the_users_own_issues_newest_first()
     {
         await using var services = await StartAsync();
-        var max = await CreateUserWithProfileAsync(services, "max");
+        var max = await CreateUserWithProfileAsync(services, "alex");
         var erika = await CreateUserWithProfileAsync(services, "erika");
         await AddIssueAsync(services, max.ProfileId, 1, IssueStatus.Delivered, "Erste Meldung");
         await AddIssueAsync(services, max.ProfileId, 2, IssueStatus.Delivered, "Zweite Meldung");
@@ -36,7 +36,7 @@ public sealed class IssueArchiveTests : IDisposable
     public async Task Search_finds_issues_by_article_title_ignoring_case_and_wildcards()
     {
         await using var services = await StartAsync();
-        var max = await CreateUserWithProfileAsync(services, "max");
+        var max = await CreateUserWithProfileAsync(services, "alex");
         await AddIssueAsync(services, max.ProfileId, 1, IssueStatus.Delivered, "Raumfahrt: Start geglückt");
         await AddIssueAsync(services, max.ProfileId, 2, IssueStatus.Delivered, "Wetter am Wochenende");
 
@@ -51,7 +51,7 @@ public sealed class IssueArchiveTests : IDisposable
     public async Task Failed_issue_sent_again_arrives_and_counts_as_delivered()
     {
         await using var services = await StartAsync();
-        var max = await CreateUserWithProfileAsync(services, "max");
+        var max = await CreateUserWithProfileAsync(services, "alex");
         var issueId = await AddIssueAsync(services, max.ProfileId, 7, IssueStatus.Failed, "Erste Meldung");
 
         var result = await ArchiveAsync(services, a => a.ResendAsync(max.UserId, issueId, CancellationToken.None));
@@ -72,7 +72,7 @@ public sealed class IssueArchiveTests : IDisposable
     public async Task Pinning_keeps_an_issue_and_unpinning_releases_it()
     {
         await using var services = await StartAsync();
-        var max = await CreateUserWithProfileAsync(services, "max");
+        var max = await CreateUserWithProfileAsync(services, "alex");
         var issueId = await AddIssueAsync(services, max.ProfileId, 1, IssueStatus.Delivered, "Erste Meldung");
 
         Assert.True(await ArchiveAsync(services, a => a.SetPinnedAsync(max.UserId, issueId, true, CancellationToken.None)));
@@ -88,7 +88,7 @@ public sealed class IssueArchiveTests : IDisposable
     public async Task Another_users_issue_cannot_be_downloaded_sent_or_pinned()
     {
         await using var services = await StartAsync();
-        var max = await CreateUserWithProfileAsync(services, "max");
+        var max = await CreateUserWithProfileAsync(services, "alex");
         var erika = await CreateUserWithProfileAsync(services, "erika");
         var issueId = await AddIssueAsync(services, max.ProfileId, 1, IssueStatus.Delivered, "Erste Meldung");
 
@@ -102,7 +102,7 @@ public sealed class IssueArchiveTests : IDisposable
     public async Task Download_is_named_like_the_issue()
     {
         await using var services = await StartAsync();
-        var max = await CreateUserWithProfileAsync(services, "max");
+        var max = await CreateUserWithProfileAsync(services, "alex");
         var issueId = await AddIssueAsync(services, max.ProfileId, 1, IssueStatus.Delivered, "Erste Meldung");
 
         var file = await ArchiveAsync(services, a => a.GetFileAsync(max.UserId, issueId, CancellationToken.None));

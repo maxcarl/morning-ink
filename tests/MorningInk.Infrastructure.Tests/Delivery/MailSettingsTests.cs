@@ -24,7 +24,7 @@ public sealed class MailSettingsTests : IDisposable
         var result = await SendTestAsync(services);
 
         Assert.IsType<DeliveryResult.Delivered>(result);
-        Assert.Equal("max\0" + Password, Assert.Single(_smtp.Logins));
+        Assert.Equal("alex\0" + Password, Assert.Single(_smtp.Logins));
         var mail = Assert.Single(_smtp.Messages);
         Assert.StartsWith("Morning Ink Test", mail.Subject, StringComparison.Ordinal);
         Assert.EndsWith(".epub", Assert.Single(mail.Attachments).ContentDisposition?.FileName ?? string.Empty, StringComparison.Ordinal);
@@ -39,7 +39,7 @@ public sealed class MailSettingsTests : IDisposable
         await SaveAsync(services, Input(password: null));
         await SendTestAsync(services);
 
-        Assert.Equal("max\0" + Password, Assert.Single(_smtp.Logins));
+        Assert.Equal("alex\0" + Password, Assert.Single(_smtp.Logins));
         Assert.DoesNotContain(Password, await ReadStoredPasswordAsync(), StringComparison.Ordinal);
     }
 
@@ -59,8 +59,8 @@ public sealed class MailSettingsTests : IDisposable
     }
 
     [Theory]
-    [InlineData("smtp example.com", "587", "max@example.com", MailSettingsStore.HostField)]
-    [InlineData("smtp.example.com", "70000", "max@example.com", MailSettingsStore.PortField)]
+    [InlineData("smtp example.com", "587", "alex@example.com", MailSettingsStore.HostField)]
+    [InlineData("smtp.example.com", "70000", "alex@example.com", MailSettingsStore.PortField)]
     [InlineData("smtp.example.com", "587", "a@b.de, c@d.de", MailSettingsStore.FromAddressField)]
     public async Task Invalid_settings_are_refused(string host, string port, string from, string field)
     {
@@ -78,7 +78,7 @@ public sealed class MailSettingsTests : IDisposable
     }
 
     private MailSettingsInput Input(string? password) =>
-        new("127.0.0.1", _smtp.Port.ToString(System.Globalization.CultureInfo.InvariantCulture), MailSecurity.None, "max", password, "morning-ink@example.com", null);
+        new("127.0.0.1", _smtp.Port.ToString(System.Globalization.CultureInfo.InvariantCulture), MailSecurity.None, "alex", password, "morning-ink@example.com", null);
 
     private static async Task<IReadOnlyList<string>> SaveAsync(IServiceProvider services, MailSettingsInput input)
     {
@@ -89,7 +89,7 @@ public sealed class MailSettingsTests : IDisposable
     private static async Task<DeliveryResult> SendTestAsync(IServiceProvider services)
     {
         await using var scope = services.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<TestMail>().SendAsync("max_abc@kindle.com", "en", CancellationToken.None);
+        return await scope.ServiceProvider.GetRequiredService<TestMail>().SendAsync("name_abc@kindle.com", "en", CancellationToken.None);
     }
 
     private async Task<string> ReadStoredPasswordAsync()

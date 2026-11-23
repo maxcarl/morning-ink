@@ -82,7 +82,7 @@ public sealed class OnboardingTests : IDisposable
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var user = new User { Name = "max" };
+        var user = new User { Name = "alex" };
         db.DomainUsers.Add(user);
         await db.SaveChangesAsync();
         return user.Id;

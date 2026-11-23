@@ -92,7 +92,7 @@ public sealed class SeenArticlesTests : IDisposable
 
     private static FetchedArticle Article(string url) => new(null, url, new Uri(url), null, null, null, null);
 
-    private static async Task<Guid> CreateUserAsync(IServiceProvider services, string name = "max")
+    private static async Task<Guid> CreateUserAsync(IServiceProvider services, string name = "alex")
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();

@@ -14,7 +14,7 @@ namespace MorningInk.Web.Tests;
 /// <summary>The real app in memory, on an empty data directory of its own.</summary>
 public sealed partial class TestApp : WebApplicationFactory<Program>
 {
-    public const string AdminName = "max";
+    public const string AdminName = "alex";
     public const string AdminPassword = "correct horse battery staple";
 
     private readonly string _dataDirectory = Directory.CreateTempSubdirectory("morning-ink-web-").FullName;

@@ -139,8 +139,8 @@ public sealed class CleanupTests : IDisposable
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var user = new User { Name = "max" };
-        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max@kindle.com" };
+        var user = new User { Name = "alex" };
+        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "alex@kindle.com" };
         db.AddRange(user, profile);
         await db.SaveChangesAsync();
         return profile.Id;

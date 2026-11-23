@@ -183,9 +183,9 @@ public sealed class IssueSchedulerTests : IDisposable
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var user = new User { Name = "max", Language = "de" };
+        var user = new User { Name = "alex", Language = "de" };
         var source = new Source { UserId = user.Id, Name = "Test-Feed", Url = _feed.Url("/feed").ToString(), FetchFullText = false, MaxAge = TimeSpan.FromDays(3650) };
-        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max_abc@kindle.com", DeliveryTime = deliveryTime, Days = days ?? [], LeadTime = leadTime ?? TimeSpan.Zero };
+        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "name_abc@kindle.com", DeliveryTime = deliveryTime, Days = days ?? [], LeadTime = leadTime ?? TimeSpan.Zero };
         profile.Sections.Add(new Section { Name = "Nachrichten", Position = 1, Sources = { source } });
         db.AddRange(user, source, profile);
         await db.SaveChangesAsync();

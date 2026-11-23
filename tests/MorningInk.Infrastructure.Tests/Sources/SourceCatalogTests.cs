@@ -131,7 +131,7 @@ public sealed class SourceCatalogTests : IDisposable
     public async Task Testing_a_source_shows_its_articles_without_touching_its_cache()
     {
         await using var services = await StartAsync(allow: true);
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
         var added = Assert.IsType<SourceSaveResult.Saved>(await catalog.AddFeedAsync(user, "Beispiel", _site.Url("/news.xml").ToString(), fetchFullText: false, CancellationToken.None));
@@ -149,7 +149,7 @@ public sealed class SourceCatalogTests : IDisposable
     public async Task Invalid_sources_are_not_saved(string name, string url)
     {
         await using var services = await StartAsync(allow: true);
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
 
@@ -161,7 +161,7 @@ public sealed class SourceCatalogTests : IDisposable
     public async Task Local_source_keeps_its_place()
     {
         await using var services = await StartAsync(allow: true);
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
 
@@ -177,7 +177,7 @@ public sealed class SourceCatalogTests : IDisposable
     public async Task Source_settings_and_filters_are_saved_for_the_owner_only()
     {
         await using var services = await StartAsync(allow: true);
-        var max = await CreateUserAsync(services, "max");
+        var max = await CreateUserAsync(services, "alex");
         var erika = await CreateUserAsync(services, "erika");
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
@@ -204,7 +204,7 @@ public sealed class SourceCatalogTests : IDisposable
     public async Task Invalid_source_settings_are_refused(string name, int maxArticles, int? minWords, string reason, int? maxWords = null)
     {
         await using var services = await StartAsync(allow: true);
-        var max = await CreateUserAsync(services, "max");
+        var max = await CreateUserAsync(services, "alex");
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
         var added = Assert.IsType<SourceSaveResult.Saved>(await catalog.AddLocalAsync(max, "Lokales", "80331", "DE", CancellationToken.None)).Source;

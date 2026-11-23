@@ -20,11 +20,11 @@ public sealed class ProfilePageTests : IDisposable
         var page = pages.Open<ProfilePage>("comes out every day");
 
         page.Find("#zone").Change("Europe/Berlin");
-        Pages.Submit(page, ("#title", "Die Frühstücksausgabe"), ("#recipient", "max_abc@kindle.com"), ("#time", Pages.BrowserTime("07:15")));
+        Pages.Submit(page, ("#title", "Die Frühstücksausgabe"), ("#recipient", "name_abc@kindle.com"), ("#time", Pages.BrowserTime("07:15")));
 
         Pages.Shows(page, "Saved. Changes apply from the next issue.");
         Assert.Matches("every day at 0?7:15", page.Markup);
-        Assert.Contains("(Europe/Berlin), sent to max_abc@kindle.com.", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("(Europe/Berlin), sent to name_abc@kindle.com.", page.Markup, StringComparison.Ordinal);
         Assert.Contains("Die Frühstücksausgabe", page.Markup, StringComparison.Ordinal);
     }
 
@@ -164,7 +164,7 @@ public sealed class ProfilePageTests : IDisposable
             page.FindAll(".weekdays label").Single(l => l.TextContent.Trim() == day).QuerySelector("input")!.Change(false); // ! is safe: every day label holds a checkbox
         }
 
-        Pages.Submit(page, ("#recipient", "max_abc@kindle.com"));
+        Pages.Submit(page, ("#recipient", "name_abc@kindle.com"));
 
         Pages.Shows(page, "Wochenende comes out on Sun, Sat at"); // in English the week starts on Sunday
         Assert.Equal([DayOfWeek.Sunday, DayOfWeek.Saturday], (await ProfilesAsync()).Single(p => p.Id == weekend).Days);

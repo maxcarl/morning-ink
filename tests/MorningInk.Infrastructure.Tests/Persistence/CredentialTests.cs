@@ -63,8 +63,8 @@ public sealed class CredentialTests : IDisposable
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var user = new User { Name = "max" };
-        db.AddRange(user, new Credential { UserId = user.Id, Name = "FreshRSS", Username = "max", Secret = Password });
+        var user = new User { Name = "alex" };
+        db.AddRange(user, new Credential { UserId = user.Id, Name = "FreshRSS", Username = "alex", Secret = Password });
         await db.SaveChangesAsync();
     }
 

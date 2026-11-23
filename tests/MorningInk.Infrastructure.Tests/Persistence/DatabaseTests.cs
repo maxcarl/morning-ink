@@ -18,9 +18,9 @@ public sealed class DatabaseTests : IDisposable
         {
             await using var scope = services.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-            var user = new User { Name = "max" };
+            var user = new User { Name = "alex" };
             var source = new Source { UserId = user.Id, Name = "heise", Url = "https://www.heise.de/rss/heise.rdf" };
-            var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max@kindle.com", Region = "10115" };
+            var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "alex@kindle.com", Region = "10115" };
             profile.Sections.Add(new Section { Name = "Tech", Position = 1, Sources = { source } });
             db.AddRange(user, source, profile);
             await db.SaveChangesAsync();
@@ -81,7 +81,7 @@ public sealed class DatabaseTests : IDisposable
 
         // Back to the schema before section kinds, with an edition as it was then.
         await migrator.MigrateAsync("20261122190845_AddSendByEmail");
-        var user = new User { Name = "max", Language = "de" };
+        var user = new User { Name = "alex", Language = "de" };
         db.DomainUsers.Add(user);
         await db.SaveChangesAsync();
         var profileId = Guid.NewGuid();

@@ -16,7 +16,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task First_visit_creates_a_profile_with_defaults()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
         var again = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
@@ -29,14 +29,14 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Saving_settings_reschedules_the_next_issue()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
 
-        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Die Frühstücksausgabe", "max_abc@kindle.com", "07:15", "Europe/Berlin", "52062", "de"), CancellationToken.None));
+        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Die Frühstücksausgabe", "name_abc@kindle.com", "07:15", "Europe/Berlin", "52062", "de"), CancellationToken.None));
 
         Assert.Empty(errors);
         var saved = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
-        Assert.Equal(("Die Frühstücksausgabe", "max_abc@kindle.com", new TimeOnly(7, 15), "52062", "DE"), (saved.Title, saved.Recipient, saved.DeliveryTime, saved.Region, saved.Country));
+        Assert.Equal(("Die Frühstücksausgabe", "name_abc@kindle.com", new TimeOnly(7, 15), "52062", "DE"), (saved.Title, saved.Recipient, saved.DeliveryTime, saved.Region, saved.Country));
         var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
         var daily = (await scheduler.GetTriggersOfJob(IssueScheduler.JobKeyFor(profile.Id))).OfType<ICronTrigger>().Single();
         var next = TimeZoneInfo.ConvertTime(daily.NextFireTimeUtc!.Value, daily.TimeZone); // ! is safe: a daily trigger always fires again
@@ -44,16 +44,16 @@ public sealed class ProfileEditorTests : IDisposable
     }
 
     [Theory]
-    [InlineData("", "max@kindle.com", "06:00", "Europe/Berlin", "Title")]
+    [InlineData("", "alex@kindle.com", "06:00", "Europe/Berlin", "Title")]
     [InlineData("Morning Ink", "not an address", "06:00", "Europe/Berlin", "Recipient")]
     [InlineData("Morning Ink", "a@b.de\r\nBcc: x@y.de", "06:00", "Europe/Berlin", "Recipient")]
-    [InlineData("Morning Ink", "max@kindle.com", "25:00", "Europe/Berlin", "DeliveryTime")]
-    [InlineData("Morning Ink", "max@kindle.com", "06:00", "Mars/Base", "TimeZone")]
-    [InlineData("Morning Ink", "max@kindle.com", "06:00", "Europe/Berlin", "Country", "XX")]
+    [InlineData("Morning Ink", "alex@kindle.com", "25:00", "Europe/Berlin", "DeliveryTime")]
+    [InlineData("Morning Ink", "alex@kindle.com", "06:00", "Mars/Base", "TimeZone")]
+    [InlineData("Morning Ink", "alex@kindle.com", "06:00", "Europe/Berlin", "Country", "XX")]
     public async Task Invalid_settings_are_refused(string title, string recipient, string time, string zone, string field, string? country = null)
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
 
         var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings(title, recipient, time, zone, null, country), CancellationToken.None));
 
@@ -64,7 +64,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task An_edition_to_fetch_needs_no_recipient()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
 
         var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", string.Empty, "06:00", "Europe/Berlin", null, SendByEmail: false), CancellationToken.None));
 
@@ -75,7 +75,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task A_new_edition_starts_with_its_weather_first_named_in_the_owners_language()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max", "de");
+        var user = await CreateUserAsync(services, "alex", "de");
 
         var first = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
         var second = await EditAsync(services, e => e.CreateAsync(user, "Abendausgabe", CancellationToken.None));
@@ -88,7 +88,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task The_overview_is_added_once_and_like_every_section_switched_off_and_on()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         var profileId = await ProfileIdAsync(services, user);
 
         Assert.True(await SectionsAsync(services, e => e.AddSpecialAsync(user, profileId, SectionKind.Overview, "Das Wichtigste", CancellationToken.None)));
@@ -118,7 +118,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Sections_hold_the_users_sources_in_order()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         var feed = await CreateSourceAsync(services, user, "heise");
 
         await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), "Technik", CancellationToken.None));
@@ -142,7 +142,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Section_moves_to_any_position(string name, int index, string[] expected)
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
 
         // Three sections of the same kind; the weather the edition starts with would only shift the indexes.
         var weather = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single();
@@ -163,14 +163,14 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Second_edition_takes_over_the_first_ones_delivery_and_has_its_own_schedule()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
-        await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morgen", "max_abc@kindle.com", "06:00", "Europe/Vienna", "1010", "AT"), CancellationToken.None));
+        var user = await CreateUserAsync(services, "alex");
+        await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morgen", "name_abc@kindle.com", "06:00", "Europe/Vienna", "1010", "AT"), CancellationToken.None));
 
         var evening = await EditAsync(services, e => e.CreateAsync(user, "Abend", CancellationToken.None));
 
         var all = await EditAsync(services, e => e.ListAsync(user, CancellationToken.None));
         Assert.Equal(["Morgen", "Abend"], all.Select(p => p.Title));
-        Assert.Equal(("max_abc@kindle.com", "Europe/Vienna", "AT"), (evening.Recipient, evening.TimeZoneId, evening.Country));
+        Assert.Equal(("name_abc@kindle.com", "Europe/Vienna", "AT"), (evening.Recipient, evening.TimeZoneId, evening.Country));
         var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
         Assert.True(await scheduler.Exists(IssueScheduler.JobKeyFor(evening.Id)));
     }
@@ -179,7 +179,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Deleting_an_edition_removes_its_issues_files_and_schedule_but_never_the_last_one()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         var first = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
         var second = await EditAsync(services, e => e.CreateAsync(user, "Abend", CancellationToken.None));
         var file = await AddIssueWithFileAsync(services, second.Id);
@@ -202,9 +202,9 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Weekdays_are_saved(DayOfWeek[] chosen, DayOfWeek[] stored)
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
 
-        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null, null, chosen), CancellationToken.None));
+        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "name_abc@kindle.com", "06:00", "Europe/Berlin", null, null, chosen), CancellationToken.None));
 
         Assert.Empty(errors);
         Assert.Equal(stored, (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Days);
@@ -218,9 +218,9 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Lead_time_is_saved_within_half_a_day(int minutes, bool valid)
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
 
-        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null, null, null, TimeSpan.FromMinutes(minutes)), CancellationToken.None));
+        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "name_abc@kindle.com", "06:00", "Europe/Berlin", null, null, null, TimeSpan.FromMinutes(minutes)), CancellationToken.None));
 
         Assert.Equal(valid, errors.Count == 0);
         Assert.Equal(valid ? TimeSpan.FromMinutes(minutes) : TimeSpan.Zero, (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).LeadTime);
@@ -230,7 +230,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Interests_are_saved_per_edition_and_checked()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         var profileId = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Id;
         Interest[] interests = [new() { Topic = "Homelab", Keywords = ["Proxmox", "NAS"], Weight = InterestWeight.StrongPrefer }];
 
@@ -261,7 +261,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Notification_settings_are_checked_per_channel(NotificationChannel channel, string? target, string? secret, bool valid)
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         var profileId = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Id;
 
         var errors = await EditAsync(services, e => e.SaveNotificationAsync(user, profileId, new NotificationSettings(channel, target, secret), CancellationToken.None));
@@ -273,7 +273,7 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task Notification_token_stays_when_left_empty_and_goes_with_the_channel()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
         var profileId = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Id;
 
         await EditAsync(services, e => e.SaveNotificationAsync(user, profileId, new NotificationSettings(NotificationChannel.Gotify, "https://gotify.example.com", "app-token"), CancellationToken.None));
@@ -290,9 +290,9 @@ public sealed class ProfileEditorTests : IDisposable
     public async Task No_weekday_at_all_is_refused()
     {
         await using var services = await _host.StartAsync();
-        var user = await CreateUserAsync(services, "max");
+        var user = await CreateUserAsync(services, "alex");
 
-        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "max_abc@kindle.com", "06:00", "Europe/Berlin", null, null, []), CancellationToken.None));
+        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "name_abc@kindle.com", "06:00", "Europe/Berlin", null, null, []), CancellationToken.None));
 
         Assert.Contains("Days", errors);
     }

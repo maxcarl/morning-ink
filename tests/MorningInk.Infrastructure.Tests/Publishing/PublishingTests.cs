@@ -112,12 +112,12 @@ public sealed class PublishingTests : IDisposable
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
-        var user = new User { Name = "max", Language = "de" };
+        var user = new User { Name = "alex", Language = "de" };
 
         // The edge-case feed links to example.com; full text stays off so the test never leaves the machine.
         var working = new Source { UserId = user.Id, Name = "Test-Feed", Url = _feeds.Url("/feed").ToString(), FetchFullText = false, MaxAge = TimeSpan.FromDays(3650) };
         var broken = new Source { UserId = user.Id, Name = "Ausfall", Url = _feeds.Url("/down").ToString() };
-        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "max_abc@kindle.com" };
+        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "name_abc@kindle.com" };
         profile.Sections.Add(new Section { Name = "Nachrichten", Position = 1, Sources = { working, broken } });
         db.AddRange(user, working, broken, profile);
         await db.SaveChangesAsync();
