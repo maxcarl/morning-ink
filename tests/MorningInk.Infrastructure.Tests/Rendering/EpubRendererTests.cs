@@ -161,6 +161,20 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task An_article_shortened_to_its_summary_keeps_a_page_with_the_summary_and_the_original_link()
+    {
+        var issue = SampleIssue();
+        var shortened = new FetchedArticle(null, "Top 10: Thermostate", new Uri("https://example.com/top10"), null, null, null, null, AiSummary: "Testsieger ist Tado.");
+        issue = issue with { Sections = [new IssueSection("Technik", [new IssueArticle(shortened, "heise")])] };
+
+        using var epub = await RenderAsync(issue, "shortened-issue.epub");
+
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "article-1-1.xhtml")));
+        Assert.Equal("Testsieger ist Tado.", page.Descendants(Xhtml + "aside").Single().Elements(Xhtml + "p").Last().Value);
+        Assert.Contains(page.Descendants(Xhtml + "a"), a => (string?)a.Attribute("href") == "https://example.com/top10");
+    }
+
+    [Fact]
     public async Task Without_a_summary_the_link_is_only_at_the_end()
     {
         using var epub = await RenderAsync();

@@ -260,6 +260,10 @@
   <data name="Sources_ExcludeHint" xml:space="preserve"><value>Looked for in headline and teaser, as whole words, upper or lower case. With a star at the end also word starts: “football*” finds “footballer”.</value></data>
   <data name="Sources_MinWords" xml:space="preserve"><value>At least (words)</value></data>
   <data name="Sources_NoMinimum" xml:space="preserve"><value>no minimum</value></data>
+  <data name="Sources_MaxWords" xml:space="preserve"><value>At most (words)</value></data>
+  <data name="Sources_NoMaximum" xml:space="preserve"><value>no maximum</value></data>
+  <data name="Sources_MaxWordsHint" xml:space="preserve"><value>Longer articles appear only with their “In short” summary and the link to the original. Without an AI summary they are left out.</value></data>
+  <data name="Error_MaxWordsInvalid" xml:space="preserve"><value>The maximum length must be between 1 and 100,000 words and not below the minimum.</value></data>
   <data name="Sources_SkipLive" xml:space="preserve"><value>No live tickers</value></data>
   <data name="Sources_Filtered" xml:space="preserve"><value>filtered</value></data>
   <data name="Error_NotFound" xml:space="preserve"><value>This source no longer exists.</value></data>
@@ -337,7 +341,7 @@
   <data name="Log_Chosen" xml:space="preserve"><value>{0}: {1} of {2} articles chosen</value></data>
   <data name="Log_Merged" xml:space="preserve"><value>{0} duplicates merged</value></data>
   <data name="Log_Processed" xml:space="preserve"><value>{0} articles prepared in {1} s (full text, images, AI)</value></data>
-  <data name="Log_Dropped" xml:space="preserve"><value>{0} articles left out: too short or not readable</value></data>
+  <data name="Log_Dropped" xml:space="preserve"><value>{0} articles left out: too short, too long without a summary, or not readable</value></data>
   <data name="Log_Summaries" xml:space="preserve"><value>{0} AI summaries</value></data>
   <data name="Log_Rendered" xml:space="preserve"><value>Issue built: {0} KB</value></data>
   <data name="Log_NoNewArticles" xml:space="preserve"><value>No new articles: nothing sent</value></data>

@@ -120,6 +120,25 @@ public class ArticleFilterTests
         Assert.True(ArticleFilter.IsLongEnough(Article("Kurz", content: "<p>Kurz.</p>"), Source(_ => { }))); // no minimum set
     }
 
+    [Fact]
+    public void Too_long_articles_keep_only_the_ai_summary_or_are_left_out_without_one()
+    {
+        var source = Source(s => s.MaxWords = 5);
+        var article = Article("Top 10", summary: "<p>Anriss</p>", content: "<p>Hier stehen deutlich mehr als fünf Wörter im Text.</p>");
+
+        Assert.Null(ArticleFilter.FitLength(article, source)); // no AI summary: nothing short to show
+        var shortened = ArticleFilter.FitLength(article with { AiSummary = "Der Testsieger kostet 80 Euro." }, source);
+        Assert.Equal((null, null, "Der Testsieger kostet 80 Euro."), (shortened?.Content, shortened?.Summary, shortened?.AiSummary));
+
+        var fits = Article("Kurz", content: "<p>Nur drei Wörter.</p>");
+        Assert.Same(fits, ArticleFilter.FitLength(fits, source));
+        Assert.Same(article, ArticleFilter.FitLength(article, Source(s => s.MaxWords = null))); // no maximum set
+        Assert.Null(ArticleFilter.FitLength(fits, Source(s => s.MinWords = 5))); // the minimum still counts
+    }
+
+    [Fact]
+    public void New_sources_shorten_articles_above_3000_words() => Assert.Equal(3000, Source(_ => { }).MaxWords);
+
     [Theory]
     [InlineData("tagesschau 20:00 Uhr", "https://www.tagesschau.de/multimedia/sendung/tagesschau_20_uhr/video-1530922.html", null)]
     [InlineData("Wetter am Abend", "https://www.tagesschau.de/multimedia/video/video-1530990.html", null)]

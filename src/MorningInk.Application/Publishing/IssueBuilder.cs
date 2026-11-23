@@ -187,10 +187,10 @@ public sealed class IssueBuilder(
             var articles = new List<IssueArticle>();
             foreach (var (article, source, alsoAt) in picks)
             {
-                // ponytail: an article too short after the full text leaves a gap in the limit; fetching spares would cost downloads.
-                if (await ProcessAsync(article, source, withAi, cancellationToken) is { } processed && ArticleFilter.IsLongEnough(processed, source))
+                // ponytail: an article too short or long after the full text leaves a gap in the limit; fetching spares would cost downloads.
+                if (await ProcessAsync(article, source, withAi, cancellationToken) is { } processed && ArticleFilter.FitLength(processed, source) is { } fitted)
                 {
-                    articles.Add(new IssueArticle(processed, source.Name, alsoAt, source.Id));
+                    articles.Add(new IssueArticle(fitted, source.Name, alsoAt, source.Id));
                 }
             }
 

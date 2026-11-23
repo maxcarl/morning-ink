@@ -48,8 +48,8 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
             ReferenceEqualityComparer.Instance);
 
         // Headline-only news go on their section's briefs page; everything else gets a page and a contents entry.
-        var full = issue.Sections.Select(s => (IReadOnlyList<IssueArticle>)s.Articles.Where(a => !EpubPages.IsBrief(bodies[a])).ToList()).ToList();
-        var briefs = issue.Sections.Select(s => (IReadOnlyList<IssueArticle>)s.Articles.Where(a => EpubPages.IsBrief(bodies[a])).ToList()).ToList();
+        var full = issue.Sections.Select(s => (IReadOnlyList<IssueArticle>)s.Articles.Where(a => !EpubPages.IsBrief(a, bodies[a])).ToList()).ToList();
+        var briefs = issue.Sections.Select(s => (IReadOnlyList<IssueArticle>)s.Articles.Where(a => EpubPages.IsBrief(a, bodies[a])).ToList()).ToList();
 
         // File names by position, never from titles.
         var hrefs = new Dictionary<IssueArticle, string>(ReferenceEqualityComparer.Instance);

@@ -717,6 +717,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<int>("MaxArticles")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("MaxWords")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("MinScore")
                         .HasColumnType("INTEGER");
 

@@ -28,6 +28,9 @@
         <div>
             <label class="label" for="source-minwords">@T["Sources_MinWords"]</label>
             <input id="source-minwords" class="input" type="number" min="1" @bind="_edit.MinWords" placeholder="@T["Sources_NoMinimum"]" />
+            <label class="label" for="source-maxwords">@T["Sources_MaxWords"]</label>
+            <input id="source-maxwords" class="input" type="number" min="1" @bind="_edit.MaxWords" placeholder="@T["Sources_NoMaximum"]" aria-describedby="source-maxwords-hint" />
+            <span id="source-maxwords-hint" class="hint">@T["Sources_MaxWordsHint"]</span>
         </div>
         <div class="row-main checks">
             <label class="checkbox"><input id="source-live" type="checkbox" @bind="_edit.SkipLiveTickers" /> @T["Sources_SkipLive"]</label>
@@ -100,6 +103,7 @@
         Include = string.Join(", ", Source.IncludeKeywords),
         Exclude = string.Join(", ", Source.ExcludeKeywords),
         MinWords = Source.MinWords,
+        MaxWords = Source.MaxWords,
         SkipLiveTickers = Source.SkipLiveTickers,
         FetchFullText = Source.FetchFullText,
         LocalAiOnly = Source.LocalAiOnly,
@@ -128,7 +132,8 @@
             _edit.LoadImages,
             _edit.Sender,
             _edit.SkipMedia,
-            _edit.MinScore);
+            _edit.MinScore,
+            _edit.MaxWords);
         var result = await Scopes.RunAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, Source.Id, settings, Cancellation));
         _busy = false;
         await Finished.InvokeAsync(result is SourceSaveResult.Invalid invalid ? FormOutcome.Failed(T[$"Error_{invalid.Reason}"]) : new FormOutcome(T["Profile_Saved"]));
@@ -146,6 +151,8 @@
         public string Exclude { get; set; } = string.Empty;
 
         public int? MinWords { get; set; }
+
+        public int? MaxWords { get; set; }
 
         public bool SkipLiveTickers { get; set; }
 

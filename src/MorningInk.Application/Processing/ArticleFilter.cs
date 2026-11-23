@@ -62,8 +62,29 @@ public static partial class ArticleFilter
     }
 
     public static bool IsLongEnough(FetchedArticle article, Source source) =>
-        source.MinWords is not { } minimum
-        || PlainText(article.Content ?? article.Summary).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length >= minimum;
+        source.MinWords is not { } minimum || Words(article) >= minimum;
+
+    /// <summary>
+    /// The article as the source's length limits let it in, after the full text and the AI: null when too short, or too
+    /// long without an AI summary; too long with one, only the summary stays, and the link to the original.
+    /// </summary>
+    public static FetchedArticle? FitLength(FetchedArticle article, Source source)
+    {
+        if (!IsLongEnough(article, source))
+        {
+            return null;
+        }
+
+        if (source.MaxWords is not { } maximum || Words(article) <= maximum)
+        {
+            return article;
+        }
+
+        return article.AiSummary is null ? null : article with { Content = null, Summary = null };
+    }
+
+    private static int Words(FetchedArticle article) =>
+        PlainText(article.Content ?? article.Summary).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
 
     /// <summary>Whether the publisher marks the article as advertising, by title prefix or bracket, category or address.</summary>
     /// <remarks>Only marks count, never the word in running text, so articles about displays or ad rules stay.</remarks>

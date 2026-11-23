@@ -107,7 +107,9 @@ internal static class EpubPages
         : new XElement(Xhtml + "p", new XAttribute("class", "meta"), texts.AlsoAt(string.Join(", ", item.AlsoAt.Select(a => a.SourceName).Distinct())));
 
     /// <summary>Whether an article has nothing to read but its headline, so it belongs among the briefs.</summary>
-    public static bool IsBrief(ArticleBody.Result body) => body.Images.Count == 0 && ReadingWords(body.Nodes) == 0;
+    /// <remarks>An AI summary is something to read: an overlong article shortened to it keeps its page.</remarks>
+    public static bool IsBrief(IssueArticle article, ArticleBody.Result body) =>
+        string.IsNullOrWhiteSpace(article.Article.AiSummary) && body.Images.Count == 0 && ReadingWords(body.Nodes) == 0;
 
     /// <param name="section">Shown above the headline, like a newspaper's department line.</param>
     /// <param name="contentsHref">The article's own entry in the contents, to go back to and on with the next one.</param>

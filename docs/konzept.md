@@ -147,7 +147,7 @@ Jeder Artikel läuft durch eine Pipeline. Die Schritte lassen sich pro Quelle an
 3. **Bereinigen:** HTML säubern, Werbeblöcke, Share-Buttons und Tracking-Parameter in Links entfernen.
 4. **Bilder:** Graustufen, verkleinern, optional Dithering für E-Ink. Maximal x Bilder pro Artikel, Bildunterschriften behalten, Icons verwerfen.
 5. **Duplikate erkennen:** über normalisierte URLs und ähnliche Titel. Dieselbe Meldung aus mehreren Quellen erscheint nur einmal, mit „auch bei: …“.
-6. **Filtern:** Stichwörter ein- oder ausschließen, Regex, Mindestlänge, Sprache, „keine Liveticker“.
+6. **Filtern:** Stichwörter ein- oder ausschließen, Regex, Mindest- und Höchstlänge, Sprache, „keine Liveticker“. Zu lange Artikel (Standard 3000 Wörter) erscheinen nur mit KI-Zusammenfassung und Link zum Original, ohne KI fallen sie weg.
 7. **Priorisieren:** nach Quelle, Aktualität, Punkten (HN, Reddit), Interessen (siehe unten) oder KI-Relevanz. Limit pro Rubrik und pro Ausgabe.
 8. **Übersetzen (optional):** per KI, DeepL oder LibreTranslate.
 9. **Lesezeit schätzen:** „4 Min.“ im Inhaltsverzeichnis.

@@ -260,6 +260,10 @@
   <data name="Sources_ExcludeHint" xml:space="preserve"><value>Gesucht wird in Überschrift und Anriss, als ganze Wörter, egal ob groß oder klein. Mit Stern am Ende auch Wortanfänge: „Fußball*“ findet „Fußballer“.</value></data>
   <data name="Sources_MinWords" xml:space="preserve"><value>Mindestens (Wörter)</value></data>
   <data name="Sources_NoMinimum" xml:space="preserve"><value>kein Minimum</value></data>
+  <data name="Sources_MaxWords" xml:space="preserve"><value>Höchstens (Wörter)</value></data>
+  <data name="Sources_NoMaximum" xml:space="preserve"><value>kein Maximum</value></data>
+  <data name="Sources_MaxWordsHint" xml:space="preserve"><value>Längere Artikel erscheinen nur mit „Kurz gefasst“ und dem Link zum Original. Ohne KI-Zusammenfassung werden sie ausgelassen.</value></data>
+  <data name="Error_MaxWordsInvalid" xml:space="preserve"><value>Die Höchstlänge muss zwischen 1 und 100.000 Wörtern liegen und darf nicht unter der Mindestlänge liegen.</value></data>
   <data name="Sources_SkipLive" xml:space="preserve"><value>Keine Liveticker</value></data>
   <data name="Sources_Filtered" xml:space="preserve"><value>gefiltert</value></data>
   <data name="Error_NotFound" xml:space="preserve"><value>Diese Quelle gibt es nicht mehr.</value></data>
@@ -337,7 +341,7 @@
   <data name="Log_Chosen" xml:space="preserve"><value>{0}: {1} von {2} Artikeln ausgewählt</value></data>
   <data name="Log_Merged" xml:space="preserve"><value>{0} Duplikate zusammengelegt</value></data>
   <data name="Log_Processed" xml:space="preserve"><value>{0} Artikel in {1} s aufbereitet (Volltext, Bilder, KI)</value></data>
-  <data name="Log_Dropped" xml:space="preserve"><value>{0} Artikel ausgelassen: zu kurz oder nicht lesbar</value></data>
+  <data name="Log_Dropped" xml:space="preserve"><value>{0} Artikel ausgelassen: zu kurz, zu lang ohne Zusammenfassung oder nicht lesbar</value></data>
   <data name="Log_Summaries" xml:space="preserve"><value>{0} KI-Zusammenfassungen</value></data>
   <data name="Log_Rendered" xml:space="preserve"><value>Ausgabe gebaut: {0} KB</value></data>
   <data name="Log_NoNewArticles" xml:space="preserve"><value>Keine neuen Artikel: nichts verschickt</value></data>

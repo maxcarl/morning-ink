@@ -182,14 +182,14 @@ public sealed class SourceCatalogTests : IDisposable
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
         var added = Assert.IsType<SourceSaveResult.Saved>(await catalog.AddLocalAsync(max, "Lokales", "80331", "DE", CancellationToken.None)).Source;
-        var settings = new SourceSettings("Lokales München", FetchFullText: true, MaxArticles: 8, SourceSettings.ParseKeywords("Polizei, Feuerwehr\nStadtrat"), SourceSettings.ParseKeywords("FC Bayern; Oktoberfest"), MinWords: 80, SkipLiveTickers: true, SkipAds: false);
+        var settings = new SourceSettings("Lokales München", FetchFullText: true, MaxArticles: 8, SourceSettings.ParseKeywords("Polizei, Feuerwehr\nStadtrat"), SourceSettings.ParseKeywords("FC Bayern; Oktoberfest"), MinWords: 80, SkipLiveTickers: true, SkipAds: false, MaxWords: 2000);
 
         var foreign = await catalog.SaveSettingsAsync(erika, added.Id, settings, CancellationToken.None);
         var saved = await catalog.SaveSettingsAsync(max, added.Id, settings, CancellationToken.None);
 
         Assert.IsType<SourceSaveResult.Invalid>(foreign);
         var source = Assert.IsType<SourceSaveResult.Saved>(saved).Source;
-        Assert.Equal(("Lokales München", 8, 80, true), (source.Name, source.MaxArticles, source.MinWords, source.SkipLiveTickers));
+        Assert.Equal(("Lokales München", 8, 80, 2000, true), (source.Name, source.MaxArticles, source.MinWords, source.MaxWords, source.SkipLiveTickers));
         Assert.False(source.SkipAds);
         Assert.Equal(["Polizei", "Feuerwehr", "Stadtrat"], source.IncludeKeywords);
         Assert.Equal(["FC Bayern", "Oktoberfest"], source.ExcludeKeywords);
@@ -199,7 +199,9 @@ public sealed class SourceCatalogTests : IDisposable
     [InlineData("", 10, null, "NameRequired")]
     [InlineData("Feed", 0, null, "MaxArticlesInvalid")]
     [InlineData("Feed", 10, 0, "MinWordsInvalid")]
-    public async Task Invalid_source_settings_are_refused(string name, int maxArticles, int? minWords, string reason)
+    [InlineData("Feed", 10, null, "MaxWordsInvalid", 0)]
+    [InlineData("Feed", 10, 500, "MaxWordsInvalid", 400)] // below the minimum, nothing could ever fit
+    public async Task Invalid_source_settings_are_refused(string name, int maxArticles, int? minWords, string reason, int? maxWords = null)
     {
         await using var services = await StartAsync(allow: true);
         var max = await CreateUserAsync(services, "max");
@@ -207,7 +209,7 @@ public sealed class SourceCatalogTests : IDisposable
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
         var added = Assert.IsType<SourceSaveResult.Saved>(await catalog.AddLocalAsync(max, "Lokales", "80331", "DE", CancellationToken.None)).Source;
 
-        var result = await catalog.SaveSettingsAsync(max, added.Id, new SourceSettings(name, true, maxArticles, [], [], minWords, false), CancellationToken.None);
+        var result = await catalog.SaveSettingsAsync(max, added.Id, new SourceSettings(name, true, maxArticles, [], [], minWords, false, MaxWords: maxWords), CancellationToken.None);
 
         Assert.Equal(reason, Assert.IsType<SourceSaveResult.Invalid>(result).Reason);
     }

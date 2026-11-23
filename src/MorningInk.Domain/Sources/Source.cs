@@ -56,6 +56,15 @@ public class Source
     /// <summary>Articles with fewer words, after the full text, are left out; null keeps all.</summary>
     public int? MinWords { get; set; }
 
+    /// <summary>Above this, about a quarter of an hour of reading; e.g. a shop's "top 10" comparison runs to 30,000 words.</summary>
+    public const int DefaultMaxWords = 3000;
+
+    /// <summary>
+    /// Articles with more words, after the full text, show only their AI summary and the link to the original; without
+    /// a summary they are left out. Null keeps every length.
+    /// </summary>
+    public int? MaxWords { get; set; } = DefaultMaxWords;
+
     /// <summary>Whether to leave out live tickers and live blogs, which are outdated by the time the issue is read.</summary>
     public bool SkipLiveTickers { get; set; }
 

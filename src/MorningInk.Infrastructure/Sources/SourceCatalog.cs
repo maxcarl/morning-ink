@@ -34,7 +34,8 @@ public sealed record SourceSettings(
     bool LoadImages = true,
     string? Sender = null,
     bool SkipMedia = true,
-    int? MinScore = null)
+    int? MinScore = null,
+    int? MaxWords = Source.DefaultMaxWords)
 {
     private static readonly char[] Separators = [',', ';', '\n', '\r'];
 
@@ -57,6 +58,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     private const int LocalNewsMaxArticles = 10;
     private const int MaxArticlesLimit = 100;
     private const int MaxMinWords = 10_000;
+    private const int MaxMaxWords = 100_000;
     private const int MaxKeywords = 50;
     private const int MaxKeywordLength = 100;
     private const int MaxMinScore = 100_000;
@@ -152,13 +154,14 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     }
 
     /// <summary>Renames the source and sets its limits and filters.</summary>
-    /// <returns>Saved, or Invalid with "NotFound", "NameRequired", "MaxArticlesInvalid", "MinWordsInvalid" or "KeywordsInvalid".</returns>
+    /// <returns>Saved, or Invalid with "NotFound", "NameRequired", "MaxArticlesInvalid", "MinWordsInvalid", "MaxWordsInvalid" or "KeywordsInvalid".</returns>
     public async Task<SourceSaveResult> SaveSettingsAsync(Guid userId, Guid sourceId, SourceSettings settings, CancellationToken cancellationToken)
     {
         var name = settings.Name.Trim();
         var reason = name.Length is 0 or > MaxNameLength ? "NameRequired"
             : settings.MaxArticles is < 1 or > MaxArticlesLimit ? "MaxArticlesInvalid"
             : settings.MinWords is < 1 or > MaxMinWords ? "MinWordsInvalid"
+            : settings.MaxWords is < 1 or > MaxMaxWords || settings.MaxWords < settings.MinWords ? "MaxWordsInvalid"
             : new[] { settings.IncludeKeywords, settings.ExcludeKeywords }.Any(k => k.Count > MaxKeywords || k.Any(w => w.Length > MaxKeywordLength)) ? "KeywordsInvalid"
             : settings.Sender?.Trim().Length > MaxNameLength ? "SenderTooLong"
             : settings.MinScore is < 0 or > MaxMinScore ? "MinScoreInvalid"
@@ -179,6 +182,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         source.IncludeKeywords = [.. settings.IncludeKeywords];
         source.ExcludeKeywords = [.. settings.ExcludeKeywords];
         source.MinWords = settings.MinWords;
+        source.MaxWords = settings.MaxWords;
         source.SkipLiveTickers = settings.SkipLiveTickers;
         source.LocalAiOnly = settings.LocalAiOnly;
         source.SkipAds = settings.SkipAds;
