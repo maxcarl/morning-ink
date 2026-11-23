@@ -607,7 +607,7 @@
   <data name="Section_Name_Overview" xml:space="preserve"><value>Das Wichtigste in 5 Minuten</value></data>
   <data name="Section_Name_Weather" xml:space="preserve"><value>Wetter</value></data>
   <data name="Section_About_Overview" xml:space="preserve"><value>Die KI wählt die wichtigsten Meldungen der Ausgabe, je ein Satz mit Link zum Artikel.</value></data>
-  <data name="Section_About_Weather" xml:space="preserve"><value>Vorhersage für die Region. Ganz oben steht sie auf der Titelseite.</value></data>
+  <data name="Section_About_Weather" xml:space="preserve"><value>Vorhersage für die Region. Ganz oben steht sie ausführlich auf der Titelseite, weiter unten auf einer eigenen Seite an dieser Stelle. Das Cover zeigt immer eine kurze Zeile.</value></data>
   <data name="Profile_SectionOff" xml:space="preserve"><value>Ausgeschaltet</value></data>
   <data name="Profile_SwitchOff" xml:space="preserve"><value>Ausschalten</value></data>
   <data name="Profile_SwitchOn" xml:space="preserve"><value>Einschalten</value></data>
