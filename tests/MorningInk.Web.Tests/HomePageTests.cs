@@ -34,6 +34,16 @@ public sealed class HomePageTests : IDisposable
     }
 
     [Fact]
+    public async Task The_page_the_wizard_ends_on_opens()
+    {
+        using var browser = await _app.SignedInAdminAsync();
+
+        var response = await browser.GetAsync(Home.AfterFirstIssue);
+
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task What_is_missing_is_listed_and_sending_waits_for_it()
     {
         using var pages = await Pages.AsAdminAsync(_app);

@@ -137,6 +137,9 @@
 
     private async Task ReloadAsync() => _view = await UseAsync<Newsroom, NewsroomView>(newsroom => newsroom.LoadAsync(UserId, Closed));
 
+    /// <summary>Where the setup wizard goes after it started the first issue; the query must parse as <see cref="Sent"/>.</summary>
+    public const string AfterFirstIssue = "/?sent=true";
+
     /// <summary>Set by the setup wizard after it started the first issue, so the page follows it.</summary>
     [SupplyParameterFromQuery(Name = "sent")]
     private bool Sent { get; set; }
