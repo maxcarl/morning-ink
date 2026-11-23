@@ -21,18 +21,21 @@
                 </div>
             }
         </dl>
-        <h3 class="subhead">@T["Settings_AiUsageRecent"]</h3>
-        <ul class="headline-list">
-            @foreach (var call in _usage.Recent)
-            {
-                <li @key="call.Id">
-                    <a href="@call.ArticleUrl" rel="noopener noreferrer" target="_blank">@call.ArticleTitle</a>
-                    <div class="row-meta">
-                        @call.SourceName · @call.Provider · @call.At.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)@(call.Succeeded ? null : $" · {T["Settings_AiUsageFailed"]}")
-                    </div>
-                </li>
-            }
-        </ul>
+        @* Folded: the latest requests are there to check now and then, not to scroll past every visit. *@
+        <details>
+            <summary class="link-button">@T["Settings_AiUsageRecent"]</summary>
+            <ul class="headline-list">
+                @foreach (var call in _usage.Recent)
+                {
+                    <li @key="call.Id">
+                        <a href="@call.ArticleUrl" rel="noopener noreferrer" target="_blank">@call.ArticleTitle</a>
+                        <div class="row-meta">
+                            @call.SourceName · @call.Provider · @call.At.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)@(call.Succeeded ? null : $" · {T["Settings_AiUsageFailed"]}")
+                        </div>
+                    </li>
+                }
+            </ul>
+        </details>
     }
 </section>
 

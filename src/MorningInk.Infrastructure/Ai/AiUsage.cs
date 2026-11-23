@@ -19,7 +19,7 @@ public sealed record AiUsageReport(IReadOnlyList<AiProviderUsage> Providers, int
 /// </remarks>
 public sealed partial class AiUsage(IServiceScopeFactory scopes, TimeProvider time, ILogger<AiUsage> logger)
 {
-    private const int RecentCalls = 30;
+    private const int RecentCalls = 20;
     private static readonly TimeSpan Day = TimeSpan.FromHours(24);
     private static readonly TimeSpan Week = TimeSpan.FromDays(7);
 
