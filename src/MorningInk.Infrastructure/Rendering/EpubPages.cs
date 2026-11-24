@@ -173,9 +173,10 @@ internal static class EpubPages
                 Entries(toc)));
 
     // Only entries without children get an id: a section shares its href with its first article, and ids must be unique.
+    // A section is marked, so the page can set it like a newspaper's section heading.
     private static XElement Entries(IReadOnlyList<EpubPackage.TocEntry> entries) =>
         new(Xhtml + "ol", entries.Select(entry => new XElement(Xhtml + "li",
-            entry.Children.Count == 0 ? new XAttribute("id", ContentsId(entry.Href)) : null,
+            entry.Children.Count == 0 ? new XAttribute("id", ContentsId(entry.Href)) : new XAttribute("class", "section"),
             new XElement(Xhtml + "a", new XAttribute("href", entry.Href), entry.Label),
             entry.Children.Count == 0 ? null : Entries(entry.Children))));
 
@@ -238,6 +239,12 @@ internal static class EpubPages
         .kicker { font-variant: small-caps; letter-spacing: 0.05em; color: #444; margin: 0; }
         .briefs li { margin-bottom: 0.8em; }
         .summary { border-top: 1px solid #444; border-bottom: 1px solid #444; margin: 0.8em 0; padding: 0.3em 0; font-style: italic; }
+        #toc ol { list-style: none; margin: 0; padding: 0; }
+        #toc li { margin: 0.4em 0; }
+        #toc a { color: inherit; text-decoration: none; }
+        #toc li.section { margin-top: 1.4em; }
+        #toc li.section > a { display: block; font-variant: small-caps; letter-spacing: 0.08em; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 0.15em; margin-bottom: 0.5em; }
+        #toc li li { padding-left: 1em; text-indent: -1em; }
         """;
 
     public static string Iso(DateTimeOffset time) =>
