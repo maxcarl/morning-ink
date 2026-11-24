@@ -36,6 +36,8 @@
   <data name="AlsoAt" xml:space="preserve"><value>Also reported by: {0}</value></data>
   <data name="InShort" xml:space="preserve"><value>In short</value></data>
   <data name="ReadOn" xml:space="preserve"><value>Read on</value></data>
+  <data name="FeaturedArticle" xml:space="preserve"><value>Article of the day</value></data>
+  <data name="ReadOnWikipedia" xml:space="preserve"><value>Read on in Wikipedia</value></data>
   <data name="FromWikipedia" xml:space="preserve"><value>From Wikipedia, the free encyclopedia; text under CC BY-SA 4.0.</value></data>
   <data name="ArticleCount" xml:space="preserve"><value>{0} articles in {1} sections</value></data>
   <data name="NoticeTest" xml:space="preserve"><value>Test message from Morning Ink: notifications arrive here.</value></data>

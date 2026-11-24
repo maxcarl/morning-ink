@@ -1,0 +1,8 @@
+{
+  "tfa": {
+    "type": "standard",
+    "titles": { "normalized": "Sampletown" },
+    "extract": "Sampletown is a small town by a river.",
+    "content_urls": { "desktop": { "page": "https://en.wikipedia.org/wiki/Sampletown" } }
+  }
+}

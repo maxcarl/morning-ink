@@ -252,6 +252,22 @@ public sealed class ProfilePageTests : IDisposable
     }
 
     [Fact]
+    public async Task On_this_day_switches_on_the_article_of_the_day()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+        var section = (await SectionsAsync(all: true)).Single(s => s.Kind == SectionKind.OnThisDay);
+
+        Edit(page, "On this day").Click();
+        page.Find($"#featured-{section.Id}").Change(true);
+        page.Find($"#name-{section.Id}").Closest("form")!.Submit();
+
+        Pages.Shows(page, "Saved.");
+        var saved = (await SectionsAsync(all: true)).Single(s => s.Id == section.Id);
+        Assert.Equal((true, true), (saved.ShowAnniversaries, saved.ShowFeaturedArticle));
+    }
+
+    [Fact]
     public async Task A_section_is_switched_off_and_on_without_losing_its_place()
     {
         using var pages = await Pages.AsAdminAsync(_app);

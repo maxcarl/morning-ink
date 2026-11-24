@@ -33,7 +33,7 @@
 - **Hacker News and Reddit** from a minimum score, with the linked articles in full
 - **OPML import and export** to move feeds from or to another reader
 - **Local news and weather** for your town, with the articles themselves, not just headlines
-- **"On this day"** from Wikipedia as a small closing section, switched off until you want it
+- **"On this day"** from Wikipedia as a small closing section with anniversaries and, if you like, the article of the day, switched off until you want it
 - **EPUB with cover, contents and sections**, the same story from several sources merged into one
 - **Several editions:** morning, evening, weekend, each with its own sections, time and weekdays
 

@@ -28,7 +28,7 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Weather__GeocodingUrl` | Nominatim (OpenStreetMap) | Turns postal codes and towns into places; asked only when a region changes. Can be a self-hosted Nominatim. |
 | `Weather__CountryCodes` | – | Countries to look up regions in when a profile or local source has no country (set in the UI); empty searches worldwide. |
 | `Weather__ForecastUrl` | Open-Meteo | Weather forecast; coordinates are sent rounded to about a kilometre. Can be a self-hosted Open-Meteo. |
-| `Wikipedia__FeedUrl` | `https://api.wikimedia.org/feed/v1/wikipedia` | Source of the "On this day" section; only the date and the language of the edition's country are sent. |
+| `Wikipedia__FeedUrl` | `https://api.wikimedia.org/feed/v1/wikipedia` | Source of the "On this day" section and the article of the day; only the date and the language of the edition's country are sent. |
 | `NewsSearch__BingNewsUrl` | Bing News RSS | News search for local news sources. The towns searched for go to Microsoft; articles are then fetched from the publishers. |
 | `NewsSearch__SearxngUrl` | – | Your own SearXNG, e.g. `https://searx.example.com`; also under Settings → Local news, where this variable shows read-only. Set, it replaces Bing for local news and the towns stay with your instance. It must allow JSON (`search.formats: [html, json]` in its `settings.yml`); saving it on the settings page allows its host in the home network; set by variable, allow it with `Http__AllowedHosts__0`. |
 | `NewsSearch__Language`, `NewsSearch__Country` | `de`, `DE` | News edition when a local source has no country; with a country, its own edition is used (e.g. `en`/`US`). |

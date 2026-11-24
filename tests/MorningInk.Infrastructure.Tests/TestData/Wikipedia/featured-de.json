@@ -1,0 +1,12 @@
+{
+  "tfa": {
+    "type": "standard",
+    "title": "Beispielhausen",
+    "titles": { "canonical": "Beispielhausen", "normalized": "Beispielhausen", "display": "<span>Beispielhausen</span>" },
+    "description": "Gemeinde in einem Beispielland",
+    "extract": "Beispielhausen ist eine kleine Gemeinde am Fluss <Musterbach>.\nSie ist für ihre alte Brücke bekannt.",
+    "extract_html": "<p>Beispielhausen ist eine kleine Gemeinde.</p><script>alert(1)</script>",
+    "content_urls": { "desktop": { "page": "https://de.wikipedia.org/wiki/Beispielhausen" }, "mobile": { "page": "https://de.m.wikipedia.org/wiki/Beispielhausen" } }
+  },
+  "onthisday": []
+}

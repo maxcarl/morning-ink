@@ -20,6 +20,7 @@ public sealed class IssueBuilder(
     IGeocoder geocoder,
     IWeatherForecast weather,
     IOnThisDay onThisDay,
+    IFeaturedArticle featuredArticle,
     TimeProvider time)
 {
     /// <summary>The issue's content, or null when nothing new came; every step is written to the issue's log.</summary>
@@ -104,9 +105,16 @@ public sealed class IssueBuilder(
             {
                 extras.Add(new IssueExtra(IssueExtraKind.Overview, section.Name, before, overview));
             }
-            else if (section.Kind == SectionKind.OnThisDay && await AnniversariesAsync(date, loaded.Profile.Country, cancellationToken) is { Count: > 0 } events)
+            else if (section.Kind == SectionKind.OnThisDay)
             {
-                extras.Add(new IssueExtra(IssueExtraKind.OnThisDay, section.Name, before, Events: events));
+                // Each part only when switched on, and one that fails leaves the other; with neither the page goes.
+                var country = loaded.Profile.Country;
+                var events = section.ShowAnniversaries ? await BonusAsync(() => onThisDay.EventsAsync(date, country, cancellationToken)) : null;
+                var featured = section.ShowFeaturedArticle ? await BonusAsync(() => featuredArticle.ArticleAsync(date, country, cancellationToken)) : null;
+                if (events is { Count: > 0 } || featured is not null)
+                {
+                    extras.Add(new IssueExtra(IssueExtraKind.OnThisDay, section.Name, before, Events: events is { Count: > 0 } ? events : null, Featured: featured));
+                }
             }
         }
 
@@ -258,15 +266,16 @@ public sealed class IssueBuilder(
     }
 
     // Like the weather a bonus: whatever goes wrong, the issue comes without it.
-    private async Task<IReadOnlyList<Anniversary>> AnniversariesAsync(DateOnly date, string? country, CancellationToken cancellationToken)
+    private static async Task<T?> BonusAsync<T>(Func<Task<T>> fetch)
+        where T : class?
     {
         try
         {
-            return await onThisDay.EventsAsync(date, country, cancellationToken);
+            return await fetch();
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
-            return [];
+            return null;
         }
     }
 

@@ -260,6 +260,22 @@ internal sealed class FakeOnThisDay : IOnThisDay
     }
 }
 
+/// <summary>Returns <see cref="Article"/> and records what it was asked; throws when <see cref="Fail"/> is set.</summary>
+internal sealed class FakeFeaturedArticle : IFeaturedArticle
+{
+    public bool Fail { get; set; }
+
+    public List<(DateOnly Day, string? Country)> Requests { get; } = [];
+
+    public FeaturedArticle Article { get; } = new("A small town", ["A small town by a river."], new Uri("https://en.wikipedia.org/wiki/A_small_town"));
+
+    public Task<FeaturedArticle?> ArticleAsync(DateOnly day, string? country, CancellationToken cancellationToken)
+    {
+        Requests.Add((day, country));
+        return Fail ? throw new HttpRequestException("down") : Task.FromResult<FeaturedArticle?>(Article);
+    }
+}
+
 internal sealed class TempIssueFiles : IIssueFiles, IDisposable
 {
     private readonly string _directory = Directory.CreateTempSubdirectory("morning-ink-issues-").FullName;

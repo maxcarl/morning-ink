@@ -139,6 +139,7 @@ public static class DependencyInjection
 
         services.AddOptions<WikipediaOptions>().Bind(configuration.GetSection(WikipediaOptions.SectionName));
         services.AddTransient<IOnThisDay, WikipediaOnThisDay>();
+        services.AddTransient<IFeaturedArticle, WikipediaFeaturedArticle>();
     }
 
     // Processors run in registration order. Everything that brings in content runs before sanitizing; after it

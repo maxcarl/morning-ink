@@ -69,6 +69,17 @@
                             </div>
                         </fieldset>
                     }
+                    @if (item.Kind == SectionKind.OnThisDay)
+                    {
+                        <fieldset class="field">
+                            <legend class="label">@T["Section_OnThisDayParts"]</legend>
+                            <div class="choices">
+                                <label class="checkbox"><input id="anniversaries-@item.Id" type="checkbox" @bind="_anniversaries" /> @T["Section_Anniversaries"]</label>
+                                <label class="checkbox"><input id="featured-@item.Id" type="checkbox" @bind="_featured" /> @T["Section_FeaturedArticle"]</label>
+                            </div>
+                            <span class="hint">@T["Section_OnThisDayPartsHint"]</span>
+                        </fieldset>
+                    }
                     <div class="inline-form field">
                         <div class="row-main">
                             <label class="label" for="name-@item.Id">@T["Profile_SectionName"]</label>
@@ -153,6 +164,8 @@
     private string _find = string.Empty;
     private HashSet<Guid> _picked = [];
     private HashSet<Guid> _pinned = [];
+    private bool _anniversaries;
+    private bool _featured;
 
     private string _newSection = string.Empty;
 
@@ -209,6 +222,8 @@
         _find = string.Empty;
         _picked = [.. section.Sources.Select(s => s.Id)];
         _pinned = [.. _picked];
+        _anniversaries = section.ShowAnniversaries;
+        _featured = section.ShowFeaturedArticle;
     }
 
     private void Pick(Guid id)
@@ -291,7 +306,7 @@
         }
 
         // Ids that are not the user's own sources are dropped by the editor.
-        if (!await Scopes.RunAsync<SectionEditor, bool>(editor => editor.SaveSectionAsync(UserId, id, _name, limit, [.. _picked], Cancellation)))
+        if (!await Scopes.RunAsync<SectionEditor, bool>(editor => editor.SaveSectionAsync(UserId, id, _name, limit, [.. _picked], new OnThisDayParts(_anniversaries, _featured), Cancellation)))
         {
             await Finished.InvokeAsync(FormOutcome.Failed(T["Profile_SectionInvalid"]));
             return;

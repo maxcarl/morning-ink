@@ -24,6 +24,7 @@ public sealed class IssuePublisherTests : IDisposable
     private readonly FakeGeocoder _geocoder = new();
     private readonly FakeWeather _weather = new();
     private readonly FakeOnThisDay _onThisDay = new();
+    private readonly FakeFeaturedArticle _featured = new();
     private readonly FakeNotifier _notifier = new();
     private readonly FakeOverview _overview = new();
     private readonly FakeHeadlines _headlines = new();
@@ -378,6 +379,57 @@ public sealed class IssuePublisherTests : IDisposable
 
         Assert.IsType<PublishResult.Delivered>(result);
         Assert.Empty(_renderer.Rendered.Single().Extras);
+    }
+
+    [Fact]
+    public async Task On_this_day_can_bring_the_article_of_the_day_instead_of_the_events()
+    {
+        _profile.Country = "AT";
+        _profile.Sections.Add(new Section { Name = "An diesem Tag", Position = 3, Kind = SectionKind.OnThisDay, ShowAnniversaries = false, ShowFeaturedArticle = true });
+
+        await PublishAsync(new DateTimeOffset(2026, 11, 21, 23, 30, 0, TimeSpan.Zero)); // already the 22nd in Berlin
+
+        var placed = Assert.Single(_renderer.Rendered.Single().Extras);
+        Assert.Equal((IssueExtraKind.OnThisDay, 2), (placed.Kind, placed.Before));
+        Assert.Same(_featured.Article, placed.Featured);
+        Assert.Null(placed.Events);
+        Assert.Equal((new DateOnly(2026, 11, 22), "AT"), _featured.Requests.Single());
+        Assert.Empty(_onThisDay.Requests); // switched off, not even fetched
+    }
+
+    [Fact]
+    public async Task On_this_day_keeps_the_events_when_the_article_of_the_day_fails()
+    {
+        _featured.Fail = true;
+        _profile.Sections.Add(new Section { Name = "An diesem Tag", Position = 3, Kind = SectionKind.OnThisDay, ShowFeaturedArticle = true });
+
+        var result = await PublishAsync();
+
+        Assert.IsType<PublishResult.Delivered>(result);
+        var placed = Assert.Single(_renderer.Rendered.Single().Extras);
+        Assert.Same(_onThisDay.Events, placed.Events);
+        Assert.Null(placed.Featured);
+    }
+
+    [Fact]
+    public async Task On_this_day_with_both_parts_off_is_left_out()
+    {
+        _profile.Sections.Add(new Section { Name = "An diesem Tag", Position = 3, Kind = SectionKind.OnThisDay, ShowAnniversaries = false });
+
+        await PublishAsync();
+
+        Assert.Empty(_renderer.Rendered.Single().Extras);
+        Assert.Empty(_onThisDay.Requests);
+    }
+
+    [Fact]
+    public async Task Article_of_the_day_is_not_fetched_unless_switched_on()
+    {
+        _profile.Sections.Add(new Section { Name = "An diesem Tag", Position = 3, Kind = SectionKind.OnThisDay });
+
+        await PublishAsync();
+
+        Assert.Empty(_featured.Requests);
     }
 
     [Fact]
@@ -798,7 +850,7 @@ public sealed class IssuePublisherTests : IDisposable
         var time = new FixedTimeProvider(Slot);
         return new(
             _store,
-            new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], new IssueAiSteps(_matcher, _headlines, _overview, time), _geocoder, _weather, _onThisDay, time),
+            new IssueBuilder([_sources], _seen, [new MarkingProcessor(), new FakeAiProcessor()], new IssueAiSteps(_matcher, _headlines, _overview, time), _geocoder, _weather, _onThisDay, _featured, time),
             new IssueRelease(_store, [_sources], _seen, _delivery, _files, _notifier, time),
             [_renderer],
             new FakeFeedbackLinks(),

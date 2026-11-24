@@ -49,14 +49,28 @@ internal static class EpubPages
             new XElement(Xhtml + "ul", overview.Articles.Select(article => new XElement(Xhtml + "li",
                 new XElement(Xhtml + "a", new XAttribute("href", hrefOf(article)), article.Article.Title)))));
 
-    /// <summary>"On this day": the day's anniversaries with their year, and the credit Wikipedia's licence asks for.</summary>
-    public static XDocument OnThisDayPage(string title, IReadOnlyList<Anniversary> events, DateTimeOffset issueTime, EpubTexts texts) =>
+    /// <summary>
+    /// "On this day": the day's anniversaries with their year and Wikipedia's article of the day, each when present,
+    /// and the credit Wikipedia's licence asks for.
+    /// </summary>
+    public static XDocument OnThisDayPage(string title, IReadOnlyList<Anniversary>? events, FeaturedArticle? featured, DateTimeOffset issueTime, EpubTexts texts) =>
         Page(title, texts,
             new XElement(Xhtml + "h1", title),
             new XElement(Xhtml + "p", new XAttribute("class", "dateline"), issueTime.ToString("M", texts.Culture)),
-            new XElement(Xhtml + "ul", new XAttribute("class", "anniversaries"), events.Select(e => new XElement(Xhtml + "li",
-                new XElement(Xhtml + "strong", e.Year.ToString(texts.Culture)), " – ", e.Text))),
+            events is { Count: > 0 }
+                ? new XElement(Xhtml + "ul", new XAttribute("class", "anniversaries"), events.Select(e => new XElement(Xhtml + "li",
+                    new XElement(Xhtml + "strong", e.Year.ToString(texts.Culture)), " – ", e.Text)))
+                : null,
+            featured is null ? null : FeaturedSection(featured, texts),
             new XElement(Xhtml + "p", new XAttribute("class", "meta"), texts.FromWikipedia));
+
+    private static IEnumerable<XElement> FeaturedSection(FeaturedArticle featured, EpubTexts texts) =>
+    [
+        new XElement(Xhtml + "h2", texts.FeaturedArticle),
+        new XElement(Xhtml + "h3", featured.Title),
+        .. featured.Paragraphs.Select(p => new XElement(Xhtml + "p", p)),
+        new XElement(Xhtml + "p", new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(featured.Url)), texts.ReadOnWikipedia)),
+    ];
 
     // Today in one line plus morning, midday and evening, then one line per following day.
     private static XElement WeatherSection(WeatherForecast forecast, EpubTexts texts, string heading)

@@ -1,0 +1,7 @@
+{
+  "tfa": {
+    "titles": { "normalized": "Exempleville" },
+    "extract": "Exempleville est une petite ville.",
+    "content_urls": { "desktop": { "page": "javascript:alert(1)" } }
+  }
+}

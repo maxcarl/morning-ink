@@ -20,6 +20,12 @@ public class Section
     /// <summary>Most articles this section may contain; null means no limit.</summary>
     public int? MaxArticles { get; set; }
 
+    /// <summary>"On this day" only: whether it lists the day's anniversaries.</summary>
+    public bool ShowAnniversaries { get; set; } = true;
+
+    /// <summary>"On this day" only: whether it brings Wikipedia's article of the day.</summary>
+    public bool ShowFeaturedArticle { get; set; }
+
     /// <summary>Sources feeding this section; a source can feed several sections. Only articles sections have any.</summary>
     public ICollection<Source> Sources { get; } = [];
 }

@@ -37,7 +37,7 @@ public sealed class Onboarding(SourceCatalog catalog, ProfileEditor profiles, Se
         {
             var section = await FindOrAddSectionAsync(userId, name, cancellationToken);
             var all = section.Sources.Select(s => s.Id).Union(sourceIds).ToList();
-            await sections.SaveSectionAsync(userId, section.Id, section.Name, section.MaxArticles, all, cancellationToken);
+            await sections.SaveSectionAsync(userId, section.Id, section.Name, section.MaxArticles, all, null, cancellationToken);
         }
     }
 

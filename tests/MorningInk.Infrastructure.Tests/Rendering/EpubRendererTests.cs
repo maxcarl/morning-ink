@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
 using MorningInk.Application.Weather;
+using MorningInk.Application.Wikipedia;
 using MorningInk.Infrastructure.Processing;
 using MorningInk.Infrastructure.Tests.Processing;
 using SkiaSharp;
@@ -292,6 +293,23 @@ public sealed class EpubRendererTests : IDisposable
         Assert.Equal("1911 – Die erste Bahn fährt nach <Neudorf>.", Assert.Single(page.Descendants(Xhtml + "li")).Value); // text, never markup
         Assert.Contains(page.Descendants(Xhtml + "p"), p => p.Value.Contains("CC BY-SA", StringComparison.Ordinal));
         Assert.Contains("An diesem Tag", NavEntries(epub));
+    }
+
+    [Fact]
+    public async Task Article_of_the_day_follows_the_events_with_its_text_and_a_link()
+    {
+        var issue = SampleIssue();
+        var featured = new FeaturedArticle("Beispielhausen", ["Eine Gemeinde am <Musterbach>.", "Sie hat eine Brücke."], new Uri("https://de.wikipedia.org/wiki/Beispielhausen"));
+        issue = issue with { Extras = [new IssueExtra(IssueExtraKind.OnThisDay, "An diesem Tag", issue.Sections.Count, Events: [new(1911, "Die erste Bahn fährt.")], Featured: featured)] };
+
+        using var epub = await RenderAsync(issue, "featured.epub");
+
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "on-this-day.xhtml")));
+        Assert.Single(page.Descendants(Xhtml + "li"));
+        Assert.Equal(("Artikel des Tages", "Beispielhausen"), (page.Descendants(Xhtml + "h2").Single().Value, page.Descendants(Xhtml + "h3").Single().Value));
+        Assert.Contains(page.Descendants(Xhtml + "p"), p => p.Value == "Eine Gemeinde am <Musterbach>."); // text, never markup
+        Assert.Contains(page.Descendants(Xhtml + "a"), a => (string?)a.Attribute("href") == "https://de.wikipedia.org/wiki/Beispielhausen");
+        Assert.Contains(page.Descendants(Xhtml + "p"), p => p.Value.Contains("CC BY-SA", StringComparison.Ordinal));
     }
 
     [Fact]

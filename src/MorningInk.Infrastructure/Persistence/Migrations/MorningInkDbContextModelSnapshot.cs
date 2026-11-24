@@ -618,6 +618,12 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ProfileId")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("ShowAnniversaries")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ShowFeaturedArticle")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProfileId");

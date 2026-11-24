@@ -136,7 +136,7 @@ public sealed class PublishingTests : IDisposable
         var files = provider.GetRequiredService<IIssueFiles>();
         var publisher = new IssuePublisher(
             store,
-            new IssueBuilder(sources, seen, provider.GetServices<IProcessor>(), new IssueAiSteps(provider.GetRequiredService<IInterestMatcher>(), provider.GetRequiredService<IHeadlineEditor>(), provider.GetRequiredService<IIssueOverview>(), time), provider.GetRequiredService<IGeocoder>(), provider.GetRequiredService<IWeatherForecast>(), provider.GetRequiredService<MorningInk.Application.Wikipedia.IOnThisDay>(), time),
+            new IssueBuilder(sources, seen, provider.GetServices<IProcessor>(), new IssueAiSteps(provider.GetRequiredService<IInterestMatcher>(), provider.GetRequiredService<IHeadlineEditor>(), provider.GetRequiredService<IIssueOverview>(), time), provider.GetRequiredService<IGeocoder>(), provider.GetRequiredService<IWeatherForecast>(), provider.GetRequiredService<MorningInk.Application.Wikipedia.IOnThisDay>(), provider.GetRequiredService<MorningInk.Application.Wikipedia.IFeaturedArticle>(), time),
             new IssueRelease(store, sources, seen, provider.GetRequiredService<IDelivery>(), files, provider.GetRequiredService<MorningInk.Application.Notifications.INotifier>(), time),
             provider.GetServices<IRenderer>(),
             provider.GetRequiredService<IFeedbackLinks>(),

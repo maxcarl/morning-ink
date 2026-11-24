@@ -4,6 +4,9 @@ using MorningInk.Infrastructure.Persistence;
 
 namespace MorningInk.Infrastructure.Profiles;
 
+/// <summary>What the "on this day" section brings: the day's anniversaries, Wikipedia's article of the day, or both.</summary>
+public sealed record OnThisDayParts(bool Anniversaries, bool FeaturedArticle);
+
 /// <summary>
 /// Edits the sections of a user's editions: add, fill with sources, order, delete. Every method only reaches the
 /// given user's editions, and sections only ever get that user's sources.
@@ -56,7 +59,8 @@ public sealed class SectionEditor(MorningInkDbContext db, ProfileEditor profiles
     }
 
     /// <param name="sourceIds">Sources to put into the section; ids that are not the user's own are ignored.</param>
-    public async Task<bool> SaveSectionAsync(Guid userId, Guid sectionId, string name, int? maxArticles, IReadOnlyCollection<Guid> sourceIds, CancellationToken cancellationToken)
+    /// <param name="parts">What "on this day" brings; with both off it is left out of the issue. Null keeps it, other kinds ignore it.</param>
+    public async Task<bool> SaveSectionAsync(Guid userId, Guid sectionId, string name, int? maxArticles, IReadOnlyCollection<Guid> sourceIds, OnThisDayParts? parts, CancellationToken cancellationToken)
     {
         name = name.Trim();
         var section = (await OwnerOfSectionAsync(userId, sectionId, cancellationToken))?.Sections.Single(s => s.Id == sectionId);
@@ -65,10 +69,16 @@ public sealed class SectionEditor(MorningInkDbContext db, ProfileEditor profiles
             return false;
         }
 
-        // The overview and the weather have a name only: no sources, no limit.
+        // The overview, the weather and "on this day" have no sources and no limit; "on this day" has its parts.
         if (section.Kind != SectionKind.Articles)
         {
             section.Name = name;
+            if (section.Kind == SectionKind.OnThisDay && parts is not null)
+            {
+                section.ShowAnniversaries = parts.Anniversaries;
+                section.ShowFeaturedArticle = parts.FeaturedArticle;
+            }
+
             await db.SaveChangesAsync(cancellationToken);
             return true;
         }
