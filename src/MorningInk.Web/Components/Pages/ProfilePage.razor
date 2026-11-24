@@ -144,6 +144,16 @@
                         </select>
                         <span id="lead-hint" class="hint">@T["Profile_LeadTimeHint"]</span>
                     </div>
+                    <div class="field">
+                        <label for="min-articles">@T["Profile_MinArticles"]</label>
+                        <select id="min-articles" class="input" @bind="_minArticles" aria-describedby="min-articles-hint">
+                            @foreach (var count in MinArticleChoices)
+                            {
+                                <option value="@count">@(count == 1 ? T["Profile_MinArticlesAny"] : T["Profile_MinArticlesCount", count])</option>
+                            }
+                        </select>
+                        <span id="min-articles-hint" class="hint">@T["Profile_MinArticlesHint"]</span>
+                    </div>
                 </div>
                 <div>
                     <h3 class="department">@T["Profile_Delivery"]</h3>
@@ -220,6 +230,8 @@
 
     // A slow AI on a CPU needs hours; more than four is not worth offering.
     private static readonly int[] LeadChoices = [0, 30, 60, 120, 180, 240];
+    private int _minArticles = 1;
+    private static readonly int[] MinArticleChoices = [1, 3, 5, 10, 15, 20];
     private string _zone = string.Empty;
     private string? _country;
     private string? _region;
@@ -238,6 +250,7 @@
         _time = profile.DeliveryTime;
         _days = profile.Days.Count == 0 ? [.. Enum.GetValues<DayOfWeek>()] : [.. profile.Days];
         _leadMinutes = (int)profile.LeadTime.TotalMinutes;
+        _minArticles = profile.MinArticles;
         _zone = profile.TimeZoneId;
         _country = profile.Country;
         _confirmEdition = false;
@@ -312,7 +325,7 @@
     {
         Clear();
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(
-            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days], TimeSpan.FromMinutes(_leadMinutes), _sendByEmail), Closed));
+            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days], TimeSpan.FromMinutes(_leadMinutes), _sendByEmail, _minArticles), Closed));
         _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
         if (_errors.Count == 0)
         {

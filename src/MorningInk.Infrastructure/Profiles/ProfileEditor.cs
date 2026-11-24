@@ -18,6 +18,7 @@ namespace MorningInk.Infrastructure.Profiles;
 /// <param name="Days">Weekdays with an issue; null keeps the current ones, all seven mean every day, none is an error.</param>
 /// <param name="LeadTime">How long before delivery to build the issue, up to half a day; null keeps the current one.</param>
 /// <param name="SendByEmail">Off, issues are only stored to fetch, and the recipient may stay empty.</param>
+/// <param name="MinArticles">Fewest articles worth an issue, 1 to 50; null keeps the current number.</param>
 public sealed record ProfileSettings(
     string Title,
     string Recipient,
@@ -27,7 +28,8 @@ public sealed record ProfileSettings(
     string? Country = null,
     IReadOnlyCollection<DayOfWeek>? Days = null,
     TimeSpan? LeadTime = null,
-    bool SendByEmail = true);
+    bool SendByEmail = true,
+    int? MinArticles = null);
 
 /// <summary>Where an edition announces its issues; see <see cref="Profile.NotifyChannel"/>.</summary>
 /// <param name="Secret">Token for the channel; empty keeps the saved one, as with the mail password.</param>
@@ -45,6 +47,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
     private const int MaxRegionLength = 100;
     private const string TimeFormat = "HH:mm";
     private static readonly TimeSpan MaxLeadTime = TimeSpan.FromHours(12);
+    private const int MaxMinArticles = 50;
     private const int MaxInterests = 30;
     private const int MaxKeywords = 30;
 
@@ -120,7 +123,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         return true;
     }
 
-    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country, Days, LeadTime, Profile.</summary>
+    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country, Days, LeadTime, MinArticles, Profile.</summary>
     public async Task<IReadOnlyList<string>> SaveSettingsAsync(Guid userId, Guid profileId, ProfileSettings settings, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
@@ -168,6 +171,11 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
             errors.Add("LeadTime");
         }
 
+        if (settings.MinArticles is < 1 or > MaxMinArticles)
+        {
+            errors.Add("MinArticles");
+        }
+
         var profile = await FindAsync(userId, profileId, cancellationToken);
         if (profile is null)
         {
@@ -189,6 +197,11 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         if (settings.LeadTime is { } leadTime)
         {
             profile.LeadTime = leadTime;
+        }
+
+        if (settings.MinArticles is { } minArticles)
+        {
+            profile.MinArticles = minArticles;
         }
 
         if (settings.Days is { } days)

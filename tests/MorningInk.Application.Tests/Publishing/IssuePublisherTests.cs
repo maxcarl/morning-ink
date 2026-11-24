@@ -206,6 +206,21 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Too_few_articles_skip_the_issue_and_keep_them_for_the_next()
+    {
+        _profile.MinArticles = 4; // three are fresh
+
+        var result = await PublishAsync();
+
+        Assert.IsType<PublishResult.NoNewArticles>(result);
+        Assert.Empty(_delivery.Requests);
+        Assert.Contains(Assert.Single(_store.Issues).Log, e => e.Event == "TooFewArticles" && e.Arguments.SequenceEqual(["3", "4"]));
+
+        _profile.MinArticles = 3;
+        Assert.IsType<PublishResult.Delivered>(await PublishAsync(Slot.AddDays(1))); // not marked seen, so they come again
+    }
+
+    [Fact]
     public async Task Article_from_a_source_in_two_sections_appears_once()
     {
         _profile.Sections.Last().Sources.Add(_tagesschau);

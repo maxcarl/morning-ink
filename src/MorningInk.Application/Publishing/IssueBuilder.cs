@@ -54,8 +54,16 @@ public sealed class IssueBuilder(
         var recognized = await ai.RecognizeAsync(loaded, interests, Admitted(sections, bySource, fresh), withAi, issue, cancellationToken);
         var plan = Choose(sections, bySource, fresh, interests.All, recognized, loaded.SourceLeanings, issue);
         var content = await ProcessAsync(plan, withAi, issue, cancellationToken);
-        if (content.Count == 0)
+        var count = content.Sum(c => c.Content.Articles.Count);
+        if (count == 0)
         {
+            return null;
+        }
+
+        // Before the AI steps, so a skipped issue costs no requests; its articles stay unseen for the next one.
+        if (count < profile.MinArticles)
+        {
+            issue.AddLog(time.GetUtcNow(), "TooFewArticles", count, profile.MinArticles);
             return null;
         }
 

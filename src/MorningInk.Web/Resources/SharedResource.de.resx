@@ -344,6 +344,12 @@
   <data name="Log_Dropped" xml:space="preserve"><value>{0} Artikel ausgelassen: zu kurz, zu lang ohne Zusammenfassung oder nicht lesbar</value></data>
   <data name="Log_Summaries" xml:space="preserve"><value>{0} KI-Zusammenfassungen</value></data>
   <data name="Log_Rendered" xml:space="preserve"><value>Ausgabe gebaut: {0} KB</value></data>
+  <data name="Log_TooFewArticles" xml:space="preserve"><value>Nur {0} Artikel, mindestens {1} gewünscht: nichts verschickt, sie kommen in der nächsten Ausgabe</value></data>
+  <data name="Profile_MinArticles" xml:space="preserve"><value>Senden ab</value></data>
+  <data name="Profile_MinArticlesAny" xml:space="preserve"><value>Beliebig vielen Artikeln</value></data>
+  <data name="Profile_MinArticlesCount" xml:space="preserve"><value>{0} Artikeln</value></data>
+  <data name="Profile_MinArticlesHint" xml:space="preserve"><value>Mit weniger neuen Artikeln fällt die Ausgabe aus, und sie kommen in der nächsten.</value></data>
+  <data name="Profile_Error_MinArticles" xml:space="preserve"><value>Die Mindestzahl an Artikeln muss zwischen 1 und 50 liegen.</value></data>
   <data name="Log_NoNewArticles" xml:space="preserve"><value>Keine neuen Artikel: nichts verschickt</value></data>
   <data name="Log_Prepared" xml:space="preserve"><value>Fertig, wartet auf die Lieferzeit</value></data>
   <data name="Log_Delivered" xml:space="preserve"><value>Zugestellt an {0}</value></data>

@@ -344,6 +344,12 @@
   <data name="Log_Dropped" xml:space="preserve"><value>{0} articles left out: too short, too long without a summary, or not readable</value></data>
   <data name="Log_Summaries" xml:space="preserve"><value>{0} AI summaries</value></data>
   <data name="Log_Rendered" xml:space="preserve"><value>Issue built: {0} KB</value></data>
+  <data name="Log_TooFewArticles" xml:space="preserve"><value>Only {0} articles, at least {1} wanted: nothing sent, they wait for the next issue</value></data>
+  <data name="Profile_MinArticles" xml:space="preserve"><value>Send from</value></data>
+  <data name="Profile_MinArticlesAny" xml:space="preserve"><value>Any number of articles</value></data>
+  <data name="Profile_MinArticlesCount" xml:space="preserve"><value>{0} articles</value></data>
+  <data name="Profile_MinArticlesHint" xml:space="preserve"><value>With fewer new articles the issue is skipped, and they come in the next one.</value></data>
+  <data name="Profile_Error_MinArticles" xml:space="preserve"><value>The minimum number of articles must be between 1 and 50.</value></data>
   <data name="Log_NoNewArticles" xml:space="preserve"><value>No new articles: nothing sent</value></data>
   <data name="Log_Prepared" xml:space="preserve"><value>Ready, waiting for the delivery time</value></data>
   <data name="Log_Delivered" xml:space="preserve"><value>Sent to {0}</value></data>

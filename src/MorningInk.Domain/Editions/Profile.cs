@@ -46,6 +46,12 @@ public class Profile
     /// <summary>Weekdays with an issue, in <see cref="TimeZoneId"/>; empty means every day.</summary>
     public List<DayOfWeek> Days { get; set; } = [];
 
+    /// <summary>
+    /// Fewest articles worth an issue; with fewer, the slot is skipped and the articles wait for the next one.
+    /// One sends whatever is new.
+    /// </summary>
+    public int MinArticles { get; set; } = 1;
+
     /// <summary>Where to announce a delivered or failed issue; None sends nothing.</summary>
     public NotificationChannel NotifyChannel { get; set; }
 

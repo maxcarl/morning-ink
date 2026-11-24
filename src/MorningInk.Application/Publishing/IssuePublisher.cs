@@ -125,7 +125,13 @@ public sealed class IssuePublisher(
             if (content is null)
             {
                 issue.Status = IssueStatus.Empty;
-                issue.AddLog(time.GetUtcNow(), "NoNewArticles");
+
+                // Too few articles already said why, and they were not "no new ones".
+                if (issue.Log.LastOrDefault()?.Event != "TooFewArticles")
+                {
+                    issue.AddLog(time.GetUtcNow(), "NoNewArticles");
+                }
+
                 await store.SaveChangesAsync(cancellationToken);
                 return new PublishResult.NoNewArticles(issue.Id, problems);
             }

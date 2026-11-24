@@ -547,6 +547,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<TimeSpan>("LeadTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("MinArticles")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("NotifyChannel")
                         .HasColumnType("INTEGER");
 
