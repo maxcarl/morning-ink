@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using MorningInk.Application.Delivery;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
@@ -8,16 +9,15 @@ namespace MorningInk.Infrastructure.Delivery;
 /// Sends a tiny test issue through the real mail delivery. An EPUB rather than a plain mail, because Send to Kindle
 /// drops mails without an attachment: if this one arrives on the Kindle, real issues will too.
 /// </summary>
-public sealed class TestMail(IEnumerable<IRenderer> renderers, IDelivery delivery, TimeProvider time)
+public sealed class TestMail(IEnumerable<IRenderer> renderers, IDelivery delivery, IOptions<RepositoryOptions> repository, TimeProvider time)
 {
     private const string Title = "Morning Ink";
-    private static readonly Uri ProjectUrl = new("https://github.com/maxcarl/morning-ink");
 
     public async Task<DeliveryResult> SendAsync(string recipient, string language, CancellationToken cancellationToken)
     {
         var renderer = renderers.First(r => r.FileExtension == ".epub");
         var now = time.GetUtcNow();
-        var article = new FetchedArticle(null, "It works", ProjectUrl, now, null, null, "<p>This test issue came through your mail settings. Real issues will arrive the same way.</p>");
+        var article = new FetchedArticle(null, "It works", new Uri(repository.Value.Url), now, null, null, "<p>This test issue came through your mail settings. Real issues will arrive the same way.</p>");
         var content = new IssueContent(Guid.NewGuid(), Title, 0, now, language, [new IssueSection("Test", [new IssueArticle(article, Title)])], []);
 
         // A random name in the temp directory, never derived from input.

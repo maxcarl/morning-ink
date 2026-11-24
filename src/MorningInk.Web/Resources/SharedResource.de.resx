@@ -469,6 +469,9 @@
   <data name="Users_NotFound" xml:space="preserve"><value>Diesen Benutzer gibt es nicht mehr.</value></data>
   <data name="Source_SearxngNoJson" xml:space="preserve"><value>Dein SearXNG gibt kein JSON aus. Trag „json“ unter search.formats in seiner settings.yml ein.</value></data>
   <data name="Account_License" xml:space="preserve"><value>Morning Ink ist freie Software unter der AGPL-3.0.</value></data>
+  <data name="Account_Version" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="Account_UpdateBadge" xml:space="preserve"><value>Update</value></data>
+  <data name="Account_Update" xml:space="preserve"><value>Version {0} ist da. Container aktualisieren:</value></data>
   <data name="Account_SourceCode" xml:space="preserve"><value>Quellcode</value></data>
   <data name="Account_Reader" xml:space="preserve"><value>E-Reader (OPDS)</value></data>
   <data name="Account_ReaderHint" xml:space="preserve"><value>Reader wie KOReader holen deine Ausgaben selbst ab: Trag dort die Katalogadresse mit deinem Benutzernamen und einem eigenen Reader-Passwort ein. Es öffnet nur den Katalog, dein Kontopasswort kommt also nie in einen Reader. Nutze es über https oder nur im Heimnetz.</value></data>

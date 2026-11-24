@@ -2,6 +2,9 @@
 @inject UserDirectory Users
 @inject SignInManager<AppUser> SignInManager
 @inject ReaderAccess Readers
+@inject MorningInk.Infrastructure.Updates.AppVersion Version
+@inject MorningInk.Infrastructure.Updates.UpdateCheck Updates
+@inject Microsoft.Extensions.Options.IOptions<MorningInk.Infrastructure.RepositoryOptions> Repository
 
 @* A plain form, not an interactive page: after the change the sign-in cookie must be issued anew, which needs a real request. *@
 <PageTitle>@T["Account_Title"] – @T["Brand"]</PageTitle>
@@ -75,16 +78,20 @@
     </div>
 </div>
 
-@* AGPL section 13: users of a network service get a way to the source. A fork that runs modified code points this to its own repository. *@
-<p class="hint">@T["Account_License"] <a href="@SourceCodeUrl" rel="noopener">@T["Account_SourceCode"]</a></p>
+@* AGPL section 13: users of a network service get a way to the source. A fork that runs modified code sets Repository__Url to its own repository. *@
+<p class="hint">@T["Account_License"] <a href="@Repository.Value.Url" rel="noopener">@T["Account_SourceCode"]</a> · @T["Account_Version", Version.Value]</p>
+@* Only admins can update the container, so only they hear of a newer release. *@
+@if (_newerRelease is { } newer)
+{
+    <p id="update" class="hint"><span class="badge status-warn">@T["Account_UpdateBadge"]</span> @T["Account_Update", newer] <code>docker compose pull &amp;&amp; docker compose up -d</code></p>
+}
 
 @code {
-    private const string SourceCodeUrl = "https://github.com/maxcarl/morning-ink";
-
     private string? _notice;
     private List<string> _errors = [];
     private string? _readerPassword;
     private bool _hasReaderPassword;
+    private string? _newerRelease;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!; // ! is safe: always set during static rendering
@@ -102,6 +109,10 @@
         // Set here, not as initializer: form binding assigns the property on POST.
         Input ??= new();
         _hasReaderPassword = await Readers.HasPasswordAsync(UserId, HttpContext.RequestAborted);
+        if (HttpContext.User.IsInRole(nameof(MorningInk.Domain.UserRole.Admin)))
+        {
+            _newerRelease = await Updates.NewerReleaseAsync(HttpContext.RequestAborted);
+        }
     }
 
     // Shown once on this answer only; a new one ends the old, e.g. after a reader got lost.

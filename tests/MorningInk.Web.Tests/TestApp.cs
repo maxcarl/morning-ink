@@ -19,9 +19,15 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
 
     private readonly string _dataDirectory = Directory.CreateTempSubdirectory("morning-ink-web-").FullName;
     private readonly Dictionary<string, string> _settings;
+    private readonly Action<IServiceCollection>? _services;
 
     /// <param name="settings">Extra configuration, e.g. allowed hosts for a local test server.</param>
-    public TestApp(Dictionary<string, string>? settings = null) => _settings = settings ?? [];
+    /// <param name="services">Replaced registrations, e.g. the running version.</param>
+    public TestApp(Dictionary<string, string>? settings = null, Action<IServiceCollection>? services = null)
+    {
+        _settings = settings ?? [];
+        _services = services;
+    }
 
     /// <summary>A client that keeps cookies and shows redirects instead of following them.</summary>
     public HttpClient Browser(string? language = null)
@@ -122,6 +128,10 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
         }
 
         builder.UseEnvironment("Testing");
+        if (_services is not null)
+        {
+            builder.ConfigureServices(_services);
+        }
     }
 
     // Called more than once (Dispose and DisposeAsync), so the directory may already be gone.

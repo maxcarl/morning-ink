@@ -36,7 +36,6 @@ public static class DependencyInjection
     // Fixed so keys stay valid when the app path or container changes.
     private const string DataProtectionApplicationName = "MorningInk";
 
-    private const string UserAgent = "MorningInk/0.1 (+https://github.com/maxcarl/morning-ink)";
 
     /// <summary>Adds storage, Data Protection, the database, the safe HTTP client, sources, processors, renderers, delivery and scheduling.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
@@ -142,6 +141,11 @@ public static class DependencyInjection
         services.AddOptions<WikipediaOptions>().Bind(configuration.GetSection(WikipediaOptions.SectionName));
         services.AddTransient<IOnThisDay, WikipediaOnThisDay>();
         services.AddTransient<IFeaturedArticle, WikipediaFeaturedArticle>();
+
+        services.AddOptions<RepositoryOptions>().Bind(configuration.GetSection(RepositoryOptions.SectionName));
+        services.AddSingleton(Updates.AppVersion.FromAssembly());
+        services.AddSingleton<Updates.UpdateCheck.Cache>();
+        services.AddTransient<Updates.UpdateCheck>();
     }
 
     // Processors run in registration order. Everything that brings in content runs before sanitizing; after it
@@ -289,11 +293,14 @@ public static class DependencyInjection
         services.AddHostedService<HostAllowlistLoader>();
         services.AddSingleton<SafeConnector>();
 
-        services.AddHttpClient<SafeHttpClient>(client =>
+        services.AddHttpClient<SafeHttpClient>((provider, client) =>
             {
                 // SafeHttpClient applies its own deadline across all redirects.
                 client.Timeout = Timeout.InfiniteTimeSpan;
-                client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
+
+                // Who is asking, so a site that minds can find the project: "MorningInk/1.2.0 (+https://github.com/…)".
+                var repository = provider.GetRequiredService<IOptions<RepositoryOptions>>().Value.Url;
+                client.DefaultRequestHeaders.UserAgent.TryParseAdd($"MorningInk/{provider.GetRequiredService<Updates.AppVersion>().Value} (+{repository})");
             })
             .ConfigurePrimaryHttpMessageHandler(provider => new SocketsHttpHandler
             {

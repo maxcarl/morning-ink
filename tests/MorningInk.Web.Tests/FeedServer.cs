@@ -29,6 +29,9 @@ public sealed class FeedServer : IDisposable
 
     public string FeedUrl => $"http://127.0.0.1:{Port}/news.xml";
 
+    /// <summary>A tag list in GitHub's format, with release 1.10.0 as the newest.</summary>
+    public string TagsUrl => $"http://127.0.0.1:{Port}/tags";
+
     public void Dispose() => _listener.Close();
 
     private async Task ServeAsync()
@@ -46,7 +49,8 @@ public sealed class FeedServer : IDisposable
             }
 
             var now = DateTimeOffset.UtcNow.ToString("R", CultureInfo.InvariantCulture);
-            var body = context.Request.Url!.AbsolutePath == "/news.xml" // ! is safe: a received request always has a URL
+            var path = context.Request.Url!.AbsolutePath; // ! is safe: a received request always has a URL
+            var body = path == "/tags" ? """[{"name":"v1.10.0"},{"name":"v1.2.0"}]""" : path == "/news.xml"
                 ? $"<rss version=\"2.0\"><channel><title>Beispiel</title><item><title>Erste Meldung</title><link>https://example.com/1</link><pubDate>{now}</pubDate></item><item><title>Zweite Meldung</title><link>https://example.com/2</link><pubDate>{now}</pubDate></item></channel></rss>"
                 : "<html><head><title>Beispiel</title><link rel=\"alternate\" type=\"application/rss+xml\" title=\"Beispiel News\" href=\"/news.xml\"></head></html>";
             await context.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes(body));
