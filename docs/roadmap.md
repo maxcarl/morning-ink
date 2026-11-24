@@ -50,7 +50,6 @@ Private source types (newsletters, calendar, Home Assistant, sources with a logi
 - Storage: WebDAV, Nextcloud or a folder on the server
 - Messenger delivery: Telegram or Matrix bot sends the file
 - Cron expressions next to time and weekdays
-- "Only send with at least x articles", otherwise skip the issue
 - Trigger an issue by API or a Home Assistant button
 - Shrink images harder when an issue would exceed the mail limit
 
