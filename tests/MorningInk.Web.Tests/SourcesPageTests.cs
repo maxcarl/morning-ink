@@ -93,6 +93,44 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Karakeep_that_refuses_the_key_is_explained()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Sources>("0 feeds");
+
+        // The feed server is no Karakeep: it has no API to accept the key.
+        Pages.Submit(page, ("#karakeep-url", _feeds.SiteUrl), ("#karakeep-key", "ak1_key"));
+
+        Pages.Shows(page, "Karakeep could not be read:");
+        Assert.Empty(await SourcesAsync(app));
+    }
+
+    [Fact]
+    public async Task Karakeep_is_listed_as_read_later_and_can_keep_its_bookmarks()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        await using (var scope = app.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            var admin = await db.DomainUsers.SingleAsync(u => u.Name == TestApp.AdminName);
+            db.Sources.Add(new Source { UserId = admin.Id, Name = "Karakeep", Kind = SourceKind.Karakeep, Url = "https://karakeep.example.com/" });
+            await db.SaveChangesAsync();
+        }
+
+        var page = pages.Open<Sources>("Karakeep");
+        Assert.Contains(page.FindAll("h2.department"), h => h.TextContent == "Read later");
+        Pages.Button(page, "Edit").Click();
+        Assert.Contains("Archive bookmarks in Karakeep", page.Markup, StringComparison.Ordinal);
+        page.Find("#source-mark-read").Change(false);
+        Pages.Submit(page, ("#source-name", "Karakeep"));
+
+        Pages.Shows(page, "Karakeep");
+        Assert.False(Assert.Single(await SourcesAsync(app)).MarkReadAfterDelivery);
+    }
+
+    [Fact]
     public async Task FreshRss_sources_are_listed_on_their_own_and_can_keep_articles_unread()
     {
         using var app = AllowingFeeds();

@@ -1,0 +1,50 @@
+@using MorningInk.Domain
+@using MorningInk.Infrastructure.Sources
+@inject ActionScopes Scopes
+
+@* One's own Karakeep: what is bookmarked and not archived comes in the next issue. The key is checked before saving. *@
+<form @onsubmit="AddAsync" class="field" aria-labelledby="karakeep-label">
+    <span id="karakeep-label" class="label">@T["Sources_Karakeep"]</span>
+    <div class="field">
+        <label for="karakeep-url">@T["Sources_FreshRssUrl"]</label>
+        <input id="karakeep-url" class="input" type="text" inputmode="url" spellcheck="false" @bind="_url" placeholder="https://karakeep.example.com" required />
+    </div>
+    <div class="field">
+        <label for="karakeep-key">@T["Sources_KarakeepKey"]</label>
+        <input id="karakeep-key" class="input" type="password" autocomplete="new-password" @attributes="PasswordManagers.Ignore" @bind="_key" aria-describedby="karakeep-hint" required />
+        <span id="karakeep-hint" class="hint">@T["Sources_KarakeepHint"]</span>
+    </div>
+    <button type="submit" class="button button-secondary" disabled="@_busy">@T["Sources_Add"]</button>
+</form>
+
+@code {
+    private string _url = string.Empty;
+    private string _key = string.Empty;
+    private bool _busy;
+
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    [Parameter]
+    public CancellationToken Cancellation { get; set; }
+
+    [Parameter]
+    public EventCallback<FormOutcome> Finished { get; set; }
+
+    private async Task AddAsync()
+    {
+        _busy = true;
+        var (source, failure) = await Scopes.RunAsync<ConnectedSources, (Source?, MorningInk.Application.Sources.SourceResult.Failure?)>(sources => sources.AddKarakeepAsync(UserId, _url, _key, Cancellation));
+        _busy = false;
+        if (failure is not null || source is null)
+        {
+            await Finished.InvokeAsync(FormOutcome.Failed(T["Sources_KarakeepFailed", SourceTexts.Describe(T, failure?.Reason, failure?.Arguments ?? [], failure?.Message ?? string.Empty)], failure?.BlockedHost));
+            return;
+        }
+
+        // The key is not kept in the page once it is stored.
+        _key = string.Empty;
+        _url = string.Empty;
+        await Finished.InvokeAsync(new FormOutcome(T["Sources_KarakeepAdded"]));
+    }
+}

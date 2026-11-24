@@ -119,7 +119,7 @@
     private bool _busy;
 
     // FreshRSS: the password stays only until the sources are added, then it is stored encrypted with them.
-    private static readonly string[] AddTabs = ["feed", "local", "freshrss", "newsletter", "community", "opml"];
+    private static readonly string[] AddTabs = ["feed", "local", "freshrss", "karakeep", "newsletter", "community", "opml"];
     private string _addTab = "feed";
 
     // Form fields
@@ -202,6 +202,9 @@
         </div>
         <div id="add-freshrss" role="tabpanel" aria-labelledby="add-tab-freshrss" hidden="@(_addTab != "freshrss")">
             <FreshRssForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
+        </div>
+        <div id="add-karakeep" role="tabpanel" aria-labelledby="add-tab-karakeep" hidden="@(_addTab != "karakeep")">
+            <KarakeepForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
         </div>
         <div id="add-newsletter" role="tabpanel" aria-labelledby="add-tab-newsletter" hidden="@(_addTab != "newsletter")">
             <NewsletterForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />

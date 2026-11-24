@@ -9,7 +9,7 @@ What Morning Ink does today is in the [README](../README.md#features). This page
 | JSON Feed | Next to RSS and Atom |
 | Website without a feed | Scraper with CSS selectors for list, title and link |
 | Miniflux | Like FreshRSS: categories, unread only, mark read afterwards |
-| Read-it-later | Wallabag, Readeck, Karakeep: saved articles go into the next issue |
+| Read-it-later | Wallabag, Readeck: saved articles go into the next issue, like Karakeep |
 | Lobsters | Next to Hacker News and Reddit, with a minimum score |
 | Daily tiles | Calendar (CalDAV/ICS), waste collection, stock prices: compact on the cover |
 | Smart home | Home Assistant sensor values or notices such as "window open" |

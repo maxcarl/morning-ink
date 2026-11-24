@@ -20,4 +20,7 @@ public enum SourceKind
 
     /// <summary>The day's top posts of one subreddit, from a minimum score on.</summary>
     Reddit,
+
+    /// <summary>Bookmarks in one's own Karakeep that are not archived yet: read later, in the next issue.</summary>
+    Karakeep,
 }

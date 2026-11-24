@@ -49,10 +49,10 @@
         <label class="checkbox"><input id="source-images" type="checkbox" @bind="_edit.LoadImages" aria-describedby="source-images-hint" /> @T["Sources_LoadImages"]</label>
         <span id="source-images-hint" class="hint">@T["Sources_LoadImagesHint"]</span>
     </div>
-    @if (Source.Kind == SourceKind.FreshRss)
+    @if (Source.Kind is SourceKind.FreshRss or SourceKind.Karakeep)
     {
         <div class="field">
-            <label class="checkbox"><input id="source-mark-read" type="checkbox" @bind="_edit.MarkReadAfterDelivery" /> @T["Sources_MarkRead"]</label>
+            <label class="checkbox"><input id="source-mark-read" type="checkbox" @bind="_edit.MarkReadAfterDelivery" /> @T[Source.Kind == SourceKind.Karakeep ? "Sources_KarakeepArchive" : "Sources_MarkRead"]</label>
         </div>
     }
     @if (Source.Kind is SourceKind.HackerNews or SourceKind.Reddit)

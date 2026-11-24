@@ -32,7 +32,7 @@ public class Source
     /// </summary>
     public string? Stream { get; set; }
 
-    /// <summary>For FreshRSS: whether articles count as read there once the issue with them is delivered.</summary>
+    /// <summary>For FreshRSS and Karakeep: whether articles count as read (archived) there once the issue with them is delivered.</summary>
     public bool MarkReadAfterDelivery { get; set; } = true;
 
     /// <summary>Login used to fetch the source; null for public sources.</summary>

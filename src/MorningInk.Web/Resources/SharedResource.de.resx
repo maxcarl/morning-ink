@@ -510,6 +510,19 @@
   <data name="Sources_MarkRead" xml:space="preserve"><value>Artikel in FreshRSS als gelesen markieren, sobald die Ausgabe raus ist</value></data>
   <data name="Source_FreshRssLogin" xml:space="preserve"><value>FreshRSS hat die Anmeldung abgelehnt. Prüf Benutzername und API-Passwort und ob die API erlaubt ist.</value></data>
   <data name="Source_FreshRssNoLogin" xml:space="preserve"><value>Diese FreshRSS-Quelle hat keine Anmeldung mehr. Verbinde FreshRSS neu.</value></data>
+  <data name="Kind_Karakeep" xml:space="preserve"><value>Karakeep</value></data>
+  <data name="Sources_Group_Karakeep" xml:space="preserve"><value>Später lesen</value></data>
+  <data name="Sources_AddTab_karakeep" xml:space="preserve"><value>Karakeep</value></data>
+  <data name="Sources_Karakeep" xml:space="preserve"><value>Dein Karakeep</value></data>
+  <data name="Sources_KarakeepKey" xml:space="preserve"><value>API-Schlüssel</value></data>
+  <data name="Sources_KarakeepHint" xml:space="preserve"><value>Anzulegen in Karakeep unter Benutzereinstellungen → API-Schlüssel. Was du merkst und nicht archiviert hast, kommt in die nächste Ausgabe.</value></data>
+  <data name="Sources_KarakeepAdded" xml:space="preserve"><value>Karakeep hinzugefügt.</value></data>
+  <data name="Sources_KarakeepFailed" xml:space="preserve"><value>Karakeep konnte nicht gelesen werden: {0}</value></data>
+  <data name="Sources_KarakeepArchive" xml:space="preserve"><value>Lesezeichen in Karakeep archivieren, sobald die Ausgabe raus ist</value></data>
+  <data name="Source_KarakeepLogin" xml:space="preserve"><value>Karakeep hat den API-Schlüssel abgelehnt. Lege einen neuen an und füge Karakeep erneut hinzu.</value></data>
+  <data name="Source_KarakeepNoLogin" xml:space="preserve"><value>Diese Karakeep-Quelle hat keinen API-Schlüssel mehr. Füge Karakeep erneut hinzu.</value></data>
+  <data name="Source_KarakeepMissing" xml:space="preserve"><value>Unter {0} ist kein Karakeep. Prüfe die Adresse.</value></data>
+  <data name="Source_KarakeepNoList" xml:space="preserve"><value>Karakeep hat keine lesbare Liste von Lesezeichen geliefert.</value></data>
   <data name="Source_FreshRssNoList" xml:space="preserve"><value>FreshRSS lieferte keine lesbare Artikelliste.</value></data>
   <data name="Log_MarkedRead" xml:space="preserve"><value>{0}: {1} Artikel als gelesen markiert</value></data>
   <data name="Log_MarkReadFailed" xml:space="preserve"><value>{0}: konnte nicht als gelesen markieren: {1}</value></data>

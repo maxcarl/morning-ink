@@ -510,6 +510,19 @@
   <data name="Sources_MarkRead" xml:space="preserve"><value>Mark articles read in FreshRSS once the issue is out</value></data>
   <data name="Source_FreshRssLogin" xml:space="preserve"><value>FreshRSS refused the sign-in. Check user name and API password, and that the API is allowed.</value></data>
   <data name="Source_FreshRssNoLogin" xml:space="preserve"><value>This FreshRSS source has no login any more. Connect FreshRSS again.</value></data>
+  <data name="Kind_Karakeep" xml:space="preserve"><value>Karakeep</value></data>
+  <data name="Sources_Group_Karakeep" xml:space="preserve"><value>Read later</value></data>
+  <data name="Sources_AddTab_karakeep" xml:space="preserve"><value>Karakeep</value></data>
+  <data name="Sources_Karakeep" xml:space="preserve"><value>Your Karakeep</value></data>
+  <data name="Sources_KarakeepKey" xml:space="preserve"><value>API key</value></data>
+  <data name="Sources_KarakeepHint" xml:space="preserve"><value>Create one in Karakeep under User settings → API keys. Whatever you bookmark and have not archived comes in the next issue.</value></data>
+  <data name="Sources_KarakeepAdded" xml:space="preserve"><value>Karakeep added.</value></data>
+  <data name="Sources_KarakeepFailed" xml:space="preserve"><value>Karakeep could not be read: {0}</value></data>
+  <data name="Sources_KarakeepArchive" xml:space="preserve"><value>Archive bookmarks in Karakeep once the issue is out</value></data>
+  <data name="Source_KarakeepLogin" xml:space="preserve"><value>Karakeep refused the API key. Create a new one and add Karakeep again.</value></data>
+  <data name="Source_KarakeepNoLogin" xml:space="preserve"><value>This Karakeep source has no API key any more. Add Karakeep again.</value></data>
+  <data name="Source_KarakeepMissing" xml:space="preserve"><value>There is no Karakeep at {0}. Check the address.</value></data>
+  <data name="Source_KarakeepNoList" xml:space="preserve"><value>Karakeep returned no readable list of bookmarks.</value></data>
   <data name="Source_FreshRssNoList" xml:space="preserve"><value>FreshRSS returned no readable list of articles.</value></data>
   <data name="Log_MarkedRead" xml:space="preserve"><value>{0}: {1} articles marked read</value></data>
   <data name="Log_MarkReadFailed" xml:space="preserve"><value>{0}: could not mark read: {1}</value></data>

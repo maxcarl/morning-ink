@@ -1,0 +1,41 @@
+{
+  "bookmarks": [
+    {
+      "id": "bm-saved-article",
+      "createdAt": "2026-11-20T18:30:00.000Z",
+      "title": null,
+      "archived": false,
+      "content": {
+        "type": "link",
+        "url": "https://example.com/a-bridge-in-sampletown",
+        "title": "A new bridge in Sampletown",
+        "description": "The town opens its new bridge.",
+        "author": "A. Writer",
+        "htmlContent": "<p>The town of Sampletown opened its new bridge on Friday.</p>"
+      }
+    },
+    {
+      "id": "bm-own-title",
+      "createdAt": "2026-11-21T05:00:00.000Z",
+      "title": "My own title",
+      "archived": false,
+      "content": {
+        "type": "link",
+        "url": "https://example.org/library",
+        "title": "Library opens",
+        "description": "Only a description, no full text yet."
+      }
+    },
+    {
+      "id": "bm-script",
+      "createdAt": "2026-11-21T08:00:00.000Z",
+      "content": { "type": "link", "url": "javascript:alert(1)", "title": "Bad link" }
+    },
+    {
+      "id": "bm-note",
+      "createdAt": "2026-11-21T09:00:00.000Z",
+      "content": { "type": "text", "text": "A note, not an article" }
+    }
+  ],
+  "nextCursor": null
+}

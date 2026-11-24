@@ -24,13 +24,15 @@ public abstract record FreshRssConnection
 public sealed record NewsletterInput(string Name, string Server, string User, string Password, string Folder, string? Sender);
 
 /// <summary>
-/// Sources behind the user's own account: FreshRSS categories and newsletter folders. Each is checked by signing in
+/// Sources behind the user's own account: FreshRSS categories, newsletter folders and Karakeep bookmarks. Each is checked by signing in
 /// before it is saved, so a typo shows now and not in tomorrow's issue.
 /// </summary>
-public sealed class ConnectedSources(MorningInkDbContext db, FreshRssClient freshRss, NewsletterClient newsletters)
+public sealed class ConnectedSources(MorningInkDbContext db, FreshRssClient freshRss, NewsletterClient newsletters, KarakeepClient karakeep)
 {
     // Both hold what waits to be read, which may be older than a feed's day; seen articles never come twice.
     private static readonly TimeSpan MaxAge = TimeSpan.FromDays(7);
+
+    private static readonly TimeSpan ReadLaterMaxAge = TimeSpan.FromDays(90);
 
     private const string FreshRssApiPath = "api/greader.php";
     private const string DefaultFolder = "INBOX";
@@ -78,6 +80,42 @@ public sealed class ConnectedSources(MorningInkDbContext db, FreshRssClient fres
         db.Sources.AddRange(added);
         await db.SaveChangesAsync(cancellationToken);
         return added;
+    }
+
+    /// <summary>Checks the API key and adds the not yet archived bookmarks of the user's Karakeep as one source.</summary>
+    /// <param name="address">The instance, e.g. "https://karakeep.example.com".</param>
+    /// <returns>The new source, or why not: "InvalidUrl", or what Karakeep said.</returns>
+    public async Task<(Source? Source, SourceResult.Failure? Failure)> AddKarakeepAsync(Guid userId, string address, string apiKey, CancellationToken cancellationToken)
+    {
+        if (!Uri.TryCreate(address.Trim(), UriKind.Absolute, out var instance) || UrlPolicy.Check(instance) is not null || !string.IsNullOrEmpty(instance.Query))
+        {
+            return (null, new SourceResult.Failure("This is not a valid address.", Reason: nameof(FetchError.InvalidUrl)));
+        }
+
+        var key = apiKey.Trim();
+        if (await karakeep.CheckAsync(instance, key, cancellationToken) is { } failure)
+        {
+            return (null, failure);
+        }
+
+        var login = await db.SaveLoginAsync(userId, $"Karakeep {instance.Host}", string.Empty, key, cancellationToken);
+        var source = new Source
+        {
+            UserId = userId,
+            Name = "Karakeep",
+            Kind = SourceKind.Karakeep,
+            Url = instance.AbsoluteUri,
+            CredentialId = login.Id,
+
+            // Karakeep saved the page when it was bookmarked; only a bookmark without that text is fetched.
+            FetchFullText = true,
+
+            // Saved to read later, so older than a feed's day; archived ones never come again.
+            MaxAge = ReadLaterMaxAge,
+        };
+        db.Sources.Add(source);
+        await db.SaveChangesAsync(cancellationToken);
+        return (source, null);
     }
 
     /// <returns>The new source, or why not: "NameRequired", "NewsletterServer", or what the mail server said.</returns>

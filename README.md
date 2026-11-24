@@ -29,6 +29,7 @@
 
 - **RSS and Atom feeds** with full text, cleaned up for e-ink
 - **Your FreshRSS:** its categories as sources, unread articles only, marked read once the issue is out
+- **Read later with Karakeep:** what you bookmark comes in the next issue and is archived once it is out
 - **Newsletters from your mailbox** over IMAP, read only: nothing there is marked, moved or deleted
 - **Hacker News and Reddit** from a minimum score, with the linked articles in full
 - **OPML import and export** to move feeds from or to another reader
