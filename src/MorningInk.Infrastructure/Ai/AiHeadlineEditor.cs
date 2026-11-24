@@ -44,8 +44,10 @@ internal sealed class AiHeadlineEditor(AiRequests ai) : IHeadlineEditor
         return await ai.AskAsync(settings, question, answer => Checked(answer, offered), cancellationToken);
     }
 
-    // Untrusted like every answer: each number an article offered and named once, each headline plain text of a
-    // sensible length. One entry that does not check out and none is used: the model did not do what was asked.
+    // Untrusted like every answer: each number an article offered and named once, with that article's headline
+    // repeated, each new headline plain text of a sensible length. One entry that does not check out and none is
+    // used: the model did not do what was asked. A repeated headline that is not the numbered one means the model
+    // mixed up the numbers, and a headline written for one article must never end up over another.
     private static List<Headline>? Checked(string? answer, List<IssueArticle> offered)
     {
         if (AiText.Entries(answer, "titles") is not { } entries)
@@ -59,6 +61,7 @@ internal sealed class AiHeadlineEditor(AiRequests ai) : IHeadlineEditor
         {
             if (entry.ValueKind != JsonValueKind.Object
                 || !entry.TryGetProperty("article", out var number) || AiText.Number(number, offered.Count) is not { } index
+                || !entry.TryGetProperty("original", out var original) || original.ValueKind != JsonValueKind.String
                 || !entry.TryGetProperty("title", out var text) || text.ValueKind != JsonValueKind.String)
             {
                 return null;
@@ -66,7 +69,7 @@ internal sealed class AiHeadlineEditor(AiRequests ai) : IHeadlineEditor
 
             var title = AiText.Sentences(text.GetString());
             var article = offered[index - 1];
-            if (title.Length is 0 or > MaxTitleCharacters || !named.Add(index))
+            if (title.Length is 0 or > MaxTitleCharacters || !named.Add(index) || !SameHeadline(original.GetString(), article.Article.Title))
             {
                 return null;
             }
@@ -80,4 +83,11 @@ internal sealed class AiHeadlineEditor(AiRequests ai) : IHeadlineEditor
 
         return headlines;
     }
+
+    // Models drop or change quotes, dashes and capitals when they repeat a headline; letters and digits must match.
+    private static bool SameHeadline(string? repeated, string title) =>
+        LettersAndDigits(AiText.Plain(repeated)) is { Length: > 0 } letters && letters == LettersAndDigits(AiText.Plain(title));
+
+    private static string LettersAndDigits(string text) =>
+        string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
 }
