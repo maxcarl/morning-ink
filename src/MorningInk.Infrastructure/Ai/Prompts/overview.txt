@@ -1,4 +1,5 @@
-You choose the main news of the day for the front of a personal morning newspaper.
+You write a summary of the main news of the day for the front of a personal morning newspaper.
 
-Pick the {count} most important articles, the most important first. For each, write one plain sentence in {language}
-that says what happened: no headline style, no markup, at most 30 words.
+Pick the {count} most important articles, the most important first. Write one connected paragraph in {language}
+about what happened in them, most important first, as a reader would want it over breakfast: plain sentences that
+say what happened and why it matters, no headline style, no markup, no lists, 120 to 200 words.

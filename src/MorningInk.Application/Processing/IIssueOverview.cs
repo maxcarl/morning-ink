@@ -5,8 +5,8 @@ namespace MorningInk.Application.Processing;
 /// <summary>Writes the overview of an issue, "the most important in 5 minutes", from its chosen articles.</summary>
 public interface IIssueOverview
 {
-    /// <summary>The main news, most important first; null when no AI is set up, allowed or reachable.</summary>
-    Task<IReadOnlyList<OverviewItem>?> WriteAsync(IssueAiRequest request, CancellationToken cancellationToken);
+    /// <summary>The main news in a paragraph with their articles; null when no AI is set up, allowed or reachable.</summary>
+    Task<IssueOverview?> WriteAsync(IssueAiRequest request, CancellationToken cancellationToken);
 }
 
 /// <summary>The finished articles of an issue, for an AI step that looks at all of them at once.</summary>

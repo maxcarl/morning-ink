@@ -40,12 +40,14 @@ internal static class EpubPages
             new XElement(Xhtml + "h1", title),
             WeatherSection(forecast, texts, texts.WeatherFor(forecast.Place)));
 
-    /// <summary>"The most important in 5 minutes": a sentence per main news, each leading to its article.</summary>
-    public static XDocument OverviewPage(string title, IReadOnlyList<OverviewItem> items, EpubTexts texts, Func<IssueArticle, string> hrefOf) =>
+    /// <summary>"The most important in 5 minutes": a paragraph about the main news, then their articles to read on.</summary>
+    public static XDocument OverviewPage(string title, IssueOverview overview, EpubTexts texts, Func<IssueArticle, string> hrefOf) =>
         Page(title, texts,
             new XElement(Xhtml + "h1", title),
-            new XElement(Xhtml + "ol", new XAttribute("class", "overview"), items.Select(item => new XElement(Xhtml + "li",
-                new XElement(Xhtml + "a", new XAttribute("href", hrefOf(item.Article)), item.Text)))));
+            new XElement(Xhtml + "p", new XAttribute("class", "overview"), overview.Summary),
+            new XElement(Xhtml + "h2", texts.ReadOn),
+            new XElement(Xhtml + "ul", overview.Articles.Select(article => new XElement(Xhtml + "li",
+                new XElement(Xhtml + "a", new XAttribute("href", hrefOf(article)), article.Article.Title)))));
 
     /// <summary>"On this day": the day's anniversaries with their year, and the credit Wikipedia's licence asks for.</summary>
     public static XDocument OnThisDayPage(string title, IReadOnlyList<Anniversary> events, DateTimeOffset issueTime, EpubTexts texts) =>

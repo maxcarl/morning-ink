@@ -81,12 +81,12 @@ public enum IssueExtraKind
 
 /// <summary>A page that is no articles section, with its place in the issue.</summary>
 /// <param name="Before">Index of the articles section it comes before; the number of sections puts it at the end.</param>
-/// <param name="Items">The overview's points; null for the others. The weather is in <see cref="IssueContent.Weather"/>.</param>
+/// <param name="Overview">The overview's paragraph and articles; null for the others. The weather is in <see cref="IssueContent.Weather"/>.</param>
 /// <param name="Events">The anniversaries of "on this day"; null for the others.</param>
-public sealed record IssueExtra(IssueExtraKind Kind, string Title, int Before, IReadOnlyList<OverviewItem>? Items = null, IReadOnlyList<Anniversary>? Events = null);
+public sealed record IssueExtra(IssueExtraKind Kind, string Title, int Before, IssueOverview? Overview = null, IReadOnlyList<Anniversary>? Events = null);
 
-/// <summary>One point of the overview: a sentence about the news, and the article in the issue it is about.</summary>
-public sealed record OverviewItem(string Text, IssueArticle Article);
+/// <summary>The overview: a paragraph about the day's main news, then links to their articles, most important first.</summary>
+public sealed record IssueOverview(string Summary, IReadOnlyList<IssueArticle> Articles);
 
 /// <summary>Signed links for the reader to say "more of this" or "less of this" about an article.</summary>
 public sealed record FeedbackLinks(Uri More, Uri Less);

@@ -69,7 +69,7 @@ internal sealed class AiHeadlineEditor(AiRequests ai) : IHeadlineEditor
 
             var title = AiText.Sentences(text.GetString());
             var article = offered[index - 1];
-            if (title.Length is 0 or > MaxTitleCharacters || !named.Add(index) || !SameHeadline(original.GetString(), article.Article.Title))
+            if (title.Length is 0 or > MaxTitleCharacters || !named.Add(index) || !AiText.SameHeadline(original.GetString(), article.Article.Title))
             {
                 return null;
             }
@@ -83,11 +83,4 @@ internal sealed class AiHeadlineEditor(AiRequests ai) : IHeadlineEditor
 
         return headlines;
     }
-
-    // Models drop or change quotes, dashes and capitals when they repeat a headline; letters and digits must match.
-    private static bool SameHeadline(string? repeated, string title) =>
-        LettersAndDigits(AiText.Plain(repeated)) is { Length: > 0 } letters && letters == LettersAndDigits(AiText.Plain(title));
-
-    private static string LettersAndDigits(string text) =>
-        string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
 }

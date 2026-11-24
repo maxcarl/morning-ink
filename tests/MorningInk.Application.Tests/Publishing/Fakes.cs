@@ -112,19 +112,18 @@ internal sealed class FakeAiProcessor : IProcessor
         Task.FromResult(article with { AiSummary = "KI" });
 }
 
-/// <summary>Stands for the AI's overview: the first articles, one line each; null as if no AI were set up.</summary>
+/// <summary>Stands for the AI's overview: a line about the first articles; null as if no AI were set up.</summary>
 internal sealed class FakeOverview : IIssueOverview
 {
     public bool Available { get; set; } = true;
 
     public List<IssueAiRequest> Requests { get; } = [];
 
-    public Task<IReadOnlyList<OverviewItem>?> WriteAsync(IssueAiRequest request, CancellationToken cancellationToken)
+    public Task<IssueOverview?> WriteAsync(IssueAiRequest request, CancellationToken cancellationToken)
     {
         Requests.Add(request);
-        return Task.FromResult<IReadOnlyList<OverviewItem>?>(Available
-            ? request.Articles.Take(2).Select(a => new OverviewItem($"Kurz: {a.Article.Article.Title}", a.Article)).ToList()
-            : null);
+        var first = request.Articles.Take(2).Select(a => a.Article).ToList();
+        return Task.FromResult(Available ? new IssueOverview($"Kurz: {string.Join(", ", first.Select(a => a.Article.Title))}", first) : null);
     }
 }
 

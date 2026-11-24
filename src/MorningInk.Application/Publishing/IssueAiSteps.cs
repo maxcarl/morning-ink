@@ -112,11 +112,11 @@ public sealed class IssueAiSteps(IInterestMatcher matcher, IHeadlineEditor headl
     }
 
     /// <summary>The issue's main news, "the most important in 5 minutes"; null without AI or when it fails.</summary>
-    public async Task<IReadOnlyList<OverviewItem>?> OverviewAsync(List<(Section Section, IssueSection Content)> content, PublishingProfile loaded, Issue issue, CancellationToken cancellationToken)
+    public async Task<IssueOverview?> OverviewAsync(List<(Section Section, IssueSection Content)> content, PublishingProfile loaded, Issue issue, CancellationToken cancellationToken)
     {
-        var items = await Guarded(() => overview.WriteAsync(Request(content, loaded), cancellationToken));
-        issue.AddLog(time.GetUtcNow(), items is { Count: > 0 } ? "Overview" : "OverviewSkipped", items?.Count ?? 0);
-        return items;
+        var written = await Guarded(() => overview.WriteAsync(Request(content, loaded), cancellationToken));
+        issue.AddLog(time.GetUtcNow(), written is not null ? "Overview" : "OverviewSkipped", written?.Articles.Count ?? 0);
+        return written;
     }
 
     // Each article with whether its source must stay with a local AI.

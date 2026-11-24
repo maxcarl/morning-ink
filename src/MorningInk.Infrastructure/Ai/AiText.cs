@@ -44,7 +44,13 @@ internal static partial class AiText
     /// The entries of an answer in the form {"<paramref name="list"/>":[{...}]}; null when the answer is no JSON of
     /// that form. A code fence around it is taken off, since models like to add one.
     /// </summary>
-    public static IReadOnlyList<JsonElement>? Entries(string? answer, string list)
+    public static IReadOnlyList<JsonElement>? Entries(string? answer, string list) =>
+        Object(answer) is { } json && json.TryGetProperty(list, out var entries) && entries.ValueKind == JsonValueKind.Array
+            ? [.. entries.EnumerateArray()]
+            : null;
+
+    /// <summary>The answer as a JSON object; null when it is none. A code fence around it is taken off.</summary>
+    public static JsonElement? Object(string? answer)
     {
         var json = (answer ?? string.Empty).Trim();
         if (json.StartsWith("```", StringComparison.Ordinal))
@@ -56,11 +62,7 @@ internal static partial class AiText
         try
         {
             using var document = JsonDocument.Parse(json);
-            return document.RootElement.ValueKind == JsonValueKind.Object
-                && document.RootElement.TryGetProperty(list, out var entries)
-                && entries.ValueKind == JsonValueKind.Array
-                ? [.. entries.EnumerateArray().Select(e => e.Clone())]
-                : null;
+            return document.RootElement.ValueKind == JsonValueKind.Object ? document.RootElement.Clone() : null;
         }
         catch (JsonException)
         {
@@ -71,6 +73,16 @@ internal static partial class AiText
     /// <summary>A number from 1 to <paramref name="count"/>, as the data was numbered; null for anything else.</summary>
     public static int? Number(JsonElement value, int count) =>
         value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number) && number >= 1 && number <= count ? number : null;
+
+    /// <summary>
+    /// Whether the model repeated <paramref name="title"/>, so the number it gave is the article it meant. Models drop
+    /// or change quotes, dashes and capitals when they repeat a headline; letters and digits must match.
+    /// </summary>
+    public static bool SameHeadline(string? repeated, string title) =>
+        LettersAndDigits(Plain(repeated)) is { Length: > 0 } letters && letters == LettersAndDigits(Plain(title));
+
+    private static string LettersAndDigits(string text) =>
+        string.Concat(text.Where(char.IsLetterOrDigit)).ToLowerInvariant();
 
     /// <summary>The model writes in the reader's language, named in English: "German", not "Deutsch" or "de".</summary>
     public static string LanguageName(string culture)

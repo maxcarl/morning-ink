@@ -45,6 +45,8 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string FromWikipedia => Get(nameof(FromWikipedia));
 
+    public string ReadOn => Get(nameof(ReadOn));
+
     public string NoticeTest => Get(nameof(NoticeTest));
 
     public string NoticeDelivered(string edition, int number, int articles) => string.Format(Culture, Get(nameof(NoticeDelivered)), edition, number, articles);

@@ -275,7 +275,7 @@ public sealed class IssuePublisherTests : IDisposable
         var content = _renderer.Rendered.Single();
         var overview = Assert.Single(content.Extras);
         Assert.Equal((IssueExtraKind.Overview, "Das Wichtigste", 1), (overview.Kind, overview.Title, overview.Before)); // after the first section
-        Assert.All(overview.Items!, item => Assert.Contains(content.Sections.SelectMany(s => s.Articles), a => ReferenceEquals(a, item.Article)));
+        Assert.All(overview.Overview!.Articles, article => Assert.Contains(content.Sections.SelectMany(s => s.Articles), a => ReferenceEquals(a, article)));
         Assert.Equal(3, Assert.Single(_overview.Requests).Articles.Count); // every article of the issue was offered
         Assert.Contains(Assert.Single(_store.Issues).Log, e => e.Event == "Overview" && e.Arguments[0] == "2");
     }

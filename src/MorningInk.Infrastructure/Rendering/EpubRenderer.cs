@@ -100,7 +100,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
             {
                 (string Href, XDocument Page)? page = extra switch
                 {
-                    { Kind: IssueExtraKind.Overview, Items: { Count: > 0 } points } => ("overview.xhtml", EpubPages.OverviewPage(extra.Title, points, texts, HrefOf)),
+                    { Kind: IssueExtraKind.Overview, Overview: { } overview } => ("overview.xhtml", EpubPages.OverviewPage(extra.Title, overview, texts, HrefOf)),
                     { Kind: IssueExtraKind.OnThisDay, Events: { Count: > 0 } events } => ("on-this-day.xhtml", EpubPages.OnThisDayPage(extra.Title, events, issue.PublishedAt, texts)),
                     { Kind: IssueExtraKind.Weather } when issue.Weather is { } forecast && !issue.WeatherOnTitlePage => ("weather.xhtml", EpubPages.WeatherPage(extra.Title, forecast, texts)),
                     _ => null,

@@ -92,9 +92,9 @@ public sealed class IssueBuilder(
             {
                 extras.Add(new IssueExtra(IssueExtraKind.Weather, section.Name, before));
             }
-            else if (section.Kind == SectionKind.Overview && withAi && await ai.OverviewAsync(content, loaded, issue, cancellationToken) is { Count: > 0 } items)
+            else if (section.Kind == SectionKind.Overview && withAi && await ai.OverviewAsync(content, loaded, issue, cancellationToken) is { } overview)
             {
-                extras.Add(new IssueExtra(IssueExtraKind.Overview, section.Name, before, items));
+                extras.Add(new IssueExtra(IssueExtraKind.Overview, section.Name, before, overview));
             }
             else if (section.Kind == SectionKind.OnThisDay && await AnniversariesAsync(date, loaded.Profile.Country, cancellationToken) is { Count: > 0 } events)
             {

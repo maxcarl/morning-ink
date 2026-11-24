@@ -261,11 +261,11 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
-    public async Task Overview_page_stands_at_its_place_and_links_to_the_articles()
+    public async Task Overview_page_stands_at_its_place_with_its_paragraph_and_links_to_the_articles()
     {
         var issue = SampleIssue();
         var politics = issue.Sections[0].Articles[0];
-        issue = issue with { Extras = [new IssueExtra(IssueExtraKind.Overview, "Das Wichtigste in 5 Minuten", 1, [new OverviewItem("Die Wahl ging anders aus.", politics)])] };
+        issue = issue with { Extras = [new IssueExtra(IssueExtraKind.Overview, "Das Wichtigste in 5 Minuten", 1, new IssueOverview("Die Wahl ging anders aus.", [politics]))] };
 
         using var epub = await RenderAsync(issue, "overview.epub");
 
@@ -273,8 +273,9 @@ public sealed class EpubRendererTests : IDisposable
         var overview = spine.IndexOf("overview.xhtml");
         Assert.True(overview > spine.IndexOf("article-1-1.xhtml") && overview < spine.IndexOf("section-2.xhtml")); // between the two sections
         var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "overview.xhtml")));
+        Assert.Contains(page.Descendants(Xhtml + "p"), p => p.Value == "Die Wahl ging anders aus.");
         var link = Assert.Single(page.Descendants(Xhtml + "a"));
-        Assert.Equal(("article-1-1.xhtml", "Die Wahl ging anders aus."), ((string?)link.Attribute("href"), link.Value));
+        Assert.Equal(("article-1-1.xhtml", politics.Article.Title), ((string?)link.Attribute("href"), link.Value));
         Assert.Contains("Das Wichtigste in 5 Minuten", NavEntries(epub));
     }
 

@@ -7,8 +7,9 @@ namespace MorningInk.Infrastructure.Ai;
 
 /// <summary>
 /// Writes the issue's overview, "the most important in 5 minutes": the AI gets every chosen article as numbered data
-/// and answers with the numbers of the main ones and a sentence each. Only what checks out is used: numbers of
-/// articles in the issue, plain sentences of a sensible length.
+/// and answers with a paragraph about the main news and the numbers of their articles, each with its headline
+/// repeated. Only what checks out is used: a plain paragraph of a sensible length, articles in the issue whose
+/// headline matches their number.
 /// </summary>
 /// <remarks>
 /// Optional like every AI step: without settings, at the daily limit or when the AI fails, there is no overview and
@@ -18,9 +19,11 @@ internal sealed class AiOverviewWriter(AiRequests ai) : IIssueOverview
 {
     private const int MinItems = 5;
     private const int MaxItems = 8;
-    private const int MaxTextCharacters = 300;
+
+    // A paragraph of up to about 250 words: what can be read in a few minutes, with room for long words.
+    private const int MaxSummaryCharacters = 2000;
     private const int TeaserCharacters = 400;
-    private const int MaxOutputTokens = 1200;
+    private const int MaxOutputTokens = 1500;
 
     /// <summary>The versioned default instructions, which the admin may replace on the settings page.</summary>
     public static readonly string DefaultPrompt = AiText.Prompt("overview.txt");
@@ -29,7 +32,7 @@ internal sealed class AiOverviewWriter(AiRequests ai) : IIssueOverview
     // as data only.
     private static readonly string Format = AiText.Prompt("overview-format.txt");
 
-    public async Task<IReadOnlyList<OverviewItem>?> WriteAsync(IssueAiRequest request, CancellationToken cancellationToken)
+    public async Task<IssueOverview?> WriteAsync(IssueAiRequest request, CancellationToken cancellationToken)
     {
         if (await ai.SettingsAsync(cancellationToken) is not { } settings)
         {
@@ -50,35 +53,38 @@ internal sealed class AiOverviewWriter(AiRequests ai) : IIssueOverview
         return await ai.AskAsync(settings, question, answer => Checked(answer, offered), cancellationToken);
     }
 
-    // The answer is untrusted: each number an article offered and used once, each text a plain sentence; anything
-    // else is no overview.
-    private static List<OverviewItem>? Checked(string? answer, List<IssueArticle> offered)
+    // The answer is untrusted: a plain paragraph, each number an article offered and used once with its own headline
+    // repeated. A headline that is not the numbered one means the model mixed up the numbers, so a link could lead
+    // to the wrong story: anything that does not check out is no overview.
+    private static IssueOverview? Checked(string? answer, List<IssueArticle> offered)
     {
-        if (AiText.Entries(answer, "items") is not { } entries)
+        if (AiText.Object(answer) is not { } json
+            || !json.TryGetProperty("summary", out var summaryValue) || summaryValue.ValueKind != JsonValueKind.String
+            || AiText.Sentences(summaryValue.GetString()) is not { Length: > 0 and <= MaxSummaryCharacters } summary
+            || AiText.Entries(answer, "items") is not { } entries)
         {
             return null;
         }
 
-        var items = new List<OverviewItem>();
+        var articles = new List<IssueArticle>();
         foreach (var entry in entries.Take(MaxItems))
         {
             if (entry.ValueKind != JsonValueKind.Object
                 || !entry.TryGetProperty("article", out var number) || AiText.Number(number, offered.Count) is not { } index
-                || !entry.TryGetProperty("text", out var text) || text.ValueKind != JsonValueKind.String)
+                || !entry.TryGetProperty("original", out var original) || original.ValueKind != JsonValueKind.String)
             {
                 return null;
             }
 
-            var sentence = AiText.Sentences(text.GetString());
             var article = offered[index - 1];
-            if (sentence.Length is 0 or > MaxTextCharacters || items.Any(i => ReferenceEquals(i.Article, article)))
+            if (!AiText.SameHeadline(original.GetString(), article.Article.Title) || articles.Any(a => ReferenceEquals(a, article)))
             {
                 return null;
             }
 
-            items.Add(new OverviewItem(sentence, article));
+            articles.Add(article);
         }
 
-        return items.Count == 0 ? null : items;
+        return articles.Count == 0 ? null : new IssueOverview(summary, articles);
     }
 }
