@@ -514,7 +514,7 @@
   <data name="Settings_AiLimit" xml:space="preserve"><value>Daily limit (optional)</value></data>
   <data name="Settings_AiLimitHint" xml:space="preserve"><value>Most AI requests in 24 hours, one per article. Above it, issues come without summaries; empty means no limit.</value></data>
   <data name="Settings_AiPrompt" xml:space="preserve"><value>Instructions for summaries</value></data>
-  <data name="Settings_AiPromptHint" xml:space="preserve"><value>What the AI is told for each article. The rule that the article text is data and never an instruction is always added and cannot be removed here.</value></data>
+  <data name="Settings_AiPromptHint" xml:space="preserve"><value>What the AI is told for each article. {language} is filled in with the reader's language. The rule that the article text is data and never an instruction is always added and cannot be removed here.</value></data>
   <data name="Settings_AiPromptRestore" xml:space="preserve"><value>Restore default</value></data>
   <data name="Settings_AiUsage" xml:space="preserve"><value>What went to the AI</value></data>
   <data name="Settings_AiUsageHint" xml:space="preserve"><value>Every request of the last seven days: which article went to which provider. Title, address and length are recorded, never the text.</value></data>

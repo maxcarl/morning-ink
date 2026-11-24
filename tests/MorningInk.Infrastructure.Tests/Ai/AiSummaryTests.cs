@@ -4,6 +4,7 @@ using MorningInk.Application.Processing;
 using MorningInk.Application.Sources;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Ai;
+using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Tests.Persistence;
 
 namespace MorningInk.Infrastructure.Tests.Ai;
@@ -54,6 +55,24 @@ public sealed class AiSummaryTests : IDisposable
 
         Assert.Null(result.AiSummary);
         Assert.Empty(ai.Bodies);
+    }
+
+    [Fact]
+    public async Task Summary_is_asked_for_in_the_language_of_the_sources_owner()
+    {
+        using var ai = new FakeChatServer();
+        await using var services = await StartAsync(ai);
+        var owner = new User { Name = "reader", Language = "de" };
+        await using (var scope = services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+            db.Add(owner);
+            await db.SaveChangesAsync();
+        }
+
+        await SummarizeAsync(services, Article("Test"), new Source { UserId = owner.Id, Name = "Feed", Url = "https://example.com/feed" });
+
+        Assert.Contains("in German", Assert.Single(ai.Bodies), StringComparison.Ordinal);
     }
 
     [Theory]

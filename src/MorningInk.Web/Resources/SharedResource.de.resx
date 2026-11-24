@@ -514,7 +514,7 @@
   <data name="Settings_AiLimit" xml:space="preserve"><value>Tageslimit (optional)</value></data>
   <data name="Settings_AiLimitHint" xml:space="preserve"><value>Höchstens so viele KI-Anfragen in 24 Stunden, eine pro Artikel. Darüber kommen Ausgaben ohne Zusammenfassungen; leer heißt ohne Limit.</value></data>
   <data name="Settings_AiPrompt" xml:space="preserve"><value>Anweisung für Zusammenfassungen</value></data>
-  <data name="Settings_AiPromptHint" xml:space="preserve"><value>Das bekommt die KI zu jedem Artikel. Die Regel, dass der Artikeltext nur Daten und nie eine Anweisung ist, wird immer angehängt und lässt sich hier nicht entfernen.</value></data>
+  <data name="Settings_AiPromptHint" xml:space="preserve"><value>Das bekommt die KI zu jedem Artikel. {language} wird durch die Sprache des Lesers ersetzt. Die Regel, dass der Artikeltext nur Daten und nie eine Anweisung ist, wird immer angehängt und lässt sich hier nicht entfernen.</value></data>
   <data name="Settings_AiPromptRestore" xml:space="preserve"><value>Standard wiederherstellen</value></data>
   <data name="Settings_AiUsage" xml:space="preserve"><value>Was an die KI ging</value></data>
   <data name="Settings_AiUsageHint" xml:space="preserve"><value>Jede Anfrage der letzten sieben Tage: welcher Artikel an welchen Anbieter ging. Gespeichert werden Titel, Adresse und Länge, nie der Text.</value></data>

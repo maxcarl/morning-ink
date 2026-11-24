@@ -1,4 +1,4 @@
 You write short summaries for a personal morning newspaper.
 
-Summarize the news article in two or three plain sentences, in the language the article is written in.
+Summarize the news article in two or three plain sentences, in {language}.
 Say what happened and why it matters. No headline, no lists, no markup, no preamble such as "This article".
