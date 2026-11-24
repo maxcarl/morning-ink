@@ -2,6 +2,7 @@ using MorningInk.Application.Processing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
 using MorningInk.Application.Weather;
+using MorningInk.Application.Wikipedia;
 using MorningInk.Domain;
 
 namespace MorningInk.Application.Publishing;
@@ -18,6 +19,7 @@ public sealed class IssueBuilder(
     IssueAiSteps ai,
     IGeocoder geocoder,
     IWeatherForecast weather,
+    IOnThisDay onThisDay,
     TimeProvider time)
 {
     /// <summary>The issue's content, or null when nothing new came; every step is written to the issue's log.</summary>
@@ -67,7 +69,7 @@ public sealed class IssueBuilder(
         var weather = profile.Sections.FirstOrDefault(s => s.Kind == SectionKind.Weather) is not { Enabled: false }
             ? await WeatherAsync(profile, cancellationToken)
             : null;
-        var extras = await ExtrasAsync(order, content, weather is not null, loaded, issue, withAi, cancellationToken);
+        var extras = await ExtrasAsync(order, content, weather is not null, loaded, issue, DateOnly.FromDateTime(localTime.DateTime), withAi, cancellationToken);
         return new IssueContent(issue.Id, profile.Title, issue.Number, localTime, loaded.Language, [.. content.Select(c => c.Content)], problems.Select(p => p.SourceName).ToList(), weather, extras);
     }
 
@@ -78,6 +80,7 @@ public sealed class IssueBuilder(
         bool hasWeather,
         PublishingProfile loaded,
         Issue issue,
+        DateOnly date,
         bool withAi,
         CancellationToken cancellationToken)
     {
@@ -92,6 +95,10 @@ public sealed class IssueBuilder(
             else if (section.Kind == SectionKind.Overview && withAi && await ai.OverviewAsync(content, loaded, issue, cancellationToken) is { Count: > 0 } items)
             {
                 extras.Add(new IssueExtra(IssueExtraKind.Overview, section.Name, before, items));
+            }
+            else if (section.Kind == SectionKind.OnThisDay && await AnniversariesAsync(date, loaded.Profile.Country, cancellationToken) is { Count: > 0 } events)
+            {
+                extras.Add(new IssueExtra(IssueExtraKind.OnThisDay, section.Name, before, Events: events));
             }
         }
 
@@ -239,6 +246,19 @@ public sealed class IssueBuilder(
         catch (Exception e) when (e is not OperationCanceledException)
         {
             return null;
+        }
+    }
+
+    // Like the weather a bonus: whatever goes wrong, the issue comes without it.
+    private async Task<IReadOnlyList<Anniversary>> AnniversariesAsync(DateOnly date, string? country, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await onThisDay.EventsAsync(date, country, cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            return [];
         }
     }
 

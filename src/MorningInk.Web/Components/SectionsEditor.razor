@@ -115,8 +115,8 @@
         <button type="submit" class="button button-secondary">@T["Profile_AddSection"]</button>
     </div>
 </form>
-@* The overview and the weather once each; the overview only where an AI can write it. *@
-@if ((AiAvailable && !Has(SectionKind.Overview)) || !Has(SectionKind.Weather))
+@* The overview, the weather and "on this day" once each; the overview only where an AI can write it. *@
+@if ((AiAvailable && !Has(SectionKind.Overview)) || !Has(SectionKind.Weather) || !Has(SectionKind.OnThisDay))
 {
     <div class="row-actions">
         @if (AiAvailable && !Has(SectionKind.Overview))
@@ -126,6 +126,10 @@
         @if (!Has(SectionKind.Weather))
         {
             <button id="add-weather" type="button" class="button button-secondary button-small" @onclick="() => AddSpecialAsync(SectionKind.Weather)">+ @T["Section_Kind_Weather"]</button>
+        }
+        @if (!Has(SectionKind.OnThisDay))
+        {
+            <button id="add-on-this-day" type="button" class="button button-secondary button-small" @onclick="() => AddSpecialAsync(SectionKind.OnThisDay)">+ @T["Section_Kind_OnThisDay"]</button>
         }
     </div>
 }

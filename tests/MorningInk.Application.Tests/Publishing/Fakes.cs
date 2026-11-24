@@ -5,6 +5,7 @@ using MorningInk.Application.Publishing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
 using MorningInk.Application.Weather;
+using MorningInk.Application.Wikipedia;
 using MorningInk.Domain;
 
 namespace MorningInk.Application.Tests.Publishing;
@@ -242,6 +243,22 @@ internal sealed class FakeWeather : IWeatherForecast
 
     public Task<WeatherForecast?> ForecastAsync(RegionLocation location, string timeZoneId, CancellationToken cancellationToken) =>
         Fail ? throw new HttpRequestException("down") : Task.FromResult<WeatherForecast?>(Forecast);
+}
+
+/// <summary>Returns <see cref="Events"/> and records what it was asked; throws when <see cref="Fail"/> is set.</summary>
+internal sealed class FakeOnThisDay : IOnThisDay
+{
+    public bool Fail { get; set; }
+
+    public List<(DateOnly Day, string? Country)> Requests { get; } = [];
+
+    public IReadOnlyList<Anniversary> Events { get; } = [new(1911, "A bridge opens in a small town."), new(1976, "A museum opens its doors.")];
+
+    public Task<IReadOnlyList<Anniversary>> EventsAsync(DateOnly day, string? country, CancellationToken cancellationToken)
+    {
+        Requests.Add((day, country));
+        return Fail ? throw new HttpRequestException("down") : Task.FromResult(Events);
+    }
 }
 
 internal sealed class TempIssueFiles : IIssueFiles, IDisposable

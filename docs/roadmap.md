@@ -15,7 +15,7 @@ What Morning Ink does today is in the [README](../README.md#features). This page
 | Smart home | Home Assistant sensor values or notices such as "window open" |
 | Read tomorrow | Share target in the installed app, browser extension, Telegram bot: send a link, it lands in the next issue |
 | API / webhook | Feed any content by POST from your own scripts |
-| Odds and ends | Wikipedia article of the day, "on this day": a small section at the end |
+| Odds and ends | Wikipedia article of the day, next to "on this day" |
 
 **Logins for sources:** OAuth 2 with automatic token refresh (Wallabag, Reddit, Mastodon, Google Calendar), form login for newspaper subscriptions (login URL, fields, success check, reused session), cookie import for sites with 2FA or captcha (with expiry warning). Each login gets a "test login" button and a status; an expired login sends a notification instead of producing empty articles.
 

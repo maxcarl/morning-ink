@@ -35,6 +35,7 @@
   <data name="Briefs" xml:space="preserve"><value>Kurz notiert</value></data>
   <data name="AlsoAt" xml:space="preserve"><value>Auch bei: {0}</value></data>
   <data name="InShort" xml:space="preserve"><value>Kurz gefasst</value></data>
+  <data name="FromWikipedia" xml:space="preserve"><value>Aus Wikipedia, der freien Enzyklopädie; Text unter CC BY-SA 4.0.</value></data>
   <data name="ArticleCount" xml:space="preserve"><value>{0} Artikel in {1} Rubriken</value></data>
   <data name="NoticeTest" xml:space="preserve"><value>Testnachricht von Morning Ink: Benachrichtigungen kommen hier an.</value></data>
   <data name="NoticeDelivered" xml:space="preserve"><value>{0} Nr. {1} ist da: {2} Artikel.</value></data>

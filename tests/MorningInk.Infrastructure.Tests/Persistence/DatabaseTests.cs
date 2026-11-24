@@ -72,7 +72,7 @@ public sealed class DatabaseTests : IDisposable
     }
 
     [Fact]
-    public async Task Editions_from_before_section_kinds_get_their_weather_first_in_the_owners_language()
+    public async Task Editions_from_before_get_their_weather_first_and_on_this_day_switched_off_last_in_the_owners_language()
     {
         await using var services = await _host.StartAsync();
         await using var scope = services.CreateAsyncScope();
@@ -95,7 +95,7 @@ public sealed class DatabaseTests : IDisposable
 
         db.ChangeTracker.Clear();
         var sections = await db.Profiles.Where(p => p.Id == profileId).SelectMany(p => p.Sections).OrderBy(s => s.Position).ToListAsync();
-        Assert.Equal([("Wetter", SectionKind.Weather, true), ("Politik", SectionKind.Articles, true)], sections.Select(s => (s.Name, s.Kind, s.Enabled)));
+        Assert.Equal([("Wetter", SectionKind.Weather, true), ("Politik", SectionKind.Articles, true), ("An diesem Tag", SectionKind.OnThisDay, false)], sections.Select(s => (s.Name, s.Kind, s.Enabled)));
     }
 
     public void Dispose() => _host.Dispose();

@@ -1,5 +1,6 @@
 using MorningInk.Application.Sources;
 using MorningInk.Application.Weather;
+using MorningInk.Application.Wikipedia;
 
 namespace MorningInk.Application.Rendering;
 
@@ -12,7 +13,7 @@ namespace MorningInk.Application.Rendering;
 /// <param name="Sections">Sections in order, each with its articles.</param>
 /// <param name="UnavailableSources">Names of sources that failed today; the title page mentions them.</param>
 /// <param name="Weather">Forecast for the profile's region; null leaves the weather out.</param>
-/// <param name="Extras">Pages that are no articles section (overview, weather), each with its place among the sections.</param>
+/// <param name="Extras">Pages that are no articles section (overview, weather, on this day), each with its place among the sections.</param>
 public sealed record IssueContent(
     Guid Id,
     string Title,
@@ -75,12 +76,14 @@ public enum IssueExtraKind
 {
     Overview,
     Weather,
+    OnThisDay,
 }
 
 /// <summary>A page that is no articles section, with its place in the issue.</summary>
 /// <param name="Before">Index of the articles section it comes before; the number of sections puts it at the end.</param>
-/// <param name="Items">The overview's points; null for the weather, which is in <see cref="IssueContent.Weather"/>.</param>
-public sealed record IssueExtra(IssueExtraKind Kind, string Title, int Before, IReadOnlyList<OverviewItem>? Items = null);
+/// <param name="Items">The overview's points; null for the others. The weather is in <see cref="IssueContent.Weather"/>.</param>
+/// <param name="Events">The anniversaries of "on this day"; null for the others.</param>
+public sealed record IssueExtra(IssueExtraKind Kind, string Title, int Before, IReadOnlyList<OverviewItem>? Items = null, IReadOnlyList<Anniversary>? Events = null);
 
 /// <summary>One point of the overview: a sentence about the news, and the article in the issue it is about.</summary>
 public sealed record OverviewItem(string Text, IssueArticle Article);

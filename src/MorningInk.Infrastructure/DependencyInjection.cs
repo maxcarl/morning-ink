@@ -14,6 +14,7 @@ using MorningInk.Application.Publishing;
 using MorningInk.Application.Rendering;
 using MorningInk.Application.Sources;
 using MorningInk.Application.Weather;
+using MorningInk.Application.Wikipedia;
 using MorningInk.Infrastructure.Cleanup;
 using MorningInk.Infrastructure.Delivery;
 using MorningInk.Infrastructure.Http;
@@ -24,6 +25,7 @@ using MorningInk.Infrastructure.Rendering;
 using MorningInk.Infrastructure.Scheduling;
 using MorningInk.Infrastructure.Sources;
 using MorningInk.Infrastructure.Weather;
+using MorningInk.Infrastructure.Wikipedia;
 using Quartz;
 
 namespace MorningInk.Infrastructure;
@@ -134,6 +136,9 @@ public static class DependencyInjection
         services.AddOptions<WeatherOptions>().Bind(configuration.GetSection(WeatherOptions.SectionName));
         services.AddTransient<IGeocoder, NominatimGeocoder>();
         services.AddTransient<IWeatherForecast, OpenMeteoForecast>();
+
+        services.AddOptions<WikipediaOptions>().Bind(configuration.GetSection(WikipediaOptions.SectionName));
+        services.AddTransient<IOnThisDay, WikipediaOnThisDay>();
     }
 
     // Processors run in registration order. Everything that brings in content runs before sanitizing; after it

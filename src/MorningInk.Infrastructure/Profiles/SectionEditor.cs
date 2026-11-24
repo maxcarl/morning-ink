@@ -20,13 +20,12 @@ public sealed class SectionEditor(MorningInkDbContext db, ProfileEditor profiles
             return false;
         }
 
-        var position = profile.Sections.Select(s => s.Position).DefaultIfEmpty(0).Max() + 1;
-        profile.Sections.Add(new Section { Name = name, Position = position });
+        AddAtEnd(profile, new Section { Name = name });
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
 
-    /// <summary>Adds the overview or the weather at the end of the order; each kind once per edition.</summary>
+    /// <summary>Adds the overview, the weather or "on this day" at the end of the order (before a closing "on this day"); each kind once per edition.</summary>
     /// <returns>False for an articles section, a kind the edition has already, or an edition not the user's.</returns>
     public async Task<bool> AddSpecialAsync(Guid userId, Guid profileId, SectionKind kind, string name, CancellationToken cancellationToken)
     {
@@ -38,8 +37,7 @@ public sealed class SectionEditor(MorningInkDbContext db, ProfileEditor profiles
             return false;
         }
 
-        var position = profile.Sections.Select(s => s.Position).DefaultIfEmpty(0).Max() + 1;
-        profile.Sections.Add(new Section { Name = name, Kind = kind, Position = position });
+        AddAtEnd(profile, new Section { Name = name, Kind = kind });
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -121,6 +119,19 @@ public sealed class SectionEditor(MorningInkDbContext db, ProfileEditor profiles
 
         await db.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    // "On this day" closes the issue: while it is last, a new section goes in before it.
+    private static void AddAtEnd(Profile profile, Section section)
+    {
+        var last = profile.Sections.MaxBy(s => s.Position);
+        section.Position = (last?.Position ?? 0) + 1;
+        if (last?.Kind == SectionKind.OnThisDay)
+        {
+            (section.Position, last.Position) = (last.Position, section.Position);
+        }
+
+        profile.Sections.Add(section);
     }
 
     // The user's profile that holds the section; null when no profile of theirs does.

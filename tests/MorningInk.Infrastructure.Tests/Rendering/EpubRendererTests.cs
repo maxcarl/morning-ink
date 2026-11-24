@@ -279,6 +279,21 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
+    public async Task On_this_day_closes_the_issue_with_years_events_and_the_wikipedia_credit()
+    {
+        var issue = SampleIssue();
+        issue = issue with { Extras = [new IssueExtra(IssueExtraKind.OnThisDay, "An diesem Tag", issue.Sections.Count, Events: [new(1911, "Die erste Bahn fährt nach <Neudorf>.")])] };
+
+        using var epub = await RenderAsync(issue, "on-this-day.epub");
+
+        Assert.Equal("on-this-day.xhtml", Spine(epub)[^1]);
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "on-this-day.xhtml")));
+        Assert.Equal("1911 – Die erste Bahn fährt nach <Neudorf>.", Assert.Single(page.Descendants(Xhtml + "li")).Value); // text, never markup
+        Assert.Contains(page.Descendants(Xhtml + "p"), p => p.Value.Contains("CC BY-SA", StringComparison.Ordinal));
+        Assert.Contains("An diesem Tag", NavEntries(epub));
+    }
+
+    [Fact]
     public async Task Weather_placed_further_down_gets_a_page_there_instead_of_the_title_page()
     {
         var issue = SampleIssue() with { Extras = [new IssueExtra(IssueExtraKind.Weather, "Wetter", 2)] };

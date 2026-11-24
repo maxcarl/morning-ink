@@ -11,4 +11,7 @@ public enum SectionKind
 
     /// <summary>The forecast for the edition's region; first in the order, it stands on the title page.</summary>
     Weather,
+
+    /// <summary>"On this day": anniversaries of the issue's date from Wikipedia, in the language of the edition's country.</summary>
+    OnThisDay,
 }

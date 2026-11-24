@@ -59,7 +59,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         }
 
         profile = new Profile { UserId = userId, Title = DefaultTitle, Recipient = string.Empty };
-        profile.Sections.Add(await WeatherSectionAsync(userId, cancellationToken));
+        await AddDefaultSectionsAsync(profile, cancellationToken);
         db.Profiles.Add(profile);
         await db.SaveChangesAsync(cancellationToken);
         await RescheduleAsync(profile, cancellationToken);
@@ -92,7 +92,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
             Region = first.Region,
             Country = first.Country,
         };
-        profile.Sections.Add(await WeatherSectionAsync(userId, cancellationToken));
+        await AddDefaultSectionsAsync(profile, cancellationToken);
         db.Profiles.Add(profile);
         await db.SaveChangesAsync(cancellationToken);
         await RescheduleAsync(profile, cancellationToken);
@@ -256,11 +256,13 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         return [];
     }
 
-    // Every edition starts with its weather first, so it stands on the title page until moved or switched off.
-    private async Task<Section> WeatherSectionAsync(Guid userId, CancellationToken cancellationToken)
+    // Every edition starts with its weather first, so it stands on the title page until moved or switched off, and
+    // with "on this day" last but switched off, so it is there to switch on without being pushed on anyone.
+    private async Task AddDefaultSectionsAsync(Profile profile, CancellationToken cancellationToken)
     {
-        var language = await db.DomainUsers.Where(u => u.Id == userId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken);
-        return new Section { Name = language == "de" ? "Wetter" : "Weather", Kind = SectionKind.Weather, Position = 0 };
+        var german = await db.DomainUsers.Where(u => u.Id == profile.UserId).Select(u => u.Language).SingleOrDefaultAsync(cancellationToken) == "de";
+        profile.Sections.Add(new Section { Name = german ? "Wetter" : "Weather", Kind = SectionKind.Weather, Position = 0 });
+        profile.Sections.Add(new Section { Name = german ? "An diesem Tag" : "On this day", Kind = SectionKind.OnThisDay, Position = 1, Enabled = false });
     }
 
     internal IQueryable<Profile> Query(Guid userId) =>

@@ -83,17 +83,17 @@ public sealed class ProfilePageTests : IDisposable
         AddSection(page, "B");
         AddSection(page, "C");
 
-        // Drag C onto A: C moves to A's place, behind the weather the edition starts with.
+        // Drag C onto A: C moves to A's place, behind the weather the edition starts with; "on this day" stays last.
         var rows = page.FindAll("li[draggable]");
         rows[3].DragStart();
         page.FindAll("li[draggable]")[1].Drop();
-        page.WaitForAssertion(() => Assert.Equal(["Weather", "C", "A", "B"], RowNames(page)));
+        page.WaitForAssertion(() => Assert.Equal(["Weather", "C", "A", "B", "On this day"], RowNames(page)));
         Assert.Equal(["C", "A", "B"], (await SectionsAsync()).Select(s => s.Name));
 
         // The keyboard way: open A and move it down.
         Edit(page, "A").Click();
         Pages.Button(page, "Down").Click();
-        page.WaitForAssertion(() => Assert.Equal(["Weather", "C", "B", "A"], RowNames(page)));
+        page.WaitForAssertion(() => Assert.Equal(["Weather", "C", "B", "A", "On this day"], RowNames(page)));
         Assert.Equal(["C", "B", "A"], (await SectionsAsync()).Select(s => s.Name));
     }
 
@@ -110,7 +110,7 @@ public sealed class ProfilePageTests : IDisposable
         Assert.Single(await SectionsAsync());
 
         Pages.Button(page, "Yes, delete").Click();
-        page.WaitForAssertion(() => Assert.Equal(["Weather"], RowNames(page)));
+        page.WaitForAssertion(() => Assert.Equal(["Weather", "On this day"], RowNames(page)));
         Assert.Empty(await SectionsAsync());
     }
 
@@ -262,7 +262,7 @@ public sealed class ProfilePageTests : IDisposable
         Pages.Shows(page, "Switched off");
         Assert.False((await SectionsAsync(all: true)).Single(s => s.Kind == SectionKind.Weather).Enabled);
         Pages.Button(page, "Switch on").Click();
-        page.WaitForAssertion(() => Assert.DoesNotContain("Switched off", page.Markup, StringComparison.Ordinal));
+        page.WaitForAssertion(() => Assert.Single(page.FindAll(".badge.status-warn"))); // only "on this day", off from the start
         Assert.True((await SectionsAsync(all: true)).Single(s => s.Kind == SectionKind.Weather).Enabled);
     }
 

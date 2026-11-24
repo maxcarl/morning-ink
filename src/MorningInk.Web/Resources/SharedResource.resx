@@ -610,6 +610,9 @@
   <data name="Section_Name_Weather" xml:space="preserve"><value>Weather</value></data>
   <data name="Section_About_Overview" xml:space="preserve"><value>The AI picks the main news of the issue, a sentence each, linked to the article.</value></data>
   <data name="Section_About_Weather" xml:space="preserve"><value>Forecast for the region. First in the order, it stands in full on the title page; further down, on a page of its own at that place. The cover always shows a short line.</value></data>
+  <data name="Section_Kind_OnThisDay" xml:space="preserve"><value>On this day</value></data>
+  <data name="Section_Name_OnThisDay" xml:space="preserve"><value>On this day</value></data>
+  <data name="Section_About_OnThisDay" xml:space="preserve"><value>A few events that happened on this day in earlier years, from Wikipedia in the language of the edition's country (English if it has none).</value></data>
   <data name="Profile_SectionOff" xml:space="preserve"><value>Switched off</value></data>
   <data name="Profile_SwitchOff" xml:space="preserve"><value>Switch off</value></data>
   <data name="Profile_SwitchOn" xml:space="preserve"><value>Switch on</value></data>

@@ -80,8 +80,23 @@ public sealed class ProfileEditorTests : IDisposable
         var first = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
         var second = await EditAsync(services, e => e.CreateAsync(user, "Abendausgabe", CancellationToken.None));
 
-        Assert.All([first, second], profile => Assert.Equal(("Wetter", SectionKind.Weather, 0), (profile.Sections.Single().Name, profile.Sections.Single().Kind, profile.Sections.Single().Position)));
+        Assert.All([first, second], profile => Assert.Equal(
+            [("Wetter", SectionKind.Weather, true), ("An diesem Tag", SectionKind.OnThisDay, false)],
+            profile.Sections.OrderBy(s => s.Position).Select(s => (s.Name, s.Kind, s.Enabled))));
         Assert.False(first.IsReady); // the weather alone is no newspaper
+    }
+
+    [Fact]
+    public async Task New_sections_go_in_before_on_this_day_while_it_closes_the_issue()
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "alex");
+
+        await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), "Politik", CancellationToken.None));
+        await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), "Tech", CancellationToken.None));
+
+        var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
+        Assert.Equal(["Weather", "Politik", "Tech", "On this day"], profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
     }
 
     [Fact]
@@ -109,7 +124,7 @@ public sealed class ProfileEditorTests : IDisposable
         await using var services = await _host.StartAsync();
         var alice = await CreateUserAsync(services, "alice");
         var bob = await CreateUserAsync(services, "bob");
-        var weather = (await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None))).Sections.Single();
+        var weather = (await EditAsync(services, e => e.GetOrCreateAsync(alice, CancellationToken.None))).Sections.Single(s => s.Kind == SectionKind.Weather);
 
         Assert.False(await SectionsAsync(services, e => e.SetEnabledAsync(bob, weather.Id, enabled: false, CancellationToken.None)));
     }
@@ -128,7 +143,7 @@ public sealed class ProfileEditorTests : IDisposable
         await SectionsAsync(services, e => e.MoveSectionAsync(user, tech.Id, 2, CancellationToken.None)); // the weather is first
 
         var profile = await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None));
-        Assert.Equal(["Weather", "Politik", "Tech"], profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
+        Assert.Equal(["Weather", "Politik", "Tech", "On this day"], profile.Sections.OrderBy(s => s.Position).Select(s => s.Name));
         var saved = profile.Sections.Single(s => s.Name == "Tech");
         Assert.Equal(5, saved.MaxArticles);
         Assert.Equal("heise", Assert.Single(saved.Sources).Name);
@@ -144,9 +159,12 @@ public sealed class ProfileEditorTests : IDisposable
         await using var services = await _host.StartAsync();
         var user = await CreateUserAsync(services, "alex");
 
-        // Three sections of the same kind; the weather the edition starts with would only shift the indexes.
-        var weather = (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.Single();
-        await SectionsAsync(services, e => e.DeleteSectionAsync(user, weather.Id, CancellationToken.None));
+        // Three sections of the same kind; the ones the edition starts with would only shift the indexes.
+        foreach (var start in (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Sections.ToList())
+        {
+            await SectionsAsync(services, e => e.DeleteSectionAsync(user, start.Id, CancellationToken.None));
+        }
+
         foreach (var section in new[] { "A", "B", "C" })
         {
             await SectionsAsync(services, async e => await e.AddSectionAsync(user, await ProfileIdAsync(services, user), section, CancellationToken.None));

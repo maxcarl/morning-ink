@@ -93,7 +93,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
         // The reading order, which the contents follow: title page, then sections and extra pages in their order.
         var toc = new List<EpubPackage.TocEntry> { new(texts.TitlePage, TitleHref, []) };
 
-        // An extra page (overview, weather) before the articles section it was placed before.
+        // An extra page (overview, weather, on this day) before the articles section it was placed before.
         async Task AddExtrasAsync(int before)
         {
             foreach (var extra in issue.Extras.DistinctBy(e => e.Kind).Where(e => e.Before == before))
@@ -101,6 +101,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
                 (string Href, XDocument Page)? page = extra switch
                 {
                     { Kind: IssueExtraKind.Overview, Items: { Count: > 0 } points } => ("overview.xhtml", EpubPages.OverviewPage(extra.Title, points, texts, HrefOf)),
+                    { Kind: IssueExtraKind.OnThisDay, Events: { Count: > 0 } events } => ("on-this-day.xhtml", EpubPages.OnThisDayPage(extra.Title, events, issue.PublishedAt, texts)),
                     { Kind: IssueExtraKind.Weather } when issue.Weather is { } forecast && !issue.WeatherOnTitlePage => ("weather.xhtml", EpubPages.WeatherPage(extra.Title, forecast, texts)),
                     _ => null,
                 };
