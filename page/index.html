@@ -263,7 +263,7 @@
       <div class="device-col">
         <div class="reader" role="img" aria-label="An e-reader showing the cover of a Morning Ink issue: the lead story, more headlines in two columns and the weather">
           <div class="screen" aria-hidden="true">
-            <div class="fp-ears"><span>Monday, November 23, 2026</span><span>Issue 14</span></div>
+            <div class="fp-ears"><span id="issue-date">Monday, November 23, 2026</span><span>Issue 14</span></div>
             <div class="fp-mast">Morning Ink</div>
             <div class="fp-double"></div>
             <div class="fp-lead">
@@ -423,6 +423,9 @@ docker compose logs morning-ink | grep "setup code"</pre>
   </footer>
 
   <script>
+    // The issue on the reader is always this morning's; the date in the markup stays for visitors without script.
+    document.getElementById("issue-date").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
     // Copy buttons for the two code blocks; the label confirms what happened.
     document.querySelectorAll(".copy").forEach(function (button) {
       button.addEventListener("click", function () {
