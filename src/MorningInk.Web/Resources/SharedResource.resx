@@ -515,7 +515,7 @@
   <data name="Source_FreshRssNoLogin" xml:space="preserve"><value>This FreshRSS source has no login any more. Connect FreshRSS again.</value></data>
   <data name="Kind_Karakeep" xml:space="preserve"><value>Karakeep</value></data>
   <data name="Sources_Group_Karakeep" xml:space="preserve"><value>Read later</value></data>
-  <data name="Sources_AddTab_karakeep" xml:space="preserve"><value>Karakeep</value></data>
+  <data name="Sources_AddKind_karakeep" xml:space="preserve"><value>Karakeep</value></data>
   <data name="Sources_Karakeep" xml:space="preserve"><value>Your Karakeep</value></data>
   <data name="Sources_KarakeepKey" xml:space="preserve"><value>API key</value></data>
   <data name="Sources_KarakeepHint" xml:space="preserve"><value>Create one in Karakeep under User settings → API keys. Whatever you bookmark and have not archived comes in the next issue.</value></data>
@@ -616,11 +616,11 @@
   <data name="Log_Stored" xml:space="preserve"><value>Made available to fetch</value></data>
   <data name="Profile_GroupPaper" xml:space="preserve"><value>Newspaper</value></data>
   <data name="Profile_GroupSchedule" xml:space="preserve"><value>Schedule</value></data>
-  <data name="Sources_AddTab_feed" xml:space="preserve"><value>Website or feed</value></data>
-  <data name="Sources_AddTab_local" xml:space="preserve"><value>Local news</value></data>
-  <data name="Sources_AddTab_freshrss" xml:space="preserve"><value>FreshRSS</value></data>
-  <data name="Sources_AddTab_newsletter" xml:space="preserve"><value>Newsletters</value></data>
-  <data name="Sources_AddTab_opml" xml:space="preserve"><value>Import / export</value></data>
+  <data name="Sources_AddKind_feed" xml:space="preserve"><value>Website or feed</value></data>
+  <data name="Sources_AddKind_local" xml:space="preserve"><value>Local news</value></data>
+  <data name="Sources_AddKind_freshrss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_AddKind_newsletter" xml:space="preserve"><value>Newsletters</value></data>
+  <data name="Sources_AddKind_opml" xml:space="preserve"><value>Import / export</value></data>
   <data name="Welcome_DoneLedeFetch" xml:space="preserve"><value>Your newspaper has {0} sections and is ready for your reader to fetch from the OPDS catalog (see Account).</value></data>
   <data name="Profile_Area_content" xml:space="preserve"><value>Content</value></data>
   <data name="Profile_Area_delivery" xml:space="preserve"><value>Schedule &amp; delivery</value></data>
@@ -650,7 +650,7 @@
   <data name="Feedback_None" xml:space="preserve"><value>Nothing yet. The links appear under the articles once a public address is set (Web__PublicUrl).</value></data>
   <data name="Feedback_More" xml:space="preserve"><value>More from {0}</value></data>
   <data name="Feedback_Less" xml:space="preserve"><value>Less from {0}</value></data>
-  <data name="Sources_AddTab_community" xml:space="preserve"><value>Hacker News, Reddit</value></data>
+  <data name="Sources_AddKind_community" xml:space="preserve"><value>Hacker News, Reddit</value></data>
   <data name="Sources_CommunityHint" xml:space="preserve"><value>What a community voted up during the day. Link posts bring the full article; text posts their own text. Pinned, video and NSFW posts are left out.</value></data>
   <data name="Sources_HackerNews" xml:space="preserve"><value>Hacker News from points</value></data>
   <data name="Sources_HackerNewsAdd" xml:space="preserve"><value>Add Hacker News</value></data>
@@ -686,4 +686,14 @@
   <data name="Log_DislikedMatched" xml:space="preserve"><value>{0} new articles are like those you wanted less of</value></data>
   <data name="Settings_AiInterests" xml:space="preserve"><value>Recognize interests by AI</value></data>
   <data name="Settings_AiInterestsHint" xml:space="preserve"><value>The AI sorts new articles into the editions' interests, also without a matching keyword, and takes the reader's feedback as examples. One request per 40 new articles. Off: only the keywords count.</value></data>
+  <data name="Sources_AddGroup_web" xml:space="preserve"><value>Websites &amp; feeds</value></data>
+  <data name="Sources_AddGroup_services" xml:space="preserve"><value>Your services</value></data>
+  <data name="Sources_AddGroup_communities" xml:space="preserve"><value>Communities</value></data>
+  <data name="Sources_AddKind_feed_Hint" xml:space="preserve"><value>A website's feed, found from its address</value></data>
+  <data name="Sources_AddKind_local_Hint" xml:space="preserve"><value>News for a town or postcode</value></data>
+  <data name="Sources_AddKind_opml_Hint" xml:space="preserve"><value>Feeds in from another reader, or out to one</value></data>
+  <data name="Sources_AddKind_freshrss_Hint" xml:space="preserve"><value>Your categories, unread articles only</value></data>
+  <data name="Sources_AddKind_karakeep_Hint" xml:space="preserve"><value>Saved bookmarks, archived once the issue is out</value></data>
+  <data name="Sources_AddKind_newsletter_Hint" xml:space="preserve"><value>Mails from a folder via IMAP</value></data>
+  <data name="Sources_AddKind_community_Hint" xml:space="preserve"><value>What a community voted up</value></data>
 </root>

@@ -515,7 +515,7 @@
   <data name="Source_FreshRssNoLogin" xml:space="preserve"><value>Diese FreshRSS-Quelle hat keine Anmeldung mehr. Verbinde FreshRSS neu.</value></data>
   <data name="Kind_Karakeep" xml:space="preserve"><value>Karakeep</value></data>
   <data name="Sources_Group_Karakeep" xml:space="preserve"><value>Später lesen</value></data>
-  <data name="Sources_AddTab_karakeep" xml:space="preserve"><value>Karakeep</value></data>
+  <data name="Sources_AddKind_karakeep" xml:space="preserve"><value>Karakeep</value></data>
   <data name="Sources_Karakeep" xml:space="preserve"><value>Dein Karakeep</value></data>
   <data name="Sources_KarakeepKey" xml:space="preserve"><value>API-Schlüssel</value></data>
   <data name="Sources_KarakeepHint" xml:space="preserve"><value>Anzulegen in Karakeep unter Benutzereinstellungen → API-Schlüssel. Was du merkst und nicht archiviert hast, kommt in die nächste Ausgabe.</value></data>
@@ -616,11 +616,11 @@
   <data name="Log_Stored" xml:space="preserve"><value>Zum Abholen bereitgestellt</value></data>
   <data name="Profile_GroupPaper" xml:space="preserve"><value>Zeitung</value></data>
   <data name="Profile_GroupSchedule" xml:space="preserve"><value>Zeitplan</value></data>
-  <data name="Sources_AddTab_feed" xml:space="preserve"><value>Website oder Feed</value></data>
-  <data name="Sources_AddTab_local" xml:space="preserve"><value>Lokales</value></data>
-  <data name="Sources_AddTab_freshrss" xml:space="preserve"><value>FreshRSS</value></data>
-  <data name="Sources_AddTab_newsletter" xml:space="preserve"><value>Newsletter</value></data>
-  <data name="Sources_AddTab_opml" xml:space="preserve"><value>Import / Export</value></data>
+  <data name="Sources_AddKind_feed" xml:space="preserve"><value>Website oder Feed</value></data>
+  <data name="Sources_AddKind_local" xml:space="preserve"><value>Lokales</value></data>
+  <data name="Sources_AddKind_freshrss" xml:space="preserve"><value>FreshRSS</value></data>
+  <data name="Sources_AddKind_newsletter" xml:space="preserve"><value>Newsletter</value></data>
+  <data name="Sources_AddKind_opml" xml:space="preserve"><value>Import / Export</value></data>
   <data name="Welcome_DoneLedeFetch" xml:space="preserve"><value>Deine Zeitung hat {0} Rubriken und liegt für deinen Reader im OPDS-Katalog bereit (siehe Konto).</value></data>
   <data name="Profile_Area_content" xml:space="preserve"><value>Inhalt</value></data>
   <data name="Profile_Area_delivery" xml:space="preserve"><value>Zeitplan &amp; Zustellung</value></data>
@@ -650,7 +650,7 @@
   <data name="Feedback_None" xml:space="preserve"><value>Noch nichts. Die Links stehen unter den Artikeln, sobald eine öffentliche Adresse eingetragen ist (Web__PublicUrl).</value></data>
   <data name="Feedback_More" xml:space="preserve"><value>Mehr von {0}</value></data>
   <data name="Feedback_Less" xml:space="preserve"><value>Weniger von {0}</value></data>
-  <data name="Sources_AddTab_community" xml:space="preserve"><value>Hacker News, Reddit</value></data>
+  <data name="Sources_AddKind_community" xml:space="preserve"><value>Hacker News, Reddit</value></data>
   <data name="Sources_CommunityHint" xml:space="preserve"><value>Was eine Community über den Tag nach oben gewählt hat. Link-Beiträge bringen den ganzen Artikel, Textbeiträge ihren eigenen Text. Angepinnte, Video- und NSFW-Beiträge bleiben draußen.</value></data>
   <data name="Sources_HackerNews" xml:space="preserve"><value>Hacker News ab Punkten</value></data>
   <data name="Sources_HackerNewsAdd" xml:space="preserve"><value>Hacker News hinzufügen</value></data>
@@ -686,4 +686,14 @@
   <data name="Log_DislikedMatched" xml:space="preserve"><value>{0} neue Artikel ähneln denen, von denen du weniger wolltest</value></data>
   <data name="Settings_AiInterests" xml:space="preserve"><value>Interessen per KI erkennen</value></data>
   <data name="Settings_AiInterestsHint" xml:space="preserve"><value>Die KI ordnet neue Artikel den Interessen der Ausgaben zu, auch ohne passendes Stichwort, und nimmt die Rückmeldungen vom Reader als Beispiele. Eine Anfrage pro 40 neue Artikel. Aus: Es zählen nur die Stichwörter.</value></data>
+  <data name="Sources_AddGroup_web" xml:space="preserve"><value>Websites &amp; Feeds</value></data>
+  <data name="Sources_AddGroup_services" xml:space="preserve"><value>Eigene Dienste</value></data>
+  <data name="Sources_AddGroup_communities" xml:space="preserve"><value>Communities</value></data>
+  <data name="Sources_AddKind_feed_Hint" xml:space="preserve"><value>Der Feed einer Website, gefunden über ihre Adresse</value></data>
+  <data name="Sources_AddKind_local_Hint" xml:space="preserve"><value>Nachrichten für einen Ort oder eine PLZ</value></data>
+  <data name="Sources_AddKind_opml_Hint" xml:space="preserve"><value>Feeds aus einem anderen Reader holen oder dorthin mitnehmen</value></data>
+  <data name="Sources_AddKind_freshrss_Hint" xml:space="preserve"><value>Deine Kategorien, nur ungelesene Artikel</value></data>
+  <data name="Sources_AddKind_karakeep_Hint" xml:space="preserve"><value>Gemerkte Lesezeichen, archiviert sobald die Ausgabe raus ist</value></data>
+  <data name="Sources_AddKind_newsletter_Hint" xml:space="preserve"><value>Mails aus einem Ordner per IMAP</value></data>
+  <data name="Sources_AddKind_community_Hint" xml:space="preserve"><value>Was eine Community nach oben gewählt hat</value></data>
 </root>

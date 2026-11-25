@@ -269,6 +269,27 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Picker_opens_one_way_to_add_at_a_time_and_closes_it_again()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        var page = pages.Open<Sources>("0 feeds");
+        Assert.True(page.Find("#add-feed").HasAttribute("hidden"));
+
+        page.Find("#add-tab-feed").Click();
+        Assert.False(page.Find("#add-feed").HasAttribute("hidden"));
+        Assert.Equal("true", page.Find("#add-tab-feed").GetAttribute("aria-expanded"));
+
+        page.Find("#add-tab-karakeep").Click();
+        Assert.True(page.Find("#add-feed").HasAttribute("hidden"));
+        Assert.False(page.Find("#add-karakeep").HasAttribute("hidden"));
+
+        page.Find("#add-tab-karakeep").Click();
+        Assert.True(page.Find("#add-karakeep").HasAttribute("hidden"));
+        Assert.Equal("false", page.Find("#add-tab-karakeep").GetAttribute("aria-expanded"));
+    }
+
+    [Fact]
     public async Task Opml_file_from_another_reader_adds_its_feeds()
     {
         using var app = AllowingFeeds();

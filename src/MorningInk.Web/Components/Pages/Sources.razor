@@ -119,8 +119,16 @@
     private bool _busy;
 
     // FreshRSS: the password stays only until the sources are added, then it is stored encrypted with them.
-    private static readonly string[] AddTabs = ["feed", "local", "freshrss", "karakeep", "newsletter", "community", "opml"];
-    private string _addTab = "feed";
+    // The ways to add, grouped like the picker shows them; a new source type joins a group here and gets a panel below.
+    private static readonly (string Name, string[] Kinds)[] AddGroups =
+    [
+        ("web", ["feed", "local", "opml"]),
+        ("services", ["freshrss", "karakeep", "newsletter"]),
+        ("communities", ["community"]),
+    ];
+
+    // Nothing is open at first: the picker alone is calmer than a form nobody asked for.
+    private string? _addTab;
 
     // Form fields
     private string _url = string.Empty;
@@ -138,14 +146,23 @@
     private RenderFragment AddSection => __builder =>
     {
         <h2 class="department">@T["Sources_AddHeading"]</h2>
-        @* One way to add at a time: feed, local news, FreshRSS, newsletter or a file from another reader. *@
-        <div class="tabs" role="tablist" aria-label="@T["Sources_AddHeading"]">
-            @foreach (var tab in AddTabs)
+        @* One way to add at a time: a card opens its form below the picker, a second click closes it again. *@
+        <div class="picker">
+            @foreach (var group in AddGroups)
             {
-                <button type="button" role="tab" id="add-tab-@tab" class="tab" aria-selected="@(tab == _addTab ? "true" : "false")" aria-controls="add-@tab" @onclick="() => _addTab = tab">@T[$"Sources_AddTab_{tab}"]</button>
+                <section class="picker-group" aria-labelledby="add-group-@group.Name">
+                    <h3 id="add-group-@group.Name" class="picker-heading">@T[$"Sources_AddGroup_{group.Name}"]</h3>
+                    @foreach (var kind in group.Kinds)
+                    {
+                        <button type="button" id="add-tab-@kind" class="picker-card" aria-expanded="@(kind == _addTab ? "true" : "false")" aria-controls="add-@kind" @onclick="() => _addTab = kind == _addTab ? null : kind">
+                            <span class="picker-title">@T[$"Sources_AddKind_{kind}"]</span>
+                            <span class="picker-hint">@T[$"Sources_AddKind_{kind}_Hint"]</span>
+                        </button>
+                    }
+                </section>
             }
         </div>
-        <div id="add-feed" role="tabpanel" aria-labelledby="add-tab-feed" hidden="@(_addTab != "feed")">
+        <div id="add-feed" role="region" aria-labelledby="add-tab-feed" hidden="@(_addTab != "feed")">
             <form @onsubmit="DiscoverAsync" class="field">
                 <label class="label" for="url">@T["Sources_NewLabel"]</label>
                 <div class="inline-form">
@@ -187,7 +204,7 @@
             }
 
         </div>
-        <div id="add-local" role="tabpanel" aria-labelledby="add-tab-local" hidden="@(_addTab != "local")">
+        <div id="add-local" role="region" aria-labelledby="add-tab-local" hidden="@(_addTab != "local")">
             <form @onsubmit="AddLocalAsync" class="field">
                 <label class="label" for="place">@T["Sources_LocalLabel"]</label>
                 <div class="inline-form">
@@ -200,16 +217,16 @@
             </form>
 
         </div>
-        <div id="add-freshrss" role="tabpanel" aria-labelledby="add-tab-freshrss" hidden="@(_addTab != "freshrss")">
+        <div id="add-freshrss" role="region" aria-labelledby="add-tab-freshrss" hidden="@(_addTab != "freshrss")">
             <FreshRssForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
         </div>
-        <div id="add-karakeep" role="tabpanel" aria-labelledby="add-tab-karakeep" hidden="@(_addTab != "karakeep")">
+        <div id="add-karakeep" role="region" aria-labelledby="add-tab-karakeep" hidden="@(_addTab != "karakeep")">
             <KarakeepForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
         </div>
-        <div id="add-newsletter" role="tabpanel" aria-labelledby="add-tab-newsletter" hidden="@(_addTab != "newsletter")">
+        <div id="add-newsletter" role="region" aria-labelledby="add-tab-newsletter" hidden="@(_addTab != "newsletter")">
             <NewsletterForm UserId="UserId" Cancellation="Closed" Finished="FinishedAsync" />
         </div>
-        <div id="add-community" role="tabpanel" aria-labelledby="add-tab-community" hidden="@(_addTab != "community")">
+        <div id="add-community" role="region" aria-labelledby="add-tab-community" hidden="@(_addTab != "community")">
             @* What a community voted up, from a minimum score on: the score keeps the noise out. *@
             <p class="hint">@T["Sources_CommunityHint"]</p>
             <form @onsubmit="AddHackerNewsAsync" class="field">
@@ -230,7 +247,7 @@
                 </div>
             </form>
         </div>
-        <div id="add-opml" role="tabpanel" aria-labelledby="add-tab-opml" hidden="@(_addTab != "opml")">
+        <div id="add-opml" role="region" aria-labelledby="add-tab-opml" hidden="@(_addTab != "opml")">
             @* Moving from another reader: its OPML export in, our feeds out. *@
             <div class="field">
                 <label class="label" for="opml-file">@T["Sources_Opml"]</label>
