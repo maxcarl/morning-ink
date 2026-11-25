@@ -26,11 +26,11 @@ internal static class EpubPages
             new XElement(Xhtml + "p", new XAttribute("class", "dateline"), DateLine(issue, texts)),
             issue.WeatherOnTitlePage && issue.Weather is { } forecast ? WeatherSection(forecast, texts, texts.WeatherFor(forecast.Place)) : null,
             issue.UnavailableSources.Count == 0 ? null : new XElement(Xhtml + "section",
-                new XElement(Xhtml + "h2", texts.Notes),
+                new XElement(Xhtml + "h2", new XAttribute("class", "rubric"), texts.Notes),
                 new XElement(Xhtml + "ul", new XAttribute("class", "notes"), issue.UnavailableSources.Select(n => new XElement(Xhtml + "li", texts.SourceUnavailable(n))))),
             headlines.Count == 0 ? null : new XElement(Xhtml + "section",
-                new XElement(Xhtml + "h2", texts.Headlines),
-                new XElement(Xhtml + "ul", headlines.Select(a => new XElement(Xhtml + "li",
+                new XElement(Xhtml + "h2", new XAttribute("class", "rubric"), texts.Headlines),
+                new XElement(Xhtml + "ul", new XAttribute("class", "index"), headlines.Select(a => new XElement(Xhtml + "li",
                     new XElement(Xhtml + "a", new XAttribute("href", hrefOf(a)), a.Article.Title))))));
     }
 
@@ -45,8 +45,8 @@ internal static class EpubPages
         Page(title, texts,
             new XElement(Xhtml + "h1", title),
             new XElement(Xhtml + "p", new XAttribute("class", "overview"), overview.Summary),
-            new XElement(Xhtml + "h2", texts.ReadOn),
-            new XElement(Xhtml + "ul", overview.Articles.Select(article => new XElement(Xhtml + "li",
+            new XElement(Xhtml + "h2", new XAttribute("class", "rubric"), texts.ReadOn),
+            new XElement(Xhtml + "ul", new XAttribute("class", "index"), overview.Articles.Select(article => new XElement(Xhtml + "li",
                 new XElement(Xhtml + "a", new XAttribute("href", hrefOf(article)), article.Article.Title)))));
 
     /// <summary>
@@ -72,19 +72,33 @@ internal static class EpubPages
         new XElement(Xhtml + "p", new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(featured.Url)), texts.ReadOnWikipedia)),
     ];
 
-    // Today in one line plus morning, midday and evening, then one line per following day.
+    // Set like a newspaper's weather box: today's range large, its morning, midday and evening side by side, then a row per
+    // following day. Tables, because e-readers lay them out reliably where floats and flexbox fail.
     private static XElement WeatherSection(WeatherForecast forecast, EpubTexts texts, string heading)
     {
         var today = forecast.Days[0];
-        var parts = forecast.Today.Select(p =>
-            $"{texts.DayPart(p.Part)}: {Join(texts.Weather(p.WeatherCode), texts.Temperature(p.Temperature), Percent(p.PrecipitationProbability))}");
         return new XElement(Xhtml + "section", new XAttribute("class", "weather"),
-            new XElement(Xhtml + "h2", heading),
-            new XElement(Xhtml + "p", Join(texts.Weather(today.WeatherCode), texts.TemperatureRange(today.MinTemperature, today.MaxTemperature), Precipitation(today.PrecipitationProbability, texts))),
-            forecast.Today.Count == 0 ? null : new XElement(Xhtml + "p", string.Join(" · ", parts)),
-            forecast.Days.Count < 2 ? null : new XElement(Xhtml + "ul", forecast.Days.Skip(1).Select(day => new XElement(Xhtml + "li",
-                $"{day.Date.ToString("dddd", texts.Culture)}: {Join(texts.Weather(day.WeatherCode), texts.TemperatureRange(day.MinTemperature, day.MaxTemperature), Percent(day.PrecipitationProbability))}"))));
+            new XElement(Xhtml + "h2", new XAttribute("class", "rubric"), heading),
+            new XElement(Xhtml + "p", new XAttribute("class", "today"),
+                new XElement(Xhtml + "span", new XAttribute("class", "temperature"), texts.TemperatureRange(today.MinTemperature, today.MaxTemperature)),
+                Join(texts.Weather(today.WeatherCode), Precipitation(today.PrecipitationProbability, texts))),
+            forecast.Today.Count == 0 ? null : new XElement(Xhtml + "table", new XAttribute("class", "day-parts"),
+                Row("th", forecast.Today.Select(p => texts.DayPart(p.Part))),
+                Row("td", forecast.Today.Select(p => texts.Temperature(p.Temperature)), "temperature"),
+                Row("td", forecast.Today.Select(p => texts.Weather(p.WeatherCode))),
+                forecast.Today.Any(p => p.PrecipitationProbability > 0) ? Row("td", forecast.Today.Select(p => Percent(p.PrecipitationProbability))) : null),
+            forecast.Days.Count < 2 ? null : new XElement(Xhtml + "table", new XAttribute("class", "days"),
+                forecast.Days.Skip(1).Select(day => Row("td",
+                [
+                    day.Date.ToString("dddd", texts.Culture),
+                    texts.Weather(day.WeatherCode),
+                    texts.TemperatureRange(day.MinTemperature, day.MaxTemperature),
+                    Percent(day.PrecipitationProbability),
+                ]))));
     }
+
+    private static XElement Row(string cell, IEnumerable<string?> values, string? rowClass = null) =>
+        new(Xhtml + "tr", rowClass is null ? null : new XAttribute("class", rowClass), values.Select(v => new XElement(Xhtml + cell, v)));
 
     private static string? Precipitation(int? percent, EpubTexts texts) => percent is > 0 ? texts.Precipitation(percent.Value) : null;
 
@@ -253,12 +267,21 @@ internal static class EpubPages
         .kicker { font-variant: small-caps; letter-spacing: 0.05em; color: #444; margin: 0; }
         .briefs li { margin-bottom: 0.8em; }
         .summary { border-top: 1px solid #444; border-bottom: 1px solid #444; margin: 0.8em 0; padding: 0.3em 0; font-style: italic; }
-        #toc ol { list-style: none; margin: 0; padding: 0; }
-        #toc li { margin: 0.4em 0; }
-        #toc a { color: inherit; text-decoration: none; }
+        #toc ol, ul.index { list-style: none; margin: 0; padding: 0; }
+        #toc li, ul.index li { margin: 0.4em 0; }
+        #toc a, ul.index a { color: inherit; text-decoration: none; }
         #toc li.section { margin-top: 1.4em; }
-        #toc li.section > a { display: block; font-variant: small-caps; letter-spacing: 0.08em; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 0.15em; margin-bottom: 0.5em; }
-        #toc li li { padding-left: 1em; text-indent: -1em; }
+        #toc li.section > a, .rubric { display: block; font-size: 1em; font-variant: small-caps; letter-spacing: 0.08em; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 0.15em; margin-bottom: 0.5em; }
+        .rubric { margin-top: 1.4em; }
+        #toc li li, ul.index li { padding-left: 1em; text-indent: -1em; }
+        .weather table { width: 100%; border-collapse: collapse; }
+        .weather .today { margin: 0.3em 0 0.6em; }
+        .weather .today .temperature { display: block; font-size: 1.8em; font-weight: bold; line-height: 1.2; }
+        .day-parts { text-align: center; margin-bottom: 0.6em; }
+        .day-parts th { font-weight: normal; font-variant: small-caps; color: #444; }
+        .day-parts tr.temperature td { font-size: 1.3em; font-weight: bold; }
+        .days td { border-top: 1px solid #999; padding: 0.25em 0.3em 0.25em 0; }
+        .days td:first-child { font-weight: bold; }
         """;
 
     public static string Iso(DateTimeOffset time) =>

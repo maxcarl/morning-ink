@@ -228,13 +228,14 @@ public sealed class EpubRendererTests : IDisposable
     {
         using var epub = await RenderAsync();
 
-        var title = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "title.xhtml"))).Root!.Value;
-        Assert.Contains("Wetter für Berlin", title, StringComparison.Ordinal);
-        Assert.Contains("Regenschauer, 1–7 °C, Niederschlag 45 %", title, StringComparison.Ordinal);
-        Assert.Contains("Morgens: Bedeckt, 1 °C", title, StringComparison.Ordinal);
-        Assert.Contains("Abends: Teilweise bewölkt, 6 °C, 40 %", title, StringComparison.Ordinal);
-        Assert.Contains("Sonntag: Regen, 2–5 °C, 65 %", title, StringComparison.Ordinal);
-        Assert.Contains("Montag: Schnee, -1–4 °C, 28 %", title, StringComparison.Ordinal);
+        var title = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "title.xhtml"))).Root!;
+        Assert.Contains("Wetter für Berlin", title.Value, StringComparison.Ordinal);
+        Assert.Contains("1–7 °CRegenschauer, Niederschlag 45 %", title.Value, StringComparison.Ordinal); // the range above the rest
+        string[] Rows(string table) => title.Descendants(Xhtml + "table").Single(t => (string?)t.Attribute("class") == table)
+            .Elements(Xhtml + "tr").Select(tr => string.Join(" | ", tr.Elements().Select(c => c.Value))).ToArray();
+        // Morning, midday and evening side by side; a part without rain leaves its cell empty.
+        Assert.Equal(["Morgens | Mittags | Abends", "1 °C | 6 °C | 6 °C", "Bedeckt | Bedeckt | Teilweise bewölkt", " | 20 % | 40 %"], Rows("day-parts"));
+        Assert.Equal(["Sonntag | Regen | 2–5 °C | 65 %", "Montag | Schnee | -1–4 °C | 28 %"], Rows("days"));
     }
 
     [Fact]
