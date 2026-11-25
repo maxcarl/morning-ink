@@ -20,11 +20,10 @@ internal static class EpubPages
 
     public static XDocument TitlePage(IssueContent issue, EpubTexts texts, Func<IssueArticle, string> hrefOf)
     {
-        var headlines = issue.Sections.SelectMany(s => s.Articles.Take(1)).Take(MaxHeadlines).ToList();
+        var headlines = InTurn(issue).Take(MaxHeadlines).Select(s => s.Article).ToList();
         return Page(texts.TitlePage, texts,
             new XElement(Xhtml + "h1", issue.Title),
             new XElement(Xhtml + "p", new XAttribute("class", "dateline"), DateLine(issue, texts)),
-            issue.WeatherOnTitlePage && issue.Weather is { } forecast ? WeatherSection(forecast, texts, texts.WeatherFor(forecast.Place)) : null,
             issue.UnavailableSources.Count == 0 ? null : new XElement(Xhtml + "section",
                 new XElement(Xhtml + "h2", new XAttribute("class", "rubric"), texts.Notes),
                 new XElement(Xhtml + "ul", new XAttribute("class", "notes"), issue.UnavailableSources.Select(n => new XElement(Xhtml + "li", texts.SourceUnavailable(n))))),
@@ -72,8 +71,8 @@ internal static class EpubPages
         new XElement(Xhtml + "p", new XElement(Xhtml + "a", new XAttribute("href", ArticleBody.ToEpubUrl(featured.Url)), texts.ReadOnWikipedia)),
     ];
 
-    // Set like a newspaper's weather box: today's range large, its morning, midday and evening side by side, then a row per
-    // following day. Tables, because e-readers lay them out reliably where floats and flexbox fail.
+    // Set like a newspaper's weather box: today's range large, then a line each for morning, midday and evening and for
+    // the following days. No tables: Kindle marks every table with a zoom icon.
     private static XElement WeatherSection(WeatherForecast forecast, EpubTexts texts, string heading)
     {
         var today = forecast.Days[0];
@@ -82,23 +81,19 @@ internal static class EpubPages
             new XElement(Xhtml + "p", new XAttribute("class", "today"),
                 new XElement(Xhtml + "span", new XAttribute("class", "temperature"), texts.TemperatureRange(today.MinTemperature, today.MaxTemperature)),
                 Join(texts.Weather(today.WeatherCode), Precipitation(today.PrecipitationProbability, texts))),
-            forecast.Today.Count == 0 ? null : new XElement(Xhtml + "table", new XAttribute("class", "day-parts"),
-                Row("th", forecast.Today.Select(p => texts.DayPart(p.Part))),
-                Row("td", forecast.Today.Select(p => texts.Temperature(p.Temperature)), "temperature"),
-                Row("td", forecast.Today.Select(p => texts.Weather(p.WeatherCode))),
-                forecast.Today.Any(p => p.PrecipitationProbability > 0) ? Row("td", forecast.Today.Select(p => Percent(p.PrecipitationProbability))) : null),
-            forecast.Days.Count < 2 ? null : new XElement(Xhtml + "table", new XAttribute("class", "days"),
-                forecast.Days.Skip(1).Select(day => Row("td",
-                [
-                    day.Date.ToString("dddd", texts.Culture),
-                    texts.Weather(day.WeatherCode),
-                    texts.TemperatureRange(day.MinTemperature, day.MaxTemperature),
-                    Percent(day.PrecipitationProbability),
-                ]))));
+            forecast.Today.Count == 0 ? null : new XElement(Xhtml + "ul", new XAttribute("class", "day-parts"),
+                forecast.Today.Select(p => WeatherLine(texts.DayPart(p.Part), texts.Temperature(p.Temperature), texts.Weather(p.WeatherCode), p.PrecipitationProbability))),
+            forecast.Days.Count < 2 ? null : new XElement(Xhtml + "ul", new XAttribute("class", "days"),
+                forecast.Days.Skip(1).Select(day => WeatherLine(day.Date.ToString("dddd", texts.Culture), texts.TemperatureRange(day.MinTemperature, day.MaxTemperature), texts.Weather(day.WeatherCode), day.PrecipitationProbability))));
     }
 
-    private static XElement Row(string cell, IEnumerable<string?> values, string? rowClass = null) =>
-        new(Xhtml + "tr", rowClass is null ? null : new XAttribute("class", rowClass), values.Select(v => new XElement(Xhtml + cell, v)));
+    // "Morgens 1 °C Bedeckt, 20 %": the time in small caps, the temperature bold, so the eye finds both down the list.
+    private static XElement WeatherLine(string when, string temperature, string weather, int? precipitation) =>
+        new(Xhtml + "li",
+            // The space inside the span: one standing alone between two elements is lost when the page is read back.
+            new XElement(Xhtml + "span", new XAttribute("class", "when"), when + " "),
+            new XElement(Xhtml + "span", new XAttribute("class", "temperature"), temperature),
+            " " + Join(weather, Percent(precipitation)));
 
     private static string? Precipitation(int? percent, EpubTexts texts) => percent is > 0 ? texts.Precipitation(percent.Value) : null;
 
@@ -208,13 +203,15 @@ internal static class EpubPages
             new XElement(Xhtml + "a", new XAttribute("href", entry.Href), entry.Label),
             entry.Children.Count == 0 ? null : Entries(entry.Children))));
 
+    // Round robin over the sections, so cover and headlines show the breadth of the issue, not just its first section.
+    private static IEnumerable<(IssueSection Section, IssueArticle Article)> InTurn(IssueContent issue) =>
+        Enumerable.Range(0, issue.Sections.Select(s => s.Articles.Count).DefaultIfEmpty().Max())
+            .SelectMany(i => issue.Sections.Where(s => s.Articles.Count > i).Select(s => (s, s.Articles[i])));
+
     /// <summary>What the cover shows: the first story of the first section as the lead, then the sections' stories in turn.</summary>
     public static CoverPage Cover(IssueContent issue, EpubTexts texts)
     {
-        // Round robin over the sections, so the cover shows the breadth of the issue, not just its first section.
-        var stories = Enumerable.Range(0, issue.Sections.Max(s => s.Articles.Count))
-            .SelectMany(i => issue.Sections.Where(s => s.Articles.Count > i).Select(s => new CoverStory(s.Name, s.Articles[i].Article.Title)))
-            .ToList();
+        var stories = InTurn(issue).Select(s => new CoverStory(s.Section.Name, s.Article.Article.Title)).ToList();
         var weather = issue.Weather is { Days.Count: > 0 } forecast
             ? $"{texts.WeatherFor(forecast.Place)}: {Join(texts.Weather(forecast.Days[0].WeatherCode), texts.TemperatureRange(forecast.Days[0].MinTemperature, forecast.Days[0].MaxTemperature))}"
             : null;
@@ -274,14 +271,12 @@ internal static class EpubPages
         #toc li.section > a, .rubric { display: block; font-size: 1em; font-variant: small-caps; letter-spacing: 0.08em; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 0.15em; margin-bottom: 0.5em; }
         .rubric { margin-top: 1.4em; }
         #toc li li, ul.index li { padding-left: 1em; text-indent: -1em; }
-        .weather table { width: 100%; border-collapse: collapse; }
-        .weather .today { margin: 0.3em 0 0.6em; }
-        .weather .today .temperature { display: block; font-size: 1.8em; font-weight: bold; line-height: 1.2; }
-        .day-parts { text-align: center; margin-bottom: 0.6em; }
-        .day-parts th { font-weight: normal; font-variant: small-caps; color: #444; }
-        .day-parts tr.temperature td { font-size: 1.3em; font-weight: bold; }
-        .days td { border-top: 1px solid #999; padding: 0.25em 0.3em 0.25em 0; }
-        .days td:first-child { font-weight: bold; }
+        .weather .today { margin: 0.3em 0 1em; }
+        .weather .today .temperature { display: block; font-size: 2em; font-weight: bold; line-height: 1.2; }
+        .weather ul { list-style: none; margin: 0 0 1em; padding: 0; }
+        .weather li { border-top: 1px solid #999; padding: 0.3em 0; }
+        .weather li .when { font-variant: small-caps; letter-spacing: 0.05em; color: #444; }
+        .weather li .temperature { font-weight: bold; }
         """;
 
     public static string Iso(DateTimeOffset time) =>

@@ -341,7 +341,6 @@ public sealed class IssuePublisherTests : IDisposable
         var placed = Assert.Single(content.Extras);
         Assert.Equal((IssueExtraKind.Weather, 2), (placed.Kind, placed.Before)); // after both sections
         Assert.Same(_weather.Forecast, content.Weather);
-        Assert.False(content.WeatherOnTitlePage);
     }
 
     [Fact]

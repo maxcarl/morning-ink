@@ -12,6 +12,7 @@
   <data name="ReadingTime" xml:space="preserve"><value>{0} min read</value></data>
   <data name="SourceUnavailable" xml:space="preserve"><value>{0} could not be reached today</value></data>
   <data name="ReadOriginal" xml:space="preserve"><value>Read the original</value></data>
+  <data name="WeatherPage" xml:space="preserve"><value>Weather</value></data>
   <data name="WeatherFor" xml:space="preserve"><value>Weather for {0}</value></data>
   <data name="TemperatureRange" xml:space="preserve"><value>{0}–{1} °C</value></data>
   <data name="Temperature" xml:space="preserve"><value>{0} °C</value></data>

@@ -17,6 +17,7 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
     private const string JpegType = "image/jpeg";
     private const string CoverId = "cover-image";
     private const string TitleHref = "title.xhtml";
+    private const string WeatherHref = "weather.xhtml";
     private const string NavHref = "nav.xhtml";
 
     private static readonly XmlWriterSettings WriterSettings = new()
@@ -83,26 +84,30 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
             new("css", EpubPages.StyleSheet, "text/css"),
             new("ncx", EpubPackage.NcxFile, "application/x-dtbncx+xml"),
             new("title", TitleHref, XhtmlType, InSpine: true),
-            new("nav", NavHref, XhtmlType, Properties: "nav", InSpine: true),
         };
 
         await AddContentAsync(zip, "cover.jpg", CoverGenerator.Create(EpubPages.Cover(issue, texts)), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPages.StyleSheet, Encoding.UTF8.GetBytes(EpubPages.Css), stamp, cancellationToken);
         await AddContentAsync(zip, TitleHref, EpubPages.TitlePage(issue, texts, HrefOf), stamp, cancellationToken);
 
-        // The reading order, which the contents follow: title page, then sections and extra pages in their order.
+        // The reading order, which the contents follow: title page with the headlines, then sections and extra pages in their order.
         var toc = new List<EpubPackage.TocEntry> { new(texts.TitlePage, TitleHref, []) };
+
+        // An edition without a weather section still gets its weather, as the first page after the title page.
+        IReadOnlyList<IssueExtra> extras = issue.Weather is not null && issue.Extras.All(e => e.Kind != IssueExtraKind.Weather)
+            ? [new IssueExtra(IssueExtraKind.Weather, texts.WeatherPage, 0), .. issue.Extras]
+            : issue.Extras;
 
         // An extra page (overview, weather, on this day) before the articles section it was placed before.
         async Task AddExtrasAsync(int before)
         {
-            foreach (var extra in issue.Extras.DistinctBy(e => e.Kind).Where(e => e.Before == before))
+            foreach (var extra in extras.DistinctBy(e => e.Kind).Where(e => e.Before == before))
             {
                 (string Href, XDocument Page)? page = extra switch
                 {
                     { Kind: IssueExtraKind.Overview, Overview: { } overview } => ("overview.xhtml", EpubPages.OverviewPage(extra.Title, overview, texts, HrefOf)),
                     { Kind: IssueExtraKind.OnThisDay } when extra.Events is { Count: > 0 } || extra.Featured is not null => ("on-this-day.xhtml", EpubPages.OnThisDayPage(extra.Title, extra.Events, extra.Featured, issue.PublishedAt, texts)),
-                    { Kind: IssueExtraKind.Weather } when issue.Weather is { } forecast && !issue.WeatherOnTitlePage => ("weather.xhtml", EpubPages.WeatherPage(extra.Title, forecast, texts)),
+                    { Kind: IssueExtraKind.Weather } when issue.Weather is { } forecast => (WeatherHref, EpubPages.WeatherPage(extra.Title, forecast, texts)),
                     _ => null,
                 };
                 if (page is { } added)
@@ -114,10 +119,18 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
             }
         }
 
+        // The contents stand right before the first section, after the pages that open the issue (weather, overview).
+        await AddExtrasAsync(0);
+        items.Add(new("nav", NavHref, XhtmlType, Properties: "nav", InSpine: true));
+
         var images = new HashSet<string>(StringComparer.Ordinal);
         for (var s = 0; s < issue.Sections.Count; s++)
         {
-            await AddExtrasAsync(s);
+            if (s > 0)
+            {
+                await AddExtrasAsync(s);
+            }
+
             var section = issue.Sections[s];
             foreach (var article in full[s])
             {

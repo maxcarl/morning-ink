@@ -224,18 +224,28 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
-    public async Task Title_page_shows_the_forecast_for_today_and_the_next_days()
+    public async Task Weather_page_shows_the_forecast_for_today_and_the_next_days_without_tables()
     {
         using var epub = await RenderAsync();
 
-        var title = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "title.xhtml"))).Root!;
-        Assert.Contains("Wetter für Berlin", title.Value, StringComparison.Ordinal);
-        Assert.Contains("1–7 °CRegenschauer, Niederschlag 45 %", title.Value, StringComparison.Ordinal); // the range above the rest
-        string[] Rows(string table) => title.Descendants(Xhtml + "table").Single(t => (string?)t.Attribute("class") == table)
-            .Elements(Xhtml + "tr").Select(tr => string.Join(" | ", tr.Elements().Select(c => c.Value))).ToArray();
-        // Morning, midday and evening side by side; a part without rain leaves its cell empty.
-        Assert.Equal(["Morgens | Mittags | Abends", "1 °C | 6 °C | 6 °C", "Bedeckt | Bedeckt | Teilweise bewölkt", " | 20 % | 40 %"], Rows("day-parts"));
-        Assert.Equal(["Sonntag | Regen | 2–5 °C | 65 %", "Montag | Schnee | -1–4 °C | 28 %"], Rows("days"));
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "weather.xhtml"))).Root!;
+        Assert.Contains("Wetter für Berlin", page.Value, StringComparison.Ordinal);
+        Assert.Contains("1–7 °CRegenschauer, Niederschlag 45 %", page.Value, StringComparison.Ordinal); // the range above the rest
+        string[] Lines(string list) => [.. page.Descendants(Xhtml + "ul").Single(u => (string?)u.Attribute("class") == list).Elements(Xhtml + "li").Select(li => li.Value)];
+        Assert.Equal(["Morgens 1 °C Bedeckt", "Mittags 6 °C Bedeckt, 20 %", "Abends 6 °C Teilweise bewölkt, 40 %"], Lines("day-parts"));
+        Assert.Equal(["Sonntag 2–5 °C Regen, 65 %", "Montag -1–4 °C Schnee, 28 %"], Lines("days"));
+        Assert.Empty(page.Descendants(Xhtml + "table")); // Kindle marks tables with a zoom icon
+    }
+
+    [Fact]
+    public async Task Title_page_has_the_headlines_in_turn_from_every_section_and_no_weather()
+    {
+        using var epub = await RenderAsync();
+
+        var page = XDocument.Parse(ReadText(epub.Entries.Single(e => e.Name == "title.xhtml"))).Root!;
+        var headlines = page.Descendants(Xhtml + "ul").Single(u => (string?)u.Attribute("class") == "index").Elements(Xhtml + "li").Select(li => li.Value);
+        Assert.Equal(["Größere Überraschung bei der Wahl", "Nur Teaser", "<script>alert(1)</script> & Co", "Feuer in Schwabing"], headlines);
+        Assert.DoesNotContain("Wetter", page.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -327,14 +337,22 @@ public sealed class EpubRendererTests : IDisposable
     }
 
     [Fact]
-    public async Task Weather_placed_first_stays_on_the_title_page()
+    public async Task Weather_placed_first_follows_the_title_page_and_the_contents_follow_it()
     {
         var issue = SampleIssue() with { Extras = [new IssueExtra(IssueExtraKind.Weather, "Wetter", 0)] };
 
         using var epub = await RenderAsync(issue, "weather-first.epub");
 
-        Assert.Contains("Wetter für Berlin", ReadText(epub.Entries.Single(e => e.Name == "title.xhtml")), StringComparison.Ordinal);
-        Assert.Null(epub.Entries.SingleOrDefault(e => e.Name == "weather.xhtml"));
+        Assert.Equal(["title.xhtml", "weather.xhtml", "nav.xhtml"], Spine(epub)[..3]); // the contents just before the sections
+    }
+
+    [Fact]
+    public async Task Weather_without_a_place_comes_first_too()
+    {
+        using var epub = await RenderAsync();
+
+        Assert.Equal("weather.xhtml", Spine(epub)[1]);
+        Assert.Contains("Wetter", NavEntries(epub));
     }
 
     [Fact]

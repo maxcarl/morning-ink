@@ -74,7 +74,7 @@ public sealed class IssueBuilder(
             content = await ai.HeadlinesAsync(content, loaded, issue, cancellationToken);
         }
 
-        // An edition without a weather section has it on the title page, as before sections could be placed.
+        // An edition without a weather section still gets its weather; the renderer sets it first, after the title page.
         var weather = profile.Sections.FirstOrDefault(s => s.Kind == SectionKind.Weather) is not { Enabled: false }
             ? await WeatherAsync(profile, cancellationToken)
             : null;

@@ -21,6 +21,9 @@ internal sealed class EpubTexts(CultureInfo culture)
 
     public string Headlines => Get(nameof(Headlines));
 
+    /// <summary>The weather page's title, where the edition has no weather section to name it.</summary>
+    public string WeatherPage => Get(nameof(WeatherPage));
+
     public string Notes => Get(nameof(Notes));
 
     public string ReadOriginal => Get(nameof(ReadOriginal));

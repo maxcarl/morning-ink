@@ -33,22 +33,6 @@ public sealed record IssueContent(
     /// </summary>
     public IReadOnlyDictionary<IssueArticle, FeedbackLinks>? Feedback { get; init; }
 
-    /// <summary>Whether the weather opens the issue on its title page, or has a page of its own further down.</summary>
-    public bool WeatherOnTitlePage
-    {
-        get
-        {
-            if (Weather is null)
-            {
-                return false;
-            }
-
-            // Without a place of its own, or placed first of all, the weather opens the issue.
-            var placed = Extras.FirstOrDefault(e => e.Kind == IssueExtraKind.Weather);
-            return placed is null || (placed.Before == 0 && ReferenceEquals(Extras[0], placed));
-        }
-    }
-
     /// <summary>
     /// Title of the book, e.g. "Morning Ink 2026-11-21": the ISO date makes it unique per day and sorts by date on
     /// the Kindle. Used for the metadata and for the attachment name, which Send to Kindle may show instead.
