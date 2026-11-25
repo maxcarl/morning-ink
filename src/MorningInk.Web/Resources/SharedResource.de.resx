@@ -696,4 +696,8 @@
   <data name="Sources_AddKind_karakeep_Hint" xml:space="preserve"><value>Gemerkte Lesezeichen, archiviert sobald die Ausgabe raus ist</value></data>
   <data name="Sources_AddKind_newsletter_Hint" xml:space="preserve"><value>Mails aus einem Ordner per IMAP</value></data>
   <data name="Sources_AddKind_community_Hint" xml:space="preserve"><value>Was eine Community nach oben gewählt hat</value></data>
+  <data name="Sources_TitlePattern" xml:space="preserve"><value>Nie mit Titeln wie</value></data>
+  <data name="Sources_TitlePatternHint" xml:space="preserve"><value>Ein regulärer Ausdruck, gesucht nur in der Überschrift, egal ob groß oder klein: „^\w+$“ lässt Einträge weg, deren Titel nur ein Wort ist. Leer behält jeden Titel.</value></data>
+  <data name="Sources_Reason_TitlePattern" xml:space="preserve"><value>Titel passt zum Muster</value></data>
+  <data name="Error_TitlePatternInvalid" xml:space="preserve"><value>Das Titelmuster ist kein gültiger regulärer Ausdruck oder länger als 200 Zeichen. Rückverweise und Lookarounds gehen nicht.</value></data>
 </root>

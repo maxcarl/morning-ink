@@ -24,6 +24,11 @@
         <input id="source-exclude" class="input" @bind="_edit.Exclude" placeholder="@T["Sources_ExcludePlaceholder"]" aria-describedby="source-exclude-hint" />
         <span id="source-exclude-hint" class="hint">@T["Sources_ExcludeHint"]</span>
     </div>
+    <div class="field">
+        <label for="source-title-pattern">@T["Sources_TitlePattern"]</label>
+        <input id="source-title-pattern" class="input" spellcheck="false" autocapitalize="none" maxlength="200" @bind="_edit.ExcludeTitlePattern" placeholder="^\w+$" aria-describedby="source-title-pattern-hint" />
+        <span id="source-title-pattern-hint" class="hint">@T["Sources_TitlePatternHint"]</span>
+    </div>
     <div class="inline-form field">
         <div>
             <label class="label" for="source-minwords">@T["Sources_MinWords"]</label>
@@ -102,6 +107,7 @@
         MaxArticles = Source.MaxArticles,
         Include = string.Join(", ", Source.IncludeKeywords),
         Exclude = string.Join(", ", Source.ExcludeKeywords),
+        ExcludeTitlePattern = Source.ExcludeTitlePattern,
         MinWords = Source.MinWords,
         MaxWords = Source.MaxWords,
         SkipLiveTickers = Source.SkipLiveTickers,
@@ -133,7 +139,8 @@
             _edit.Sender,
             _edit.SkipMedia,
             _edit.MinScore,
-            _edit.MaxWords);
+            _edit.MaxWords,
+            _edit.ExcludeTitlePattern);
         var result = await Scopes.RunAsync<SourceCatalog, SourceSaveResult>(catalog => catalog.SaveSettingsAsync(UserId, Source.Id, settings, Cancellation));
         _busy = false;
         await Finished.InvokeAsync(result is SourceSaveResult.Invalid invalid ? FormOutcome.Failed(T[$"Error_{invalid.Reason}"]) : new FormOutcome(T["Profile_Saved"]));
@@ -149,6 +156,8 @@
         public string Include { get; set; } = string.Empty;
 
         public string Exclude { get; set; } = string.Empty;
+
+        public string? ExcludeTitlePattern { get; set; }
 
         public int? MinWords { get; set; }
 

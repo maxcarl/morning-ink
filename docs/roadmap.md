@@ -22,7 +22,7 @@ What Morning Ink does today is in the [README](../README.md#features). This page
 
 - Rules per website when the automatic full-text extraction misses
 - Images: dithering for e-ink, a maximum number per article
-- Filters: regular expressions, language
+- Filters: language
 - Translation of foreign-language sources by AI, DeepL or LibreTranslate, optionally bilingual
 
 ## AI

@@ -53,6 +53,12 @@ public class Source
     /// <summary>Articles with one of these words or phrases in title or teaser are left out.</summary>
     public List<string> ExcludeKeywords { get; set; } = [];
 
+    /// <summary>
+    /// Articles whose title matches this regular expression, ignoring case, are left out; null keeps all. For what
+    /// words cannot say, e.g. "^\w+$" for items titled with a single word.
+    /// </summary>
+    public string? ExcludeTitlePattern { get; set; }
+
     /// <summary>Articles with fewer words, after the full text, are left out; null keeps all.</summary>
     public int? MinWords { get; set; }
 

@@ -40,7 +40,7 @@
 
 **Your control**
 
-- **Filters per source:** words to require or exclude, a minimum length, no live tickers, no marked ads
+- **Filters per source:** words to require or exclude, a regular expression for titles, a minimum length, no live tickers, no marked ads
 - **Archive** to search, download, send again and keep issues
 - **Feedback from the Kindle:** "More of this" and "Less of this" under every article move that source up or down in its section
 - **Optional AI overview**, "the most important in 5 minutes", placed and switched like any section

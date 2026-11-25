@@ -681,6 +681,9 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ExcludeTitlePattern")
+                        .HasColumnType("TEXT");
+
                     b.Property<long?>("FailingSince")
                         .HasColumnType("INTEGER");
 

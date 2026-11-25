@@ -696,4 +696,8 @@
   <data name="Sources_AddKind_karakeep_Hint" xml:space="preserve"><value>Saved bookmarks, archived once the issue is out</value></data>
   <data name="Sources_AddKind_newsletter_Hint" xml:space="preserve"><value>Mails from a folder via IMAP</value></data>
   <data name="Sources_AddKind_community_Hint" xml:space="preserve"><value>What a community voted up</value></data>
+  <data name="Sources_TitlePattern" xml:space="preserve"><value>Never with titles like</value></data>
+  <data name="Sources_TitlePatternHint" xml:space="preserve"><value>A regular expression, looked for in the headline only, upper or lower case: “^\w+$” leaves out items whose title is a single word. Empty keeps every title.</value></data>
+  <data name="Sources_Reason_TitlePattern" xml:space="preserve"><value>Title matches the pattern</value></data>
+  <data name="Error_TitlePatternInvalid" xml:space="preserve"><value>The title pattern is not a valid regular expression, or is longer than 200 characters. Backreferences and lookarounds are not supported.</value></data>
 </root>

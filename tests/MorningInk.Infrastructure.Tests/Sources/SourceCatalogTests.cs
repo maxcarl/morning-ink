@@ -182,7 +182,7 @@ public sealed class SourceCatalogTests : IDisposable
         await using var scope = services.CreateAsyncScope();
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
         var added = Assert.IsType<SourceSaveResult.Saved>(await catalog.AddLocalAsync(max, "Lokales", "80331", "DE", CancellationToken.None)).Source;
-        var settings = new SourceSettings("Lokales München", FetchFullText: true, MaxArticles: 8, SourceSettings.ParseKeywords("Polizei, Feuerwehr\nStadtrat"), SourceSettings.ParseKeywords("FC Bayern; Oktoberfest"), MinWords: 80, SkipLiveTickers: true, SkipAds: false, MaxWords: 2000);
+        var settings = new SourceSettings("Lokales München", FetchFullText: true, MaxArticles: 8, SourceSettings.ParseKeywords("Polizei, Feuerwehr\nStadtrat"), SourceSettings.ParseKeywords("FC Bayern; Oktoberfest"), MinWords: 80, SkipLiveTickers: true, SkipAds: false, MaxWords: 2000, ExcludeTitlePattern: " ^tagesschau$ ");
 
         var foreign = await catalog.SaveSettingsAsync(erika, added.Id, settings, CancellationToken.None);
         var saved = await catalog.SaveSettingsAsync(max, added.Id, settings, CancellationToken.None);
@@ -193,6 +193,7 @@ public sealed class SourceCatalogTests : IDisposable
         Assert.False(source.SkipAds);
         Assert.Equal(["Polizei", "Feuerwehr", "Stadtrat"], source.IncludeKeywords);
         Assert.Equal(["FC Bayern", "Oktoberfest"], source.ExcludeKeywords);
+        Assert.Equal("^tagesschau$", source.ExcludeTitlePattern);
     }
 
     [Theory]
@@ -201,7 +202,9 @@ public sealed class SourceCatalogTests : IDisposable
     [InlineData("Feed", 10, 0, "MinWordsInvalid")]
     [InlineData("Feed", 10, null, "MaxWordsInvalid", 0)]
     [InlineData("Feed", 10, 500, "MaxWordsInvalid", 400)] // below the minimum, nothing could ever fit
-    public async Task Invalid_source_settings_are_refused(string name, int maxArticles, int? minWords, string reason, int? maxWords = null)
+    [InlineData("Feed", 10, null, "TitlePatternInvalid", null, "(unclosed")]
+    [InlineData("Feed", 10, null, "TitlePatternInvalid", null, @"(\w+)\1")] // backreferences need backtracking, which is not offered
+    public async Task Invalid_source_settings_are_refused(string name, int maxArticles, int? minWords, string reason, int? maxWords = null, string? titlePattern = null)
     {
         await using var services = await StartAsync(allow: true);
         var max = await CreateUserAsync(services, "alex");
@@ -209,7 +212,7 @@ public sealed class SourceCatalogTests : IDisposable
         var catalog = scope.ServiceProvider.GetRequiredService<SourceCatalog>();
         var added = Assert.IsType<SourceSaveResult.Saved>(await catalog.AddLocalAsync(max, "Lokales", "80331", "DE", CancellationToken.None)).Source;
 
-        var result = await catalog.SaveSettingsAsync(max, added.Id, new SourceSettings(name, true, maxArticles, [], [], minWords, false, MaxWords: maxWords), CancellationToken.None);
+        var result = await catalog.SaveSettingsAsync(max, added.Id, new SourceSettings(name, true, maxArticles, [], [], minWords, false, MaxWords: maxWords, ExcludeTitlePattern: titlePattern), CancellationToken.None);
 
         Assert.Equal(reason, Assert.IsType<SourceSaveResult.Invalid>(result).Reason);
     }

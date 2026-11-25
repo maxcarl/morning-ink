@@ -164,12 +164,13 @@ public sealed class SourcesPageTests : IDisposable
         Pages.Button(page, "Edit").Click();
         page.Find("#source-live").Change(true);
         page.Find("#source-ads").Change(false);
-        Pages.Submit(page, ("#source-name", "Lokalnachrichten"), ("#source-exclude", "Fußball, Anzeige"), ("#source-minwords", "80"));
+        Pages.Submit(page, ("#source-name", "Lokalnachrichten"), ("#source-exclude", "Fußball, Anzeige"), ("#source-title-pattern", "^tagesschau$"), ("#source-minwords", "80"));
 
         Pages.Shows(page, "Lokalnachrichten");
         var source = Assert.Single(await SourcesAsync(app));
         Assert.Equal(("Lokalnachrichten", 80, true), (source.Name, source.MinWords, source.SkipLiveTickers));
         Assert.Equal(["Fußball", "Anzeige"], source.ExcludeKeywords);
+        Assert.Equal("^tagesschau$", source.ExcludeTitlePattern);
         Assert.False(source.SkipAds);
         Assert.Contains("filtered", page.Markup, StringComparison.Ordinal);
     }

@@ -37,6 +37,17 @@ public class ArticleFilterTests
     }
 
     [Fact]
+    public void Titles_matching_the_pattern_are_left_out_ignoring_case()
+    {
+        var source = Source(s => s.ExcludeTitlePattern = "^tagesschau( \\d+:\\d+ Uhr)?$");
+
+        Assert.Equal(new FilterVerdict(FilterReason.TitlePattern), ArticleFilter.Reject(Article("tagesschau"), source));
+        Assert.False(ArticleFilter.Admits(Article("Tagesschau 20:00 Uhr"), source));
+        Assert.True(ArticleFilter.Admits(Article("Neue Tagesschau-Sprecherin vorgestellt"), source)); // only the whole title
+        Assert.True(ArticleFilter.Admits(Article("tagesschau", "<p>Sendung vom Abend</p>"), Source(_ => { })));
+    }
+
+    [Fact]
     public void Included_keywords_let_only_matching_articles_in()
     {
         var source = Source(s => s.IncludeKeywords = ["Proxmox", "Raspberry Pi"]);

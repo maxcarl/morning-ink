@@ -11,6 +11,7 @@ public enum FilterReason
     Ad,
     Media,
     Excluded,
+    TitlePattern,
     NotIncluded,
     TooShort,
 }
@@ -51,6 +52,11 @@ public static partial class ArticleFilter
             return new(FilterReason.Media);
         }
 
+        if (source.ExcludeTitlePattern is { } pattern && MatchesTitle(article.Title, pattern))
+        {
+            return new(FilterReason.TitlePattern);
+        }
+
         if (source.ExcludeKeywords.FirstOrDefault(keyword => Contains(text, keyword)) is { } excluded)
         {
             return new(FilterReason.Excluded, excluded);
@@ -59,6 +65,20 @@ public static partial class ArticleFilter
         return source.IncludeKeywords.Count == 0 || source.IncludeKeywords.Any(keyword => Contains(text, keyword))
             ? null
             : new(FilterReason.NotIncluded);
+    }
+
+    /// <summary>Whether the pattern is one <see cref="Source.ExcludeTitlePattern"/> can hold: valid and without backtracking.</summary>
+    public static bool IsValidTitlePattern(string pattern)
+    {
+        try
+        {
+            _ = new Regex(pattern, TitleOptions, MatchTimeout);
+            return true;
+        }
+        catch (Exception e) when (e is ArgumentException or NotSupportedException)
+        {
+            return false;
+        }
     }
 
     public static bool IsLongEnough(FetchedArticle article, Source source) =>
@@ -109,6 +129,22 @@ public static partial class ArticleFilter
         return segments.SkipLast(1).Any(MediaSections.Contains)
             || (segments.LastOrDefault() is { } page && MediaPage().IsMatch(page));
     }
+
+    // The user's own pattern runs without backtracking, so no pattern can take exponential time; the timeout stays as a
+    // second guard. A pattern that still times out lets the article in: a filter never costs an article by accident.
+    private static bool MatchesTitle(string title, string pattern)
+    {
+        try
+        {
+            return Regex.IsMatch(title, pattern, TitleOptions, MatchTimeout);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return false;
+        }
+    }
+
+    private const RegexOptions TitleOptions = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.NonBacktracking;
 
     private static string HeadlineAndTeaser(FetchedArticle article) => $"{article.Title} {PlainText(article.Summary)}";
 

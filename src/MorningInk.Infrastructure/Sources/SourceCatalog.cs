@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MorningInk.Application.Processing;
 using MorningInk.Application.Sources;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Http;
@@ -35,7 +36,8 @@ public sealed record SourceSettings(
     string? Sender = null,
     bool SkipMedia = true,
     int? MinScore = null,
-    int? MaxWords = Source.DefaultMaxWords)
+    int? MaxWords = Source.DefaultMaxWords,
+    string? ExcludeTitlePattern = null)
 {
     private static readonly char[] Separators = [',', ';', '\n', '\r'];
 
@@ -61,6 +63,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     private const int MaxMaxWords = 100_000;
     private const int MaxKeywords = 50;
     private const int MaxKeywordLength = 100;
+    private const int MaxTitlePatternLength = 200;
     private const int MaxMinScore = 100_000;
 
     public async Task<IReadOnlyList<Source>> ListAsync(Guid userId, CancellationToken cancellationToken) =>
@@ -154,15 +157,17 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
     }
 
     /// <summary>Renames the source and sets its limits and filters.</summary>
-    /// <returns>Saved, or Invalid with "NotFound", "NameRequired", "MaxArticlesInvalid", "MinWordsInvalid", "MaxWordsInvalid" or "KeywordsInvalid".</returns>
+    /// <returns>Saved, or Invalid with "NotFound", "NameRequired", "MaxArticlesInvalid", "MinWordsInvalid", "MaxWordsInvalid", "KeywordsInvalid" or "TitlePatternInvalid".</returns>
     public async Task<SourceSaveResult> SaveSettingsAsync(Guid userId, Guid sourceId, SourceSettings settings, CancellationToken cancellationToken)
     {
         var name = settings.Name.Trim();
+        var titlePattern = string.IsNullOrWhiteSpace(settings.ExcludeTitlePattern) ? null : settings.ExcludeTitlePattern.Trim();
         var reason = name.Length is 0 or > MaxNameLength ? "NameRequired"
             : settings.MaxArticles is < 1 or > MaxArticlesLimit ? "MaxArticlesInvalid"
             : settings.MinWords is < 1 or > MaxMinWords ? "MinWordsInvalid"
             : settings.MaxWords is < 1 or > MaxMaxWords || settings.MaxWords < settings.MinWords ? "MaxWordsInvalid"
             : new[] { settings.IncludeKeywords, settings.ExcludeKeywords }.Any(k => k.Count > MaxKeywords || k.Any(w => w.Length > MaxKeywordLength)) ? "KeywordsInvalid"
+            : titlePattern is not null && (titlePattern.Length > MaxTitlePatternLength || !ArticleFilter.IsValidTitlePattern(titlePattern)) ? "TitlePatternInvalid"
             : settings.Sender?.Trim().Length > MaxNameLength ? "SenderTooLong"
             : settings.MinScore is < 0 or > MaxMinScore ? "MinScoreInvalid"
             : null;
@@ -181,6 +186,7 @@ public sealed class SourceCatalog(MorningInkDbContext db, IEnumerable<ISource> s
         source.MaxArticles = settings.MaxArticles;
         source.IncludeKeywords = [.. settings.IncludeKeywords];
         source.ExcludeKeywords = [.. settings.ExcludeKeywords];
+        source.ExcludeTitlePattern = titlePattern;
         source.MinWords = settings.MinWords;
         source.MaxWords = settings.MaxWords;
         source.SkipLiveTickers = settings.SkipLiveTickers;

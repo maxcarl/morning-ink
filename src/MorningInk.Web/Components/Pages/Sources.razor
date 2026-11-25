@@ -480,7 +480,7 @@
             source.Kind == SourceKind.Newsletter && source.Sender is { } sender ? T["Sources_NewsletterFrom", sender].Value : null,
             source.MinScore is { } minScore ? T["Sources_FromPoints", minScore].Value : null,
         };
-        if (source.IncludeKeywords.Count + source.ExcludeKeywords.Count > 0 || source.MinWords is not null || source.SkipLiveTickers)
+        if (source.IncludeKeywords.Count + source.ExcludeKeywords.Count > 0 || source.ExcludeTitlePattern is not null || source.MinWords is not null || source.SkipLiveTickers)
         {
             parts.Add(T["Sources_Filtered"]);
         }
