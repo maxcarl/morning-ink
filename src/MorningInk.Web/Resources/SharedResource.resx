@@ -705,7 +705,7 @@
   <data name="Dash_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Dash_CancelRequested" xml:space="preserve"><value>The issue is being cancelled.</value></data>
   <data name="Dash_NothingToCancel" xml:space="preserve"><value>Nothing to cancel: the issue is done already.</value></data>
-  <data name="Nav_Jobs" xml:space="preserve"><value>Jobs</value></data>
+  <data name="Nav_System" xml:space="preserve"><value>Status</value></data>
   <data name="System_Title" xml:space="preserve"><value>Status</value></data>
   <data name="System_Lede" xml:space="preserve"><value>What Morning Ink is doing now, what comes next, and how much space it takes, for all users.</value></data>
   <data name="System_Running" xml:space="preserve"><value>Running now</value></data>
@@ -713,11 +713,7 @@
   <data name="System_Planned" xml:space="preserve"><value>Planned</value></data>
   <data name="System_NonePlanned" xml:space="preserve"><value>Nothing is planned.</value></data>
   <data name="System_Since" xml:space="preserve"><value>since {0}</value></data>
-  <data name="System_When" xml:space="preserve"><value>When</value></data>
-  <data name="System_Job" xml:space="preserve"><value>Job</value></data>
-  <data name="System_Edition" xml:space="preserve"><value>Edition</value></data>
-  <data name="System_User" xml:space="preserve"><value>User</value></data>
-  <data name="System_TimeHint" xml:space="preserve"><value>Times in the edition's time zone; the cleanup in UTC.</value></data>
+  <data name="System_TimeHint" xml:space="preserve"><value>Times in your edition's time zone.</value></data>
   <data name="JobKind_Daily" xml:space="preserve"><value>Issue at the delivery time</value></data>
   <data name="JobKind_Build" xml:space="preserve"><value>Build ahead</value></data>
   <data name="JobKind_CatchUp" xml:space="preserve"><value>Catch up a missed issue</value></data>
@@ -741,4 +737,24 @@
   <data name="System_ClearImagesHint" xml:space="preserve"><value>Converted article images are only needed until an issue is built; built issues keep theirs. The cleanup deletes them every night after a few days anyway.</value></data>
   <data name="System_ImagesCleared" xml:space="preserve"><value>{0} images deleted.</value></data>
   <data name="System_ImagesBusy" xml:space="preserve"><value>An issue is being built right now and needs its images. Try again in a few minutes.</value></data>
+  <data name="System_Backup" xml:space="preserve"><value>Backup</value></data>
+  <data name="System_BackupHint" xml:space="preserve"><value>A backup holds the whole database: users, editions, sources, settings and the archive's entries, not the issue files. Stored passwords stay encrypted; they can only be read by this instance (its keys in the data directory).</value></data>
+  <data name="System_BackupDownload" xml:space="preserve"><value>Download a backup</value></data>
+  <data name="System_RestoreFile" xml:space="preserve"><value>Restore a backup</value></data>
+  <data name="System_RestoreUpload" xml:space="preserve"><value>Upload</value></data>
+  <data name="System_RestoreHint" xml:space="preserve"><value>A .db file from &quot;Download a backup&quot;. It replaces all data of all users at the next start; the current database is backed up first.</value></data>
+  <data name="System_RestoreStaged" xml:space="preserve"><value>The backup is fine and waits for the next start.</value></data>
+  <data name="System_RestorePending" xml:space="preserve"><value>A backup waits to be restored at the next start. Until then, everything goes on as before.</value></data>
+  <data name="System_Restart" xml:space="preserve"><value>Restart now</value></data>
+  <data name="System_RestartHint" xml:space="preserve"><value>Morning Ink stops; Docker starts it again by itself (restart: unless-stopped). Without such a restart policy, start it by hand.</value></data>
+  <data name="System_Restarting" xml:space="preserve"><value>Morning Ink restarts. Reload the page in a moment.</value></data>
+  <data name="System_RestoreDiscard" xml:space="preserve"><value>Discard</value></data>
+  <data name="System_RestoreDiscarded" xml:space="preserve"><value>The waiting backup was discarded.</value></data>
+  <data name="RestoreProblem_TooLarge" xml:space="preserve"><value>The file is larger than 512 MB.</value></data>
+  <data name="RestoreProblem_NotSqlite" xml:space="preserve"><value>That is no database file.</value></data>
+  <data name="RestoreProblem_Damaged" xml:space="preserve"><value>The database file is damaged.</value></data>
+  <data name="RestoreProblem_NotMorningInk" xml:space="preserve"><value>That is no Morning Ink backup.</value></data>
+  <data name="RestoreProblem_Newer" xml:space="preserve"><value>The backup comes from a newer Morning Ink. Update first, then restore it.</value></data>
+  <data name="RestoreProblem_Unsafe" xml:space="preserve"><value>The backup holds database triggers, which Morning Ink never creates. It was not accepted.</value></data>
+  <data name="System_LedeOwn" xml:space="preserve"><value>What Morning Ink is doing for your editions now and what comes next.</value></data>
 </root>

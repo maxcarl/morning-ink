@@ -42,6 +42,7 @@
 
 - **Filters per source:** words to require or exclude, a regular expression for titles, a minimum length, no live tickers, no marked ads
 - **Archive** to search, download, send again and keep issues
+- **Status page** with your running and planned issues; a hanging issue can be cancelled. Admins see all users' jobs, the space each part takes, clear the image cache, and download or restore a database backup
 - **Feedback from the Kindle:** "More of this" and "Less of this" under every article move that source up or down in its section
 - **Optional AI overview**, "the most important in 5 minutes", placed and switched like any section
 - **Optional AI for headlines and interests:** lurid headlines rewritten plainly (original kept), interests recognized by topic, not only by keyword, and your "more/less of this" taken as examples
@@ -122,7 +123,7 @@ The wizard opens by itself and takes five steps:
 
 ### Updates and backups
 
-Update with `docker compose pull && docker compose up -d`. All data lives in the `morning-ink-data` volume. Back up the whole volume: the `keys` folder in it is needed to read stored passwords.
+Update with `docker compose pull && docker compose up -d`. All data lives in the `morning-ink-data` volume. Back up the whole volume: the `keys` folder in it is needed to read stored passwords. The status page also downloads a backup of the database and restores one at the next start; stored passwords in it can only be read with this instance's keys.
 
 Morning Ink is meant for your home network. To reach it from the internet, put it behind a reverse proxy with HTTPS and tell Morning Ink the proxy's address, see [behind a reverse proxy](docs/configuration.md#behind-a-reverse-proxy).
 

@@ -23,10 +23,10 @@
         <NavLink href="/sources">@T["Nav_Sources"]</NavLink>
         <NavLink href="/profile">@T["Nav_Profile"]</NavLink>
         <NavLink href="/archive">@T["Nav_Archive"]</NavLink>
+        <NavLink href="/status">@T["Nav_System"]</NavLink>
         @if (HttpContext?.User.IsInRole(nameof(MorningInk.Domain.UserRole.Admin)) == true)
         {
             <NavLink href="/users">@T["Nav_Users"]</NavLink>
-            <NavLink href="/status">@T["Nav_System"]</NavLink>
             <NavLink href="/settings">@T["Nav_Settings"]</NavLink>
         }
     </nav>

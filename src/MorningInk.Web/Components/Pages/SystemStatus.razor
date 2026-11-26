@@ -1,128 +1,156 @@
 @page "/status"
 @rendermode InteractiveServer
 @inherits InteractivePage
-@attribute [Authorize(Roles = nameof(UserRole.Admin))]
 @using MorningInk.Application.Scheduling
 @using System.Globalization
 @using MorningInk.Domain
 @using MorningInk.Infrastructure
+@using MorningInk.Infrastructure.Persistence
 @using MorningInk.Infrastructure.Scheduling
 @inject DiskUsage Disk
+@inject IHostApplicationLifetime Lifetime
 
 <PageTitle>@T["System_Title"] – @T["Brand"]</PageTitle>
 
 <header class="page-header">
     <h1>@T["System_Title"]</h1>
-    <p class="lede">@T["System_Lede"]</p>
+    <p class="lede">@(IsAdmin ? T["System_Lede"] : T["System_LedeOwn"])</p>
     <Messages Notice="@_notice" Error="@_error" />
 </header>
 
-@if (_view is { } view)
-{
-    <section aria-labelledby="running-heading">
-        <h2 id="running-heading" class="department">@T["System_Running"]</h2>
-        @if (view.Running.Count == 0)
+@* Everyone sees the jobs of their own editions; an admin those of all users, and storage and backup beside them:
+   two columns on wide screens, one below the other on a phone. Lists, not wide tables, so nothing scrolls sideways. *@
+<div class="@(IsAdmin ? "columns" : null)">
+    <div>
+        @if (_view is { } view)
         {
-            <p class="muted">@T["System_NoneRunning"]</p>
-        }
-        <ul class="rows">
-            @foreach (var job in view.Running)
-            {
-                <li class="row">
-                    <div class="row-main">
-                        <div class="row-title">@T[$"JobKind_{job.Kind}"]</div>
-                        <div class="row-meta">@Who(job) · @T["System_Since", Clock.Time(T, Local(job))]</div>
-                    </div>
-                    @if (job.ProfileId is { } profileId)
+            <section aria-labelledby="running-heading">
+                <h2 id="running-heading" class="department">@T["System_Running"]</h2>
+                @if (view.Running.Count == 0)
+                {
+                    <p class="muted">@T["System_NoneRunning"]</p>
+                }
+                <ul class="rows">
+                    @foreach (var job in view.Running)
                     {
-                        <div class="row-actions">
-                            <button type="button" class="link-button link-danger" @onclick="() => CancelAsync(profileId)">@T["Dash_Cancel"]<span class="visually-hidden"> – @job.Edition</span></button>
-                        </div>
+                        <li class="row">
+                            <div class="row-main">
+                                <div class="row-title">@T[$"JobKind_{job.Kind}"]</div>
+                                <div class="row-meta">@Who(job) · @T["System_Since", Clock.Time(T, Local(job))]</div>
+                            </div>
+                            @if (job.ProfileId is { } profileId)
+                            {
+                                <div class="row-actions">
+                                    <button type="button" class="link-button link-danger" @onclick="() => CancelAsync(profileId)">@T["Dash_Cancel"]<span class="visually-hidden"> – @job.Edition</span></button>
+                                </div>
+                            }
+                        </li>
                     }
-                </li>
-            }
-        </ul>
-    </section>
+                </ul>
+            </section>
 
-    <section aria-labelledby="planned-heading">
-        <h2 id="planned-heading" class="department">@T["System_Planned"]</h2>
-        <p class="hint">@T["System_TimeHint"]</p>
-        @if (view.Planned.Count == 0)
-        {
-            <p class="muted">@T["System_NonePlanned"]</p>
-        }
-        else
-        {
-            <div class="table-wrap">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">@T["System_When"]</th>
-                        <th scope="col">@T["System_Job"]</th>
-                        <th scope="col">@T["System_Edition"]</th>
-                        <th scope="col">@T["System_User"]</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <section aria-labelledby="planned-heading">
+                <h2 id="planned-heading" class="department">@T["System_Planned"]</h2>
+                <p class="hint">@T["System_TimeHint"]</p>
+                @if (view.Planned.Count == 0)
+                {
+                    <p class="muted">@T["System_NonePlanned"]</p>
+                }
+                <ul class="rows">
                     @foreach (var job in view.Planned)
                     {
-                        <tr>
-                            <td>@Clock.DateAndTime(T, Local(job))</td>
-                            <td>@T[$"JobKind_{job.Kind}"]</td>
-                            <td>@(job.Edition ?? "–")</td>
-                            <td>@(job.Owner ?? "–")</td>
-                        </tr>
+                        <li class="row">
+                            <div class="row-main">
+                                <div class="row-title">@Clock.DateAndTime(T, Local(job))</div>
+                                <div class="row-meta">@T[$"JobKind_{job.Kind}"] · @Who(job)</div>
+                            </div>
+                        </li>
                     }
-                </tbody>
-            </table>
-            </div>
+                </ul>
+            </section>
         }
-    </section>
-}
+    </div>
 
-@if (_storage is { } storage)
-{
-    <section aria-labelledby="storage-heading">
-        <h2 id="storage-heading" class="department">@T["System_Storage"]</h2>
-        <p class="hint">@T["System_StorageHint"]</p>
-        <div class="table-wrap">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">@T["System_Area"]</th>
-                    <th scope="col" class="number">@T["System_Files"]</th>
-                    <th scope="col" class="number">@T["System_Size"]</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var area in storage.Areas)
-                {
-                    <tr>
-                        <th scope="row">@T[$"StorageArea_{area.Area}"]</th>
-                        <td class="number">@area.Files.ToString("N0", CultureInfo.CurrentCulture)</td>
-                        <td class="number">@Size(area.Bytes)</td>
-                    </tr>
-                }
-                <tr>
-                    <th scope="row">@T["System_Total"]</th>
-                    <td></td>
-                    <td class="number">@Size(storage.TotalBytes)</td>
-                </tr>
-                @if (storage.FreeBytes is { } free)
-                {
-                    <tr>
-                        <th scope="row">@T["System_Free"]</th>
-                        <td></td>
-                        <td class="number">@Size(free)</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        </div>
-        <p class="hint" id="clear-images-hint">@T["System_ClearImagesHint"]</p>
-        <button type="button" class="button button-secondary" aria-describedby="clear-images-hint" @onclick="ClearImages">@T["System_ClearImages"]</button>
-    </section>
-}
+    @if (IsAdmin)
+    {
+    <div>
+        @if (_storage is { } storage)
+        {
+            <section aria-labelledby="storage-heading">
+                <h2 id="storage-heading" class="department">@T["System_Storage"]</h2>
+                <p class="hint">@T["System_StorageHint"]</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">@T["System_Area"]</th>
+                            <th scope="col" class="number">@T["System_Files"]</th>
+                            <th scope="col" class="number">@T["System_Size"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var area in storage.Areas)
+                        {
+                            <tr>
+                                <th scope="row">@T[$"StorageArea_{area.Area}"]</th>
+                                <td class="number">@area.Files.ToString("N0", CultureInfo.CurrentCulture)</td>
+                                <td class="number">@Size(area.Bytes)</td>
+                            </tr>
+                        }
+                        <tr>
+                            <th scope="row">@T["System_Total"]</th>
+                            <td></td>
+                            <td class="number">@Size(storage.TotalBytes)</td>
+                        </tr>
+                        @if (storage.FreeBytes is { } free)
+                        {
+                            <tr>
+                                <th scope="row">@T["System_Free"]</th>
+                                <td></td>
+                                <td class="number">@Size(free)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="field">
+                    <p class="hint" id="clear-images-hint">@T["System_ClearImagesHint"]</p>
+                    <button type="button" class="button button-secondary" aria-describedby="clear-images-hint" @onclick="ClearImages">@T["System_ClearImages"]</button>
+                </div>
+            </section>
+        }
+
+        <section aria-labelledby="backup-heading">
+            <h2 id="backup-heading" class="department">@T["System_Backup"]</h2>
+            <p class="hint">@T["System_BackupHint"]</p>
+            @* Plain form posts, not page events: the browser downloads the file, and uploads it as a whole. *@
+            <form class="field" method="post" action="/status/backup">
+                <AntiforgeryToken />
+                <button type="submit" class="button button-secondary">@T["System_BackupDownload"]</button>
+            </form>
+            @if (_restorePending)
+            {
+                <p class="status status-warn">@T["System_RestorePending"]</p>
+                <div class="row-actions">
+                    <button type="button" class="button" aria-describedby="restart-hint" @onclick="Restart">@T["System_Restart"]</button>
+                    <button type="button" class="link-button link-danger" @onclick="DiscardAsync">@T["System_RestoreDiscard"]</button>
+                </div>
+                <p class="hint" id="restart-hint">@T["System_RestartHint"]</p>
+            }
+            else
+            {
+                <form class="field" method="post" action="/status/restore" enctype="multipart/form-data">
+                    <AntiforgeryToken />
+                    <label class="label" for="backup-file">@T["System_RestoreFile"]</label>
+                    <div class="inline-form">
+                        <input id="backup-file" class="input" type="file" name="@BackupEndpoints.FileField" accept=".db" required aria-describedby="restore-hint" />
+                        <button type="submit" class="button button-secondary">@T["System_RestoreUpload"]</button>
+                    </div>
+                    <span id="restore-hint" class="hint">@T["System_RestoreHint"]</span>
+                </form>
+            }
+        </section>
+    </div>
+    }
+</div>
 
 @code {
     private const double Megabyte = 1024 * 1024;
@@ -132,30 +160,80 @@
     private StorageReport? _storage;
     private string? _notice;
     private string? _error;
+    private bool _restorePending;
+
+    /// <summary>How the restore upload went, set by <see cref="BackupEndpoints"/> on its way back here.</summary>
+    [SupplyParameterFromQuery(Name = BackupEndpoints.RestoreQuery)]
+    private string? Restore { get; set; }
 
     protected override async Task LoadAsync()
     {
-        _view = await UseAsync<JobsOverview, JobsView>(jobs => jobs.LoadAsync(Closed));
-        _storage = Disk.Measure();
+        if (_view is null && Restore is { } outcome)
+        {
+            // Only names this page knows are shown; anything else in the URL is ignored.
+            _notice = outcome == BackupEndpoints.Staged ? T["System_RestoreStaged"].Value : null;
+            _error = Enum.TryParse<RestoreProblem>(outcome, out var problem) && Enum.IsDefined(problem) ? T[$"RestoreProblem_{problem}"].Value : null;
+        }
+
+        _view = await UseAsync<JobsOverview, JobsView>(jobs => jobs.LoadAsync(UserId, IsAdmin, Closed));
+        if (IsAdmin)
+        {
+            _restorePending = await UseAsync<DatabaseBackups, bool>(backups => Task.FromResult(backups.RestorePending));
+            _storage = Disk.Measure();
+        }
     }
 
     // ponytail: the list is as of opening or the last cancel; reload the page for news, auto-refresh if that gets tedious.
     private async Task CancelAsync(Guid profileId)
     {
         _error = null;
-        _notice = await UseAsync<JobsOverview, bool>(jobs => jobs.CancelAsync(profileId, Closed)) ? T["Dash_CancelRequested"] : T["Dash_NothingToCancel"];
+        _notice = await UseAsync<JobsOverview, bool>(jobs => jobs.CancelAsync(UserId, IsAdmin, profileId, Closed)) ? T["Dash_CancelRequested"] : T["Dash_NothingToCancel"];
         await LoadAsync();
+    }
+
+    // The admin parts are only rendered for admins; the checks keep it so for any event that reaches the page.
+    private async Task DiscardAsync()
+    {
+        if (!IsAdmin)
+        {
+            return;
+        }
+
+        await UseAsync<DatabaseBackups>(backups =>
+        {
+            backups.DiscardRestore();
+            return Task.CompletedTask;
+        });
+        _restorePending = false;
+        (_notice, _error) = (T["System_RestoreDiscarded"].Value, null);
+    }
+
+    // Docker starts the container again (restart: unless-stopped), and the start applies the waiting backup.
+    private void Restart()
+    {
+        if (!IsAdmin)
+        {
+            return;
+        }
+
+        (_notice, _error) = (T["System_Restarting"].Value, null);
+        Lifetime.StopApplication();
     }
 
     private void ClearImages()
     {
+        if (!IsAdmin)
+        {
+            return;
+        }
+
         var deleted = Disk.ClearImages();
         _notice = deleted is { } count ? T["System_ImagesCleared", count].Value : null;
         _error = deleted is null ? T["System_ImagesBusy"].Value : null;
         _storage = Disk.Measure();
     }
 
-    private static DateTimeOffset Local(JobRow job) => TimeZoneInfo.ConvertTime(job.At, ProfileTimeZone.Find(job.TimeZoneId));
+    private DateTimeOffset Local(JobRow job) => TimeZoneInfo.ConvertTime(job.At, ProfileTimeZone.Find(_view?.TimeZoneId ?? TimeZoneInfo.Utc.Id));
 
     // "0.4 MB", "1.2 GB": enough to see what grows.
     private static string Size(long bytes)
@@ -166,5 +244,6 @@
             : string.Create(CultureInfo.CurrentCulture, $"{megabytes:0.0} MB");
     }
 
-    private static string Who(JobRow job) => job.Edition is null ? "–" : $"{job.Edition} · {job.Owner}";
+    // The owner only for an admin; everyone else sees only their own.
+    private string Who(JobRow job) => job.Edition is null ? "–" : IsAdmin ? $"{job.Edition} · {job.Owner}" : job.Edition;
 }

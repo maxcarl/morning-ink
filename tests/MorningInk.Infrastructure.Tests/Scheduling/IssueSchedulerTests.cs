@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Application.Publishing;
 using MorningInk.Domain;
@@ -129,12 +130,16 @@ public sealed class IssueSchedulerTests : IDisposable
         await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
 
         await using var scope = services.CreateAsyncScope();
-        var view = await scope.ServiceProvider.GetRequiredService<JobsOverview>().LoadAsync(CancellationToken.None);
+        var jobs = scope.ServiceProvider.GetRequiredService<JobsOverview>();
+        var ownerId = await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().Profiles.Where(p => p.Id == profileId).Select(p => p.UserId).SingleAsync();
+        var view = await jobs.LoadAsync(ownerId, everyone: false, CancellationToken.None);
 
         Assert.Empty(view.Running);
-        var planned = view.Planned.Where(j => j.ProfileId == profileId).ToList();
-        Assert.Equal([JobKind.Build, JobKind.Daily], planned.Select(j => j.Kind)); // the build an hour before the delivery
-        Assert.All(planned, j => Assert.Equal(("Morning Ink", "alex", "Europe/Berlin"), (j.Edition, j.Owner, j.TimeZoneId)));
+        Assert.Equal("Europe/Berlin", view.TimeZoneId);
+        Assert.Equal([JobKind.Build, JobKind.Daily], view.Planned.Select(j => j.Kind)); // the build an hour before the delivery
+        Assert.All(view.Planned, j => Assert.Equal(("Morning Ink", "alex"), (j.Edition, j.Owner)));
+        Assert.Empty((await jobs.LoadAsync(Guid.NewGuid(), everyone: false, CancellationToken.None)).Planned); // another user sees none of them
+        Assert.Equal(2, (await jobs.LoadAsync(Guid.NewGuid(), everyone: true, CancellationToken.None)).Planned.Count(j => j.ProfileId == profileId));
     }
 
     [Fact]

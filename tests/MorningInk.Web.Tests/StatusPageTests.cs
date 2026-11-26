@@ -40,7 +40,21 @@ public sealed class StatusPageTests : IDisposable
     }
 
     [Fact]
-    public async Task Users_who_are_not_admins_cannot_open_the_status_page()
+    public async Task Users_who_are_not_admins_see_only_their_own_jobs_and_no_storage_or_backup()
+    {
+        using var admin = await Pages.AsAdminAsync(_app);
+        using var pages = await Pages.AsUserAsync(_app, "erika");
+
+        var page = pages.Open<SystemStatus>("Planned");
+
+        Assert.Contains("for your editions", page.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("Cleanup", page.Markup, StringComparison.Ordinal); // a job of no edition of theirs
+        Assert.DoesNotContain("storage-heading", page.Markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("/status/backup", page.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Everyone_finds_the_status_page_in_the_navigation()
     {
         await _app.SignedInAdminAsync();
         var user = await _app.SignedInUserAsync("erika");
@@ -48,8 +62,9 @@ public sealed class StatusPageTests : IDisposable
         var page = await user.GetAsync("/status");
         var home = await user.GetStringAsync("/");
 
-        Assert.NotEqual(HttpStatusCode.OK, page.StatusCode);
-        Assert.DoesNotContain("href=\"/status\"", home, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.Contains("href=\"/status\"", home, StringComparison.Ordinal);
+        Assert.DoesNotContain("Nav_System", home, StringComparison.Ordinal);
     }
 
     public void Dispose() => _app.Dispose();

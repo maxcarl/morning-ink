@@ -65,7 +65,7 @@ public sealed partial class CleanupService(
         return old.Count;
     }
 
-    // Backup names carry a sortable timestamp (morning-ink-yyyyMMdd-HHmmss.db), so the name order is the age order.
+    // Backup names carry a sortable timestamp (morning-ink-yyyyMMdd-HHmmss-fff.db), so the name order is the age order.
     private static int DeleteOldBackups(string directory, int keep)
     {
         if (!Directory.Exists(directory))

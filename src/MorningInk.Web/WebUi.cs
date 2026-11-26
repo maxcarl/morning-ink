@@ -76,6 +76,7 @@ public static class WebUi
         app.MapThemeSwitch();
         app.MapIssueDownload();
         app.MapSourcesExport();
+        app.MapBackups();
         app.MapFeedback();
         app.MapOpds();
         app.MapPreviewFiles();

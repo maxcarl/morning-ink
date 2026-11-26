@@ -705,7 +705,7 @@
   <data name="Dash_Cancel" xml:space="preserve"><value>Abbrechen</value></data>
   <data name="Dash_CancelRequested" xml:space="preserve"><value>Die Ausgabe wird abgebrochen.</value></data>
   <data name="Dash_NothingToCancel" xml:space="preserve"><value>Nichts abzubrechen: Die Ausgabe ist schon fertig.</value></data>
-  <data name="Nav_Jobs" xml:space="preserve"><value>Jobs</value></data>
+  <data name="Nav_System" xml:space="preserve"><value>Status</value></data>
   <data name="System_Title" xml:space="preserve"><value>Status</value></data>
   <data name="System_Lede" xml:space="preserve"><value>Was Morning Ink gerade tut, was als Nächstes kommt und wie viel Platz es braucht, für alle Benutzer.</value></data>
   <data name="System_Running" xml:space="preserve"><value>Läuft gerade</value></data>
@@ -713,11 +713,7 @@
   <data name="System_Planned" xml:space="preserve"><value>Geplant</value></data>
   <data name="System_NonePlanned" xml:space="preserve"><value>Nichts geplant.</value></data>
   <data name="System_Since" xml:space="preserve"><value>seit {0}</value></data>
-  <data name="System_When" xml:space="preserve"><value>Wann</value></data>
-  <data name="System_Job" xml:space="preserve"><value>Job</value></data>
-  <data name="System_Edition" xml:space="preserve"><value>Ausgabe</value></data>
-  <data name="System_User" xml:space="preserve"><value>Benutzer</value></data>
-  <data name="System_TimeHint" xml:space="preserve"><value>Zeiten in der Zeitzone der Ausgabe, das Aufräumen in UTC.</value></data>
+  <data name="System_TimeHint" xml:space="preserve"><value>Zeiten in der Zeitzone deiner Ausgabe.</value></data>
   <data name="JobKind_Daily" xml:space="preserve"><value>Ausgabe zur Lieferzeit</value></data>
   <data name="JobKind_Build" xml:space="preserve"><value>Vorab bauen</value></data>
   <data name="JobKind_CatchUp" xml:space="preserve"><value>Verpasste Ausgabe nachholen</value></data>
@@ -741,4 +737,24 @@
   <data name="System_ClearImagesHint" xml:space="preserve"><value>Umgewandelte Artikelbilder braucht es nur, bis eine Ausgabe gebaut ist; fertige Ausgaben behalten ihre. Das Aufräumen löscht sie ohnehin jede Nacht nach ein paar Tagen.</value></data>
   <data name="System_ImagesCleared" xml:space="preserve"><value>{0} Bilder gelöscht.</value></data>
   <data name="System_ImagesBusy" xml:space="preserve"><value>Gerade wird eine Ausgabe gebaut und braucht ihre Bilder. Versuch es in ein paar Minuten noch mal.</value></data>
+  <data name="System_Backup" xml:space="preserve"><value>Sicherung</value></data>
+  <data name="System_BackupHint" xml:space="preserve"><value>Ein Backup enthält die ganze Datenbank: Benutzer, Ausgaben, Quellen, Einstellungen und die Archiv-Einträge, nicht die Ausgabe-Dateien. Gespeicherte Passwörter bleiben verschlüsselt; lesen kann sie nur diese Instanz (mit ihren Schlüsseln im Datenverzeichnis).</value></data>
+  <data name="System_BackupDownload" xml:space="preserve"><value>Backup herunterladen</value></data>
+  <data name="System_RestoreFile" xml:space="preserve"><value>Backup einspielen</value></data>
+  <data name="System_RestoreUpload" xml:space="preserve"><value>Hochladen</value></data>
+  <data name="System_RestoreHint" xml:space="preserve"><value>Eine .db-Datei aus „Backup herunterladen“. Sie ersetzt beim nächsten Start alle Daten aller Benutzer; die aktuelle Datenbank wird vorher gesichert.</value></data>
+  <data name="System_RestoreStaged" xml:space="preserve"><value>Das Backup ist in Ordnung und wartet auf den nächsten Start.</value></data>
+  <data name="System_RestorePending" xml:space="preserve"><value>Ein Backup wartet darauf, beim nächsten Start eingespielt zu werden. Bis dahin läuft alles wie bisher.</value></data>
+  <data name="System_Restart" xml:space="preserve"><value>Jetzt neu starten</value></data>
+  <data name="System_RestartHint" xml:space="preserve"><value>Morning Ink beendet sich; Docker startet es von selbst neu (restart: unless-stopped). Ohne eine solche Neustart-Regel starte es von Hand.</value></data>
+  <data name="System_Restarting" xml:space="preserve"><value>Morning Ink startet neu. Lade die Seite gleich noch mal.</value></data>
+  <data name="System_RestoreDiscard" xml:space="preserve"><value>Verwerfen</value></data>
+  <data name="System_RestoreDiscarded" xml:space="preserve"><value>Das wartende Backup wurde verworfen.</value></data>
+  <data name="RestoreProblem_TooLarge" xml:space="preserve"><value>Die Datei ist größer als 512 MB.</value></data>
+  <data name="RestoreProblem_NotSqlite" xml:space="preserve"><value>Das ist keine Datenbank-Datei.</value></data>
+  <data name="RestoreProblem_Damaged" xml:space="preserve"><value>Die Datenbank-Datei ist beschädigt.</value></data>
+  <data name="RestoreProblem_NotMorningInk" xml:space="preserve"><value>Das ist kein Backup von Morning Ink.</value></data>
+  <data name="RestoreProblem_Newer" xml:space="preserve"><value>Das Backup stammt aus einem neueren Morning Ink. Erst aktualisieren, dann einspielen.</value></data>
+  <data name="RestoreProblem_Unsafe" xml:space="preserve"><value>Das Backup enthält Datenbank-Trigger, die Morning Ink nie anlegt. Es wurde nicht angenommen.</value></data>
+  <data name="System_LedeOwn" xml:space="preserve"><value>Was Morning Ink gerade für deine Ausgaben tut und was als Nächstes kommt.</value></data>
 </root>

@@ -55,7 +55,7 @@ public sealed class DatabaseTests : IDisposable
         await using var services = await _host.StartAsync();
 
         var backup = Assert.Single(Directory.GetFiles(_host.BackupDirectory));
-        Assert.Equal("morning-ink-20261121-060000.db", Path.GetFileName(backup));
+        Assert.Equal("morning-ink-20261121-060000-000.db", Path.GetFileName(backup));
         Assert.Equal("kept", await ReadMarkerAsync(backup));
     }
 
