@@ -1,0 +1,158 @@
+@page "/status"
+@rendermode InteractiveServer
+@inherits InteractivePage
+@attribute [Authorize(Roles = nameof(UserRole.Admin))]
+@using MorningInk.Application.Scheduling
+@using System.Globalization
+@using MorningInk.Domain
+@using MorningInk.Infrastructure
+@using MorningInk.Infrastructure.Scheduling
+@inject DiskUsage Disk
+
+<PageTitle>@T["System_Title"] – @T["Brand"]</PageTitle>
+
+<header class="page-header">
+    <h1>@T["System_Title"]</h1>
+    <p class="lede">@T["System_Lede"]</p>
+    <Messages Notice="@_notice" />
+</header>
+
+@if (_view is { } view)
+{
+    <section aria-labelledby="running-heading">
+        <h2 id="running-heading" class="department">@T["System_Running"]</h2>
+        @if (view.Running.Count == 0)
+        {
+            <p class="muted">@T["System_NoneRunning"]</p>
+        }
+        <ul class="rows">
+            @foreach (var job in view.Running)
+            {
+                <li class="row">
+                    <div class="row-main">
+                        <div class="row-title">@T[$"JobKind_{job.Kind}"]</div>
+                        <div class="row-meta">@Who(job) · @T["System_Since", Clock.Time(T, Local(job))]</div>
+                    </div>
+                    @if (job.ProfileId is { } profileId)
+                    {
+                        <div class="row-actions">
+                            <button type="button" class="link-button link-danger" @onclick="() => CancelAsync(profileId)">@T["Dash_Cancel"]<span class="visually-hidden"> – @job.Edition</span></button>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    </section>
+
+    <section aria-labelledby="planned-heading">
+        <h2 id="planned-heading" class="department">@T["System_Planned"]</h2>
+        <p class="hint">@T["System_TimeHint"]</p>
+        @if (view.Planned.Count == 0)
+        {
+            <p class="muted">@T["System_NonePlanned"]</p>
+        }
+        else
+        {
+            <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">@T["System_When"]</th>
+                        <th scope="col">@T["System_Job"]</th>
+                        <th scope="col">@T["System_Edition"]</th>
+                        <th scope="col">@T["System_User"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in view.Planned)
+                    {
+                        <tr>
+                            <td>@Clock.DateAndTime(T, Local(job))</td>
+                            <td>@T[$"JobKind_{job.Kind}"]</td>
+                            <td>@(job.Edition ?? "–")</td>
+                            <td>@(job.Owner ?? "–")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        }
+    </section>
+}
+
+@if (_storage is { } storage)
+{
+    <section aria-labelledby="storage-heading">
+        <h2 id="storage-heading" class="department">@T["System_Storage"]</h2>
+        <p class="hint">@T["System_StorageHint"]</p>
+        <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">@T["System_Area"]</th>
+                    <th scope="col" class="number">@T["System_Files"]</th>
+                    <th scope="col" class="number">@T["System_Size"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var area in storage.Areas)
+                {
+                    <tr>
+                        <th scope="row">@T[$"StorageArea_{area.Area}"]</th>
+                        <td class="number">@area.Files.ToString("N0", CultureInfo.CurrentCulture)</td>
+                        <td class="number">@Size(area.Bytes)</td>
+                    </tr>
+                }
+                <tr>
+                    <th scope="row">@T["System_Total"]</th>
+                    <td></td>
+                    <td class="number">@Size(storage.TotalBytes)</td>
+                </tr>
+                @if (storage.FreeBytes is { } free)
+                {
+                    <tr>
+                        <th scope="row">@T["System_Free"]</th>
+                        <td></td>
+                        <td class="number">@Size(free)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    </section>
+}
+
+@code {
+    private const double Megabyte = 1024 * 1024;
+    private const double MegabytesPerGigabyte = 1024;
+
+    private JobsView? _view;
+    private StorageReport? _storage;
+    private string? _notice;
+
+    protected override async Task LoadAsync()
+    {
+        _view = await UseAsync<JobsOverview, JobsView>(jobs => jobs.LoadAsync(Closed));
+        _storage = Disk.Measure();
+    }
+
+    // ponytail: the list is as of opening or the last cancel; reload the page for news, auto-refresh if that gets tedious.
+    private async Task CancelAsync(Guid profileId)
+    {
+        _notice = await UseAsync<JobsOverview, bool>(jobs => jobs.CancelAsync(profileId, Closed)) ? T["Dash_CancelRequested"] : T["Dash_NothingToCancel"];
+        await LoadAsync();
+    }
+
+    private static DateTimeOffset Local(JobRow job) => TimeZoneInfo.ConvertTime(job.At, ProfileTimeZone.Find(job.TimeZoneId));
+
+    // "0.4 MB", "1.2 GB": enough to see what grows.
+    private static string Size(long bytes)
+    {
+        var megabytes = bytes / Megabyte;
+        return megabytes >= MegabytesPerGigabyte
+            ? string.Create(CultureInfo.CurrentCulture, $"{megabytes / MegabytesPerGigabyte:0.0} GB")
+            : string.Create(CultureInfo.CurrentCulture, $"{megabytes:0.0} MB");
+    }
+
+    private static string Who(JobRow job) => job.Edition is null ? "–" : $"{job.Edition} · {job.Owner}";
+}

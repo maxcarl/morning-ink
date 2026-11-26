@@ -17,4 +17,7 @@ public enum IssueStatus
 
     /// <summary>No new articles, so nothing was sent.</summary>
     Empty,
+
+    /// <summary>Stopped by hand while building, or found hanging; the slot counts as done and is not built again.</summary>
+    Cancelled,
 }

@@ -16,7 +16,7 @@ public static class IssueTexts
     {
         IssueStatus.Delivered => "status-ok",
         IssueStatus.Failed => "status-error",
-        IssueStatus.Empty => "muted",
+        IssueStatus.Empty or IssueStatus.Cancelled => "muted",
         _ => "status-warn",
     };
 

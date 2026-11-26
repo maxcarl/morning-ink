@@ -28,11 +28,35 @@ public sealed partial class IssueScheduler(
     /// <summary>On the build trigger: the lead time in minutes; the run builds the issue for its fire time plus this.</summary>
     internal const string LeadMinutesKey = "leadMinutes";
 
+    // Trigger names start with what the trigger is for; the jobs page reads the kind back from them.
+    private const string DailyPrefix = "daily-";
+    private const string BuildPrefix = "build-";
+    private const string CatchUpPrefix = "catch-up-";
+    private const string NowPrefix = "now-";
+    private const string RetryPrefix = "retry-";
+    private const string AfterBuildPrefix = "after-build-";
+
+    private static readonly (string Prefix, JobKind Kind)[] Kinds =
+    [
+        (DailyPrefix, JobKind.Daily), (BuildPrefix, JobKind.Build), (CatchUpPrefix, JobKind.CatchUp),
+        (NowPrefix, JobKind.Now), (RetryPrefix, JobKind.Retry), (AfterBuildPrefix, JobKind.AfterBuild),
+    ];
+
     // How soon a delivery tries again while the early build of the same issue still runs.
     private static readonly TimeSpan BusyRetryDelay = TimeSpan.FromMinutes(2);
     private const int RetryGrowthFactor = 3;
 
-    public static JobKey JobKeyFor(Guid profileId) => new($"publish-{profileId}");
+    private const string JobPrefix = "publish-";
+
+    public static JobKey JobKeyFor(Guid profileId) => new($"{JobPrefix}{profileId}");
+
+    /// <summary>The profile an issue job is for; null for other jobs.</summary>
+    public static Guid? ProfileOf(JobKey? job) =>
+        job is not null && job.Name.StartsWith(JobPrefix, StringComparison.Ordinal) && Guid.TryParse(job.Name.AsSpan(JobPrefix.Length), out var id) ? id : null;
+
+    /// <summary>What an issue trigger is for, from its name; <see cref="JobKind.Other"/> for any other trigger.</summary>
+    public static JobKind KindOf(TriggerKey trigger) =>
+        Kinds.FirstOrDefault(k => trigger.Name.StartsWith(k.Prefix, StringComparison.Ordinal)) is { Prefix: not null } found ? found.Kind : JobKind.Other;
 
     /// <summary>Plans every profile; safe to call again, e.g. after profiles changed.</summary>
     public async Task ScheduleAllAsync(IScheduler scheduler, CancellationToken cancellationToken)
@@ -62,7 +86,7 @@ public sealed partial class IssueScheduler(
         await scheduler.AddJob(job, AddJobOptions.Replacing, cancellationToken);
 
         var daily = TriggerBuilder.Create(time)
-            .WithIdentity($"daily-{schedule.ProfileId}")
+            .WithIdentity($"{DailyPrefix}{schedule.ProfileId}")
             .ForJob(job)
             .WithSchedule(CronScheduleBuilder
                 .Create(CronFor(schedule))
@@ -75,7 +99,7 @@ public sealed partial class IssueScheduler(
         await scheduler.ScheduleJob(daily, default, cancellationToken);
 
         // With a lead time, a second trigger builds the issue early; the daily one then only sends it.
-        var buildKey = new TriggerKey($"build-{schedule.ProfileId}");
+        var buildKey = new TriggerKey($"{BuildPrefix}{schedule.ProfileId}");
         await scheduler.UnscheduleJob(buildKey, cancellationToken);
         if (schedule.LeadTime > TimeSpan.Zero)
         {
@@ -94,7 +118,7 @@ public sealed partial class IssueScheduler(
         if (catchUp && now - lastSlot <= options.Value.CatchUpWindow)
         {
             // Harmless when the slot was already delivered: the publisher then does nothing.
-            await scheduler.ScheduleJob(OneOff(job.Key, $"catch-up-{schedule.ProfileId}", lastSlot, now), ScheduleJobOptions.Replacing, cancellationToken);
+            await scheduler.ScheduleJob(OneOff(job.Key, $"{CatchUpPrefix}{schedule.ProfileId}", lastSlot, now), ScheduleJobOptions.Replacing, cancellationToken);
         }
     }
 
@@ -108,7 +132,7 @@ public sealed partial class IssueScheduler(
         }
 
         var now = time.GetUtcNow();
-        await scheduler.ScheduleJob(OneOff(JobKeyFor(schedule.ProfileId), $"now-{schedule.ProfileId}-{now.ToUnixTimeMilliseconds()}", now, now), default, cancellationToken);
+        await scheduler.ScheduleJob(OneOff(JobKeyFor(schedule.ProfileId), $"{NowPrefix}{schedule.ProfileId}-{now.ToUnixTimeMilliseconds()}", now, now), default, cancellationToken);
     }
 
     /// <summary>Plans another delivery attempt for a slot, or gives up after the configured number of attempts.</summary>
@@ -122,13 +146,13 @@ public sealed partial class IssueScheduler(
         }
 
         var at = time.GetUtcNow() + RetryDelay(attempts, options.Value.FirstRetryDelay);
-        await scheduler.ScheduleJob(OneOff(JobKeyFor(profileId), $"retry-{profileId}-{attempts}", slot, at), ScheduleJobOptions.Replacing, cancellationToken);
+        await scheduler.ScheduleJob(OneOff(JobKeyFor(profileId), $"{RetryPrefix}{profileId}-{attempts}", slot, at), ScheduleJobOptions.Replacing, cancellationToken);
         LogRetry(logger, profileId, at);
     }
 
     /// <summary>Tries a delivery again shortly, because the early build of its issue still holds the profile.</summary>
     public async Task ScheduleAfterBuildAsync(IScheduler scheduler, Guid profileId, DateTimeOffset slot, CancellationToken cancellationToken) =>
-        await scheduler.ScheduleJob(OneOff(JobKeyFor(profileId), $"after-build-{profileId}", slot, time.GetUtcNow() + BusyRetryDelay), ScheduleJobOptions.Replacing, cancellationToken);
+        await scheduler.ScheduleJob(OneOff(JobKeyFor(profileId), $"{AfterBuildPrefix}{profileId}", slot, time.GetUtcNow() + BusyRetryDelay), ScheduleJobOptions.Replacing, cancellationToken);
 
     /// <summary>Quartz cron for the build ahead of delivery; across midnight, the build falls on the day before.</summary>
     internal static string BuildCronFor(ProfileSchedule schedule)

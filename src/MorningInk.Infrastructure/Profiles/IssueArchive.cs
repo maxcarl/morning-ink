@@ -91,12 +91,12 @@ public sealed class IssueArchive(
         var (issue, profile) = found;
 
         // The same lock as the scheduler's: a retry of this very issue must not run at the same time.
-        if (!locks.TryEnter(profile.Id, out var release))
+        if (!locks.TryEnter(profile.Id, out var lease))
         {
             return new DeliveryResult.Failure("Another delivery of this edition is running. Try again in a minute.", Retryable: true, "Busy");
         }
 
-        using (release)
+        using (lease)
         {
             var result = await delivery.DeliverAsync(
                 new DeliveryRequest(profile.Recipient, BookTitle(issue, profile), path, renderer.FileExtension, renderer.MediaType),

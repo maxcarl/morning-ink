@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MorningInk.Application.Publishing;
 
 /// <summary>
-/// Makes sure two runs for the same profile never overlap within this process. Register as singleton.
+/// Makes sure two runs for the same profile never overlap within this process, and lets a running one be cancelled.
+/// Register as singleton.
 /// </summary>
 /// <remarks>
 /// ponytail: per-process only, which suffices for the single container; the unique index on (profile, slot)
@@ -12,40 +14,59 @@ namespace MorningInk.Application.Publishing;
 public sealed class ProfileLocks
 {
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _locks = new();
+    private readonly ConcurrentDictionary<Guid, ProfileLease> _held = new();
 
-    /// <summary>Takes the lock if it is free; dispose the result to release it.</summary>
-    public bool TryEnter(Guid profileId, out IDisposable release)
+    /// <summary>Takes the lock if it is free; dispose the lease to release it.</summary>
+    public bool TryEnter(Guid profileId, [NotNullWhen(true)] out ProfileLease? lease)
     {
         var semaphore = _locks.GetOrAdd(profileId, _ => new SemaphoreSlim(1, 1));
         if (!semaphore.Wait(0))
         {
-            release = Released.Instance;
+            lease = null;
             return false;
         }
 
-        release = new Releaser(semaphore);
+        lease = new ProfileLease(() =>
+        {
+            _held.TryRemove(profileId, out _);
+            semaphore.Release();
+        });
+        _held[profileId] = lease;
         return true;
     }
 
-    private sealed class Releaser(SemaphoreSlim semaphore) : IDisposable
+    /// <summary>Asks the run holding the profile's lock to stop; false when none holds it.</summary>
+    public bool Cancel(Guid profileId)
     {
-        private int _released;
-
-        public void Dispose()
+        if (!_held.TryGetValue(profileId, out var lease))
         {
-            if (Interlocked.Exchange(ref _released, 1) == 0)
-            {
-                semaphore.Release();
-            }
+            return false;
+        }
+
+        lease.Cancel();
+        return true;
+    }
+}
+
+/// <summary>A held profile lock; <see cref="CancelRequested"/> fires when someone cancels the run.</summary>
+public sealed class ProfileLease : IDisposable
+{
+    // Not disposed: without timers or a wait handle a token source holds nothing to free, and a late Cancel stays harmless.
+    private readonly CancellationTokenSource _cancel = new();
+    private readonly Action _release;
+    private int _released;
+
+    internal ProfileLease(Action release) => _release = release;
+
+    public CancellationToken CancelRequested => _cancel.Token;
+
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _released, 1) == 0)
+        {
+            _release();
         }
     }
 
-    private sealed class Released : IDisposable
-    {
-        public static readonly Released Instance = new();
-
-        public void Dispose()
-        {
-        }
-    }
+    internal void Cancel() => _cancel.Cancel();
 }

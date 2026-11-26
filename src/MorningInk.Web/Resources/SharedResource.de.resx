@@ -700,4 +700,41 @@
   <data name="Sources_TitlePatternHint" xml:space="preserve"><value>Ein regulärer Ausdruck, gesucht nur in der Überschrift, egal ob groß oder klein: „^\w+$“ lässt Einträge weg, deren Titel nur ein Wort ist. Leer behält jeden Titel.</value></data>
   <data name="Sources_Reason_TitlePattern" xml:space="preserve"><value>Titel passt zum Muster</value></data>
   <data name="Error_TitlePatternInvalid" xml:space="preserve"><value>Das Titelmuster ist kein gültiger regulärer Ausdruck oder länger als 200 Zeichen. Rückverweise und Lookarounds gehen nicht.</value></data>
+  <data name="Status_Cancelled" xml:space="preserve"><value>Abgebrochen</value></data>
+  <data name="Log_Cancelled" xml:space="preserve"><value>Von Hand abgebrochen: nichts verschickt</value></data>
+  <data name="Dash_Cancel" xml:space="preserve"><value>Abbrechen</value></data>
+  <data name="Dash_CancelRequested" xml:space="preserve"><value>Die Ausgabe wird abgebrochen.</value></data>
+  <data name="Dash_NothingToCancel" xml:space="preserve"><value>Nichts abzubrechen: Die Ausgabe ist schon fertig.</value></data>
+  <data name="Nav_Jobs" xml:space="preserve"><value>Jobs</value></data>
+  <data name="System_Title" xml:space="preserve"><value>Status</value></data>
+  <data name="System_Lede" xml:space="preserve"><value>Was Morning Ink gerade tut, was als Nächstes kommt und wie viel Platz es braucht, für alle Benutzer.</value></data>
+  <data name="System_Running" xml:space="preserve"><value>Läuft gerade</value></data>
+  <data name="System_NoneRunning" xml:space="preserve"><value>Gerade läuft nichts.</value></data>
+  <data name="System_Planned" xml:space="preserve"><value>Geplant</value></data>
+  <data name="System_NonePlanned" xml:space="preserve"><value>Nichts geplant.</value></data>
+  <data name="System_Since" xml:space="preserve"><value>seit {0}</value></data>
+  <data name="System_When" xml:space="preserve"><value>Wann</value></data>
+  <data name="System_Job" xml:space="preserve"><value>Job</value></data>
+  <data name="System_Edition" xml:space="preserve"><value>Ausgabe</value></data>
+  <data name="System_User" xml:space="preserve"><value>Benutzer</value></data>
+  <data name="System_TimeHint" xml:space="preserve"><value>Zeiten in der Zeitzone der Ausgabe, das Aufräumen in UTC.</value></data>
+  <data name="JobKind_Daily" xml:space="preserve"><value>Ausgabe zur Lieferzeit</value></data>
+  <data name="JobKind_Build" xml:space="preserve"><value>Vorab bauen</value></data>
+  <data name="JobKind_CatchUp" xml:space="preserve"><value>Verpasste Ausgabe nachholen</value></data>
+  <data name="JobKind_Now" xml:space="preserve"><value>Jetzt senden</value></data>
+  <data name="JobKind_Retry" xml:space="preserve"><value>Zustellung wiederholen</value></data>
+  <data name="JobKind_AfterBuild" xml:space="preserve"><value>Zustellung nach dem Bau</value></data>
+  <data name="JobKind_Cleanup" xml:space="preserve"><value>Aufräumen</value></data>
+  <data name="JobKind_Other" xml:space="preserve"><value>Sonstiges</value></data>
+  <data name="System_Storage" xml:space="preserve"><value>Speicher</value></data>
+  <data name="System_StorageHint" xml:space="preserve"><value>Im Datenverzeichnis; das Aufräumen löscht jede Nacht alte Ausgaben und Bilder.</value></data>
+  <data name="System_Area" xml:space="preserve"><value>Bereich</value></data>
+  <data name="System_Files" xml:space="preserve"><value>Dateien</value></data>
+  <data name="System_Size" xml:space="preserve"><value>Größe</value></data>
+  <data name="System_Total" xml:space="preserve"><value>Gesamt</value></data>
+  <data name="System_Free" xml:space="preserve"><value>Frei auf dem Volume</value></data>
+  <data name="StorageArea_Database" xml:space="preserve"><value>Datenbank</value></data>
+  <data name="StorageArea_Issues" xml:space="preserve"><value>Ausgaben</value></data>
+  <data name="StorageArea_Images" xml:space="preserve"><value>Bilder</value></data>
+  <data name="StorageArea_Backups" xml:space="preserve"><value>Backups</value></data>
 </root>

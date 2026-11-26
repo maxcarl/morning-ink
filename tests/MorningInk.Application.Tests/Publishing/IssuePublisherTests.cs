@@ -813,6 +813,57 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task Cancelled_build_stops_and_its_slot_is_not_built_again()
+    {
+        // Cancelled while a slow source is asked; a real fetch then throws, as this one does.
+        _sources.Results[_heise.Id] = () =>
+        {
+            Assert.True(_locks.Cancel(_profile.Id));
+            throw new OperationCanceledException();
+        };
+
+        Assert.IsType<PublishResult.Cancelled>(await PublishAsync());
+        Answer(_heise, Articles("https://heise.de/x"));
+        Assert.IsType<PublishResult.Cancelled>(await PublishAsync()); // the delivery trigger or a restart comes later
+
+        var issue = Assert.Single(_store.Issues);
+        Assert.Equal(IssueStatus.Cancelled, issue.Status);
+        Assert.Contains(issue.Log, e => e.Event == "Cancelled");
+        Assert.Empty(issue.Entries);
+        Assert.Empty(_delivery.Requests);
+        Assert.Empty(_seen.Seen);
+    }
+
+    [Fact]
+    public async Task Issue_left_building_without_a_run_is_cancelled_directly()
+    {
+        var left = new Issue { ProfileId = _profile.Id, Number = 7, ScheduledFor = Slot, CreatedAt = Slot };
+        _store.AddIssue(left);
+
+        Assert.True(await CreatePublisher().CancelAsync(_profile.Id, CancellationToken.None));
+
+        Assert.Equal(IssueStatus.Cancelled, left.Status);
+        Assert.False(await CreatePublisher().CancelAsync(_profile.Id, CancellationToken.None)); // nothing left
+    }
+
+    [Fact]
+    public async Task Stop_on_shutdown_is_no_cancel_and_the_issue_is_built_again()
+    {
+        using var shutdown = new CancellationTokenSource();
+        _sources.Results[_heise.Id] = () =>
+        {
+            shutdown.Cancel();
+            throw new OperationCanceledException(shutdown.Token);
+        };
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => CreatePublisher().PublishAsync(_profile.Id, Slot, shutdown.Token));
+        Assert.Equal(IssueStatus.Building, Assert.Single(_store.Issues).Status);
+
+        Answer(_heise, Articles("https://heise.de/x"));
+        Assert.IsType<PublishResult.Delivered>(await PublishAsync());
+    }
+
+    [Fact]
     public async Task Unknown_profile_is_reported() =>
         Assert.IsType<PublishResult.ProfileNotFound>(await CreatePublisher().PublishAsync(Guid.NewGuid(), Slot, CancellationToken.None));
 

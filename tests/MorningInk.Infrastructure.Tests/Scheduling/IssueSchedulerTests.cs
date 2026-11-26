@@ -121,6 +121,23 @@ public sealed class IssueSchedulerTests : IDisposable
     }
 
     [Fact]
+    public async Task Jobs_overview_lists_planned_issues_with_their_edition_and_owner()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0), leadTime: TimeSpan.FromHours(1));
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        await using var scope = services.CreateAsyncScope();
+        var view = await scope.ServiceProvider.GetRequiredService<JobsOverview>().LoadAsync(CancellationToken.None);
+
+        Assert.Empty(view.Running);
+        var planned = view.Planned.Where(j => j.ProfileId == profileId).ToList();
+        Assert.Equal([JobKind.Build, JobKind.Daily], planned.Select(j => j.Kind)); // the build an hour before the delivery
+        Assert.All(planned, j => Assert.Equal(("Morning Ink", "alex", "Europe/Berlin"), (j.Edition, j.Owner, j.TimeZoneId)));
+    }
+
+    [Fact]
     public async Task Rescheduling_does_not_add_a_second_daily_trigger()
     {
         await using var services = await StartAsync();

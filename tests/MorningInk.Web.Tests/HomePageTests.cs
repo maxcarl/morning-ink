@@ -153,6 +153,20 @@ public sealed class HomePageTests : IDisposable
         Assert.Contains("status-warn\">Failing since", sources.Markup, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task Issue_left_building_by_a_restart_is_cancelled_from_the_overview()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        await AddIssueAsync(issue => issue.AddLog(DateTimeOffset.UtcNow, "Started")); // no run works on it
+
+        var page = pages.Open<Home>("Being built");
+        Pages.Button(page, "Cancel").Click();
+
+        Pages.Shows(page, "The issue is being cancelled.");
+        Pages.Shows(page, ">Cancelled<");
+        Assert.DoesNotContain(page.FindAll("button"), b => b.TextContent.Trim().StartsWith("Cancel", StringComparison.Ordinal));
+    }
+
     public void Dispose() => _app.Dispose();
 
     private static Task<Guid> UserIdAsync(AsyncServiceScope scope) =>

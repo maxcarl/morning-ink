@@ -96,6 +96,11 @@
                         </button>
                     }
                 </div>
+                @if (issue.Status == IssueStatus.Building)
+                {
+                    @* Also for an issue left building by a restart: nothing would ever finish it. *@
+                    <p class="issue-note"><button type="button" class="link-button link-danger" @onclick="() => CancelAsync(issue.ProfileId)">@T["Dash_Cancel"]<span class="visually-hidden"> – @T["Dash_IssueTitle", issue.Number]</span></button></p>
+                }
                 @if (issue.Error is not null && issue.Status == IssueStatus.Failed)
                 {
                     <p class="issue-note issue-note-error">@DeliveryTexts.Describe(T, issue.ErrorReason, issue.ErrorArguments, issue.Error)</p>
@@ -228,6 +233,13 @@
         }
     }
 
+    // A running build stops in a moment and the follow loop shows it; one left behind is cancelled at once.
+    private async Task CancelAsync(Guid profileId)
+    {
+        _notice = await UseAsync<Newsroom, bool>(newsroom => newsroom.CancelAsync(UserId, profileId, Closed)) ? T["Dash_CancelRequested"] : T["Dash_NothingToCancel"];
+        await ReloadAsync();
+    }
+
     // The issue is built in the background; look for it until it is done, so the page shows how it went.
     private async Task FollowAsync(DateTimeOffset since)
     {
@@ -253,7 +265,7 @@
                 await ReloadAsync();
                 StateHasChanged();
                 // Rendered comes between building and sending: done only once delivered, failed or empty.
-                if (status is IssueStatus.Delivered or IssueStatus.Failed or IssueStatus.Empty)
+                if (status is IssueStatus.Delivered or IssueStatus.Failed or IssueStatus.Empty or IssueStatus.Cancelled)
                 {
                     break;
                 }

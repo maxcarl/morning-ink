@@ -21,6 +21,9 @@ public abstract record PublishResult
 
     public sealed record ProfileNotFound : PublishResult;
 
+    /// <summary>Cancelled by hand, now or before; the slot is not built again.</summary>
+    public sealed record Cancelled(Guid IssueId) : PublishResult;
+
     /// <summary>No new articles; nothing was sent.</summary>
     public sealed record NoNewArticles(Guid IssueId, IReadOnlyList<SourceProblem> UnavailableSources) : PublishResult;
 

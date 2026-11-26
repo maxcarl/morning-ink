@@ -54,6 +54,11 @@
                                 <button type="button" class="link-button" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
                             }
                         }
+                        else if (issue.Status == IssueStatus.Building)
+                        {
+                            @* Also for an issue left building by a restart: nothing would ever finish it. *@
+                            <button type="button" class="link-button link-danger" @onclick="() => CancelAsync(issue.ProfileId)">@T["Dash_Cancel"]<span class="visually-hidden"> – @name</span></button>
+                        }
                         else
                         {
                             <span class="muted">@T["Archive_FileGone"]</span>
@@ -153,6 +158,13 @@
         {
             _sendingId = null;
         }
+    }
+
+    private async Task CancelAsync(Guid profileId)
+    {
+        _error = null;
+        _notice = await UseAsync<Newsroom, bool>(newsroom => newsroom.CancelAsync(UserId, profileId, Closed)) ? T["Dash_CancelRequested"] : T["Dash_NothingToCancel"];
+        await ReloadAsync();
     }
 
     private async Task TogglePinAsync(Issue issue)

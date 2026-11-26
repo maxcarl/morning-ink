@@ -125,6 +125,8 @@ public static class DependencyInjection
         services.AddScoped<Profiles.SectionEditor>();
         services.AddScoped<Profiles.Newsroom>();
         services.AddScoped<Profiles.IssueStatistics>();
+        services.AddScoped<JobsOverview>();
+        services.AddSingleton<DiskUsage>();
         services.AddScoped<Profiles.Onboarding>();
         services.AddScoped<Profiles.IssueArchive>();
         services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));

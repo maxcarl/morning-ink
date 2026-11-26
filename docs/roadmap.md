@@ -64,6 +64,7 @@ Private source types (newsletters, calendar, Home Assistant, sources with a logi
 ## Operations
 
 - PostgreSQL as an alternative to SQLite
+- Status page: warn when the data directory grows past a set size or the volume runs low; `/health` also checks the scheduler and free space
 - Backup and restore from the web UI, also on a schedule
 - Export and import of the whole configuration as YAML, to keep it in Git; secrets from environment variables or Docker secrets
 - REST API and webhooks, Home Assistant integration

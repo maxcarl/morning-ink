@@ -33,6 +33,9 @@ internal sealed class FakeStore(Profile profile, string language = "de") : IPubl
     public Task<Issue?> FindIssueAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken) =>
         Task.FromResult(Issues.SingleOrDefault(i => i.ProfileId == profileId && i.ScheduledFor == scheduledFor));
 
+    public Task<IReadOnlyList<Issue>> ListBuildingIssuesAsync(Guid profileId, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Issue>>(Issues.Where(i => i.ProfileId == profileId && i.Status == IssueStatus.Building).ToList());
+
     public Task<int> NextIssueNumberAsync(Guid profileId, CancellationToken cancellationToken) =>
         Task.FromResult(Issues.Where(i => i.ProfileId == profileId).Select(i => i.Number).DefaultIfEmpty(0).Max() + 1);
 

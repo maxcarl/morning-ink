@@ -14,6 +14,9 @@ public interface IPublishingStore
     /// <summary>Finds the issue of a profile for a slot, with its entries.</summary>
     Task<Issue?> FindIssueAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken);
 
+    /// <summary>The profile's issues still marked as building, for cancelling ones no run works on any more.</summary>
+    Task<IReadOnlyList<Issue>> ListBuildingIssuesAsync(Guid profileId, CancellationToken cancellationToken);
+
     /// <summary>The number the next issue of the profile gets.</summary>
     Task<int> NextIssueNumberAsync(Guid profileId, CancellationToken cancellationToken);
 

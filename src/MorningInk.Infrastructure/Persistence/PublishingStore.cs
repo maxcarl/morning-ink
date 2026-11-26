@@ -60,6 +60,9 @@ internal sealed class PublishingStore(MorningInkDbContext db, TimeProvider time)
             .AsSplitQuery()
             .SingleOrDefaultAsync(i => i.ProfileId == profileId && i.ScheduledFor == scheduledFor, cancellationToken);
 
+    public async Task<IReadOnlyList<Issue>> ListBuildingIssuesAsync(Guid profileId, CancellationToken cancellationToken) =>
+        await db.Issues.Where(i => i.ProfileId == profileId && i.Status == IssueStatus.Building).ToListAsync(cancellationToken);
+
     public async Task<int> NextIssueNumberAsync(Guid profileId, CancellationToken cancellationToken) =>
         (await db.Issues.Where(i => i.ProfileId == profileId).MaxAsync(i => (int?)i.Number, cancellationToken) ?? 0) + 1;
 

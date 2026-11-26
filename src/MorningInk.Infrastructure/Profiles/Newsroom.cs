@@ -27,13 +27,14 @@ public sealed record Edition(Profile Profile, DateTimeOffset NextIssue, int Next
 /// <param name="AilingSources">Names of the user's sources failing or empty for days, see <see cref="SourceHealth"/>.</param>
 public sealed record NewsroomView(IReadOnlyList<Edition> Editions, IReadOnlyList<Issue> Issues, bool MailServerSet, IReadOnlyList<string> AilingSources);
 
-/// <summary>The dashboard's data and its one action, "send now".</summary>
+/// <summary>The dashboard's data and its actions, "send now" and cancelling an issue being built.</summary>
 public sealed class Newsroom(
     MorningInkDbContext db,
     ProfileEditor profiles,
     MailSettingsStore mail,
     ISchedulerFactory schedulers,
     IssueScheduler issues,
+    IssuePublisher publisher,
     TimeProvider time)
 {
     private const int RecentIssues = 10;
@@ -100,4 +101,10 @@ public sealed class Newsroom(
         await issues.SendNowAsync(scheduler, new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days, profile.LeadTime), cancellationToken);
         return true;
     }
+
+    /// <summary>Cancels the issue the user's profile is building, see <see cref="IssuePublisher.CancelAsync"/>.</summary>
+    /// <returns>False when the profile is not the user's or nothing was being built.</returns>
+    public async Task<bool> CancelAsync(Guid userId, Guid profileId, CancellationToken cancellationToken) =>
+        await profiles.FindAsync(userId, profileId, cancellationToken) is not null
+        && await publisher.CancelAsync(profileId, cancellationToken);
 }

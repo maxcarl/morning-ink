@@ -8,7 +8,7 @@ namespace MorningInk.Application.Publishing;
 /// <summary>
 /// Publishes the issue of a profile for one slot: build it (<see cref="IssueBuilder"/>), render it, bring it out
 /// (<see cref="IssueRelease"/>). Each slot is published at most once, one run per profile at a time, and a failed
-/// delivery sends the same file again.
+/// delivery sends the same file again. A run can be cancelled while it builds, see <see cref="CancelAsync"/>.
 /// </summary>
 public sealed class IssuePublisher(
     IPublishingStore store,
@@ -29,14 +29,39 @@ public sealed class IssuePublisher(
     /// <param name="prepareOnly">Build and render, but do not send: the run at the delivery time sends the file (lead time).</param>
     public async Task<PublishResult> PublishAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken, bool prepareOnly = false)
     {
-        if (!locks.TryEnter(profileId, out var release))
+        if (!locks.TryEnter(profileId, out var lease))
         {
             return new PublishResult.AlreadyRunning();
         }
 
-        using (release)
+        using (lease)
         {
-            return await PublishLockedAsync(profileId, scheduledFor.ToUniversalTime(), prepareOnly, cancellationToken);
+            return await PublishLockedAsync(profileId, scheduledFor.ToUniversalTime(), prepareOnly, lease.CancelRequested, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Stops the profile's issue that is being built. With a run at work, the run stops and marks it cancelled;
+    /// without one, an issue still marked as building was left behind (a restart in the middle) and is marked here.
+    /// </summary>
+    /// <returns>False when there was nothing to cancel.</returns>
+    public async Task<bool> CancelAsync(Guid profileId, CancellationToken cancellationToken)
+    {
+        if (!locks.TryEnter(profileId, out var lease))
+        {
+            return locks.Cancel(profileId);
+        }
+
+        using (lease)
+        {
+            var left = await store.ListBuildingIssuesAsync(profileId, cancellationToken);
+            foreach (var issue in left)
+            {
+                MarkCancelled(issue);
+            }
+
+            await store.SaveChangesAsync(cancellationToken);
+            return left.Count > 0;
         }
     }
 
@@ -81,7 +106,7 @@ public sealed class IssuePublisher(
         return new PreviewResult.Built(output.ToArray(), renderer.FileExtension, renderer.MediaType, problems) { Log = draft.Log };
     }
 
-    private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, bool prepareOnly, CancellationToken cancellationToken)
+    private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, bool prepareOnly, CancellationToken cancelRequested, CancellationToken cancellationToken)
     {
         if (await store.LoadProfileAsync(profileId, cancellationToken) is not { } loaded)
         {
@@ -95,6 +120,8 @@ public sealed class IssuePublisher(
                 return new PublishResult.AlreadyDelivered(issue.Id);
             case IssueStatus.Empty:
                 return new PublishResult.NoNewArticles(issue.Id, []);
+            case IssueStatus.Cancelled:
+                return new PublishResult.Cancelled(issue.Id);
         }
 
         var profile = loaded.Profile;
@@ -121,22 +148,35 @@ public sealed class IssuePublisher(
             issue.AddLog(time.GetUtcNow(), prepareOnly ? "StartedAhead" : "Started");
             await store.SaveChangesAsync(cancellationToken);
 
-            var content = await builder.BuildAsync(loaded, issue, localTime, problems, withAi: true, cancellationToken);
-            if (content is null)
+            // Cancelling by hand covers the slow part, fetching and AI, plus rendering; sending is short and not cut off.
+            using var building = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancelRequested);
+            try
             {
-                issue.Status = IssueStatus.Empty;
-
-                // Too few articles already said why, and they were not "no new ones".
-                if (issue.Log.LastOrDefault()?.Event != "TooFewArticles")
+                var content = await builder.BuildAsync(loaded, issue, localTime, problems, withAi: true, building.Token);
+                if (content is null)
                 {
-                    issue.AddLog(time.GetUtcNow(), "NoNewArticles");
+                    issue.Status = IssueStatus.Empty;
+
+                    // Too few articles already said why, and they were not "no new ones".
+                    if (issue.Log.LastOrDefault()?.Event != "TooFewArticles")
+                    {
+                        issue.AddLog(time.GetUtcNow(), "NoNewArticles");
+                    }
+
+                    await store.SaveChangesAsync(cancellationToken);
+                    return new PublishResult.NoNewArticles(issue.Id, problems);
                 }
 
-                await store.SaveChangesAsync(cancellationToken);
-                return new PublishResult.NoNewArticles(issue.Id, problems);
+                await RenderAsync(issue, content, renderer, building.Token);
             }
-
-            await RenderAsync(issue, content, renderer, cancellationToken);
+            catch (OperationCanceledException) when (cancelRequested.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                // A stop on shutdown is no cancel by hand: it leaves "Building", so the next run builds the issue again.
+                File.Delete(files.PathFor($"{issue.Id}{renderer.FileExtension}"));
+                MarkCancelled(issue);
+                await store.SaveChangesAsync(cancellationToken);
+                return new PublishResult.Cancelled(issue.Id);
+            }
         }
 
         if (prepareOnly)
@@ -147,6 +187,16 @@ public sealed class IssuePublisher(
         }
 
         return await release.ReleaseAsync(issue, loaded, renderer, IssueContent.BookTitleFor(profile.Title, localTime), problems, cancellationToken);
+    }
+
+    // No entries: they would count as seen once the issue is out, and this one never goes out.
+    private void MarkCancelled(Issue issue)
+    {
+        issue.Status = IssueStatus.Cancelled;
+        issue.Entries.Clear();
+        issue.FileName = null;
+        issue.FileSize = null;
+        issue.AddLog(time.GetUtcNow(), "Cancelled");
     }
 
     private bool HasRenderedFile(Issue issue) =>
