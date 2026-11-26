@@ -14,7 +14,7 @@
 <header class="page-header">
     <h1>@T["System_Title"]</h1>
     <p class="lede">@T["System_Lede"]</p>
-    <Messages Notice="@_notice" />
+    <Messages Notice="@_notice" Error="@_error" />
 </header>
 
 @if (_view is { } view)
@@ -119,6 +119,8 @@
             </tbody>
         </table>
         </div>
+        <p class="hint" id="clear-images-hint">@T["System_ClearImagesHint"]</p>
+        <button type="button" class="button button-secondary" aria-describedby="clear-images-hint" @onclick="ClearImages">@T["System_ClearImages"]</button>
     </section>
 }
 
@@ -129,6 +131,7 @@
     private JobsView? _view;
     private StorageReport? _storage;
     private string? _notice;
+    private string? _error;
 
     protected override async Task LoadAsync()
     {
@@ -139,8 +142,17 @@
     // ponytail: the list is as of opening or the last cancel; reload the page for news, auto-refresh if that gets tedious.
     private async Task CancelAsync(Guid profileId)
     {
+        _error = null;
         _notice = await UseAsync<JobsOverview, bool>(jobs => jobs.CancelAsync(profileId, Closed)) ? T["Dash_CancelRequested"] : T["Dash_NothingToCancel"];
         await LoadAsync();
+    }
+
+    private void ClearImages()
+    {
+        var deleted = Disk.ClearImages();
+        _notice = deleted is { } count ? T["System_ImagesCleared", count].Value : null;
+        _error = deleted is null ? T["System_ImagesBusy"].Value : null;
+        _storage = Disk.Measure();
     }
 
     private static DateTimeOffset Local(JobRow job) => TimeZoneInfo.ConvertTime(job.At, ProfileTimeZone.Find(job.TimeZoneId));

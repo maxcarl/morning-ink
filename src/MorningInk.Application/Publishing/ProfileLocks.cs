@@ -35,6 +35,9 @@ public sealed class ProfileLocks
         return true;
     }
 
+    /// <summary>Whether any profile's lock is held, i.e. an issue is being built or sent right now.</summary>
+    public bool AnyHeld => !_held.IsEmpty;
+
     /// <summary>Asks the run holding the profile's lock to stop; false when none holds it.</summary>
     public bool Cancel(Guid profileId)
     {

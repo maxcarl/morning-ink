@@ -737,4 +737,8 @@
   <data name="StorageArea_Issues" xml:space="preserve"><value>Issues</value></data>
   <data name="StorageArea_Images" xml:space="preserve"><value>Images</value></data>
   <data name="StorageArea_Backups" xml:space="preserve"><value>Backups</value></data>
+  <data name="System_ClearImages" xml:space="preserve"><value>Clear the image cache</value></data>
+  <data name="System_ClearImagesHint" xml:space="preserve"><value>Converted article images are only needed until an issue is built; built issues keep theirs. The cleanup deletes them every night after a few days anyway.</value></data>
+  <data name="System_ImagesCleared" xml:space="preserve"><value>{0} images deleted.</value></data>
+  <data name="System_ImagesBusy" xml:space="preserve"><value>An issue is being built right now and needs its images. Try again in a few minutes.</value></data>
 </root>

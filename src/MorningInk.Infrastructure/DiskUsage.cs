@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using MorningInk.Application.Publishing;
 
 namespace MorningInk.Infrastructure;
 
@@ -23,8 +24,8 @@ public sealed record StorageReport(IReadOnlyList<StorageUse> Areas, long? FreeBy
     public long TotalBytes => Areas.Sum(a => a.Bytes);
 }
 
-/// <summary>How much space Morning Ink takes in its data directory, for the admin's status page.</summary>
-public sealed class DiskUsage(IOptions<StorageOptions> options)
+/// <summary>How much space Morning Ink takes in its data directory, and clearing the image cache; for the admin's status page.</summary>
+public sealed class DiskUsage(IOptions<StorageOptions> options, ProfileLocks locks)
 {
     /// <remarks>Reads only sizes, no contents; even thousands of images take a moment at most.</remarks>
     public StorageReport Measure()
@@ -39,6 +40,42 @@ public sealed class DiskUsage(IOptions<StorageOptions> options)
                 Measure(StorageArea.Backups, storage.BackupDirectory),
             ],
             FreeSpace(storage.DataDirectoryPath));
+    }
+
+    /// <summary>
+    /// Deletes all converted images ahead of the nightly cleanup. They are only needed until an issue is rendered and
+    /// live in its EPUB after that, so archived issues keep theirs.
+    /// </summary>
+    /// <returns>The number deleted; null while an issue is being built, since rendering reads the images from disk.</returns>
+    /// <remarks>ponytail: a build starting during the deletion just goes without the images deleted under it.</remarks>
+    public int? ClearImages()
+    {
+        var directory = options.Value.ImageDirectory;
+        if (locks.AnyHeld)
+        {
+            return null;
+        }
+
+        if (!Directory.Exists(directory))
+        {
+            return 0;
+        }
+
+        var deleted = 0;
+        foreach (var file in new DirectoryInfo(directory).EnumerateFiles())
+        {
+            try
+            {
+                file.Delete();
+                deleted++;
+            }
+            catch (IOException)
+            {
+                // Still open somewhere: the nightly cleanup gets it.
+            }
+        }
+
+        return deleted;
     }
 
     private static StorageUse Measure(StorageArea area, string directory, string pattern = "*", SearchOption depth = SearchOption.AllDirectories)
