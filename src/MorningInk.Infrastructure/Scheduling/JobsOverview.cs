@@ -38,11 +38,12 @@ public enum JobKind
 /// <param name="ProfileId">The edition an issue job is for; null for the cleanup.</param>
 /// <param name="Edition">The edition's title, null for the cleanup.</param>
 /// <param name="Owner">The name of the edition's user, null for the cleanup.</param>
-public sealed record JobRow(JobKind Kind, DateTimeOffset At, Guid? ProfileId, string? Edition, string? Owner);
+/// <param name="TimeZoneId">The edition's time zone, the one its times were planned in; null for the cleanup.</param>
+public sealed record JobRow(JobKind Kind, DateTimeOffset At, Guid? ProfileId, string? Edition, string? Owner, string? TimeZoneId);
 
 /// <param name="Running">Jobs at work now, the longest running first.</param>
 /// <param name="Planned">Triggers still to fire, the next first.</param>
-/// <param name="TimeZoneId">One zone for all times on the page, the viewer's first edition's: in each edition's own zone the list would look out of order.</param>
+/// <param name="TimeZoneId">The viewer's first edition's time zone, for jobs without an edition of their own (the cleanup).</param>
 public sealed record JobsView(IReadOnlyList<JobRow> Running, IReadOnlyList<JobRow> Planned, string TimeZoneId);
 
 /// <summary>
@@ -70,7 +71,7 @@ public sealed class JobsOverview(ISchedulerFactory schedulers, MorningInkDbConte
         var ids = running.Select(j => j.Profile).Concat(planned.Select(j => j.Profile)).OfType<Guid>().Distinct().ToList();
         var editions = await db.Profiles.AsNoTracking()
             .Where(p => ids.Contains(p.Id))
-            .Join(db.DomainUsers, p => p.UserId, u => u.Id, (p, u) => new { p.Id, p.Title, p.UserId, Owner = u.Name })
+            .Join(db.DomainUsers, p => p.UserId, u => u.Id, (p, u) => new { p.Id, p.Title, p.UserId, Owner = u.Name, p.TimeZoneId })
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
         // Jobs without an edition of the viewer, the cleanup among them, only for an admin.
@@ -81,8 +82,8 @@ public sealed class JobsOverview(ISchedulerFactory schedulers, MorningInkDbConte
             jobs.Where(j => Shown(j.Profile))
                 .OrderBy(j => j.At)
                 .Select(j => j.Profile is { } id && editions.TryGetValue(id, out var e)
-                    ? new JobRow(j.Kind, j.At, id, e.Title, e.Owner)
-                    : new JobRow(j.Kind, j.At, j.Profile, null, null))
+                    ? new JobRow(j.Kind, j.At, id, e.Title, e.Owner, e.TimeZoneId)
+                    : new JobRow(j.Kind, j.At, j.Profile, null, null, null))
                 .ToList();
 
         var zone = await db.Profiles.AsNoTracking()

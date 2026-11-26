@@ -713,7 +713,7 @@
   <data name="System_Planned" xml:space="preserve"><value>Planned</value></data>
   <data name="System_NonePlanned" xml:space="preserve"><value>Nothing is planned.</value></data>
   <data name="System_Since" xml:space="preserve"><value>since {0}</value></data>
-  <data name="System_TimeHint" xml:space="preserve"><value>Times in your edition's time zone.</value></data>
+  <data name="System_TimeHint" xml:space="preserve"><value>Each time in its edition's time zone, as it was planned.</value></data>
   <data name="JobKind_Daily" xml:space="preserve"><value>Issue at the delivery time</value></data>
   <data name="JobKind_Build" xml:space="preserve"><value>Build ahead</value></data>
   <data name="JobKind_CatchUp" xml:space="preserve"><value>Catch up a missed issue</value></data>

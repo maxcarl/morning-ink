@@ -1,9 +1,15 @@
 using System.Net;
 using Bunit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using MorningInk.Application.Publishing;
 using MorningInk.Infrastructure;
+using MorningInk.Infrastructure.Persistence;
+using MorningInk.Infrastructure.Profiles;
+using MorningInk.Infrastructure.Scheduling;
 using MorningInk.Web.Components.Pages;
+using Quartz;
 
 namespace MorningInk.Web.Tests;
 
@@ -22,6 +28,24 @@ public sealed class StatusPageTests : IDisposable
         Assert.Contains("Nothing is running.", page.Markup, StringComparison.Ordinal);
         Assert.Contains("<th scope=\"row\">Database</th>", page.Markup, StringComparison.Ordinal);
         Assert.Contains("<th scope=\"row\">Total</th>", page.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Each_time_stands_in_its_editions_zone_and_the_zone_is_named_when_they_differ()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        await _app.SignedInUserAsync("erika");
+        await PlanEditionAsync(TestApp.AdminName, "Europe/Berlin");
+        await PlanEditionAsync("erika", "America/New_York");
+
+        var page = pages.Open<SystemStatus>("Planned");
+
+        // As each edition was set, not converted into the viewer's zone; ICU may put a narrow space before "AM".
+        page.WaitForAssertion(() =>
+        {
+            Assert.Matches(@"6:00\W+AM \(Europe/Berlin\)", page.Markup);
+            Assert.Matches(@"6:00\W+AM \(America/New_York\)", page.Markup);
+        });
     }
 
     [Fact]
@@ -68,4 +92,19 @@ public sealed class StatusPageTests : IDisposable
     }
 
     public void Dispose() => _app.Dispose();
+
+    // The user's edition, delivered daily at 6:00 in the given zone and planned like after saving it.
+    private async Task PlanEditionAsync(string userName, string timeZoneId)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+        var userId = await db.DomainUsers.Where(u => u.Name == userName).Select(u => u.Id).SingleAsync();
+        var profile = await scope.ServiceProvider.GetRequiredService<ProfileEditor>().GetOrCreateAsync(userId, CancellationToken.None);
+        var tracked = await db.Profiles.SingleAsync(p => p.Id == profile.Id);
+        tracked.TimeZoneId = timeZoneId;
+        tracked.DeliveryTime = new TimeOnly(6, 0);
+        await db.SaveChangesAsync();
+        var scheduler = await scope.ServiceProvider.GetRequiredService<ISchedulerFactory>().GetScheduler();
+        await scope.ServiceProvider.GetRequiredService<IssueScheduler>().ScheduleAsync(scheduler, new ProfileSchedule(tracked.Id, tracked.DeliveryTime, timeZoneId), CancellationToken.None, catchUp: false);
+    }
 }

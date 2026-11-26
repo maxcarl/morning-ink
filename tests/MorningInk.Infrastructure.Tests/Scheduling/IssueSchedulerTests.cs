@@ -137,7 +137,7 @@ public sealed class IssueSchedulerTests : IDisposable
         Assert.Empty(view.Running);
         Assert.Equal("Europe/Berlin", view.TimeZoneId);
         Assert.Equal([JobKind.Build, JobKind.Daily], view.Planned.Select(j => j.Kind)); // the build an hour before the delivery
-        Assert.All(view.Planned, j => Assert.Equal(("Morning Ink", "alex"), (j.Edition, j.Owner)));
+        Assert.All(view.Planned, j => Assert.Equal(("Morning Ink", "alex", "Europe/Berlin"), (j.Edition, j.Owner, j.TimeZoneId)));
         Assert.Empty((await jobs.LoadAsync(Guid.NewGuid(), everyone: false, CancellationToken.None)).Planned); // another user sees none of them
         Assert.Equal(2, (await jobs.LoadAsync(Guid.NewGuid(), everyone: true, CancellationToken.None)).Planned.Count(j => j.ProfileId == profileId));
     }

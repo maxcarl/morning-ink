@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Identity;
 using MorningInk.Infrastructure.Persistence;
+using Quartz;
 
 namespace MorningInk.Web.Tests;
 
@@ -128,6 +129,10 @@ public sealed partial class TestApp : WebApplicationFactory<Program>
         }
 
         builder.UseEnvironment("Testing");
+
+        // Quartz keeps schedulers process-wide by name: with the default name, test apps running side by side would
+        // share one, and the first to stop would take the others' plans with it.
+        builder.ConfigureServices(services => services.Configure<QuartzOptions>(options => options.Properties["quartz.scheduler.instanceName"] = $"test-{Guid.NewGuid():N}"));
         if (_services is not null)
         {
             builder.ConfigureServices(_services);

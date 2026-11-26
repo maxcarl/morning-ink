@@ -713,7 +713,7 @@
   <data name="System_Planned" xml:space="preserve"><value>Geplant</value></data>
   <data name="System_NonePlanned" xml:space="preserve"><value>Nichts geplant.</value></data>
   <data name="System_Since" xml:space="preserve"><value>seit {0}</value></data>
-  <data name="System_TimeHint" xml:space="preserve"><value>Zeiten in der Zeitzone deiner Ausgabe.</value></data>
+  <data name="System_TimeHint" xml:space="preserve"><value>Jede Zeit in der Zeitzone ihrer Ausgabe, so wie sie geplant ist.</value></data>
   <data name="JobKind_Daily" xml:space="preserve"><value>Ausgabe zur Lieferzeit</value></data>
   <data name="JobKind_Build" xml:space="preserve"><value>Vorab bauen</value></data>
   <data name="JobKind_CatchUp" xml:space="preserve"><value>Verpasste Ausgabe nachholen</value></data>

@@ -36,7 +36,7 @@
                         <li class="row">
                             <div class="row-main">
                                 <div class="row-title">@T[$"JobKind_{job.Kind}"]</div>
-                                <div class="row-meta">@Who(job) · @T["System_Since", Clock.Time(T, Local(job))]</div>
+                                <div class="row-meta">@Who(job) · @T["System_Since", Clock.Time(T, Local(job))]@Zone(job)</div>
                             </div>
                             @if (job.ProfileId is { } profileId)
                             {
@@ -61,7 +61,7 @@
                     {
                         <li class="row">
                             <div class="row-main">
-                                <div class="row-title">@Clock.DateAndTime(T, Local(job))</div>
+                                <div class="row-title">@Clock.DateAndTime(T, Local(job))@Zone(job)</div>
                                 <div class="row-meta">@T[$"JobKind_{job.Kind}"] · @Who(job)</div>
                             </div>
                         </li>
@@ -233,7 +233,14 @@
         _storage = Disk.Measure();
     }
 
-    private DateTimeOffset Local(JobRow job) => TimeZoneInfo.ConvertTime(job.At, ProfileTimeZone.Find(_view?.TimeZoneId ?? TimeZoneInfo.Utc.Id));
+    // Each time in the zone it was planned in, its edition's, so a delivery set for 6:00 reads 6:00.
+    private string ZoneOf(JobRow job) => job.TimeZoneId ?? _view?.TimeZoneId ?? TimeZoneInfo.Utc.Id;
+
+    private DateTimeOffset Local(JobRow job) => TimeZoneInfo.ConvertTime(job.At, ProfileTimeZone.Find(ZoneOf(job)));
+
+    // With editions in several zones the zone is named, or "7:00" after "8:00" would look out of order.
+    private string? Zone(JobRow job) =>
+        _view is { } view && view.Running.Concat(view.Planned).Select(ZoneOf).Distinct().Skip(1).Any() ? $" ({ZoneOf(job)})" : null;
 
     // "0.4 MB", "1.2 GB": enough to see what grows.
     private static string Size(long bytes)
