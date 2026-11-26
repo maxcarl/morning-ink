@@ -813,6 +813,27 @@ public sealed class IssuePublisherTests : IDisposable
     }
 
     [Fact]
+    public async Task A_run_reports_its_steps_in_order_and_the_lock_knows_the_current_one()
+    {
+        var steps = new List<IssueStep>();
+        var seenWhileRunning = new List<IssueStep?>();
+        var progress = new InlineProgress(step =>
+        {
+            steps.Add(step);
+            seenWhileRunning.Add(_locks.StepOf(_profile.Id));
+        });
+
+        await CreatePublisher().PublishAsync(_profile.Id, Slot, CancellationToken.None, progress: progress);
+
+        Assert.Equal(
+            [IssueStage.Fetching, IssueStage.Interests, IssueStage.Processing, IssueStage.Headlines, IssueStage.Extras, IssueStage.Rendering, IssueStage.Sending],
+            steps.Select(s => s.Stage).Distinct());
+        Assert.Equal([(0, 2), (1, 2)], steps.Where(s => s.Stage == IssueStage.Fetching).Select(s => (s.Done, s.Total))); // two sources
+        Assert.Equal(steps.Cast<IssueStep?>(), seenWhileRunning); // the status page reads the same step
+        Assert.Null(_locks.StepOf(_profile.Id)); // nothing runs any more
+    }
+
+    [Fact]
     public async Task Cancelled_build_stops_and_its_slot_is_not_built_again()
     {
         // Cancelled while a slow source is asked; a real fetch then throws, as this one does.

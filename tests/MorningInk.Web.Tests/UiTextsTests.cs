@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using MorningInk.Application.Publishing;
 using MorningInk.Domain;
 using MorningInk.Infrastructure;
 using MorningInk.Infrastructure.Persistence;
@@ -29,6 +30,7 @@ public sealed partial class UiTextsTests : IDisposable
             .. Enum.GetNames<JobKind>().Select(n => $"JobKind_{n}"),
             .. Enum.GetNames<StorageArea>().Select(n => $"StorageArea_{n}"),
             .. Enum.GetNames<RestoreProblem>().Select(n => $"RestoreProblem_{n}"),
+            .. Enum.GetNames<IssueStage>().Select(n => $"IssueStage_{n}"),
         ]));
 
     public void Dispose() => _app.Dispose();

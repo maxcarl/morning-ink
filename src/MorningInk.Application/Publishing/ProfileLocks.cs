@@ -38,6 +38,9 @@ public sealed class ProfileLocks
     /// <summary>Whether any profile's lock is held, i.e. an issue is being built or sent right now.</summary>
     public bool AnyHeld => !_held.IsEmpty;
 
+    /// <summary>The step the run holding the profile's lock reported last; null when none runs or it has not begun.</summary>
+    public IssueStep? StepOf(Guid profileId) => _held.TryGetValue(profileId, out var lease) ? lease.Step : null;
+
     /// <summary>Asks the run holding the profile's lock to stop; false when none holds it.</summary>
     public bool Cancel(Guid profileId)
     {
@@ -58,10 +61,18 @@ public sealed class ProfileLease : IDisposable
     private readonly CancellationTokenSource _cancel = new();
     private readonly Action _release;
     private int _released;
+    private IssueStep? _step;
 
     internal ProfileLease(Action release) => _release = release;
 
     public CancellationToken CancelRequested => _cancel.Token;
+
+    /// <summary>Where the run stands; set by the run, read by the status page from another thread.</summary>
+    public IssueStep? Step
+    {
+        get => Volatile.Read(ref _step);
+        set => Volatile.Write(ref _step, value);
+    }
 
     public void Dispose()
     {

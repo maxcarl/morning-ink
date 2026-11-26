@@ -292,3 +292,9 @@ internal sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
 {
     public override DateTimeOffset GetUtcNow() => now;
 }
+
+/// <summary>Reports at once on the caller's thread, unlike <see cref="Progress{T}"/>, which posts later.</summary>
+internal sealed class InlineProgress(Action<IssueStep> report) : IProgress<IssueStep>
+{
+    public void Report(IssueStep value) => report(value);
+}

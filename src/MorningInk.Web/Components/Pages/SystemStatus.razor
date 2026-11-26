@@ -1,6 +1,7 @@
 @page "/status"
 @rendermode InteractiveServer
 @inherits InteractivePage
+@using MorningInk.Application.Publishing
 @using MorningInk.Application.Scheduling
 @using System.Globalization
 @using MorningInk.Domain
@@ -37,6 +38,10 @@
                             <div class="row-main">
                                 <div class="row-title">@T[$"JobKind_{job.Kind}"]</div>
                                 <div class="row-meta">@Who(job) · @T["System_Since", Clock.Time(T, Local(job))]@Zone(job)</div>
+                                @if (job.Step is { } step)
+                                {
+                                    <div class="row-meta">@T[$"IssueStage_{step.Stage}"]@(step.Total > 0 ? $" {step.Done + 1}/{step.Total}" : null)</div>
+                                }
                             </div>
                             @if (job.ProfileId is { } profileId)
                             {
@@ -183,7 +188,33 @@
         }
     }
 
-    // ponytail: the list is as of opening or the last cancel; reload the page for news, auto-refresh if that gets tedious.
+    // How often the jobs are asked again while the page is open: often enough to watch a run move on, cheap since
+    // Quartz answers from memory.
+    private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(5);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Prerendering never gets here; the first interactive render starts the loop.
+        if (!firstRender)
+        {
+            return;
+        }
+
+        using var timer = new PeriodicTimer(RefreshEvery);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(Closed))
+            {
+                _view = await UseAsync<JobsOverview, JobsView>(jobs => jobs.LoadAsync(UserId, IsAdmin, Closed));
+                StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The tab closed.
+        }
+    }
+
     private async Task CancelAsync(Guid profileId)
     {
         _error = null;

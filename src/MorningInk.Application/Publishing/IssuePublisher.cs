@@ -27,7 +27,8 @@ public sealed class IssuePublisher(
     /// <param name="scheduledFor">The slot, e.g. today 6:00 in the profile's time zone; one issue per slot.</param>
     /// <param name="cancellationToken">Cancels the run; a later run picks up where it stopped.</param>
     /// <param name="prepareOnly">Build and render, but do not send: the run at the delivery time sends the file (lead time).</param>
-    public async Task<PublishResult> PublishAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken, bool prepareOnly = false)
+    /// <param name="progress">Told each step, e.g. to log it; the status page reads it from <see cref="ProfileLocks.StepOf"/> anyway.</param>
+    public async Task<PublishResult> PublishAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken, bool prepareOnly = false, IProgress<IssueStep>? progress = null)
     {
         if (!locks.TryEnter(profileId, out var lease))
         {
@@ -36,7 +37,8 @@ public sealed class IssuePublisher(
 
         using (lease)
         {
-            return await PublishLockedAsync(profileId, scheduledFor.ToUniversalTime(), prepareOnly, lease.CancelRequested, cancellationToken);
+            var steps = new Steps(lease, progress);
+            return await PublishLockedAsync(profileId, scheduledFor.ToUniversalTime(), prepareOnly, steps, lease.CancelRequested, cancellationToken);
         }
     }
 
@@ -94,7 +96,7 @@ public sealed class IssuePublisher(
             CreatedAt = time.GetUtcNow(),
         };
         var problems = new List<SourceProblem>();
-        var content = await builder.BuildAsync(loaded, draft, localTime, problems, withAi, cancellationToken);
+        var content = await builder.BuildAsync(loaded, draft, localTime, problems, withAi, progress: null, cancellationToken);
         if (content is null)
         {
             return new PreviewResult.Empty(problems) { Log = draft.Log };
@@ -106,7 +108,7 @@ public sealed class IssuePublisher(
         return new PreviewResult.Built(output.ToArray(), renderer.FileExtension, renderer.MediaType, problems) { Log = draft.Log };
     }
 
-    private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, bool prepareOnly, CancellationToken cancelRequested, CancellationToken cancellationToken)
+    private async Task<PublishResult> PublishLockedAsync(Guid profileId, DateTimeOffset slot, bool prepareOnly, IProgress<IssueStep> progress, CancellationToken cancelRequested, CancellationToken cancellationToken)
     {
         if (await store.LoadProfileAsync(profileId, cancellationToken) is not { } loaded)
         {
@@ -152,7 +154,7 @@ public sealed class IssuePublisher(
             using var building = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancelRequested);
             try
             {
-                var content = await builder.BuildAsync(loaded, issue, localTime, problems, withAi: true, building.Token);
+                var content = await builder.BuildAsync(loaded, issue, localTime, problems, withAi: true, progress, building.Token);
                 if (content is null)
                 {
                     issue.Status = IssueStatus.Empty;
@@ -167,6 +169,7 @@ public sealed class IssuePublisher(
                     return new PublishResult.NoNewArticles(issue.Id, problems);
                 }
 
+                progress.Report(new IssueStep(IssueStage.Rendering));
                 await RenderAsync(issue, content, renderer, building.Token);
             }
             catch (OperationCanceledException) when (cancelRequested.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
@@ -186,6 +189,7 @@ public sealed class IssuePublisher(
             return new PublishResult.Prepared(issue.Id);
         }
 
+        progress.Report(new IssueStep(IssueStage.Sending));
         return await release.ReleaseAsync(issue, loaded, renderer, IssueContent.BookTitleFor(profile.Title, localTime), problems, cancellationToken);
     }
 
@@ -236,6 +240,16 @@ public sealed class IssuePublisher(
         issue.Status = IssueStatus.Rendered;
         issue.AddLog(time.GetUtcNow(), "Rendered", issue.FileSize / 1024);
         await store.SaveChangesAsync(cancellationToken);
+    }
+
+    // Each step to the lease, for the status page, and to whoever else listens.
+    private sealed class Steps(ProfileLease lease, IProgress<IssueStep>? also) : IProgress<IssueStep>
+    {
+        public void Report(IssueStep value)
+        {
+            lease.Step = value;
+            also?.Report(value);
+        }
     }
 
     private static IssueEntry Entry(FetchedArticle article, string sourceName, Guid? sourceId, bool duplicate) => new()

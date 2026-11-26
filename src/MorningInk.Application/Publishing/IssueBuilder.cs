@@ -32,6 +32,7 @@ public sealed class IssueBuilder(
         DateTimeOffset localTime,
         List<SourceProblem> problems,
         bool withAi,
+        IProgress<IssueStep>? progress,
         CancellationToken cancellationToken)
     {
         var profile = loaded.Profile;
@@ -40,8 +41,10 @@ public sealed class IssueBuilder(
 
         // Each source once, even if several sections use it.
         var bySource = new Dictionary<Guid, IReadOnlyList<FetchedArticle>>();
-        foreach (var source in sections.SelectMany(s => s.Sources).DistinctBy(s => s.Id))
+        var sources = sections.SelectMany(s => s.Sources).DistinctBy(s => s.Id).ToList();
+        foreach (var source in sources)
         {
+            progress?.Report(new IssueStep(IssueStage.Fetching, bySource.Count, sources.Count));
             bySource[source.Id] = await FetchAsync(source, issue, problems, cancellationToken);
         }
 
@@ -52,9 +55,10 @@ public sealed class IssueBuilder(
         issue.AddLog(time.GetUtcNow(), "Fresh", fresh.Count, bySource.Values.Sum(a => a.Count));
 
         var interests = IssueAiSteps.InterestsOf(loaded);
+        progress?.Report(new IssueStep(IssueStage.Interests));
         var recognized = await ai.RecognizeAsync(loaded, interests, Admitted(sections, bySource, fresh), withAi, issue, cancellationToken);
         var plan = Choose(sections, bySource, fresh, interests.All, recognized, loaded.SourceLeanings, issue);
-        var content = await ProcessAsync(plan, withAi, issue, cancellationToken);
+        var content = await ProcessAsync(plan, withAi, issue, progress, cancellationToken);
         var count = content.Sum(c => c.Content.Articles.Count);
         if (count == 0)
         {
@@ -71,8 +75,11 @@ public sealed class IssueBuilder(
         // Before the overview, so it quotes the plain headlines.
         if (withAi)
         {
+            progress?.Report(new IssueStep(IssueStage.Headlines));
             content = await ai.HeadlinesAsync(content, loaded, issue, cancellationToken);
         }
+
+        progress?.Report(new IssueStep(IssueStage.Extras));
 
         // An edition without a weather section still gets its weather; the renderer sets it first, after the title page.
         var weather = profile.Sections.FirstOrDefault(s => s.Kind == SectionKind.Weather) is not { Enabled: false }
@@ -201,15 +208,18 @@ public sealed class IssueBuilder(
     }
 
     // Full text, cleaning, images and AI: most of the time an issue takes, so the log says how long.
-    private async Task<List<(Section Section, IssueSection Content)>> ProcessAsync(List<(Section Section, List<Pick> Picks)> plan, bool withAi, Issue issue, CancellationToken cancellationToken)
+    private async Task<List<(Section Section, IssueSection Content)>> ProcessAsync(List<(Section Section, List<Pick> Picks)> plan, bool withAi, Issue issue, IProgress<IssueStep>? progress, CancellationToken cancellationToken)
     {
         var started = time.GetUtcNow();
+        var (done, total) = (0, plan.Sum(p => p.Picks.Count));
         var sections = new List<(Section Section, IssueSection Content)>();
         foreach (var (section, picks) in plan)
         {
             var articles = new List<IssueArticle>();
             foreach (var (article, source, alsoAt) in picks)
             {
+                progress?.Report(new IssueStep(IssueStage.Processing, done++, total));
+
                 // ponytail: an article too short or long after the full text leaves a gap in the limit; fetching spares would cost downloads.
                 if (await ProcessAsync(article, source, withAi, cancellationToken) is { } processed && ArticleFilter.FitLength(processed, source) is { } fitted)
                 {

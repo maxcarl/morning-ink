@@ -39,7 +39,8 @@ public enum JobKind
 /// <param name="Edition">The edition's title, null for the cleanup.</param>
 /// <param name="Owner">The name of the edition's user, null for the cleanup.</param>
 /// <param name="TimeZoneId">The edition's time zone, the one its times were planned in; null for the cleanup.</param>
-public sealed record JobRow(JobKind Kind, DateTimeOffset At, Guid? ProfileId, string? Edition, string? Owner, string? TimeZoneId);
+/// <param name="Step">For a running issue: where it stands.</param>
+public sealed record JobRow(JobKind Kind, DateTimeOffset At, Guid? ProfileId, string? Edition, string? Owner, string? TimeZoneId, IssueStep? Step = null);
 
 /// <param name="Running">Jobs at work now, the longest running first.</param>
 /// <param name="Planned">Triggers still to fire, the next first.</param>
@@ -51,7 +52,7 @@ public sealed record JobsView(IReadOnlyList<JobRow> Running, IReadOnlyList<JobRo
 /// users, the cleanup included; everyone else only those of their own editions.
 /// </summary>
 /// <remarks>Quartz keeps its plan in memory, so this asks it directly rather than the database.</remarks>
-public sealed class JobsOverview(ISchedulerFactory schedulers, MorningInkDbContext db, IssuePublisher publisher)
+public sealed class JobsOverview(ISchedulerFactory schedulers, MorningInkDbContext db, IssuePublisher publisher, ProfileLocks locks)
 {
     private const string Utc = "UTC";
 
@@ -91,7 +92,8 @@ public sealed class JobsOverview(ISchedulerFactory schedulers, MorningInkDbConte
             .OrderBy(p => p.Title)
             .Select(p => p.TimeZoneId)
             .FirstOrDefaultAsync(cancellationToken);
-        return new JobsView(Rows(running), Rows(planned), zone ?? Utc);
+        var runningRows = Rows(running).Select(r => r.ProfileId is { } id ? r with { Step = locks.StepOf(id) } : r).ToList();
+        return new JobsView(runningRows, Rows(planned), zone ?? Utc);
     }
 
     /// <summary>Cancels the issue an edition is building, see <see cref="IssuePublisher.CancelAsync"/>.</summary>

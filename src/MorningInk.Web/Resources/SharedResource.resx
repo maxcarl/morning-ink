@@ -757,4 +757,11 @@
   <data name="RestoreProblem_Newer" xml:space="preserve"><value>The backup comes from a newer Morning Ink. Update first, then restore it.</value></data>
   <data name="RestoreProblem_Unsafe" xml:space="preserve"><value>The backup holds database triggers, which Morning Ink never creates. It was not accepted.</value></data>
   <data name="System_LedeOwn" xml:space="preserve"><value>What Morning Ink is doing for your editions now and what comes next.</value></data>
+  <data name="IssueStage_Fetching" xml:space="preserve"><value>Fetching the sources</value></data>
+  <data name="IssueStage_Interests" xml:space="preserve"><value>The AI sorts articles by interests</value></data>
+  <data name="IssueStage_Processing" xml:space="preserve"><value>Preparing articles: full text, images, AI summaries</value></data>
+  <data name="IssueStage_Headlines" xml:space="preserve"><value>The AI checks headlines</value></data>
+  <data name="IssueStage_Extras" xml:space="preserve"><value>Weather, overview, on this day</value></data>
+  <data name="IssueStage_Rendering" xml:space="preserve"><value>Making the EPUB</value></data>
+  <data name="IssueStage_Sending" xml:space="preserve"><value>Delivering</value></data>
 </root>

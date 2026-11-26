@@ -21,7 +21,7 @@ internal sealed partial class PublishIssueJob(IssuePublisher publisher, IssueSch
             : prepareOnly ? fired + TimeSpan.FromMinutes(data.GetLong(IssueScheduler.LeadMinutesKey))
             : fired;
 
-        var result = await publisher.PublishAsync(profileId, slot, cancellationToken, prepareOnly);
+        var result = await publisher.PublishAsync(profileId, slot, cancellationToken, prepareOnly, new StepLog(logger, profileId));
         LogResult(logger, profileId, slot, result.GetType().Name);
 
         // The early build still runs at delivery time: send as soon as it is done instead of skipping the day.
@@ -36,6 +36,32 @@ internal sealed partial class PublishIssueJob(IssuePublisher publisher, IssueSch
         }
     }
 
+    [LoggerMessage(Level = LogLevel.Information, Message = "Issue of profile {ProfileId}: {Stage}")]
+    private static partial void LogStage(ILogger logger, Guid profileId, IssueStage stage);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Issue of profile {ProfileId}: {Stage} {Done}/{Total}")]
+    private static partial void LogCount(ILogger logger, Guid profileId, IssueStage stage, int done, int total);
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Issue of profile {ProfileId} for {Slot}: {Result}")]
     private static partial void LogResult(ILogger logger, Guid profileId, DateTimeOffset slot, string result);
+
+    // Each new stage at Information, so the container log shows where a long run is; the counts within at Debug.
+    private sealed class StepLog(ILogger logger, Guid profileId) : IProgress<IssueStep>
+    {
+        private IssueStage? _stage;
+
+        public void Report(IssueStep value)
+        {
+            if (value.Stage != _stage)
+            {
+                _stage = value.Stage;
+                LogStage(logger, profileId, value.Stage);
+            }
+
+            if (value.Total > 0)
+            {
+                LogCount(logger, profileId, value.Stage, value.Done, value.Total);
+            }
+        }
+    }
 }

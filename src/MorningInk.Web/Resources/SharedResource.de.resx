@@ -757,4 +757,11 @@
   <data name="RestoreProblem_Newer" xml:space="preserve"><value>Das Backup stammt aus einem neueren Morning Ink. Erst aktualisieren, dann einspielen.</value></data>
   <data name="RestoreProblem_Unsafe" xml:space="preserve"><value>Das Backup enthält Datenbank-Trigger, die Morning Ink nie anlegt. Es wurde nicht angenommen.</value></data>
   <data name="System_LedeOwn" xml:space="preserve"><value>Was Morning Ink gerade für deine Ausgaben tut und was als Nächstes kommt.</value></data>
+  <data name="IssueStage_Fetching" xml:space="preserve"><value>Quellen abrufen</value></data>
+  <data name="IssueStage_Interests" xml:space="preserve"><value>KI ordnet Artikel den Interessen zu</value></data>
+  <data name="IssueStage_Processing" xml:space="preserve"><value>Artikel aufbereiten: Volltext, Bilder, KI-Zusammenfassungen</value></data>
+  <data name="IssueStage_Headlines" xml:space="preserve"><value>KI prüft Überschriften</value></data>
+  <data name="IssueStage_Extras" xml:space="preserve"><value>Wetter, Überblick, An diesem Tag</value></data>
+  <data name="IssueStage_Rendering" xml:space="preserve"><value>EPUB erstellen</value></data>
+  <data name="IssueStage_Sending" xml:space="preserve"><value>Zustellen</value></data>
 </root>
