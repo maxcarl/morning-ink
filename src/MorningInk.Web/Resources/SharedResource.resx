@@ -747,6 +747,30 @@
   <data name="System_CleanupLocked" xml:space="preserve"><value>Set by Retention__CleanupTime (UTC); change it there.</value></data>
   <data name="System_CleanupSaved" xml:space="preserve"><value>The cleanup now runs daily at {0} ({1}).</value></data>
   <data name="System_CleanupInvalid" xml:space="preserve"><value>This time zone is unknown.</value></data>
+  <data name="System_Config" xml:space="preserve"><value>Your setup</value></data>
+  <data name="System_ConfigHint" xml:space="preserve"><value>Your sources and editions as a JSON file, to keep in Git or move to another instance. Passwords, tokens and logins stay out.</value></data>
+  <data name="System_ConfigHintAdmin" xml:space="preserve"><value>Your sources and editions as a JSON file, with the mail server, the AI, SearXNG and the home network exceptions, to keep in Git or move to another instance. Passwords, keys, tokens and logins stay out.</value></data>
+  <data name="System_ConfigDownload" xml:space="preserve"><value>Download setup</value></data>
+  <data name="System_ConfigFile" xml:space="preserve"><value>Import a setup</value></data>
+  <data name="System_ConfigImportHint" xml:space="preserve"><value>Replaces your sources and editions with the file’s. Ones with the same name stay with their archive; editions not in the file are deleted with their archive.</value></data>
+  <data name="System_ConfigConfirm" xml:space="preserve"><value>Replace your sources and editions with this file? Editions not in it are deleted with their archive.</value></data>
+  <data name="System_ConfigImport" xml:space="preserve"><value>Yes, import</value></data>
+  <data name="System_ConfigImported" xml:space="preserve"><value>The setup was imported.</value></data>
+  <data name="System_ConfigRefused" xml:space="preserve"><value>Nothing was imported:</value></data>
+  <data name="System_ConfigTooLarge" xml:space="preserve"><value>The file is too large for a setup.</value></data>
+  <data name="System_ConfigProblem" xml:space="preserve"><value>“{0}”: {1}</value></data>
+  <data name="System_ConfigNeedLogin" xml:space="preserve"><value>“{0}” needs its login: add it on the sources page.</value></data>
+  <data name="System_ConfigNeedToken" xml:space="preserve"><value>The notification of “{0}” needs its token again; it is off until then.</value></data>
+  <data name="ConfigProblem_Format" xml:space="preserve"><value>not a Morning Ink setup file</value></data>
+  <data name="ConfigProblem_TooLarge" xml:space="preserve"><value>too many entries, or no edition</value></data>
+  <data name="ConfigProblem_Duplicate" xml:space="preserve"><value>appears twice</value></data>
+  <data name="ConfigProblem_UnknownSource" xml:space="preserve"><value>a section names a source the file does not have</value></data>
+  <data name="ConfigProblem_InvalidUrl" xml:space="preserve"><value>not an allowed web address</value></data>
+  <data name="ConfigProblem_TimeZone" xml:space="preserve"><value>unknown time zone</value></data>
+  <data name="ConfigProblem_Recipient" xml:space="preserve"><value>invalid recipient address</value></data>
+  <data name="ConfigProblem_DeliveryTime" xml:space="preserve"><value>time not as HH:mm</value></data>
+  <data name="ConfigProblem_Sections" xml:space="preserve"><value>invalid sections</value></data>
+  <data name="ConfigProblem_Interests" xml:space="preserve"><value>invalid interests</value></data>
   <data name="System_Free" xml:space="preserve"><value>Free on the volume</value></data>
   <data name="StorageArea_Database" xml:space="preserve"><value>Database</value></data>
   <data name="StorageArea_Issues" xml:space="preserve"><value>Issues</value></data>

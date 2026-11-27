@@ -9,6 +9,7 @@
 @using MorningInk.Infrastructure.Cleanup
 @using MorningInk.Infrastructure.Persistence
 @using MorningInk.Infrastructure.Scheduling
+@using MorningInk.Infrastructure.Transfer
 @inject DiskUsage Disk
 @inject IHostApplicationLifetime Lifetime
 
@@ -75,6 +76,54 @@
                 </ul>
             </section>
         }
+
+        <section aria-labelledby="config-heading">
+            <h2 id="config-heading" class="department">@T["System_Config"]</h2>
+            <p class="hint">@(IsAdmin ? T["System_ConfigHintAdmin"] : T["System_ConfigHint"])</p>
+            @* A plain form post: the browser downloads the file. *@
+            <form class="field" method="post" action="/status/config">
+                <AntiforgeryToken />
+                <button type="submit" class="button button-secondary">@T["System_ConfigDownload"]</button>
+            </form>
+            @if (_configUpload is null)
+            {
+                <div class="field">
+                    <label class="label" for="config-file">@T["System_ConfigFile"]</label>
+                    <InputFile id="config-file" class="input" accept=".json,application/json" OnChange="PickConfigAsync" aria-describedby="config-hint" />
+                    <span id="config-hint" class="hint">@T["System_ConfigImportHint"]</span>
+                </div>
+            }
+            else
+            {
+                @* It replaces sources and editions, with the issues of editions not in the file: ask once. *@
+                <p class="confirm" role="alert">@T["System_ConfigConfirm"]</p>
+                <div class="row-actions">
+                    <button type="button" class="button" @onclick="ImportConfigAsync">@T["System_ConfigImport"]</button>
+                    <button type="button" class="link-button" @onclick="() => _configUpload = null">@T["Confirm_Cancel"]</button>
+                </div>
+            }
+            @if (_configResult is { } result)
+            {
+                @if (!result.Imported)
+                {
+                    <p class="status status-error">@T["System_ConfigRefused"]</p>
+                }
+                <ul class="hint">
+                    @foreach (var problem in result.Problems.Concat(result.InstanceProblems))
+                    {
+                        <li>@ProblemText(problem)</li>
+                    }
+                    @foreach (var source in result.NeedLogin)
+                    {
+                        <li>@T["System_ConfigNeedLogin", source]</li>
+                    }
+                    @foreach (var edition in result.NeedToken)
+                    {
+                        <li>@T["System_ConfigNeedToken", edition]</li>
+                    }
+                </ul>
+            }
+        </section>
     </div>
 
     @if (IsAdmin)
@@ -200,6 +249,8 @@
     private TimeOnly _cleanupAt;
     private string _cleanupZone = string.Empty;
     private bool _cleanupLocked;
+    private byte[]? _configUpload;
+    private ConfigImport? _configResult;
 
     /// <summary>How the restore upload went, set by <see cref="BackupEndpoints"/> on its way back here.</summary>
     [SupplyParameterFromQuery(Name = BackupEndpoints.RestoreQuery)]
@@ -290,6 +341,46 @@
 
         (_notice, _error) = (T["System_Restarting"].Value, null);
         Lifetime.StopApplication();
+    }
+
+    // Read at once and kept until confirmed: the browser's file is gone once the input re-renders.
+    private async Task PickConfigAsync(InputFileChangeEventArgs e)
+    {
+        _configResult = null;
+        (_notice, _error) = (null, null);
+        try
+        {
+            // The browser streams at most one byte past the limit; the import refuses anything larger.
+            await using var file = e.File.OpenReadStream(ConfigTransfer.MaxFileBytes + 1, Closed);
+            using var copy = new MemoryStream();
+            await file.CopyToAsync(copy, Closed);
+            _configUpload = copy.ToArray();
+        }
+        catch (IOException)
+        {
+            _error = T["System_ConfigTooLarge"];
+        }
+    }
+
+    private async Task ImportConfigAsync()
+    {
+        if (_configUpload is not { } upload)
+        {
+            return;
+        }
+
+        _configUpload = null;
+        using var stream = new MemoryStream(upload);
+        _configResult = await UseAsync<ConfigTransfer, ConfigImport>(transfer => transfer.ImportAsync(UserId, IsAdmin, stream, Closed));
+        _notice = _configResult.Imported ? T["System_ConfigImported"].Value : null;
+        _view = await UseAsync<JobsOverview, JobsView>(jobs => jobs.LoadAsync(UserId, IsAdmin, Closed));
+    }
+
+    // The common reasons in words; any other is a field of a form, named as the file names it.
+    private string ProblemText(ConfigProblem problem)
+    {
+        var reason = T[$"ConfigProblem_{problem.Code}"];
+        return T["System_ConfigProblem", problem.Item, reason.ResourceNotFound ? problem.Code : reason.Value];
     }
 
     private async Task SaveCleanupAsync()

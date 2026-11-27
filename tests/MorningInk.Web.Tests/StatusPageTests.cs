@@ -78,6 +78,49 @@ public sealed class StatusPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Everyone_downloads_their_setup_and_only_an_admin_with_the_instance()
+    {
+        var admin = await _app.SignedInAdminAsync();
+        var erika = await _app.SignedInUserAsync("erika");
+
+        var own = await TestApp.SubmitAsync(erika, "/status", [], action: "/status/config");
+        var admins = await TestApp.SubmitAsync(admin, "/status", [], action: "/status/config");
+        var withoutToken = await erika.PostAsync("/status/config", new FormUrlEncodedContent([]));
+
+        Assert.Equal(HttpStatusCode.OK, own.StatusCode);
+        Assert.Equal("application/json", own.Content.Headers.ContentType?.MediaType);
+        Assert.StartsWith("morning-ink-config-", own.Content.Headers.ContentDisposition?.FileNameStar ?? own.Content.Headers.ContentDisposition?.FileName?.Trim('"'), StringComparison.Ordinal);
+        Assert.DoesNotContain("\"instance\"", await own.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("\"instance\"", await admins.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.BadRequest, withoutToken.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_setup_is_imported_only_after_confirmation_and_problems_are_explained()
+    {
+        using var pages = await Pages.AsUserAsync(_app, "erika");
+        var page = pages.Open<SystemStatus>("Import a setup");
+
+        page.FindComponent<Microsoft.AspNetCore.Components.Forms.InputFile>().UploadFiles(InputFileContent.CreateFromText(
+            """{ "format": "morning-ink-config", "version": 1, "editions": [ { "title": "Abend", "recipient": "", "sendByEmail": false, "deliveryTime": "19:00", "timeZone": "Nowhere/Town" } ] }""",
+            "setup.json"));
+        Pages.Shows(page, "Replace your sources and editions with this file?");
+        Pages.Button(page, "Yes, import").Click();
+        Pages.Shows(page, "Nothing was imported:");
+        Assert.Contains("“Abend”: unknown time zone", page.Markup, StringComparison.Ordinal);
+
+        page.FindComponent<Microsoft.AspNetCore.Components.Forms.InputFile>().UploadFiles(InputFileContent.CreateFromText(
+            """{ "format": "morning-ink-config", "version": 1, "editions": [ { "title": "Abend", "recipient": "", "sendByEmail": false, "deliveryTime": "19:00", "timeZone": "Europe/Berlin" } ] }""",
+            "setup.json"));
+        Pages.Button(page, "Yes, import").Click();
+        Pages.Shows(page, "The setup was imported.");
+        await using var scope = _app.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
+        var erika = await db.DomainUsers.Where(u => u.Name == "erika").Select(u => u.Id).SingleAsync();
+        Assert.Equal(["Abend"], await db.Profiles.Where(p => p.UserId == erika).Select(p => p.Title).ToListAsync());
+    }
+
+    [Fact]
     public async Task Admin_clears_the_image_cache()
     {
         using var pages = await Pages.AsAdminAsync(_app);

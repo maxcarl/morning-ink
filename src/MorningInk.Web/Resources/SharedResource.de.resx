@@ -747,6 +747,30 @@
   <data name="System_CleanupLocked" xml:space="preserve"><value>Festgelegt durch Retention__CleanupTime (UTC); dort ändern.</value></data>
   <data name="System_CleanupSaved" xml:space="preserve"><value>Aufgeräumt wird jetzt täglich um {0} ({1}).</value></data>
   <data name="System_CleanupInvalid" xml:space="preserve"><value>Diese Zeitzone ist unbekannt.</value></data>
+  <data name="System_Config" xml:space="preserve"><value>Deine Einrichtung</value></data>
+  <data name="System_ConfigHint" xml:space="preserve"><value>Deine Quellen und Ausgaben als JSON-Datei, um sie in Git zu halten oder auf eine andere Instanz umzuziehen. Passwörter, Tokens und Logins bleiben draußen.</value></data>
+  <data name="System_ConfigHintAdmin" xml:space="preserve"><value>Deine Quellen und Ausgaben als JSON-Datei, mit Mailserver, KI, SearXNG und den Ausnahmen fürs Heimnetz, um sie in Git zu halten oder auf eine andere Instanz umzuziehen. Passwörter, Schlüssel, Tokens und Logins bleiben draußen.</value></data>
+  <data name="System_ConfigDownload" xml:space="preserve"><value>Einrichtung herunterladen</value></data>
+  <data name="System_ConfigFile" xml:space="preserve"><value>Einrichtung importieren</value></data>
+  <data name="System_ConfigImportHint" xml:space="preserve"><value>Ersetzt deine Quellen und Ausgaben durch die der Datei. Gleichnamige bleiben samt Archiv erhalten; Ausgaben, die nicht in der Datei stehen, werden samt Archiv gelöscht.</value></data>
+  <data name="System_ConfigConfirm" xml:space="preserve"><value>Deine Quellen und Ausgaben durch diese Datei ersetzen? Ausgaben, die nicht darin stehen, werden samt Archiv gelöscht.</value></data>
+  <data name="System_ConfigImport" xml:space="preserve"><value>Ja, importieren</value></data>
+  <data name="System_ConfigImported" xml:space="preserve"><value>Die Einrichtung wurde importiert.</value></data>
+  <data name="System_ConfigRefused" xml:space="preserve"><value>Nichts wurde importiert:</value></data>
+  <data name="System_ConfigTooLarge" xml:space="preserve"><value>Die Datei ist zu groß für eine Einrichtung.</value></data>
+  <data name="System_ConfigProblem" xml:space="preserve"><value>„{0}“: {1}</value></data>
+  <data name="System_ConfigNeedLogin" xml:space="preserve"><value>„{0}“ braucht seinen Login: füge die Quelle unter Quellen hinzu.</value></data>
+  <data name="System_ConfigNeedToken" xml:space="preserve"><value>Die Benachrichtigung von „{0}“ braucht ihr Token neu; bis dahin ist sie aus.</value></data>
+  <data name="ConfigProblem_Format" xml:space="preserve"><value>keine Einrichtungsdatei von Morning Ink</value></data>
+  <data name="ConfigProblem_TooLarge" xml:space="preserve"><value>zu viele Einträge oder keine Ausgabe</value></data>
+  <data name="ConfigProblem_Duplicate" xml:space="preserve"><value>kommt doppelt vor</value></data>
+  <data name="ConfigProblem_UnknownSource" xml:space="preserve"><value>eine Rubrik nennt eine Quelle, die in der Datei fehlt</value></data>
+  <data name="ConfigProblem_InvalidUrl" xml:space="preserve"><value>keine erlaubte Webadresse</value></data>
+  <data name="ConfigProblem_TimeZone" xml:space="preserve"><value>unbekannte Zeitzone</value></data>
+  <data name="ConfigProblem_Recipient" xml:space="preserve"><value>ungültige Empfängeradresse</value></data>
+  <data name="ConfigProblem_DeliveryTime" xml:space="preserve"><value>Uhrzeit nicht als HH:mm</value></data>
+  <data name="ConfigProblem_Sections" xml:space="preserve"><value>ungültige Rubriken</value></data>
+  <data name="ConfigProblem_Interests" xml:space="preserve"><value>ungültige Interessen</value></data>
   <data name="System_Free" xml:space="preserve"><value>Frei auf dem Volume</value></data>
   <data name="StorageArea_Database" xml:space="preserve"><value>Datenbank</value></data>
   <data name="StorageArea_Issues" xml:space="preserve"><value>Ausgaben</value></data>

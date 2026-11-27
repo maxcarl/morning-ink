@@ -64,6 +64,5 @@ Private source types (newsletters, calendar, Home Assistant, sources with a logi
 
 - PostgreSQL as an alternative to SQLite
 - Backups on a schedule (download and restore from the status page exist)
-- Export and import of the whole configuration as JSON on the status page, to keep it in Git or move it; secrets left out or from environment variables or Docker secrets
 - REST API and webhooks, Home Assistant integration
 - Sync read state back to FreshRSS or Miniflux

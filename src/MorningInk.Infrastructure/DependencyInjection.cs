@@ -133,6 +133,7 @@ public static class DependencyInjection
         services.AddSingleton<DiskUsage>();
         services.AddScoped<Profiles.Onboarding>();
         services.AddScoped<Profiles.IssueArchive>();
+        services.AddScoped<Transfer.ConfigTransfer>();
         services.AddOptions<NewsSearchOptions>().Bind(configuration.GetSection(NewsSearchOptions.SectionName));
         // Bing or one's own SearXNG, chosen on every search from the settings (see NewsSearch).
         services.AddTransient<BingNewsSearch>();
