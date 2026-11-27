@@ -728,6 +728,8 @@
   <data name="System_Files" xml:space="preserve"><value>Dateien</value></data>
   <data name="System_Size" xml:space="preserve"><value>Größe</value></data>
   <data name="System_Total" xml:space="preserve"><value>Gesamt</value></data>
+  <data name="System_LowOnSpace" xml:space="preserve"><value>Auf dem Volume ist kaum noch Platz. Ausgaben und Backups können scheitern; lösche alte Backups oder gib dem Volume mehr Platz.</value></data>
+  <data name="System_TooLarge" xml:space="preserve"><value>Das Datenverzeichnis ist größer als in Storage__WarnAboveMegabytes eingestellt. Leere den Bilder-Cache, lösche alte Backups oder bewahre Ausgaben kürzer auf.</value></data>
   <data name="System_Free" xml:space="preserve"><value>Frei auf dem Volume</value></data>
   <data name="StorageArea_Database" xml:space="preserve"><value>Datenbank</value></data>
   <data name="StorageArea_Issues" xml:space="preserve"><value>Ausgaben</value></data>

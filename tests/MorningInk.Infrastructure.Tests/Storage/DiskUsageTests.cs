@@ -27,6 +27,21 @@ public sealed class DiskUsageTests : IDisposable
     }
 
     [Fact]
+    public void Warns_past_the_set_size_and_when_the_volume_runs_low()
+    {
+        File.WriteAllBytes(Path.Combine(_directory, "morning-ink.db"), new byte[2 * 1024 * 1024]);
+        var calm = new DiskUsage(Options.Create(new StorageOptions { DataDirectory = _directory, MinFreeMegabytes = 0 }), new ProfileLocks());
+        var tight = new DiskUsage(Options.Create(new StorageOptions { DataDirectory = _directory, WarnAboveMegabytes = 1, MinFreeMegabytes = int.MaxValue }), new ProfileLocks());
+
+        Assert.False(calm.Measure().TooLarge); // no size set: no warning
+        Assert.False(calm.Measure().LowOnSpace);
+        Assert.False(calm.LowOnSpace());
+        Assert.True(tight.Measure().TooLarge);
+        Assert.True(tight.Measure().LowOnSpace);
+        Assert.True(tight.LowOnSpace());
+    }
+
+    [Fact]
     public void Image_cache_is_cleared_but_not_while_an_issue_is_being_built()
     {
         var storage = new StorageOptions { DataDirectory = _directory };

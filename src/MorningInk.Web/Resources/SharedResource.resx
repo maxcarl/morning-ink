@@ -728,6 +728,8 @@
   <data name="System_Files" xml:space="preserve"><value>Files</value></data>
   <data name="System_Size" xml:space="preserve"><value>Size</value></data>
   <data name="System_Total" xml:space="preserve"><value>Total</value></data>
+  <data name="System_LowOnSpace" xml:space="preserve"><value>Little space is left on the volume. Issues and backups may fail; delete old backups or give the volume more room.</value></data>
+  <data name="System_TooLarge" xml:space="preserve"><value>The data directory has grown past the size set in Storage__WarnAboveMegabytes. Clear the image cache, delete old backups or keep issues for fewer days.</value></data>
   <data name="System_Free" xml:space="preserve"><value>Free on the volume</value></data>
   <data name="StorageArea_Database" xml:space="preserve"><value>Database</value></data>
   <data name="StorageArea_Issues" xml:space="preserve"><value>Issues</value></data>

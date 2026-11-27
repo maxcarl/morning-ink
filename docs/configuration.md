@@ -5,6 +5,8 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `Storage__DataDirectory` | `/data` | Database, backups and encryption keys. Back up the whole directory: without `keys/`, stored passwords cannot be decrypted. |
+| `Storage__WarnAboveMegabytes` | – | The status page warns when the data directory takes more than this. Empty never warns. |
+| `Storage__MinFreeMegabytes` | `1024` | Below this much free space on the volume, the status page warns and `/health` answers `Degraded` (still HTTP 200). `/health` answers `Unhealthy` (HTTP 503) when the database or the scheduler is down. |
 | `Http__AllowedHosts__0`, `__1`, … | – | Internal hosts Morning Ink may reach, e.g. `freshrss.lan` or `192.168.1.20:8080`. Everything in your home network is blocked otherwise. |
 | `Http__MaxRedirects` | `5` | Redirects followed per request. |
 | `Http__MaxResponseBytes` | `10485760` | Largest response accepted (10 MiB). |

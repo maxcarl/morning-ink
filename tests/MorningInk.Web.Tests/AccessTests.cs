@@ -87,6 +87,18 @@ public sealed class AccessTests : IDisposable
         var response = await _app.Browser().GetAsync("/health");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Healthy", await response.Content.ReadAsStringAsync()); // database, scheduler and free space
+    }
+
+    [Fact]
+    public async Task Health_check_reports_degraded_when_the_volume_runs_low()
+    {
+        using var tight = new TestApp(new() { ["Storage:MinFreeMegabytes"] = int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+
+        var response = await tight.Browser().GetAsync("/health");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode); // Docker keeps the container healthy for what a cleanup fixes
+        Assert.Equal("Degraded", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]

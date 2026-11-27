@@ -49,6 +49,18 @@ public sealed class StatusPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Admin_is_warned_when_the_volume_runs_low_or_the_data_directory_grows_too_large()
+    {
+        using var tight = new TestApp(new() { ["Storage:MinFreeMegabytes"] = int.MaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture), ["Storage:WarnAboveMegabytes"] = "0" });
+        using var pages = await Pages.AsAdminAsync(tight);
+
+        var page = pages.Open<SystemStatus>("Planned");
+
+        Pages.Shows(page, "Little space is left on the volume.");
+        Pages.Shows(page, "The data directory has grown past the size");
+    }
+
+    [Fact]
     public async Task Admin_clears_the_image_cache()
     {
         using var pages = await Pages.AsAdminAsync(_app);

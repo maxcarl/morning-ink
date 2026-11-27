@@ -14,6 +14,15 @@ public sealed class StorageOptions
     /// <summary>Directory for the database and everything else Morning Ink stores.</summary>
     public string DataDirectory { get; set; } = "/data";
 
+    /// <summary>The status page warns when the data directory takes more than this many megabytes; null never warns.</summary>
+    public int? WarnAboveMegabytes { get; set; }
+
+    /// <summary>
+    /// Below this many free megabytes on the volume, the status page warns and <c>/health</c> reports degraded:
+    /// an issue needs room for its images and EPUB, a backup for a copy of the database.
+    /// </summary>
+    public int MinFreeMegabytes { get; set; } = 1024;
+
     /// <summary><see cref="DataDirectory"/> as an absolute path; relative paths resolve against the working directory.</summary>
     public string DataDirectoryPath => Path.GetFullPath(DataDirectory);
 

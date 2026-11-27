@@ -84,6 +84,14 @@
             <section aria-labelledby="storage-heading">
                 <h2 id="storage-heading" class="department">@T["System_Storage"]</h2>
                 <p class="hint">@T["System_StorageHint"]</p>
+                @if (storage.LowOnSpace)
+                {
+                    <p class="status status-warn">@T["System_LowOnSpace"]</p>
+                }
+                @if (storage.TooLarge)
+                {
+                    <p class="status status-warn">@T["System_TooLarge"]</p>
+                }
                 <table class="table">
                     <thead>
                         <tr>

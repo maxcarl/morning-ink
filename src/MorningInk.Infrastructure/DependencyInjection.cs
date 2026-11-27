@@ -102,7 +102,10 @@ public static class DependencyInjection
         services.AddScoped<ISeenArticles, SeenArticleStore>();
         services.AddScoped<IPublishingStore, PublishingStore>();
         services.AddSingleton<IIssueFiles, IssueFiles>();
-        services.AddHealthChecks().AddDbContextCheck<MorningInkDbContext>();
+        services.AddHealthChecks()
+            .AddDbContextCheck<MorningInkDbContext>()
+            .AddCheck<SchedulerHealthCheck>("scheduler")
+            .AddCheck<FreeSpaceHealthCheck>("free-space");
     }
 
     // Every ISource is registered here; a new kind of source is one more line.
