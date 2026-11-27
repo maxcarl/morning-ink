@@ -56,6 +56,10 @@ public sealed class UserDirectoryTests : IDisposable
         Assert.Equal("OwnRole", await UseAsync(services, d => d.ChangeRoleAsync(admin!.Value, admin.Value, UserRole.User, CancellationToken.None))); // so an admin always stays
         Assert.Equal("NotFound", await UseAsync(services, d => d.ChangeRoleAsync(admin!.Value, Guid.NewGuid(), UserRole.User, CancellationToken.None)));
 
+        var (other, _) = await UseAsync(services, d => d.CreateAsync("other", Password, UserRole.User, "en", CancellationToken.None));
+        Assert.Equal("NotAdmin", await UseAsync(services, d => d.ChangeRoleAsync(other!.Value, admin!.Value, UserRole.User, CancellationToken.None))); // asked of the database, not the page
+        Assert.Equal("NotAdmin", await UseAsync(services, d => d.DeleteAsync(other!.Value, admin!.Value, CancellationToken.None)));
+
         var roles = (await UseAsync(services, d => d.ListAsync(CancellationToken.None))).ToDictionary(u => u.Name, u => u.Role);
         Assert.Equal(UserRole.Admin, roles["reader"]);
         Assert.Equal(UserRole.Admin, roles["admin"]);

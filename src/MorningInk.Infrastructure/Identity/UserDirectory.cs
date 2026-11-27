@@ -13,7 +13,7 @@ public sealed record UserSummary(Guid Id, string Name, UserRole Role, int Editio
 
 /// <summary>
 /// Users of the instance, for family and friends: the admin adds and removes them and resets passwords; everyone
-/// changes their own. Errors are Identity's codes (e.g. "PasswordTooShort") plus "Self", "OwnRole", "LastAdmin" and "NotFound".
+/// changes their own. Errors are Identity's codes (e.g. "PasswordTooShort") plus "Self", "OwnRole", "NotAdmin", "LastAdmin" and "NotFound".
 /// </summary>
 public sealed class UserDirectory(MorningInkDbContext db, UserManager<AppUser> logins, ISchedulerFactory schedulers, IIssueFiles files)
 {
@@ -96,14 +96,20 @@ public sealed class UserDirectory(MorningInkDbContext db, UserManager<AppUser> l
 
     /// <summary>Makes a user an admin or a plain user; null when done.</summary>
     /// <param name="adminId">
-    /// Who changes it: nobody changes their own role, so the instance never loses its last admin. The new role reaches
-    /// the user's open sessions at the next security stamp check, within a minute.
+    /// Who changes it: nobody changes their own role, so the instance never loses its last admin. The new role comes
+    /// with the user's next page load after the cookie's security stamp check (at most a minute); an open interactive
+    /// tab keeps the old one until it is closed, deliberately, while admin actions ask the database themselves.
     /// </param>
     public async Task<string?> ChangeRoleAsync(Guid adminId, Guid userId, UserRole role, CancellationToken cancellationToken)
     {
         if (userId == adminId)
         {
             return "OwnRole";
+        }
+
+        if (!await IsAdminAsync(adminId, cancellationToken))
+        {
+            return "NotAdmin";
         }
 
         var changed = await db.DomainUsers.Where(u => u.Id == userId).ExecuteUpdateAsync(u => u.SetProperty(x => x.Role, role), cancellationToken);
@@ -117,6 +123,11 @@ public sealed class UserDirectory(MorningInkDbContext db, UserManager<AppUser> l
         if (userId == adminId)
         {
             return "Self";
+        }
+
+        if (!await IsAdminAsync(adminId, cancellationToken))
+        {
+            return "NotAdmin";
         }
 
         if (await db.DomainUsers.SingleOrDefaultAsync(u => u.Id == userId, cancellationToken) is not { } user)
@@ -150,4 +161,8 @@ public sealed class UserDirectory(MorningInkDbContext db, UserManager<AppUser> l
 
         return null;
     }
+
+    // Asked of the database, not of the page: an interactive tab opened as admin keeps that until it is closed.
+    private Task<bool> IsAdminAsync(Guid userId, CancellationToken cancellationToken) =>
+        db.DomainUsers.AnyAsync(u => u.Id == userId && u.Role == UserRole.Admin, cancellationToken);
 }

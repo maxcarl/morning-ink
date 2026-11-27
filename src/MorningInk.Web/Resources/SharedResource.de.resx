@@ -455,8 +455,9 @@
   <data name="Users_MakeAdminHint" xml:space="preserve"><value>Admins verwalten zusätzlich Benutzer, Mailserver, KI und Heimnetz.</value></data>
   <data name="Users_MakeAdminButton" xml:space="preserve"><value>Zum Admin machen</value></data>
   <data name="Users_MakeUser" xml:space="preserve"><value>Zum Benutzer machen</value></data>
-  <data name="Users_NowAdmin" xml:space="preserve"><value>{0} ist jetzt Admin. Das gilt spätestens in einer Minute.</value></data>
-  <data name="Users_NowUser" xml:space="preserve"><value>{0} ist jetzt Benutzer. Das gilt spätestens in einer Minute.</value></data>
+  <data name="Users_NowAdmin" xml:space="preserve"><value>{0} ist jetzt Admin. Das gilt ab dem nächsten Seitenaufruf.</value></data>
+  <data name="Users_NowUser" xml:space="preserve"><value>{0} ist jetzt Benutzer. Das gilt ab dem nächsten Seitenaufruf.</value></data>
+  <data name="Error_NotAdmin" xml:space="preserve"><value>Das dürfen nur Admins.</value></data>
   <data name="Error_OwnRole" xml:space="preserve"><value>Deine eigene Rolle kannst du nicht ändern.</value></data>
   <data name="Users_Added" xml:space="preserve"><value>{0} wurde angelegt.</value></data>
   <data name="Users_Deleted" xml:space="preserve"><value>{0} wurde gelöscht.</value></data>
