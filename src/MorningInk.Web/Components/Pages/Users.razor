@@ -36,9 +36,10 @@
                             else
                             {
                                 <button type="button" class="link-button" aria-expanded="@(_resetId == user.Id ? "true" : "false")" aria-controls="reset-@user.Id" @onclick="() => ToggleReset(user.Id)">@T["Users_ResetPassword"]<span class="visually-hidden"> – @user.Name</span></button>
-                                @* Nobody deletes themselves: an instance without its admin could not be managed any more. *@
+                                @* Nobody deletes or demotes themselves: an instance without its admin could not be managed any more. *@
                                 @if (user.Id != UserId)
                                 {
+                                    <button type="button" class="link-button" @onclick="() => ChangeRoleAsync(user)">@(user.Role == UserRole.Admin ? T["Users_MakeUser"] : T["Users_MakeAdminButton"])<span class="visually-hidden"> – @user.Name</span></button>
                                     <button type="button" class="link-button link-danger" @onclick="() => _confirmId = user.Id">@T["Users_Delete"]<span class="visually-hidden"> – @user.Name</span></button>
                                 }
                             }
@@ -143,6 +144,20 @@
         _notice = T["Users_PasswordSet", user.Name];
         _resetId = null;
         _resetPassword = string.Empty;
+    }
+
+    private async Task ChangeRoleAsync(UserSummary user)
+    {
+        Clear();
+        var role = user.Role == UserRole.Admin ? UserRole.User : UserRole.Admin;
+        if (await UseAsync<UserDirectory, string?>(users => users.ChangeRoleAsync(UserId, user.Id, role, Closed)) is { } error)
+        {
+            _errors = [ErrorText(error)];
+            return;
+        }
+
+        _notice = T[role == UserRole.Admin ? "Users_NowAdmin" : "Users_NowUser", user.Name];
+        await LoadAsync();
     }
 
     private async Task DeleteAsync(UserSummary user)

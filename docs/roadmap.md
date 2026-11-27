@@ -57,14 +57,12 @@ Private source types (newsletters, calendar, Home Assistant, sources with a logi
 
 - Archive as a stack of cover thumbnails
 - Sign-in with OIDC (Authentik, Authelia, Keycloak) or header auth behind a reverse proxy
-- Change a user's role
 - Template gallery: ready-made bundles such as "Tech morning" to import
 - More UI languages (resource files)
 
 ## Operations
 
 - PostgreSQL as an alternative to SQLite
-- Status page: warn when the data directory grows past a set size or the volume runs low; `/health` also checks the scheduler and free space
 - Backups on a schedule (download and restore from the status page exist)
 - Export and import of the whole configuration as JSON on the status page, to keep it in Git or move it; secrets left out or from environment variables or Docker secrets
 - REST API and webhooks, Home Assistant integration

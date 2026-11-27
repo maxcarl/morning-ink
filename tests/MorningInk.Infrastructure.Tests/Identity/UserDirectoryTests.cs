@@ -46,6 +46,22 @@ public sealed class UserDirectoryTests : IDisposable
     }
 
     [Fact]
+    public async Task Admin_changes_another_users_role_but_never_their_own()
+    {
+        await using var services = await _host.StartAsync();
+        var (admin, _) = await UseAsync(services, d => d.CreateAsync("admin", Password, UserRole.Admin, "en", CancellationToken.None));
+        var (reader, _) = await UseAsync(services, d => d.CreateAsync("reader", Password, UserRole.User, "en", CancellationToken.None));
+
+        Assert.Null(await UseAsync(services, d => d.ChangeRoleAsync(admin!.Value, reader!.Value, UserRole.Admin, CancellationToken.None)));
+        Assert.Equal("OwnRole", await UseAsync(services, d => d.ChangeRoleAsync(admin!.Value, admin.Value, UserRole.User, CancellationToken.None))); // so an admin always stays
+        Assert.Equal("NotFound", await UseAsync(services, d => d.ChangeRoleAsync(admin!.Value, Guid.NewGuid(), UserRole.User, CancellationToken.None)));
+
+        var roles = (await UseAsync(services, d => d.ListAsync(CancellationToken.None))).ToDictionary(u => u.Name, u => u.Role);
+        Assert.Equal(UserRole.Admin, roles["reader"]);
+        Assert.Equal(UserRole.Admin, roles["admin"]);
+    }
+
+    [Fact]
     public async Task Deleting_a_user_takes_all_their_data_and_files_and_nobody_elses()
     {
         await using var services = await _host.StartAsync();

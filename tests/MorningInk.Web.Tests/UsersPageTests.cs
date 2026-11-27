@@ -61,6 +61,23 @@ public sealed class UsersPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Admin_makes_a_user_an_admin_and_back_but_not_themselves()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        await _app.SignedInUserAsync("erika");
+        var page = pages.Open<Users>("erika");
+
+        Assert.Single(page.FindAll("button"), b => b.TextContent.Trim().StartsWith("Make admin", StringComparison.Ordinal)); // none for oneself
+        Pages.Button(page, "Make admin").Click();
+        Pages.Shows(page, "erika is now an admin.");
+        Assert.Equal(UserRole.Admin, await RoleAsync("erika"));
+
+        Pages.Button(page, "Make user").Click();
+        Pages.Shows(page, "erika is now a user.");
+        Assert.Equal(UserRole.User, await RoleAsync("erika"));
+    }
+
+    [Fact]
     public async Task Users_who_are_not_admins_cannot_open_the_user_list()
     {
         await _app.SignedInAdminAsync();
@@ -132,5 +149,11 @@ public sealed class UsersPageTests : IDisposable
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
         var admin = await db.DomainUsers.SingleAsync(u => u.Name == TestApp.AdminName);
         return await db.Profiles.Where(p => p.UserId == admin.Id).Select(p => p.Id).SingleAsync();
+    }
+
+    private async Task<UserRole> RoleAsync(string name)
+    {
+        using var scope = _app.Services.CreateScope();
+        return await scope.ServiceProvider.GetRequiredService<MorningInkDbContext>().DomainUsers.Where(u => u.Name == name).Select(u => u.Role).SingleAsync();
     }
 }

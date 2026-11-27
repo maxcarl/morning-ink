@@ -13,7 +13,7 @@ public sealed record UserSummary(Guid Id, string Name, UserRole Role, int Editio
 
 /// <summary>
 /// Users of the instance, for family and friends: the admin adds and removes them and resets passwords; everyone
-/// changes their own. Errors are Identity's codes (e.g. "PasswordTooShort") plus "Self", "LastAdmin" and "NotFound".
+/// changes their own. Errors are Identity's codes (e.g. "PasswordTooShort") plus "Self", "OwnRole", "LastAdmin" and "NotFound".
 /// </summary>
 public sealed class UserDirectory(MorningInkDbContext db, UserManager<AppUser> logins, ISchedulerFactory schedulers, IIssueFiles files)
 {
@@ -92,6 +92,22 @@ public sealed class UserDirectory(MorningInkDbContext db, UserManager<AppUser> l
 
         var changed = await logins.ChangePasswordAsync(login, current, password);
         return changed.Errors.Select(e => e.Code).ToList();
+    }
+
+    /// <summary>Makes a user an admin or a plain user; null when done.</summary>
+    /// <param name="adminId">
+    /// Who changes it: nobody changes their own role, so the instance never loses its last admin. The new role reaches
+    /// the user's open sessions at the next security stamp check, within a minute.
+    /// </param>
+    public async Task<string?> ChangeRoleAsync(Guid adminId, Guid userId, UserRole role, CancellationToken cancellationToken)
+    {
+        if (userId == adminId)
+        {
+            return "OwnRole";
+        }
+
+        var changed = await db.DomainUsers.Where(u => u.Id == userId).ExecuteUpdateAsync(u => u.SetProperty(x => x.Role, role), cancellationToken);
+        return changed == 0 ? "NotFound" : null;
     }
 
     /// <summary>Deletes a user with all their editions, issues, files, sources and credentials; null when done.</summary>
