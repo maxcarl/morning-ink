@@ -552,6 +552,12 @@ public sealed class IssuePublisherTests : IDisposable
 
         var news = Assert.Single(_renderer.Rendered).Sections.Single(s => s.Name == "Nachrichten");
         Assert.Equal("Ergebnis der Wahl", Assert.Single(news.Articles).Article.Title);
+
+        // Kept for the archive, with the keyword that decided, and not as an entry: it must not count as seen.
+        var issue = Assert.Single(_store.Issues);
+        var leftOut = Assert.Single(issue.LeftOut);
+        Assert.Equal(("Nachrichten", "Liveticker zur Wahl", "https://tagesschau.de/live", "Excluded", "Liveticker", _tagesschau.Id), (leftOut.Section, leftOut.Title, leftOut.Url, leftOut.Reason, leftOut.Detail, leftOut.SourceId));
+        Assert.DoesNotContain(issue.Entries, e => e.Url == leftOut.Url);
     }
 
     [Fact]
@@ -562,6 +568,8 @@ public sealed class IssuePublisherTests : IDisposable
         await PublishAsync();
 
         Assert.DoesNotContain(Assert.Single(_renderer.Rendered).Sections, s => s.Name == "Tech");
+        Assert.NotEmpty(Assert.Single(_store.Issues).LeftOut);
+        Assert.All(Assert.Single(_store.Issues).LeftOut, a => Assert.Equal(("Tech", "TooShort"), (a.Section, a.Reason))); // known only after the full text
     }
 
     [Fact]
@@ -661,6 +669,8 @@ public sealed class IssuePublisherTests : IDisposable
         var log = Assert.Single(_store.Issues).Log;
         Assert.Contains(log, e => e.Event == "InterestMatched" && e.Arguments.SequenceEqual(["Fußball", "1"]));
         Assert.Contains(log, e => e.Event == "InterestsRecognized" && e.Arguments[0] == "1");
+        var leftOut = Assert.Single(Assert.Single(_store.Issues).LeftOut);
+        Assert.Equal(("Kane trifft doppelt für die Bayern", "Interest", "Fußball"), (leftOut.Title, leftOut.Reason, leftOut.Detail));
     }
 
     [Fact]

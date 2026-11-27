@@ -396,6 +396,12 @@
   <data name="Sources_FilteredOut" xml:space="preserve"><value>Left out by the filters: {0} of {1}</value></data>
   <data name="Sources_AllFiltered" xml:space="preserve"><value>The filters leave out every article of this source.</value></data>
   <data name="Sources_MinWordsLater" xml:space="preserve"><value>The minimum word count needs the full text, so it is only checked when the issue is built.</value></data>
+  <data name="Archive_ShowLeftOut" xml:space="preserve"><value>Left out ({0})</value></data>
+  <data name="Archive_HideLeftOut" xml:space="preserve"><value>Hide left out</value></data>
+  <data name="Archive_LeftOutHint" xml:space="preserve"><value>What the filters kept out of this issue. Change a filter that was wrong, and the article comes with the next issue while it is still new enough for its source.</value></data>
+  <data name="Archive_EditFilter" xml:space="preserve"><value>Edit filter</value></data>
+  <data name="Sources_Reason_TooLong" xml:space="preserve"><value>More than {0} words, without an AI summary</value></data>
+  <data name="Sources_Reason_Interest" xml:space="preserve"><value>Interest “{0}” hidden</value></data>
   <data name="Sources_Reason_LiveTicker" xml:space="preserve"><value>Live ticker</value></data>
   <data name="Sources_Reason_Ad" xml:space="preserve"><value>Marked as advertising</value></data>
   <data name="Sources_Reason_Excluded" xml:space="preserve"><value>Contains “{0}”</value></data>

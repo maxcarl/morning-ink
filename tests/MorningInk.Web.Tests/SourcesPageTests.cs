@@ -32,6 +32,21 @@ public sealed class SourcesPageTests : IDisposable
     }
 
     [Fact]
+    public async Task A_link_from_the_archive_opens_the_sources_editor()
+    {
+        using var app = AllowingFeeds();
+        using var pages = await Pages.AsAdminAsync(app);
+        await AddSourcesAsync(app, "Erste", "Zweite");
+        var second = (await SourcesAsync(app)).Single(s => s.Name == "Zweite");
+        pages.Services.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>().NavigateTo($"/sources?edit={second.Id}");
+
+        var page = pages.Open<Sources>("2 feeds");
+
+        Assert.Single(page.FindAll("form.source-editor"));
+        Assert.NotNull(page.Find($"#edit-{second.Id}"));
+    }
+
+    [Fact]
     public async Task Each_source_can_be_tested_and_is_deleted_only_after_confirmation()
     {
         using var app = AllowingFeeds();

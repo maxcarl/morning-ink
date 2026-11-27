@@ -50,6 +50,18 @@ public class Issue
         ErrorArguments = [.. arguments];
     }
 
+    /// <summary>What the filters kept out, once per article; see <see cref="LeftOutArticle"/>.</summary>
+    public List<LeftOutArticle> LeftOut { get; set; } = [];
+
+    /// <summary>Records an article as left out, unless it already is: a source can feed several sections.</summary>
+    public void LeaveOut(LeftOutArticle article)
+    {
+        if (!LeftOut.Exists(a => a.Url == article.Url))
+        {
+            LeftOut.Add(article);
+        }
+    }
+
     public DateTimeOffset? DeliveredAt { get; set; }
 
     /// <summary>Articles in the issue; after delivery they count as seen.</summary>

@@ -84,6 +84,27 @@ public sealed class ArchivePageTests : IDisposable
     }
 
     [Fact]
+    public async Task Left_out_articles_show_why_and_lead_to_the_filter_that_decided()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var sourceId = Guid.NewGuid();
+        await AddIssueAsync("Raumfahrt: Start geglückt", issue =>
+        {
+            issue.LeaveOut(new LeftOutArticle { Section = "Nachrichten", SourceName = "Beispiel", SourceId = sourceId, Title = "Liveticker zur Wahl", Url = "https://example.com/live", Reason = "Excluded", Detail = "Liveticker" });
+            issue.LeaveOut(new LeftOutArticle { Section = "Sport", SourceName = "Beispiel", SourceId = sourceId, Title = "Tor in der Nachspielzeit", Url = "https://example.com/tor", Reason = "Interest", Detail = "Fußball" });
+        });
+        var page = pages.Open<Archive>("No. 1");
+
+        Pages.Button(page, "Left out (2)").Click();
+
+        Pages.Shows(page, "Liveticker zur Wahl");
+        Assert.Contains("Contains “Liveticker”", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("Interest “Fußball” hidden", page.Markup, StringComparison.Ordinal);
+        Assert.Contains($"/sources?edit={sourceId}#source-{sourceId}", page.Markup, StringComparison.Ordinal);
+        Assert.Contains("#interests-heading", page.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Issue_file_downloads_only_for_its_owner()
     {
         var admin = await _app.SignedInAdminAsync();

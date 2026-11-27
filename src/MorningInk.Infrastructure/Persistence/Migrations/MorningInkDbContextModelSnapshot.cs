@@ -403,6 +403,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.Property<long?>("FileSize")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("LeftOut")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Log")
                         .IsRequired()
                         .HasColumnType("TEXT");

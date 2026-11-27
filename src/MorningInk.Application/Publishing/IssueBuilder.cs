@@ -156,7 +156,7 @@ public sealed class IssueBuilder(
                 .Where(candidate => fresh.Contains(candidate.Article))
                 .ToList();
             var candidates = unread
-                .Where(candidate => ArticleFilter.Admits(candidate.Article, candidate.Source) && !Interests.Hides(candidate.Article, interests, recognized.GetValueOrDefault(candidate.Article)))
+                .Where(candidate => Admits(section, candidate.Article, candidate.Source, interests, recognized, issue))
 
                 // The edition's interests first, then the sources the reader asked for more of, then the newest: when
                 // the limit is tight, its topics and favourite sources win.
@@ -207,6 +207,40 @@ public sealed class IssueBuilder(
         return plan;
     }
 
+    // Too long without an AI summary to stand in for it; FilterReason has no such case, the length is known only now.
+    private const string LongArticle = "TooLong";
+
+    private const string HiddenInterest = "Interest";
+
+    // Whether the article may enter the section; if not, it is noted with the reason, for the archive.
+    private static bool Admits(Section section, FetchedArticle article, Source source, IReadOnlyList<Interest> interests, IReadOnlyDictionary<FetchedArticle, HashSet<Interest>> recognized, Issue issue)
+    {
+        if (ArticleFilter.Reject(article, source) is { } verdict)
+        {
+            issue.LeaveOut(LeftOut(section, article, source, verdict.Reason.ToString(), verdict.Keyword));
+            return false;
+        }
+
+        if (Interests.Hiding(article, interests, recognized.GetValueOrDefault(article)) is { } interest)
+        {
+            issue.LeaveOut(LeftOut(section, article, source, HiddenInterest, interest.Topic));
+            return false;
+        }
+
+        return true;
+    }
+
+    private static LeftOutArticle LeftOut(Section section, FetchedArticle article, Source source, string reason, string? detail) => new()
+    {
+        Section = section.Name,
+        SourceName = source.Name,
+        SourceId = source.Id,
+        Title = article.Title,
+        Url = article.Url.AbsoluteUri,
+        Reason = reason,
+        Detail = detail,
+    };
+
     // Full text, cleaning, images and AI: most of the time an issue takes, so the log says how long.
     private async Task<List<(Section Section, IssueSection Content)>> ProcessAsync(List<(Section Section, List<Pick> Picks)> plan, bool withAi, Issue issue, IProgress<IssueStep>? progress, CancellationToken cancellationToken)
     {
@@ -221,9 +255,20 @@ public sealed class IssueBuilder(
                 progress?.Report(new IssueStep(IssueStage.Processing, done++, total));
 
                 // ponytail: an article too short or long after the full text leaves a gap in the limit; fetching spares would cost downloads.
-                if (await ProcessAsync(article, source, withAi, cancellationToken) is { } processed && ArticleFilter.FitLength(processed, source) is { } fitted)
+                if (await ProcessAsync(article, source, withAi, cancellationToken) is not { } processed)
+                {
+                    continue;
+                }
+
+                if (ArticleFilter.FitLength(processed, source) is { } fitted)
                 {
                     articles.Add(new IssueArticle(fitted, source.Name, alsoAt, source.Id));
+                }
+                else
+                {
+                    // With the limit that decided, for the archive's words.
+                    var (reason, limit) = ArticleFilter.IsLongEnough(processed, source) ? (LongArticle, source.MaxWords) : (nameof(FilterReason.TooShort), source.MinWords);
+                    issue.LeaveOut(LeftOut(section, article, source, reason, limit?.ToString(System.Globalization.CultureInfo.InvariantCulture)));
                 }
             }
 

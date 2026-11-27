@@ -22,7 +22,12 @@ public static class Interests
 
     /// <param name="recognized">The interests the AI found in this article; null without AI.</param>
     public static bool Hides(FetchedArticle article, IReadOnlyList<Interest> interests, IReadOnlySet<Interest>? recognized = null) =>
-        interests.Any(i => i.Weight == InterestWeight.Hide && Matches(article, i, recognized));
+        Hiding(article, interests, recognized) is not null;
+
+    /// <summary>The interest set to hide that leaves the article out, or null.</summary>
+    /// <param name="recognized">The interests the AI found in this article; null without AI.</param>
+    public static Interest? Hiding(FetchedArticle article, IReadOnlyList<Interest> interests, IReadOnlySet<Interest>? recognized = null) =>
+        interests.FirstOrDefault(i => i.Weight == InterestWeight.Hide && Matches(article, i, recognized));
 
     public static bool Matches(FetchedArticle article, Interest interest, IReadOnlySet<Interest>? recognized = null) =>
         recognized?.Contains(interest) == true || interest.Keywords.Any(keyword => ArticleFilter.Mentions(article, keyword));

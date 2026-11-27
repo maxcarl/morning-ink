@@ -41,7 +41,7 @@
 **Your control**
 
 - **Filters per source:** words to require or exclude, a regular expression for titles, a minimum length, no live tickers, no marked ads
-- **Archive** to search, download, send again and keep issues
+- **Archive** to search, download, send again and keep issues, with what the filters left out and why, one click from the filter
 - **Status page** with your running and planned issues; a hanging issue can be cancelled. Admins see all users' jobs, the space each part takes with a warning when it runs low, set the cleanup time, clear the image cache, and download or restore a database backup
 - **Feedback from the Kindle:** "More of this" and "Less of this" under every article move that source up or down in its section
 - **Optional AI overview**, "the most important in 5 minutes", placed and switched like any section

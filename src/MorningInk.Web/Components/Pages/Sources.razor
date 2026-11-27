@@ -48,7 +48,7 @@
             <ul class="rows">
                 @foreach (var source in group)
                 {
-                    <li class="row @(source.Id == _selectedId ? "row-selected" : null)" @key="source.Id">
+                    <li id="source-@source.Id" class="row @(source.Id == _selectedId ? "row-selected" : null)" @key="source.Id">
                         <div class="row-main">
                             <div class="row-title">
                                 @source.Name
@@ -257,9 +257,17 @@
         </div>
     };
 
+    /// <summary>A source to open the editor of, e.g. from the archive's "Edit filter"; ignored unless it is one of the user's.</summary>
+    [SupplyParameterFromQuery(Name = "edit")]
+    private Guid? Edit { get; set; }
+
     protected override async Task LoadAsync()
     {
         await ReloadAsync();
+        if (Edit is { } id && _sources.Exists(s => s.Id == id))
+        {
+            _editId = id;
+        }
 
         // A new local source starts in the profile's country.
         _country = (await UseAsync<ProfileEditor, Profile>(editor => editor.GetOrCreateAsync(UserId, Closed))).Country;

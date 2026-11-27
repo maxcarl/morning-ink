@@ -149,6 +149,7 @@ public sealed class MorningInkDbContext(
             issue.HasIndex(i => new { i.ProfileId, i.ScheduledFor }).IsUnique();
             issue.Property(i => i.ErrorArguments).HasConversion(JsonColumn.Converter<string>(), JsonColumn.Comparer<string>());
             issue.Property(i => i.Log).HasConversion(JsonColumn.Converter<IssueLogEntry>(), JsonColumn.Comparer<IssueLogEntry>());
+            issue.Property(i => i.LeftOut).HasConversion(JsonColumn.Converter<LeftOutArticle>(), JsonColumn.Comparer<LeftOutArticle>());
             issue.HasMany(i => i.Entries).WithOne().HasForeignKey(e => e.IssueId).OnDelete(DeleteBehavior.Cascade);
             issue.HasMany(i => i.Attempts).WithOne().HasForeignKey(a => a.IssueId).OnDelete(DeleteBehavior.Cascade);
         });
