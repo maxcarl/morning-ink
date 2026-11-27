@@ -20,6 +20,8 @@ public sealed class RetentionOptions
     /// <summary>Database backups kept; older ones are deleted.</summary>
     public int KeepBackups { get; set; } = 5;
 
-    /// <summary>When the cleanup runs each day, in UTC.</summary>
-    public TimeOnly CleanupTime { get; set; } = new(3, 30);
+    /// <summary>
+    /// When the cleanup runs each day, in UTC. Null (the default) leaves it to the status page; set, it wins there.
+    /// </summary>
+    public TimeOnly? CleanupTime { get; set; }
 }

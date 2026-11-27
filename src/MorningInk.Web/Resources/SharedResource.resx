@@ -736,6 +736,11 @@
   <data name="System_Total" xml:space="preserve"><value>Total</value></data>
   <data name="System_LowOnSpace" xml:space="preserve"><value>Little space is left on the volume. Issues and backups may fail; delete old backups or give the volume more room.</value></data>
   <data name="System_TooLarge" xml:space="preserve"><value>The data directory has grown past the size set in Storage__WarnAboveMegabytes. Clear the image cache, delete old backups or keep issues for fewer days.</value></data>
+  <data name="System_CleanupTime" xml:space="preserve"><value>Daily cleanup at</value></data>
+  <data name="System_CleanupHint" xml:space="preserve"><value>While an issue is being built, the cleanup leaves the images for the next night, so this need not avoid edition times.</value></data>
+  <data name="System_CleanupLocked" xml:space="preserve"><value>Set by Retention__CleanupTime (UTC); change it there.</value></data>
+  <data name="System_CleanupSaved" xml:space="preserve"><value>The cleanup now runs daily at {0} ({1}).</value></data>
+  <data name="System_CleanupInvalid" xml:space="preserve"><value>This time zone is unknown.</value></data>
   <data name="System_Free" xml:space="preserve"><value>Free on the volume</value></data>
   <data name="StorageArea_Database" xml:space="preserve"><value>Database</value></data>
   <data name="StorageArea_Issues" xml:space="preserve"><value>Issues</value></data>

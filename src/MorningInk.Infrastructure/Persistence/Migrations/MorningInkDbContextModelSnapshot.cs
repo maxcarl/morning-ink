@@ -510,6 +510,24 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                     b.ToTable("MailSettings");
                 });
 
+            modelBuilder.Entity("MorningInk.Domain.MaintenanceSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("CleanupTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CleanupTimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MaintenanceSettings");
+                });
+
             modelBuilder.Entity("MorningInk.Domain.NewsSearchSettings", b =>
                 {
                     b.Property<Guid>("Id")

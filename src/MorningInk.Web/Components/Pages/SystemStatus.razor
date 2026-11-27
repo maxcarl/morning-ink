@@ -6,6 +6,7 @@
 @using System.Globalization
 @using MorningInk.Domain
 @using MorningInk.Infrastructure
+@using MorningInk.Infrastructure.Cleanup
 @using MorningInk.Infrastructure.Persistence
 @using MorningInk.Infrastructure.Scheduling
 @inject DiskUsage Disk
@@ -124,6 +125,28 @@
                         }
                     </tbody>
                 </table>
+                <form @onsubmit="SaveCleanupAsync">
+                    <div class="field-row">
+                        <div class="field">
+                            <label for="cleanup-time">@T["System_CleanupTime"]</label>
+                            <input id="cleanup-time" class="input" type="time" @bind="_cleanupAt" readonly="@_cleanupLocked" required aria-describedby="cleanup-hint" />
+                        </div>
+                        <div class="field">
+                            <label for="cleanup-zone">@T["Profile_TimeZone"]</label>
+                            <select id="cleanup-zone" class="input" @bind="_cleanupZone" disabled="@_cleanupLocked">
+                                @foreach (var zone in TimeZones.All)
+                                {
+                                    <option value="@zone">@zone</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <p id="cleanup-hint" class="hint">@(_cleanupLocked ? T["System_CleanupLocked"] : T["System_CleanupHint"])</p>
+                    @if (!_cleanupLocked)
+                    {
+                        <button type="submit" class="button button-secondary">@T["Settings_Save"]</button>
+                    }
+                </form>
                 <div class="field">
                     <p class="hint" id="clear-images-hint">@T["System_ClearImagesHint"]</p>
                     <button type="button" class="button button-secondary" aria-describedby="clear-images-hint" @onclick="ClearImages">@T["System_ClearImages"]</button>
@@ -174,6 +197,9 @@
     private string? _notice;
     private string? _error;
     private bool _restorePending;
+    private TimeOnly _cleanupAt;
+    private string _cleanupZone = string.Empty;
+    private bool _cleanupLocked;
 
     /// <summary>How the restore upload went, set by <see cref="BackupEndpoints"/> on its way back here.</summary>
     [SupplyParameterFromQuery(Name = BackupEndpoints.RestoreQuery)]
@@ -193,6 +219,13 @@
         {
             _restorePending = await UseAsync<DatabaseBackups, bool>(backups => Task.FromResult(backups.RestorePending));
             _storage = Disk.Measure();
+            if (_cleanupZone.Length == 0)
+            {
+                // Once: the five-second refresh must not overwrite what the admin is typing.
+                var cleanup = await UseAsync<CleanupSchedule, CleanupTime>(schedule => schedule.GetAsync(Closed));
+                (_cleanupAt, _cleanupZone) = (cleanup.At, cleanup.TimeZoneId);
+                _cleanupLocked = await UseAsync<CleanupSchedule, bool>(schedule => Task.FromResult(schedule.IsLocked));
+            }
         }
     }
 
@@ -257,6 +290,19 @@
 
         (_notice, _error) = (T["System_Restarting"].Value, null);
         Lifetime.StopApplication();
+    }
+
+    private async Task SaveCleanupAsync()
+    {
+        if (!IsAdmin)
+        {
+            return;
+        }
+
+        var saved = await UseAsync<CleanupSchedule, bool>(schedule => schedule.SaveAsync(new CleanupTime(_cleanupAt, _cleanupZone), Closed));
+        _notice = saved ? T["System_CleanupSaved", Clock.Time(T, _cleanupAt), _cleanupZone].Value : null;
+        _error = saved ? null : T["System_CleanupInvalid"].Value;
+        _view = await UseAsync<JobsOverview, JobsView>(jobs => jobs.LoadAsync(UserId, IsAdmin, Closed));
     }
 
     private void ClearImages()

@@ -154,6 +154,7 @@ public sealed class MorningInkDbContext(
         });
 
         builder.Entity<NewsSearchSettings>().Property(n => n.SearxngUrl).HasMaxLength(500);
+        builder.Entity<MaintenanceSettings>().Property(m => m.CleanupTimeZoneId).HasMaxLength(TimeZoneLength);
 
         builder.Entity<AiSettings>(ai =>
         {

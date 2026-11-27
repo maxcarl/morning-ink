@@ -736,6 +736,11 @@
   <data name="System_Total" xml:space="preserve"><value>Gesamt</value></data>
   <data name="System_LowOnSpace" xml:space="preserve"><value>Auf dem Volume ist kaum noch Platz. Ausgaben und Backups können scheitern; lösche alte Backups oder gib dem Volume mehr Platz.</value></data>
   <data name="System_TooLarge" xml:space="preserve"><value>Das Datenverzeichnis ist größer als in Storage__WarnAboveMegabytes eingestellt. Leere den Bilder-Cache, lösche alte Backups oder bewahre Ausgaben kürzer auf.</value></data>
+  <data name="System_CleanupTime" xml:space="preserve"><value>Täglich aufräumen um</value></data>
+  <data name="System_CleanupHint" xml:space="preserve"><value>Während eine Ausgabe gebaut wird, lässt das Aufräumen die Bilder bis zur nächsten Nacht liegen; die Zeit muss den Ausgaben also nicht ausweichen.</value></data>
+  <data name="System_CleanupLocked" xml:space="preserve"><value>Festgelegt durch Retention__CleanupTime (UTC); dort ändern.</value></data>
+  <data name="System_CleanupSaved" xml:space="preserve"><value>Aufgeräumt wird jetzt täglich um {0} ({1}).</value></data>
+  <data name="System_CleanupInvalid" xml:space="preserve"><value>Diese Zeitzone ist unbekannt.</value></data>
   <data name="System_Free" xml:space="preserve"><value>Frei auf dem Volume</value></data>
   <data name="StorageArea_Database" xml:space="preserve"><value>Datenbank</value></data>
   <data name="StorageArea_Issues" xml:space="preserve"><value>Ausgaben</value></data>

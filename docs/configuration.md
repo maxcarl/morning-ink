@@ -26,7 +26,7 @@ All settings with their defaults. Settings come from `appsettings.json` or envir
 | `Retention__SeenArticleDays` | `90` | Articles count as seen this long. Keep it longer than any source's maximum article age. |
 | `Retention__ImageDays` | `7` | Converted images are deleted after this many days; delivered issues keep theirs inside the EPUB. |
 | `Retention__KeepBackups` | `5` | Database backups kept. |
-| `Retention__CleanupTime` | `03:30` | Daily cleanup time, in UTC. While an issue is being built, the cleanup leaves the images for the next night, so this need not avoid edition times. |
+| `Retention__CleanupTime` | – | Daily cleanup time, in UTC, e.g. `03:30`. Empty, the admin sets time and time zone on the status page (default 03:30 UTC); set, it wins there and shows read-only. While an issue is being built, the cleanup leaves the images for the next night. |
 | `Weather__GeocodingUrl` | Nominatim (OpenStreetMap) | Turns postal codes and towns into places; asked only when a region changes. Can be a self-hosted Nominatim. |
 | `Weather__CountryCodes` | – | Countries to look up regions in when a profile or local source has no country (set in the UI); empty searches worldwide. |
 | `Weather__ForecastUrl` | Open-Meteo | Weather forecast; coordinates are sent rounded to about a kilometre. Can be a self-hosted Open-Meteo. |

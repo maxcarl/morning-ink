@@ -241,6 +241,7 @@ public static class DependencyInjection
             .Validate(o => o.IssueDays > 0 && o.SeenArticleDays > 0 && o.ImageDays > 0 && o.KeepBackups > 0, "Retention values must be positive.")
             .ValidateOnStart();
         services.AddScoped<CleanupService>();
+        services.AddScoped<CleanupSchedule>();
 
         services.AddQuartz(quartz => quartz.AddJobType<PublishIssueJob>().AddJobType<CleanupJob>());
         services.AddQuartzHostedService(quartz => quartz.WaitForJobsToComplete = true);

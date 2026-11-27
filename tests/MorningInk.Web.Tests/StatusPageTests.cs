@@ -61,6 +61,23 @@ public sealed class StatusPageTests : IDisposable
     }
 
     [Fact]
+    public async Task Admin_sets_the_cleanup_time_in_a_zone_of_their_choice()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<SystemStatus>("Daily cleanup at");
+
+        page.Find("#cleanup-time").Change(Pages.BrowserTime("01:15"));
+        page.Find("#cleanup-zone").Change("Europe/Berlin");
+        page.Find("form:has(#cleanup-time)").Submit();
+
+        Pages.Shows(page, "The cleanup now runs daily at");
+        await using var scope = _app.Services.CreateAsyncScope();
+        Assert.Equal(
+            new MorningInk.Infrastructure.Cleanup.CleanupTime(new TimeOnly(1, 15), "Europe/Berlin"),
+            await scope.ServiceProvider.GetRequiredService<MorningInk.Infrastructure.Cleanup.CleanupSchedule>().GetAsync(CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Admin_clears_the_image_cache()
     {
         using var pages = await Pages.AsAdminAsync(_app);

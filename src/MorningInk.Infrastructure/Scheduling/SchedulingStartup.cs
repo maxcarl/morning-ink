@@ -1,18 +1,19 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using MorningInk.Infrastructure.Cleanup;
 using Quartz;
 
 namespace MorningInk.Infrastructure.Scheduling;
 
 /// <summary>Plans all profiles and the cleanup when the app starts; runs after migrations, which happen before the host starts.</summary>
-internal sealed class SchedulingStartup(ISchedulerFactory factory, IssueScheduler issues, IOptions<RetentionOptions> retention, TimeProvider time) : IHostedService
+internal sealed class SchedulingStartup(ISchedulerFactory factory, IssueScheduler issues, IServiceScopeFactory scopes) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var scheduler = await factory.GetScheduler(cancellationToken);
         await issues.ScheduleAllAsync(scheduler, cancellationToken);
-        await CleanupJob.ScheduleAsync(scheduler, retention, time, cancellationToken);
+        await using var scope = scopes.CreateAsyncScope(); // the cleanup time is in the database
+        await scope.ServiceProvider.GetRequiredService<CleanupSchedule>().ScheduleAsync(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

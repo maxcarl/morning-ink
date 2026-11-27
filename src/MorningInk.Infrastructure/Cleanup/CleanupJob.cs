@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using Quartz;
 
 namespace MorningInk.Infrastructure.Cleanup;
@@ -12,17 +11,16 @@ internal sealed class CleanupJob(CleanupService cleanup) : IJob
     public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken) =>
         await cleanup.RunAsync(cancellationToken);
 
-    /// <summary>Plans the daily run at <see cref="RetentionOptions.CleanupTime"/> (UTC), replacing an earlier plan.</summary>
-    public static async Task ScheduleAsync(IScheduler scheduler, IOptions<RetentionOptions> retention, TimeProvider time, CancellationToken cancellationToken)
+    /// <summary>Plans the daily run at the local time in the zone, replacing an earlier plan; see <see cref="CleanupSchedule"/>.</summary>
+    public static async Task ScheduleAsync(IScheduler scheduler, TimeOnly at, TimeZoneInfo zone, TimeProvider time, CancellationToken cancellationToken)
     {
-        var at = retention.Value.CleanupTime;
         var job = JobBuilder.Create<CleanupJob>().WithIdentity(Key).StoreDurably().Build();
         var trigger = TriggerBuilder.Create(time)
             .WithIdentity("cleanup-daily")
             .ForJob(job)
             .WithSchedule(CronScheduleBuilder
                 .Create(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"0 {at.Minute} {at.Hour} * * ?"))
-                .InTimeZone(TimeZoneInfo.Utc))
+                .InTimeZone(zone))
             .Build();
         await scheduler.ScheduleJob(job, trigger, ScheduleJobOptions.Replacing, cancellationToken);
     }
