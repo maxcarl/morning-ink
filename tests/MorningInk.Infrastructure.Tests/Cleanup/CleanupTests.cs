@@ -19,7 +19,7 @@ public sealed class CleanupTests : IDisposable
     [Fact]
     public async Task Old_issues_go_with_their_files_and_pinned_ones_stay()
     {
-        await using var services = await _host.StartAsync();
+        await using var services = await StartAsync();
         var profileId = await CreateProfileAsync(services);
         var old = await CreateIssueAsync(services, profileId, ageInDays: 40);
         var pinned = await CreateIssueAsync(services, profileId, ageInDays: 40, pinned: true);
@@ -40,7 +40,7 @@ public sealed class CleanupTests : IDisposable
     [Fact]
     public async Task Old_seen_articles_are_forgotten()
     {
-        await using var services = await _host.StartAsync();
+        await using var services = await StartAsync();
         await CreateProfileAsync(services);
         await using (var scope = services.CreateAsyncScope())
         {
@@ -61,7 +61,7 @@ public sealed class CleanupTests : IDisposable
     [Fact]
     public async Task Ai_calls_are_kept_as_long_as_issues()
     {
-        await using var services = await _host.StartAsync();
+        await using var services = await StartAsync();
         await using (var scope = services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
@@ -89,7 +89,7 @@ public sealed class CleanupTests : IDisposable
     [Fact]
     public async Task Old_images_go_and_recent_ones_stay()
     {
-        await using var services = await _host.StartAsync();
+        await using var services = await StartAsync();
         Directory.CreateDirectory(ImageDirectory);
         var oldImage = WriteFile(ImageDirectory, "old.jpg", TestHost.Now.AddDays(-8));
         var recentImage = WriteFile(ImageDirectory, "recent.jpg", TestHost.Now.AddDays(-1));
@@ -101,9 +101,25 @@ public sealed class CleanupTests : IDisposable
     }
 
     [Fact]
+    public async Task Images_stay_while_an_issue_is_being_built()
+    {
+        await using var services = await StartAsync();
+        Directory.CreateDirectory(ImageDirectory);
+        var oldImage = WriteFile(ImageDirectory, "old.jpg", TestHost.Now.AddDays(-8)); // cached long ago, used again today
+
+        Assert.True(services.GetRequiredService<MorningInk.Application.Publishing.ProfileLocks>().TryEnter(Guid.NewGuid(), out var building));
+        using (building)
+        {
+            await RunAsync(services);
+        }
+
+        Assert.True(File.Exists(oldImage)); // rendering reads it from disk; the next night gets it
+    }
+
+    [Fact]
     public async Task Only_the_newest_backups_are_kept()
     {
-        await using var services = await _host.StartAsync();
+        await using var services = await StartAsync();
         Directory.CreateDirectory(_host.BackupDirectory);
         for (var day = 1; day <= 7; day++)
         {
@@ -120,7 +136,7 @@ public sealed class CleanupTests : IDisposable
     [Fact]
     public async Task Cleanup_without_anything_to_do_is_harmless()
     {
-        await using var services = await _host.StartAsync();
+        await using var services = await StartAsync();
 
         var report = await RunAsync(services);
 
@@ -128,6 +144,9 @@ public sealed class CleanupTests : IDisposable
     }
 
     public void Dispose() => _host.Dispose();
+
+    // The locks belong to the application layer, registered by the web app.
+    private Task<ServiceProvider> StartAsync() => _host.StartAsync(configure: s => s.AddSingleton<MorningInk.Application.Publishing.ProfileLocks>());
 
     private static async Task<CleanupReport> RunAsync(IServiceProvider services)
     {

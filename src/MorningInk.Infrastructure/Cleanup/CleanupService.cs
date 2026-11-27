@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MorningInk.Application.Publishing;
 using MorningInk.Infrastructure.Persistence;
 
 namespace MorningInk.Infrastructure.Cleanup;
@@ -11,6 +12,7 @@ public sealed partial class CleanupService(
     IOptions<RetentionOptions> retention,
     IOptions<StorageOptions> storage,
     TimeProvider time,
+    ProfileLocks locks,
     ILogger<CleanupService> logger)
 {
     public async Task<CleanupReport> RunAsync(CancellationToken cancellationToken)
@@ -24,7 +26,9 @@ public sealed partial class CleanupService(
         var report = new CleanupReport(
             Issues: await DeleteIssuesAsync(now.AddDays(-options.IssueDays), cancellationToken),
             SeenArticles: await db.SeenArticles.Where(s => s.SeenAt < now.AddDays(-options.SeenArticleDays)).ExecuteDeleteAsync(cancellationToken),
-            Images: DeleteFilesOlderThan(storage.Value.ImageDirectory, now.AddDays(-options.ImageDays)),
+            // A build reuses cached images by their hash and reads them from disk when rendering, however old they are;
+            // while one runs, the images wait for the next night, so the cleanup time never has to dodge the editions.
+            Images: locks.AnyHeld ? 0 : DeleteFilesOlderThan(storage.Value.ImageDirectory, now.AddDays(-options.ImageDays)),
             Backups: DeleteOldBackups(storage.Value.BackupDirectory, options.KeepBackups));
         LogReport(logger, report.Issues, report.SeenArticles, report.Images, report.Backups);
         return report;
