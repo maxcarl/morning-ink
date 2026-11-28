@@ -50,6 +50,23 @@
   border-bottom: 1px solid var(--color-rule);
 }
 
+/* The archive shows each issue's cover beside its line, small like a stack of papers on a shelf */
+.archive-issue {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: 0 var(--space-3);
+  align-items: start;
+}
+
+.issue-cover {
+  display: block;
+  width: 3rem;
+  height: auto;
+  aspect-ratio: 5 / 8;
+  border: 1px solid var(--color-rule);
+  background: var(--color-surface);
+}
+
 .issue-line {
   display: flex;
   flex-wrap: wrap;

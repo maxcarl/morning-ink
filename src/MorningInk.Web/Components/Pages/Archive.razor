@@ -39,98 +39,109 @@
             var logOpen = _logId == issue.Id;
             var leftOutOpen = _leftOutId == issue.Id;
             @* The same columns as on the overview, with the actions at the end of the line. *@
-            <li class="issue" @key="issue.Id">
-                <div class="issue-line archive-line">
-                    <span class="issue-name">@(several ? $"{item.Profile.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
-                    <span class="issue-date">@Clock.DateAndTime(T, IssueTexts.Local(issue.ScheduledFor, item.Profile))</span>
-                    <span class="issue-facts">@string.Join(" · ", IssueTexts.Facts(T, issue))</span>
-                    <span class="badge @IssueTexts.StatusClass(issue.Status)">@IssueTexts.Status(T, issue, item.Profile)</span>
-                    <span class="issue-actions">
-                        @if (item.FileAvailable)
-                        {
-                            @* A plain link: the browser downloads it with the user's sign-in cookie. *@
-                            <a class="link-button" href="/archive/@issue.Id/file" download>@T["Archive_Download"]<span class="visually-hidden"> – @name</span></a>
-                            @if (item.Profile.SendByEmail)
+            <li class="issue archive-issue" @key="issue.Id">
+                @* Decorative: the line beside it names the issue. The small cover is made from the file, so none without one. *@
+                @if (item.FileAvailable)
+                {
+                    <img class="issue-cover" src="/archive/@issue.Id/cover" alt="" loading="lazy" width="250" height="400" />
+                }
+                else
+                {
+                    <span class="issue-cover" aria-hidden="true"></span>
+                }
+                <div class="archive-body">
+                    <div class="issue-line archive-line">
+                        <span class="issue-name">@(several ? $"{item.Profile.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
+                        <span class="issue-date">@Clock.DateAndTime(T, IssueTexts.Local(issue.ScheduledFor, item.Profile))</span>
+                        <span class="issue-facts">@string.Join(" · ", IssueTexts.Facts(T, issue))</span>
+                        <span class="badge @IssueTexts.StatusClass(issue.Status)">@IssueTexts.Status(T, issue, item.Profile)</span>
+                        <span class="issue-actions">
+                            @if (item.FileAvailable)
                             {
-                                <button type="button" class="link-button" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
-                            }
-                        }
-                        else if (issue.Status == IssueStatus.Building)
-                        {
-                            @* Also for an issue left building by a restart: nothing would ever finish it. *@
-                            <button type="button" class="link-button link-danger" @onclick="() => CancelAsync(issue.ProfileId)">@T["Dash_Cancel"]<span class="visually-hidden"> – @name</span></button>
-                        }
-                        else
-                        {
-                            <span class="muted">@T["Archive_FileGone"]</span>
-                        }
-                        @* Kept issues survive the cleanup; the pressed state says so, not only the look. *@
-                        <button type="button" class="link-button @(issue.Pinned ? "pinned" : null)" aria-pressed="@(issue.Pinned ? "true" : "false")" @onclick="() => TogglePinAsync(issue)">@T["Archive_Keep"]<span class="visually-hidden"> – @name</span></button>
-                    </span>
-                </div>
-                @if (inIssue.Count > 0 || issue.Log.Count > 0 || issue.LeftOut.Count > 0)
-                {
-                    <div class="issue-more">
-                        @if (inIssue.Count > 0)
-                        {
-                            <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="entries-@issue.Id" @onclick="() => _openId = open ? null : issue.Id">
-                                @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", inIssue.Count])
-                            </button>
-                        }
-                        @if (issue.LeftOut.Count > 0)
-                        {
-                            <button type="button" class="link-button" aria-expanded="@(leftOutOpen ? "true" : "false")" aria-controls="left-out-@issue.Id" @onclick="() => _leftOutId = leftOutOpen ? null : issue.Id">
-                                @(leftOutOpen ? T["Archive_HideLeftOut"] : T["Archive_ShowLeftOut", issue.LeftOut.Count])
-                            </button>
-                        }
-                        @if (issue.Log.Count > 0)
-                        {
-                            <button type="button" class="link-button" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
-                                @(logOpen ? T["Log_Hide"] : T["Log_Show"])
-                            </button>
-                        }
-                    </div>
-                }
-                @if (logOpen)
-                {
-                    <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(item.Profile.TimeZoneId)" /></div>
-                }
-                @if (leftOutOpen)
-                {
-                    @* What the filters kept out, by section, each with the way to its filter: a wrong rule is fixed where it lives,
-                       and the article comes with the next issue, since it never counted as seen. *@
-                    <div id="left-out-@issue.Id">
-                        <p class="hint">@T["Archive_LeftOutHint"]</p>
-                        @foreach (var group in issue.LeftOut.GroupBy(a => a.Section))
-                        {
-                            <h3 class="label">@group.Key</h3>
-                            <ul class="headline-list headline-list-dropped">
-                                @foreach (var article in group)
+                                @* A plain link: the browser downloads it with the user's sign-in cookie. *@
+                                <a class="link-button" href="/archive/@issue.Id/file" download>@T["Archive_Download"]<span class="visually-hidden"> – @name</span></a>
+                                @if (item.Profile.SendByEmail)
                                 {
-                                    <li>
-                                        <a href="@article.Url" rel="noopener noreferrer" target="_blank">@article.Title</a>
-                                        <div class="row-meta">
-                                            @article.SourceName · @LeftOutReason(article) ·
-                                            <a href="@FilterLink(article, issue.ProfileId)">@T["Archive_EditFilter"]<span class="visually-hidden"> – @article.Title</span></a>
-                                        </div>
-                                    </li>
+                                    <button type="button" class="link-button" disabled="@(_sendingId is not null)" @onclick="() => SendAgainAsync(issue.Id)">@T["Archive_SendAgain"]<span class="visually-hidden"> – @name</span></button>
                                 }
-                            </ul>
-                        }
+                            }
+                            else if (issue.Status == IssueStatus.Building)
+                            {
+                                @* Also for an issue left building by a restart: nothing would ever finish it. *@
+                                <button type="button" class="link-button link-danger" @onclick="() => CancelAsync(issue.ProfileId)">@T["Dash_Cancel"]<span class="visually-hidden"> – @name</span></button>
+                            }
+                            else
+                            {
+                                <span class="muted">@T["Archive_FileGone"]</span>
+                            }
+                            @* Kept issues survive the cleanup; the pressed state says so, not only the look. *@
+                            <button type="button" class="link-button @(issue.Pinned ? "pinned" : null)" aria-pressed="@(issue.Pinned ? "true" : "false")" @onclick="() => TogglePinAsync(issue)">@T["Archive_Keep"]<span class="visually-hidden"> – @name</span></button>
+                        </span>
                     </div>
-                }
-                @if (open)
-                {
-                    <ul id="entries-@issue.Id" class="headline-list">
-                        @foreach (var entry in inIssue.OrderBy(e => e.SourceName, StringComparer.CurrentCulture))
-                        {
-                            <li>
-                                <a href="@entry.Url" rel="noopener noreferrer" target="_blank">@entry.Title</a>
-                                <div class="row-meta">@entry.SourceName</div>
-                            </li>
-                        }
-                    </ul>
-                }
+                    @if (inIssue.Count > 0 || issue.Log.Count > 0 || issue.LeftOut.Count > 0)
+                    {
+                        <div class="issue-more">
+                            @if (inIssue.Count > 0)
+                            {
+                                <button type="button" class="link-button" aria-expanded="@(open ? "true" : "false")" aria-controls="entries-@issue.Id" @onclick="() => _openId = open ? null : issue.Id">
+                                    @(open ? T["Archive_HideArticles"] : T["Archive_ShowArticles", inIssue.Count])
+                                </button>
+                            }
+                            @if (issue.LeftOut.Count > 0)
+                            {
+                                <button type="button" class="link-button" aria-expanded="@(leftOutOpen ? "true" : "false")" aria-controls="left-out-@issue.Id" @onclick="() => _leftOutId = leftOutOpen ? null : issue.Id">
+                                    @(leftOutOpen ? T["Archive_HideLeftOut"] : T["Archive_ShowLeftOut", issue.LeftOut.Count])
+                                </button>
+                            }
+                            @if (issue.Log.Count > 0)
+                            {
+                                <button type="button" class="link-button" aria-expanded="@(logOpen ? "true" : "false")" aria-controls="log-@issue.Id" @onclick="() => _logId = logOpen ? null : issue.Id">
+                                    @(logOpen ? T["Log_Hide"] : T["Log_Show"])
+                                </button>
+                            }
+                        </div>
+                    }
+                    @if (logOpen)
+                    {
+                        <div id="log-@issue.Id"><IssueLogView Entries="issue.Log" Zone="ProfileTimeZone.Find(item.Profile.TimeZoneId)" /></div>
+                    }
+                    @if (leftOutOpen)
+                    {
+                        @* What the filters kept out, by section, each with the way to its filter: a wrong rule is fixed where it lives,
+                           and the article comes with the next issue, since it never counted as seen. *@
+                        <div id="left-out-@issue.Id">
+                            <p class="hint">@T["Archive_LeftOutHint"]</p>
+                            @foreach (var group in issue.LeftOut.GroupBy(a => a.Section))
+                            {
+                                <h3 class="label">@group.Key</h3>
+                                <ul class="headline-list headline-list-dropped">
+                                    @foreach (var article in group)
+                                    {
+                                        <li>
+                                            <a href="@article.Url" rel="noopener noreferrer" target="_blank">@article.Title</a>
+                                            <div class="row-meta">
+                                                @article.SourceName · @LeftOutReason(article) ·
+                                                <a href="@FilterLink(article, issue.ProfileId)">@T["Archive_EditFilter"]<span class="visually-hidden"> – @article.Title</span></a>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    }
+                    @if (open)
+                    {
+                        <ul id="entries-@issue.Id" class="headline-list">
+                            @foreach (var entry in inIssue.OrderBy(e => e.SourceName, StringComparer.CurrentCulture))
+                            {
+                                <li>
+                                    <a href="@entry.Url" rel="noopener noreferrer" target="_blank">@entry.Title</a>
+                                    <div class="row-meta">@entry.SourceName</div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
             </li>
         }
     </ul>

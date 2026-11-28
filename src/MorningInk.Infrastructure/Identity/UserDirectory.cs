@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MorningInk.Application.Publishing;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
+using MorningInk.Infrastructure.Profiles;
 using MorningInk.Infrastructure.Scheduling;
 using Quartz;
 
@@ -148,9 +149,11 @@ public sealed class UserDirectory(MorningInkDbContext db, UserManager<AppUser> l
 
         // Login, editions, issues, sources, credentials and seen articles go with the user (cascade).
         await db.DomainUsers.Where(u => u.Id == userId).ExecuteDeleteAsync(cancellationToken);
-        foreach (var path in fileNames.Select(files.PathFor).Where(File.Exists))
+        // File.Delete passes over files that are not there, such as a cover never asked for.
+        foreach (var path in fileNames.Select(files.PathFor))
         {
             File.Delete(path);
+            File.Delete(IssueArchive.CoverPathFor(path));
         }
 
         var scheduler = await schedulers.GetScheduler(cancellationToken);

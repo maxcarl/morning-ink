@@ -8,6 +8,7 @@ using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Profiles;
 using MorningInk.Infrastructure.Tests.Delivery;
 using MorningInk.Infrastructure.Tests.Persistence;
+using MorningInk.Infrastructure.Tests.Rendering;
 
 namespace MorningInk.Infrastructure.Tests.Profiles;
 
@@ -111,6 +112,45 @@ public sealed class IssueArchiveTests : IDisposable
         Assert.Equal("Morning Ink 2026-11-20.epub", file.DownloadName);
         Assert.Equal("application/epub+zip", file.MediaType);
         Assert.True(File.Exists(file.Path));
+    }
+
+    [Fact]
+    public async Task Cover_is_a_small_jpeg_made_once_from_the_epub()
+    {
+        await using var services = await StartAsync();
+        var max = await CreateUserWithProfileAsync(services, "alex");
+        var erika = await CreateUserWithProfileAsync(services, "erika");
+        var issueId = await AddIssueAsync(services, max.ProfileId, 1, IssueStatus.Delivered, "Erste Meldung");
+        var epub = (await ArchiveAsync(services, a => a.GetFileAsync(max.UserId, issueId, CancellationToken.None)))!.Path; // ! is safe: the issue was just added with a file
+        await TestEpub.WriteWithCoverAsync(epub);
+
+        var cover = await ArchiveAsync(services, a => a.GetCoverAsync(max.UserId, issueId, CancellationToken.None));
+
+        Assert.Equal(Path.ChangeExtension(epub, ".cover.jpg"), cover);
+        using (var codec = SkiaSharp.SKCodec.Create(cover))
+        {
+            Assert.Equal((250, 400), (codec.Info.Width, codec.Info.Height));
+        }
+
+        File.Delete(epub);
+        await TestEpub.WriteWithCoverAsync(epub, width: 100);
+        Assert.Equal(cover, await ArchiveAsync(services, a => a.GetCoverAsync(max.UserId, issueId, CancellationToken.None)));
+        using (var kept = SkiaSharp.SKCodec.Create(cover))
+        {
+            Assert.Equal(400, kept.Info.Height); // made once: an issue's cover never changes
+        }
+
+        Assert.Null(await ArchiveAsync(services, a => a.GetCoverAsync(erika.UserId, issueId, CancellationToken.None)));
+    }
+
+    [Fact]
+    public async Task File_that_is_no_epub_has_no_cover()
+    {
+        await using var services = await StartAsync();
+        var max = await CreateUserWithProfileAsync(services, "alex");
+        var issueId = await AddIssueAsync(services, max.ProfileId, 1, IssueStatus.Delivered, "Erste Meldung");
+
+        Assert.Null(await ArchiveAsync(services, a => a.GetCoverAsync(max.UserId, issueId, CancellationToken.None)));
     }
 
     public void Dispose()

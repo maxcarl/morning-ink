@@ -8,6 +8,7 @@ using MorningInk.Domain;
 using MorningInk.Infrastructure.Persistence;
 using MorningInk.Infrastructure.Profiles;
 using MorningInk.Infrastructure.Tests.Delivery;
+using MorningInk.Infrastructure.Tests.Rendering;
 using MorningInk.Web.Components.Pages;
 
 namespace MorningInk.Web.Tests;
@@ -118,6 +119,38 @@ public sealed class ArchivePageTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, own.StatusCode);
         Assert.Equal("application/epub+zip", own.Content.Headers.ContentType?.MediaType);
         Assert.Equal("Morning Ink 2026-11-20.epub", own.Content.Headers.ContentDisposition?.FileNameStar ?? own.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
+        Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
+        Assert.StartsWith("/login", TestApp.RedirectTarget(anonymous), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Each_issue_with_a_file_shows_its_cover()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var issueId = await AddIssueAsync("Raumfahrt: Start geglückt");
+
+        var page = pages.Open<Archive>("No. 1");
+
+        Assert.Equal($"/archive/{issueId}/cover", page.Find("img.issue-cover").GetAttribute("src"));
+    }
+
+    [Fact]
+    public async Task Cover_is_served_only_to_its_owner()
+    {
+        var admin = await _app.SignedInAdminAsync();
+        var issueId = await AddIssueAsync("Raumfahrt: Start geglückt");
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            await TestEpub.WriteWithCoverAsync(scope.ServiceProvider.GetRequiredService<IIssueFiles>().PathFor($"{issueId}.epub"));
+        }
+
+        var other = await _app.SignedInUserAsync("erika");
+        var own = await admin.GetAsync($"/archive/{issueId}/cover");
+        var foreign = await other.GetAsync($"/archive/{issueId}/cover");
+        var anonymous = await _app.Browser().GetAsync($"/archive/{issueId}/cover");
+
+        Assert.Equal(HttpStatusCode.OK, own.StatusCode);
+        Assert.Equal("image/jpeg", own.Content.Headers.ContentType?.MediaType);
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
         Assert.StartsWith("/login", TestApp.RedirectTarget(anonymous), StringComparison.Ordinal);
     }

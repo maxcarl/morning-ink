@@ -35,9 +35,12 @@ public sealed partial class OpdsTests : IDisposable
         Assert.Equal("application/atom+xml", catalog.Content.Headers.ContentType?.MediaType);
         Assert.Contains("Morning Ink 2026-11-20", feed, StringComparison.Ordinal);
         Assert.Contains($"href=\"/opds/issues/{own}\"", feed, StringComparison.Ordinal);
+        Assert.Contains($"rel=\"http://opds-spec.org/image/thumbnail\" href=\"/opds/issues/{own}/cover\"", feed, StringComparison.Ordinal);
         Assert.DoesNotContain(foreign.ToString(), feed, StringComparison.Ordinal);
         Assert.Equal("application/epub+zip", file.Content.Headers.ContentType?.MediaType);
         Assert.Equal(HttpStatusCode.NotFound, foreignFile.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await reader.GetAsync($"/opds/issues/{foreign}/cover")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _app.Browser().GetAsync($"/opds/issues/{own}/cover")).StatusCode);
     }
 
     [Fact]

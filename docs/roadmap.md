@@ -55,7 +55,6 @@ Private source types (newsletters, calendar, Home Assistant, sources with a logi
 
 ## Web UI
 
-- Archive as a stack of cover thumbnails
 - Sign-in with OIDC (Authentik, Authelia, Keycloak) or header auth behind a reverse proxy
 - Template gallery: ready-made bundles such as "Tech morning" to import
 - More UI languages (resource files)

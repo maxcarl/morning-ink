@@ -12,6 +12,7 @@
     <Compile Include="..\MorningInk.Infrastructure.Tests\Ai\FakeChatServer.cs" Link="FakeChatServer.cs" />
     <Compile Include="..\MorningInk.Infrastructure.Tests\Http\LocalServer.cs" Link="LocalServer.cs" />
     <Compile Include="..\MorningInk.Infrastructure.Tests\Sources\FakeImapServer.cs" Link="FakeImapServer.cs" />
+    <Compile Include="..\MorningInk.Infrastructure.Tests\Rendering\TestEpub.cs" Link="TestEpub.cs" />
   </ItemGroup>
 
 </Project>

@@ -16,6 +16,10 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
     private const string XhtmlType = "application/xhtml+xml";
     private const string JpegType = "image/jpeg";
     private const string CoverId = "cover-image";
+    private const string CoverHref = "cover.jpg";
+
+    /// <summary>Where the cover lies in the EPUB; the archive reads it from there for its small covers.</summary>
+    internal const string CoverEntry = $"{EpubPackage.ContentFolder}/{CoverHref}";
     private const string TitleHref = "title.xhtml";
     private const string WeatherHref = "weather.xhtml";
     private const string NavHref = "nav.xhtml";
@@ -80,13 +84,13 @@ internal sealed class EpubRenderer(IOptions<StorageOptions> storage) : IRenderer
 
         var items = new List<EpubPackage.Item>
         {
-            new(CoverId, "cover.jpg", JpegType, Properties: "cover-image"),
+            new(CoverId, CoverHref, JpegType, Properties: "cover-image"),
             new("css", EpubPages.StyleSheet, "text/css"),
             new("ncx", EpubPackage.NcxFile, "application/x-dtbncx+xml"),
             new("title", TitleHref, XhtmlType, InSpine: true),
         };
 
-        await AddContentAsync(zip, "cover.jpg", CoverGenerator.Create(EpubPages.Cover(issue, texts)), stamp, cancellationToken);
+        await AddContentAsync(zip, CoverHref, CoverGenerator.Create(EpubPages.Cover(issue, texts)), stamp, cancellationToken);
         await AddContentAsync(zip, EpubPages.StyleSheet, Encoding.UTF8.GetBytes(EpubPages.Css), stamp, cancellationToken);
         await AddContentAsync(zip, TitleHref, EpubPages.TitlePage(issue, texts, HrefOf), stamp, cancellationToken);
 

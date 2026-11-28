@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using Microsoft.EntityFrameworkCore;
 using MorningInk.Application.Delivery;
 using MorningInk.Application.Publishing;
@@ -7,6 +8,8 @@ using MorningInk.Application.Sources;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Delivery;
 using MorningInk.Infrastructure.Persistence;
+using MorningInk.Infrastructure.Processing;
+using MorningInk.Infrastructure.Rendering;
 
 namespace MorningInk.Infrastructure.Profiles;
 
@@ -36,6 +39,16 @@ public sealed class IssueArchive(
     TimeProvider time)
 {
     private const char LikeEscape = '\\';
+    private const string CoverExtension = ".cover.jpg";
+
+    // The covers are Morning Ink's own (1600 × 2560, a few hundred KB); the limit only bounds what is read from the zip.
+    private const long MaxCoverBytes = 5 * 1024 * 1024;
+
+    // 250 × 400: sharp in the archive list on a high-density screen and as a thumbnail in a reader's catalog.
+    private static readonly ImageOptions CoverOptions = new() { MaxDimension = 400, MinDimension = 1, MaxEncodedBytes = 64 * 1024 };
+
+    /// <summary>The small cover kept next to an issue file, so whatever deletes the file deletes it too.</summary>
+    public static string CoverPathFor(string issuePath) => Path.ChangeExtension(issuePath, CoverExtension);
 
     /// <param name="search">Words in an article title or source name; empty lists everything.</param>
     /// <param name="take">How many issues, newest first.</param>
@@ -75,6 +88,37 @@ public sealed class IssueArchive(
         }
 
         return new IssueFile(path, HeaderText.FileName(BookTitle(found.Issue, found.Profile), renderer.FileExtension), renderer.MediaType);
+    }
+
+    /// <summary>
+    /// A small JPEG of the issue's cover, made from the EPUB on first request and then kept next to it, which also
+    /// covers issues from before there were small covers. Null when the issue is not the user's, its file is gone, or
+    /// the file has no cover.
+    /// </summary>
+    public async Task<string?> GetCoverAsync(Guid userId, Guid issueId, CancellationToken cancellationToken)
+    {
+        if (await GetFileAsync(userId, issueId, cancellationToken) is not { } file)
+        {
+            return null;
+        }
+
+        var cover = CoverPathFor(file.Path);
+        if (File.Exists(cover))
+        {
+            return cover;
+        }
+
+        if (await ReadCoverAsync(file.Path, cancellationToken) is not { } original
+            || ImageConverter.Convert(original, CoverOptions) is not ImageConversion.Converted converted)
+        {
+            return null;
+        }
+
+        // Written aside and then moved, so a request at the same moment never reads half a file.
+        var temporary = $"{cover}.{Guid.NewGuid():N}.tmp";
+        await File.WriteAllBytesAsync(temporary, converted.Jpeg, cancellationToken);
+        File.Move(temporary, cover, overwrite: true);
+        return cover;
     }
 
     /// <summary>Sends the issue's file to its edition's recipient once more, e.g. after the reader lost it.</summary>
@@ -177,6 +221,28 @@ public sealed class IssueArchive(
 
         var path = files.PathFor(issue.FileName);
         return File.Exists(path) ? path : null;
+    }
+
+    private static async Task<byte[]?> ReadCoverAsync(string epub, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var zip = await ZipFile.OpenReadAsync(epub, cancellationToken);
+            if (zip.GetEntry(EpubRenderer.CoverEntry) is not { Length: > 0 and <= MaxCoverBytes } entry)
+            {
+                return null;
+            }
+
+            await using var stream = await entry.OpenAsync(cancellationToken);
+            using var buffer = new MemoryStream((int)entry.Length);
+            await stream.CopyToAsync(buffer, cancellationToken);
+            return buffer.ToArray();
+        }
+        catch (InvalidDataException)
+        {
+            // Not a zip: nothing to show, and the file itself is still fine to download.
+            return null;
+        }
     }
 
     private IRenderer? RendererFor(string path) =>

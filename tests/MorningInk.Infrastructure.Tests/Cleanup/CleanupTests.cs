@@ -24,6 +24,7 @@ public sealed class CleanupTests : IDisposable
         var old = await CreateIssueAsync(services, profileId, ageInDays: 40);
         var pinned = await CreateIssueAsync(services, profileId, ageInDays: 40, pinned: true);
         var recent = await CreateIssueAsync(services, profileId, ageInDays: 5);
+        WriteFile(IssueDirectory, $"{old}.cover.jpg", TestHost.Now);
 
         await RunAsync(services);
 
@@ -33,6 +34,7 @@ public sealed class CleanupTests : IDisposable
         Assert.Equal(new[] { pinned, recent }.Order(), (await db.Issues.Select(i => i.Id).ToListAsync()).Order());
         Assert.Empty(await db.Set<IssueEntry>().Where(e => e.IssueId == old).ToListAsync());
         Assert.False(File.Exists(Path.Combine(IssueDirectory, $"{old}.epub")));
+        Assert.False(File.Exists(Path.Combine(IssueDirectory, $"{old}.cover.jpg"))); // the archive's cover goes with it
         Assert.True(File.Exists(Path.Combine(IssueDirectory, $"{pinned}.epub")));
         Assert.True(File.Exists(Path.Combine(IssueDirectory, $"{recent}.epub")));
     }

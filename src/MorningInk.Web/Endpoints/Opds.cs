@@ -17,6 +17,10 @@ public static class Opds
 {
     private const string AcquisitionFeed = "application/atom+xml;profile=opds-catalog;kind=acquisition";
     private const string Acquisition = "http://opds-spec.org/acquisition";
+
+    // Readers show the image in their catalog; the small cover serves as both, as the book itself has the full one.
+    private const string Image = "http://opds-spec.org/image";
+    private const string Thumbnail = "http://opds-spec.org/image/thumbnail";
     private const string Challenge = "Basic realm=\"Morning Ink\", charset=\"UTF-8\"";
     private const int Issues = 30;
 
@@ -46,6 +50,12 @@ public static class Opds
                 ? Results.File(file.Path, file.MediaType, file.DownloadName)
                 : Results.NotFound();
         }).AllowAnonymous();
+
+        app.MapGet("/opds/issues/{issueId:guid}/cover", async (Guid issueId, HttpContext context, ReaderAccess readers, IssueArchive archive) =>
+            await ReaderAsync(context, readers) is not { } userId
+                ? Unauthorized
+                : IssueDownload.Cover(await archive.GetCoverAsync(userId, issueId, context.RequestAborted), context))
+            .AllowAnonymous();
     }
 
     // The reader's user from the Basic header, or null for anything missing, malformed or wrong.
@@ -95,7 +105,9 @@ public static class Opds
             new XElement(Atom + "id", $"urn:uuid:{issue.Id}"),
             new XElement(Atom + "title", title),
             new XElement(Atom + "updated", (issue.DeliveredAt ?? issue.CreatedAt).ToString("O", System.Globalization.CultureInfo.InvariantCulture)),
-            Link(Acquisition, $"/opds/issues/{issue.Id}", "application/epub+zip"));
+            Link(Acquisition, $"/opds/issues/{issue.Id}", "application/epub+zip"),
+            Link(Image, $"/opds/issues/{issue.Id}/cover", "image/jpeg"),
+            Link(Thumbnail, $"/opds/issues/{issue.Id}/cover", "image/jpeg"));
     }
 
     private static XElement Link(string rel, string href, string type) =>

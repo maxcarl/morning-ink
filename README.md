@@ -41,7 +41,7 @@
 **Your control**
 
 - **Filters per source:** words to require or exclude, a regular expression for titles, a minimum length, no live tickers, no marked ads
-- **Archive** to search, download, send again and keep issues, with what the filters left out and why, one click from the filter
+- **Archive** with each issue's cover, to search, download, send again and keep issues, with what the filters left out and why, one click from the filter
 - **Status page** with your running and planned issues; a hanging issue can be cancelled. Everyone downloads their setup as JSON (sources, editions, no secrets) to keep in Git or import elsewhere. Admins see all users' jobs, the space each part takes with a warning when it runs low, set the cleanup time, clear the image cache, and download or restore a database backup
 - **Feedback from the Kindle:** "More of this" and "Less of this" under every article move that source up or down in its section
 - **Optional AI overview**, "the most important in 5 minutes", placed and switched like any section
@@ -49,7 +49,7 @@
 - **Optional AI summaries** with your own Ollama or any OpenAI-compatible provider; private sources can stay local, a daily limit caps requests, and the settings show which article went to which provider. The instructions are editable
 - **Setup wizard** with sample sources from several countries; first newspaper in minutes
 - **Notifications** by ntfy, Gotify, Telegram or e-mail when an issue is out
-- **KOReader and other OPDS readers** fetch issues themselves, with a password of their own
+- **KOReader and other OPDS readers** fetch issues themselves, covers included, with a password of their own
 
 **Your server**
 
