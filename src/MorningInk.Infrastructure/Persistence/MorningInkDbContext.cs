@@ -20,6 +20,7 @@ public sealed class MorningInkDbContext(
     private const int EmailLength = 320; // RFC 5321 maximum
     private const int LanguageLength = 16;
     private const int TimeZoneLength = 64;
+    internal const int CronLength = 100;
     private const int RegionLength = 100;
     private const int EnumLength = 32;
     private const int ETagLength = 512;
@@ -84,6 +85,7 @@ public sealed class MorningInkDbContext(
             profile.Property(p => p.Recipient).HasMaxLength(EmailLength);
             profile.Property(p => p.Region).HasMaxLength(RegionLength);
             profile.Property(p => p.TimeZoneId).HasMaxLength(TimeZoneLength);
+            profile.Property(p => p.Cron).HasMaxLength(CronLength);
             profile.Property(p => p.Country).HasMaxLength(CountryCodeLength);
             profile.OwnsOne(p => p.Location, location =>
             {

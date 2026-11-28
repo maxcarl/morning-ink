@@ -19,10 +19,10 @@
     </div>
     <p class="lede">
         @(!_profile.SendByEmail
-            ? T["Profile_LedeFetch", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId]
+            ? T["Profile_LedeFetch", _profile.Title, WhenText(_profile), _profile.TimeZoneId]
             : string.IsNullOrEmpty(_profile.Recipient)
-            ? T["Profile_LedeNoRecipient", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId]
-            : T["Profile_Lede", _profile.Title, DaysText(_profile), Clock.Time(T, _profile.DeliveryTime), _profile.TimeZoneId, _profile.Recipient])
+            ? T["Profile_LedeNoRecipient", _profile.Title, WhenText(_profile), _profile.TimeZoneId]
+            : T["Profile_Lede", _profile.Title, WhenText(_profile), _profile.TimeZoneId, _profile.Recipient])
     </p>
     @* One tab per edition, like the sections of a paper; a new one starts as a copy of the first one's delivery. *@
     <nav class="editions" aria-label="@T["Profile_Editions"]">
@@ -110,11 +110,28 @@
                     </div>
 
                     <h3 class="department form-group">@T["Profile_GroupSchedule"]</h3>
-                    <div class="field-row">
-                        <div class="field">
-                            <label for="time">@T["Profile_DeliveryTime"]</label>
-                            <input id="time" class="input" type="time" @bind="_time" required />
+                    <fieldset class="field">
+                        <legend class="visually-hidden">@T["Profile_GroupSchedule"]</legend>
+                        <div class="choices">
+                            <label class="checkbox"><input id="schedule-simple" type="radio" name="schedule" checked="@(!_useCron)" @onchange="() => _useCron = false" /> @T["Profile_ScheduleSimple"]</label>
+                            <label class="checkbox"><input id="schedule-cron" type="radio" name="schedule" checked="@_useCron" @onchange="() => _useCron = true" /> @T["Profile_ScheduleCron"]</label>
                         </div>
+                    </fieldset>
+                    <div class="field-row">
+                        @if (_useCron)
+                        {
+                            <div class="field">
+                                <label for="cron">@T["Profile_Cron"]</label>
+                                <input id="cron" class="input" @bind="_cron" placeholder="0 6 * * 1-5" spellcheck="false" autocapitalize="none" autocomplete="off" aria-describedby="cron-hint" required />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="field">
+                                <label for="time">@T["Profile_DeliveryTime"]</label>
+                                <input id="time" class="input" type="time" @bind="_time" required />
+                            </div>
+                        }
                         <div class="field">
                             <label for="zone">@T["Profile_TimeZone"]</label>
                             <select id="zone" class="input" @bind="_zone">
@@ -125,15 +142,22 @@
                             </select>
                         </div>
                     </div>
-                    <fieldset class="field">
-                        <legend class="label">@T["Profile_Days"]</legend>
-                        <div class="weekdays">
-                            @foreach (var day in Week)
-                            {
-                                <label class="checkbox"><input type="checkbox" checked="@_days.Contains(day)" @onchange="() => ToggleDay(day)" /> @CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)day]</label>
-                            }
-                        </div>
-                    </fieldset>
+                    @if (_useCron)
+                    {
+                        <p id="cron-hint" class="hint">@T["Profile_CronHint"]</p>
+                    }
+                    else
+                    {
+                        <fieldset class="field">
+                            <legend class="label">@T["Profile_Days"]</legend>
+                            <div class="weekdays">
+                                @foreach (var day in Week)
+                                {
+                                    <label class="checkbox"><input type="checkbox" checked="@_days.Contains(day)" @onchange="() => ToggleDay(day)" /> @CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames[(int)day]</label>
+                                }
+                            </div>
+                        </fieldset>
+                    }
                     <div class="field">
                         <label for="lead">@T["Profile_LeadTime"]</label>
                         <select id="lead" class="input" @bind="_leadMinutes" aria-describedby="lead-hint">
@@ -226,6 +250,10 @@
     private string _area = "content";
     private TimeOnly _time;
     private HashSet<DayOfWeek> _days = [];
+
+    // Time and days stay filled while a crontab expression is in use, so switching back finds them as they were.
+    private bool _useCron;
+    private string _cron = string.Empty;
     private int _leadMinutes;
 
     // A slow AI on a CPU needs hours; more than four is not worth offering.
@@ -249,6 +277,8 @@
         _sendByEmail = profile.SendByEmail;
         _time = profile.DeliveryTime;
         _days = profile.Days.Count == 0 ? [.. Enum.GetValues<DayOfWeek>()] : [.. profile.Days];
+        _useCron = profile.Cron is not null;
+        _cron = profile.Cron ?? string.Empty;
         _leadMinutes = (int)profile.LeadTime.TotalMinutes;
         _minArticles = profile.MinArticles;
         _zone = profile.TimeZoneId;
@@ -286,6 +316,10 @@
 
         _profile = _editions.FirstOrDefault(p => p.Id == wanted) ?? _editions[0];
     }
+
+    private string WhenText(Profile profile) => profile.Cron is { } cron
+        ? T["Profile_WhenCron", cron]
+        : T["Profile_WhenDays", DaysText(profile), Clock.Time(T, profile.DeliveryTime)];
 
     private string DaysText(Profile profile) => profile.Days.Count == 0
         ? T["Profile_EveryDay"]
@@ -325,7 +359,7 @@
     {
         Clear();
         var errors = await UseAsync<ProfileEditor, IReadOnlyList<string>>(editor => editor.SaveSettingsAsync(
-            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days], TimeSpan.FromMinutes(_leadMinutes), _sendByEmail, _minArticles), Closed));
+            UserId, _profile!.Id, new ProfileSettings(_title, _recipient, _time.ToString("HH:mm", CultureInfo.InvariantCulture), _zone, _region, _country, [.. _days], TimeSpan.FromMinutes(_leadMinutes), _sendByEmail, _minArticles, _useCron ? _cron : string.Empty), Closed));
         _errors = errors.Select(field => T[$"Profile_Error_{field}"].Value).ToList();
         if (_errors.Count == 0)
         {

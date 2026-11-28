@@ -9,8 +9,8 @@ using Quartz;
 namespace MorningInk.Infrastructure.Scheduling;
 
 /// <summary>
-/// Plans issues in Quartz: a daily trigger per profile at its delivery time and time zone, a catch-up run for a
-/// slot missed while Morning Ink was off, and retries of failed deliveries.
+/// Plans issues in Quartz: a daily trigger per profile at its delivery time and time zone (or its crontab expression),
+/// a catch-up run for a slot missed while Morning Ink was off, and retries of failed deliveries.
 /// </summary>
 /// <remarks>
 /// Quartz keeps triggers in memory only. The issue table is the record of what was sent, so after a restart
@@ -27,6 +27,12 @@ public sealed partial class IssueScheduler(
 
     /// <summary>On the build trigger: the lead time in minutes; the run builds the issue for its fire time plus this.</summary>
     internal const string LeadMinutesKey = "leadMinutes";
+
+    /// <summary>On a build trigger of a crontab schedule: the expression in Quartz form and the zone, so the run plans the next build.</summary>
+    internal const string CronKey = "cron";
+
+    /// <inheritdoc cref="CronKey"/>
+    internal const string ZoneKey = "zone";
 
     // Trigger names start with what the trigger is for; the jobs page reads the kind back from them.
     private const string DailyPrefix = "daily-";
@@ -85,11 +91,11 @@ public sealed partial class IssueScheduler(
             .Build();
         await scheduler.AddJob(job, AddJobOptions.Replacing, cancellationToken);
 
+        var cron = CronOf(schedule, zone);
         var daily = TriggerBuilder.Create(time)
             .WithIdentity($"{DailyPrefix}{schedule.ProfileId}")
             .ForJob(job)
-            .WithSchedule(CronScheduleBuilder
-                .Create(CronFor(schedule))
+            .WithSchedule((cron is null ? CronScheduleBuilder.Create(CronFor(schedule)) : CronScheduleBuilder.Create(cron))
                 .InTimeZone(zone)
 
                 // If Morning Ink was busy at the moment, run as soon as possible instead of skipping the day.
@@ -99,9 +105,14 @@ public sealed partial class IssueScheduler(
         await scheduler.ScheduleJob(daily, default, cancellationToken);
 
         // With a lead time, a second trigger builds the issue early; the daily one then only sends it.
-        var buildKey = new TriggerKey($"{BuildPrefix}{schedule.ProfileId}");
+        var buildKey = BuildKeyFor(schedule.ProfileId);
         await scheduler.UnscheduleJob(buildKey, cancellationToken);
-        if (schedule.LeadTime > TimeSpan.Zero)
+        if (schedule.LeadTime > TimeSpan.Zero && cron is not null)
+        {
+            // A crontab expression cannot be shifted by the lead time, so each build is planned for the next slot alone.
+            await PlanCronBuildAsync(scheduler, schedule.ProfileId, cron, schedule.LeadTime, cancellationToken);
+        }
+        else if (schedule.LeadTime > TimeSpan.Zero)
         {
             var build = TriggerBuilder.Create(time)
                 .WithIdentity(buildKey)
@@ -114,12 +125,52 @@ public sealed partial class IssueScheduler(
         }
 
         var now = time.GetUtcNow();
-        var lastSlot = DeliverySlots.LastAtOrBefore(now, schedule.DeliveryTime, zone, schedule.Days);
-        if (catchUp && now - lastSlot <= options.Value.CatchUpWindow)
+        if (catchUp && LastSlot(schedule, now) is { } lastSlot && now - lastSlot <= options.Value.CatchUpWindow)
         {
             // Harmless when the slot was already delivered: the publisher then does nothing.
             await scheduler.ScheduleJob(OneOff(job.Key, $"{CatchUpPrefix}{schedule.ProfileId}", lastSlot, now), ScheduleJobOptions.Replacing, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Plans the early build of the first slot whose build still lies ahead; the build run plans the next one, so a
+    /// crontab schedule with a lead time builds before every slot.
+    /// </summary>
+    public async Task PlanCronBuildAsync(IScheduler scheduler, Guid profileId, CronExpression cron, TimeSpan leadTime, CancellationToken cancellationToken)
+    {
+        if (cron.GetNextValidTimeAfter(time.GetUtcNow() + leadTime) is not { } slot)
+        {
+            return;
+        }
+
+        var data = new JobDataMap
+        {
+            [LeadMinutesKey] = (long)leadTime.TotalMinutes,
+            [CronKey] = cron.CronExpressionString,
+            [ZoneKey] = cron.TimeZone.Id,
+        };
+        var build = OneOff(JobKeyFor(profileId), BuildKeyFor(profileId).Name, slot, slot - leadTime, data);
+        await scheduler.ScheduleJob(build, ScheduleJobOptions.Replacing, cancellationToken);
+    }
+
+    /// <summary>The first slot after <paramref name="now"/>, by the crontab expression when there is one; null when it never fires again.</summary>
+    public static DateTimeOffset? NextSlot(ProfileSchedule schedule, DateTimeOffset now)
+    {
+        var zone = ProfileTimeZone.Find(schedule.TimeZoneId);
+        return CronOf(schedule, zone) is { } cron
+            ? cron.GetNextValidTimeAfter(now)
+            : DeliverySlots.NextAfter(now, schedule.DeliveryTime, zone, schedule.Days);
+    }
+
+    /// <summary>The latest slot at or before <paramref name="now"/>; null when there was none.</summary>
+    internal static DateTimeOffset? LastSlot(ProfileSchedule schedule, DateTimeOffset now)
+    {
+        var zone = ProfileTimeZone.Find(schedule.TimeZoneId);
+
+        // Quartz counts in whole seconds and looks strictly before, so one second later includes a slot at now.
+        return CronOf(schedule, zone) is { } cron
+            ? cron.GetPreviousValidTimeBefore(now.AddSeconds(1))
+            : DeliverySlots.LastAtOrBefore(now, schedule.DeliveryTime, zone, schedule.Days);
     }
 
     /// <summary>Builds and sends an issue right away, outside the schedule ("send now"), with the usual retries.</summary>
@@ -184,13 +235,20 @@ public sealed partial class IssueScheduler(
     internal static TimeSpan RetryDelay(int attempts, TimeSpan firstDelay) =>
         firstDelay * Math.Pow(RetryGrowthFactor, Math.Max(0, attempts - 1));
 
+    // The editor saves only valid expressions; one that fails anyway falls back to time and weekdays.
+    private static CronExpression? CronOf(ProfileSchedule schedule, TimeZoneInfo zone) =>
+        string.IsNullOrEmpty(schedule.Cron) ? null : CronText.Parse(schedule.Cron, zone);
+
+    private static TriggerKey BuildKeyFor(Guid profileId) => new($"{BuildPrefix}{profileId}");
+
     // The slot travels with the trigger, so a late or repeated run still publishes the right issue.
-    private ITrigger OneOff(JobKey job, string name, DateTimeOffset slot, DateTimeOffset startAt) =>
+    private ITrigger OneOff(JobKey job, string name, DateTimeOffset slot, DateTimeOffset startAt, JobDataMap? data = null) =>
         TriggerBuilder.Create(time)
             .WithIdentity(name)
             .ForJob(job)
             .UsingJobData(SlotKey, slot.ToUnixTimeMilliseconds())
             .StartAt(startAt)
+            .UsingJobData(data ?? [])
             .WithSimpleSchedule(s => s.WithMisfireInstruction(SimpleTriggerMisfireInstruction.FireNow))
             .Build();
 

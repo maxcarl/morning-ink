@@ -258,6 +258,37 @@ public sealed class ProfileEditorTests : IDisposable
         Assert.Equal(valid ? TimeSpan.FromMinutes(minutes) : TimeSpan.Zero, (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).LeadTime);
     }
 
+    [Theory]
+    [InlineData(" 0  6 * * 1-5 ", "0 6 * * 1-5")]
+    [InlineData("*/10 6 * * *", null)] // more often than once an hour
+    [InlineData("0 6 * *", null)]
+    public async Task Crontab_expression_is_saved_tidied_or_rejected(string cron, string? saved)
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "alex");
+
+        var errors = await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "name_abc@kindle.com", "06:00", "Europe/Berlin", null, Cron: cron), CancellationToken.None));
+
+        Assert.Equal(saved is null ? ["Cron"] : [], errors);
+        Assert.Equal(saved, (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Cron);
+    }
+
+    [Fact]
+    public async Task Crontab_expression_is_kept_without_one_and_cleared_with_an_empty_one()
+    {
+        await using var services = await _host.StartAsync();
+        var user = await CreateUserAsync(services, "alex");
+        async Task<string?> SaveAsync(string? cron)
+        {
+            await EditAsync(services, async e => await e.SaveSettingsAsync(user, (await e.GetOrCreateAsync(user, CancellationToken.None)).Id, new ProfileSettings("Morning Ink", "name_abc@kindle.com", "06:00", "Europe/Berlin", null, Cron: cron), CancellationToken.None));
+            return (await EditAsync(services, e => e.GetOrCreateAsync(user, CancellationToken.None))).Cron;
+        }
+
+        Assert.Equal("0 6 * * 6,0", await SaveAsync("0 6 * * 6,0"));
+        Assert.Equal("0 6 * * 6,0", await SaveAsync(null)); // e.g. the welcome page, which knows no crontab
+        Assert.Null(await SaveAsync(string.Empty));
+    }
+
     [Fact]
     public async Task Interests_are_saved_per_edition_and_checked()
     {

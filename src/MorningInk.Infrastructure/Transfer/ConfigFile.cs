@@ -42,6 +42,7 @@ public sealed record SourceConfig(
 /// <param name="DeliveryTime">"HH:mm" in <paramref name="TimeZone"/>.</param>
 /// <param name="Days">Weekdays with an issue; empty for every day.</param>
 /// <param name="NotifyTarget">The ntfy topic, Gotify server, Telegram chat or address; its token is not in the file.</param>
+/// <param name="Cron">A crontab expression that replaces <paramref name="DeliveryTime"/> and <paramref name="Days"/>; null for none.</param>
 public sealed record EditionConfig(
     string Title,
     string Recipient,
@@ -56,7 +57,8 @@ public sealed record EditionConfig(
     NotificationChannel Notify = NotificationChannel.None,
     string? NotifyTarget = null,
     IReadOnlyList<InterestConfig>? Interests = null,
-    IReadOnlyList<SectionConfig>? Sections = null);
+    IReadOnlyList<SectionConfig>? Sections = null,
+    string? Cron = null);
 
 public sealed record InterestConfig(string Topic, IReadOnlyList<string>? Keywords, InterestWeight Weight);
 

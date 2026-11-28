@@ -49,7 +49,6 @@ Private source types (newsletters, calendar, Home Assistant, sources with a logi
 
 - Storage: WebDAV, Nextcloud or a folder on the server
 - Messenger delivery: Telegram or Matrix bot sends the file
-- Cron expressions next to time and weekdays
 - Catch-up issue after a break: when issues pause for a weekend or a holiday (up to 14 days), the next one becomes a "while you were away" issue with the best of the missed period instead of only the latest articles
 - Trigger an issue by API or a Home Assistant button
 - Shrink images harder when an issue would exceed the mail limit

@@ -27,6 +27,7 @@ public sealed class ConfigTransferTests : IDisposable
         var import = await ImportAsync(services, erika, json);
 
         Assert.True(import.Imported, string.Join(", ", import.Problems));
+        Assert.Contains("\"cron\": \"30 6 * * 1-5\"", json, StringComparison.Ordinal);
         Assert.DoesNotContain("geheim", json, StringComparison.Ordinal); // the notification token stays here
         Assert.DoesNotContain("instance", json, StringComparison.Ordinal); // only for admins
         Assert.Equal([], import.NeedLogin);
@@ -72,6 +73,7 @@ public sealed class ConfigTransferTests : IDisposable
     [InlineData("""{ "format": "morning-ink-config", "version": 1, "editions": [ { "title": "Morgen", "recipient": "", "sendByEmail": false, "deliveryTime": "07:00", "timeZone": "Nowhere/Town" } ] }""", "Morgen", "TimeZone")]
     [InlineData("""{ "format": "morning-ink-config", "version": 1, "sources": [ { "name": "Intern", "kind": "Rss", "url": "file:///etc/passwd" } ], "editions": [ { "title": "Morgen", "recipient": "", "sendByEmail": false, "deliveryTime": "07:00", "timeZone": "Europe/Berlin" } ] }""", "Intern", "InvalidUrl")]
     [InlineData("""{ "format": "morning-ink-config", "version": 1, "editions": [ { "title": "Morgen", "recipient": "", "sendByEmail": false, "deliveryTime": "07:00", "timeZone": "Europe/Berlin", "sections": [ { "name": "Tech", "sources": ["Fehlt"] } ] } ] }""", "Fehlt", "UnknownSource")]
+    [InlineData("""{ "format": "morning-ink-config", "version": 1, "editions": [ { "title": "Morgen", "recipient": "", "sendByEmail": false, "deliveryTime": "07:00", "timeZone": "Europe/Berlin", "cron": "* * * * *" } ] }""", "Morgen", "Cron")]
     [InlineData("""{ "format": "morning-ink-config", "version": 1, "editions": [] }""", "file", "TooLarge")]
     [InlineData("""{ "format": "something-else", "version": 1 }""", "file", "Format")]
     [InlineData("not json", "file", "Format")]
@@ -141,7 +143,7 @@ public sealed class ConfigTransferTests : IDisposable
 
         var editor = scope.ServiceProvider.GetRequiredService<ProfileEditor>();
         var profile = await editor.GetOrCreateAsync(user, CancellationToken.None);
-        await editor.SaveSettingsAsync(user, profile.Id, new ProfileSettings("Morgen", "name_abc@kindle.com", "06:30", "Europe/Berlin", "10115", "DE", [DayOfWeek.Monday, DayOfWeek.Friday], TimeSpan.FromMinutes(30)), CancellationToken.None);
+        await editor.SaveSettingsAsync(user, profile.Id, new ProfileSettings("Morgen", "name_abc@kindle.com", "06:30", "Europe/Berlin", "10115", "DE", [DayOfWeek.Monday, DayOfWeek.Friday], TimeSpan.FromMinutes(30), Cron: "30 6 * * 1-5"), CancellationToken.None);
         await editor.SaveInterestsAsync(user, profile.Id, [new Interest { Topic = "Raumfahrt", Keywords = ["Rakete", "ISS"], Weight = InterestWeight.StrongPrefer }], CancellationToken.None);
         await editor.SaveNotificationAsync(user, profile.Id, new NotificationSettings(NotificationChannel.Gotify, "https://gotify.example.com", "geheim"), CancellationToken.None);
 

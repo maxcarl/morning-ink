@@ -47,6 +47,12 @@ public class Profile
     public List<DayOfWeek> Days { get; set; } = [];
 
     /// <summary>
+    /// A crontab expression with five fields, e.g. "0 6 * * 1-5", in <see cref="TimeZoneId"/>; when set, it replaces
+    /// <see cref="DeliveryTime"/> and <see cref="Days"/>, which stay for switching back.
+    /// </summary>
+    public string? Cron { get; set; }
+
+    /// <summary>
     /// Fewest articles worth an issue; with fewer, the slot is skipped and the articles wait for the next one.
     /// One sends whatever is new.
     /// </summary>

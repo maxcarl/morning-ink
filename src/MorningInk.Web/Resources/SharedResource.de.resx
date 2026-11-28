@@ -81,8 +81,8 @@
   <data name="Error_AdminOnly" xml:space="preserve"><value>Das dürfen nur Admins.</value></data>
   <data name="Nav_Profile" xml:space="preserve"><value>Ausgabe</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Ausgabe</value></data>
-  <data name="Profile_Lede" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}), zugestellt an {4}.</value></data>
-  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} erscheint {1} um {2} ({3}). Trage einen Empfänger ein, damit sie zugestellt werden kann.</value></data>
+  <data name="Profile_Lede" xml:space="preserve"><value>{0} erscheint {1} ({2}), zugestellt an {3}.</value></data>
+  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} erscheint {1} ({2}). Trage einen Empfänger ein, damit sie zugestellt werden kann.</value></data>
   <data name="Profile_Settings" xml:space="preserve"><value>Einstellungen</value></data>
   <data name="Profile_NewspaperTitle" xml:space="preserve"><value>Titel der Zeitung</value></data>
   <data name="Profile_Recipient" xml:space="preserve"><value>Empfänger</value></data>
@@ -623,7 +623,7 @@
   <data name="Profile_DeliveryEmail" xml:space="preserve"><value>Per E-Mail, z. B. an den Kindle</value></data>
   <data name="Profile_DeliveryFetch" xml:space="preserve"><value>Nur bereitstellen</value></data>
   <data name="Profile_DeliveryFetchHint" xml:space="preserve"><value>Der Reader holt sie aus dem OPDS-Katalog (siehe Konto), oder du lädst sie im Archiv herunter. Kein Mailserver nötig.</value></data>
-  <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} liegt {1} um {2} ({3}) für deinen Reader bereit.</value></data>
+  <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} liegt {1} ({2}) für deinen Reader bereit.</value></data>
   <data name="Dash_ToFetch" xml:space="preserve"><value>zum Abholen</value></data>
   <data name="Log_Stored" xml:space="preserve"><value>Zum Abholen bereitgestellt</value></data>
   <data name="Profile_GroupPaper" xml:space="preserve"><value>Zeitung</value></data>
@@ -807,4 +807,12 @@
   <data name="IssueStage_Extras" xml:space="preserve"><value>Wetter, Überblick, An diesem Tag</value></data>
   <data name="IssueStage_Rendering" xml:space="preserve"><value>EPUB erstellen</value></data>
   <data name="IssueStage_Sending" xml:space="preserve"><value>Zustellen</value></data>
+  <data name="Profile_WhenDays" xml:space="preserve"><value>{0} um {1}</value></data>
+  <data name="Profile_WhenCron" xml:space="preserve"><value>nach dem Zeitplan „{0}“</value></data>
+  <data name="Profile_ScheduleSimple" xml:space="preserve"><value>Uhrzeit und Wochentage</value></data>
+  <data name="Profile_ScheduleCron" xml:space="preserve"><value>Cron-Ausdruck</value></data>
+  <data name="Profile_Cron" xml:space="preserve"><value>Cron-Ausdruck</value></data>
+  <data name="Profile_CronHint" xml:space="preserve"><value>Fünf Felder wie in crontab: Minute, Stunde, Tag, Monat, Wochentag. „0 6 * * 1-5“ ist werktags um 6:00, „0 6,18 * * *“ morgens und abends. Höchstens eine Ausgabe pro Stunde.</value></data>
+  <data name="Profile_Error_Cron" xml:space="preserve"><value>Gib einen Cron-Ausdruck mit fünf Feldern ein, der höchstens einmal pro Stunde auslöst, etwa 0 6 * * 1-5.</value></data>
+  <data name="ConfigProblem_Cron" xml:space="preserve"><value>ungültiger Cron-Ausdruck</value></data>
 </root>

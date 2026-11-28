@@ -555,6 +555,10 @@ namespace MorningInk.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Cron")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.PrimitiveCollection<string>("Days")
                         .IsRequired()
                         .HasColumnType("TEXT");

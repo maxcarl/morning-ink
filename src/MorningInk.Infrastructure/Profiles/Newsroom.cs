@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using MorningInk.Application.Publishing;
-using MorningInk.Application.Scheduling;
 using MorningInk.Domain;
 using MorningInk.Infrastructure.Delivery;
 using MorningInk.Infrastructure.Persistence;
@@ -52,7 +51,8 @@ public sealed class Newsroom(
         var editions = all
             .Select(p => new Edition(
                 p,
-                DeliverySlots.NextAfter(now, p.DeliveryTime, ProfileTimeZone.Find(p.TimeZoneId), p.Days),
+                // Saved crontab expressions always fire again; the fallback only sorts a broken one last.
+                IssueScheduler.NextSlot(ProfileSchedule.Of(p), now) ?? DateTimeOffset.MaxValue,
                 lastNumbers.GetValueOrDefault(p.Id) + 1))
             .OrderBy(e => e.NextIssue)
             .ToList();
@@ -98,7 +98,7 @@ public sealed class Newsroom(
 
         // Through Quartz, not in the page: the run goes on when the tab closes, and failed deliveries are retried.
         var scheduler = await schedulers.GetScheduler(cancellationToken);
-        await issues.SendNowAsync(scheduler, new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days, profile.LeadTime), cancellationToken);
+        await issues.SendNowAsync(scheduler, ProfileSchedule.Of(profile), cancellationToken);
         return true;
     }
 

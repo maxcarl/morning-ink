@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using MorningInk.Application.Publishing;
+using MorningInk.Application.Scheduling;
 using Quartz;
 
 namespace MorningInk.Infrastructure.Scheduling;
@@ -20,6 +21,14 @@ internal sealed partial class PublishIssueJob(IssuePublisher publisher, IssueSch
         var slot = data.ContainsKey(IssueScheduler.SlotKey) ? DateTimeOffset.FromUnixTimeMilliseconds(data.GetLong(IssueScheduler.SlotKey))
             : prepareOnly ? fired + TimeSpan.FromMinutes(data.GetLong(IssueScheduler.LeadMinutesKey))
             : fired;
+
+        // Planned before the run, so a failing build does not end the chain of early builds. The trigger carries the
+        // expression in Quartz's own form, as the scheduler wrote it.
+        if (prepareOnly && CronExpression.TryParse(data.GetString(IssueScheduler.CronKey), out var parsed))
+        {
+            var cron = parsed.WithTimeZone(ProfileTimeZone.Find(data.GetString(IssueScheduler.ZoneKey) ?? string.Empty));
+            await scheduler.PlanCronBuildAsync(context.Scheduler, profileId, cron, TimeSpan.FromMinutes(data.GetLong(IssueScheduler.LeadMinutesKey)), cancellationToken);
+        }
 
         var result = await publisher.PublishAsync(profileId, slot, cancellationToken, prepareOnly, new StepLog(logger, profileId));
         LogResult(logger, profileId, slot, result.GetType().Name);

@@ -28,7 +28,13 @@ public interface IPublishingStore
 /// <summary>A profile's delivery time in its time zone.</summary>
 /// <param name="Days">Weekdays with an issue; null or empty means every day.</param>
 /// <param name="LeadTime">How long before delivery the issue is built; zero builds at delivery.</param>
-public sealed record ProfileSchedule(Guid ProfileId, TimeOnly DeliveryTime, string TimeZoneId, IReadOnlyCollection<DayOfWeek>? Days = null, TimeSpan LeadTime = default);
+/// <param name="Cron">A crontab expression that replaces time and days when set; see <see cref="Profile.Cron"/>.</param>
+public sealed record ProfileSchedule(Guid ProfileId, TimeOnly DeliveryTime, string TimeZoneId, IReadOnlyCollection<DayOfWeek>? Days = null, TimeSpan LeadTime = default, string? Cron = null)
+{
+    /// <summary>The schedule of a loaded profile.</summary>
+    public static ProfileSchedule Of(Profile profile) =>
+        new(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days, profile.LeadTime, profile.Cron);
+}
 
 /// <param name="Profile">The profile, with sections and sources loaded.</param>
 /// <param name="Language">Culture name of the owner, e.g. "de", for texts in the issue.</param>

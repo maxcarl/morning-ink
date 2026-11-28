@@ -81,8 +81,8 @@
   <data name="Error_AdminOnly" xml:space="preserve"><value>Only admins can do this.</value></data>
   <data name="Nav_Profile" xml:space="preserve"><value>Edition</value></data>
   <data name="Profile_Title" xml:space="preserve"><value>Edition</value></data>
-  <data name="Profile_Lede" xml:space="preserve"><value>{0} comes out {1} at {2} ({3}), sent to {4}.</value></data>
-  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} comes out {1} at {2} ({3}). Set a recipient so it can be delivered.</value></data>
+  <data name="Profile_Lede" xml:space="preserve"><value>{0} comes out {1} ({2}), sent to {3}.</value></data>
+  <data name="Profile_LedeNoRecipient" xml:space="preserve"><value>{0} comes out {1} ({2}). Set a recipient so it can be delivered.</value></data>
   <data name="Profile_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Profile_NewspaperTitle" xml:space="preserve"><value>Newspaper title</value></data>
   <data name="Profile_Recipient" xml:space="preserve"><value>Recipient</value></data>
@@ -623,7 +623,7 @@
   <data name="Profile_DeliveryEmail" xml:space="preserve"><value>By email, e.g. to the Kindle</value></data>
   <data name="Profile_DeliveryFetch" xml:space="preserve"><value>Only make it available</value></data>
   <data name="Profile_DeliveryFetchHint" xml:space="preserve"><value>The reader fetches it from the OPDS catalog (see Account), or you download it from the archive. No mail server needed.</value></data>
-  <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} is ready {1} at {2} ({3}) for your reader to fetch.</value></data>
+  <data name="Profile_LedeFetch" xml:space="preserve"><value>{0} is ready {1} ({2}) for your reader to fetch.</value></data>
   <data name="Dash_ToFetch" xml:space="preserve"><value>to fetch</value></data>
   <data name="Log_Stored" xml:space="preserve"><value>Made available to fetch</value></data>
   <data name="Profile_GroupPaper" xml:space="preserve"><value>Newspaper</value></data>
@@ -807,4 +807,12 @@
   <data name="IssueStage_Extras" xml:space="preserve"><value>Weather, overview, on this day</value></data>
   <data name="IssueStage_Rendering" xml:space="preserve"><value>Making the EPUB</value></data>
   <data name="IssueStage_Sending" xml:space="preserve"><value>Delivering</value></data>
+  <data name="Profile_WhenDays" xml:space="preserve"><value>{0} at {1}</value></data>
+  <data name="Profile_WhenCron" xml:space="preserve"><value>on the schedule “{0}”</value></data>
+  <data name="Profile_ScheduleSimple" xml:space="preserve"><value>Time and weekdays</value></data>
+  <data name="Profile_ScheduleCron" xml:space="preserve"><value>Cron expression</value></data>
+  <data name="Profile_Cron" xml:space="preserve"><value>Cron expression</value></data>
+  <data name="Profile_CronHint" xml:space="preserve"><value>Five fields as in crontab: minute, hour, day, month, weekday. “0 6 * * 1-5” is 6:00 on weekdays, “0 6,18 * * *” morning and evening. At most one issue an hour.</value></data>
+  <data name="Profile_Error_Cron" xml:space="preserve"><value>Please enter a cron expression with five fields that fires at most once an hour, like 0 6 * * 1-5.</value></data>
+  <data name="ConfigProblem_Cron" xml:space="preserve"><value>invalid cron expression</value></data>
 </root>

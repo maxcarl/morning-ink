@@ -19,6 +19,7 @@ namespace MorningInk.Infrastructure.Profiles;
 /// <param name="LeadTime">How long before delivery to build the issue, up to half a day; null keeps the current one.</param>
 /// <param name="SendByEmail">Off, issues are only stored to fetch, and the recipient may stay empty.</param>
 /// <param name="MinArticles">Fewest articles worth an issue, 1 to 50; null keeps the current number.</param>
+/// <param name="Cron">A crontab expression that replaces time and days, at most hourly; null keeps the current one, empty goes back to time and days.</param>
 public sealed record ProfileSettings(
     string Title,
     string Recipient,
@@ -29,7 +30,8 @@ public sealed record ProfileSettings(
     IReadOnlyCollection<DayOfWeek>? Days = null,
     TimeSpan? LeadTime = null,
     bool SendByEmail = true,
-    int? MinArticles = null);
+    int? MinArticles = null,
+    string? Cron = null);
 
 /// <summary>Where an edition announces its issues; see <see cref="Profile.NotifyChannel"/>.</summary>
 /// <param name="Secret">Token for the channel; empty keeps the saved one, as with the mail password.</param>
@@ -123,7 +125,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         return true;
     }
 
-    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country, Days, LeadTime, MinArticles, Profile.</summary>
+    /// <summary>Saves the settings, or returns the names of the invalid fields: Title, Recipient, DeliveryTime, TimeZone, Region, Country, Days, LeadTime, MinArticles, Cron, Profile.</summary>
     public async Task<IReadOnlyList<string>> SaveSettingsAsync(Guid userId, Guid profileId, ProfileSettings settings, CancellationToken cancellationToken)
     {
         var errors = new List<string>();
@@ -176,6 +178,13 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
             errors.Add("MinArticles");
         }
 
+        // Spaces collapsed, so the page and the export show the expression the way it is meant.
+        var cron = settings.Cron is null ? null : string.Join(' ', settings.Cron.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        if (cron is { Length: > 0 } && (cron.Length > MorningInkDbContext.CronLength || CronText.Parse(cron, TimeZoneInfo.Utc) is null))
+        {
+            errors.Add("Cron");
+        }
+
         var profile = await FindAsync(userId, profileId, cancellationToken);
         if (profile is null)
         {
@@ -202,6 +211,11 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
         if (settings.MinArticles is { } minArticles)
         {
             profile.MinArticles = minArticles;
+        }
+
+        if (cron is not null)
+        {
+            profile.Cron = cron.Length == 0 ? null : cron;
         }
 
         if (settings.Days is { } days)
@@ -306,7 +320,7 @@ public sealed partial class ProfileEditor(MorningInkDbContext db, ISchedulerFact
     private async Task RescheduleAsync(Profile profile, CancellationToken cancellationToken) =>
         await issueScheduler.ScheduleAsync(
             await schedulers.GetScheduler(cancellationToken),
-            new ProfileSchedule(profile.Id, profile.DeliveryTime, profile.TimeZoneId, profile.Days, profile.LeadTime),
+            ProfileSchedule.Of(profile),
             cancellationToken,
             catchUp: false);
 }

@@ -51,7 +51,7 @@ internal sealed class PublishingStore(MorningInkDbContext db, TimeProvider time)
     }
 
     public async Task<IReadOnlyList<ProfileSchedule>> ListSchedulesAsync(CancellationToken cancellationToken) =>
-        await db.Profiles.Select(p => new ProfileSchedule(p.Id, p.DeliveryTime, p.TimeZoneId, p.Days, p.LeadTime)).ToListAsync(cancellationToken);
+        await db.Profiles.Select(p => new ProfileSchedule(p.Id, p.DeliveryTime, p.TimeZoneId, p.Days, p.LeadTime, p.Cron)).ToListAsync(cancellationToken);
 
     public Task<Issue?> FindIssueAsync(Guid profileId, DateTimeOffset scheduledFor, CancellationToken cancellationToken) =>
         db.Issues

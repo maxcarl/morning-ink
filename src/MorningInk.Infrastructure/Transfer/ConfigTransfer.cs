@@ -145,7 +145,7 @@ public sealed class ConfigTransfer(
     {
         var scheduler = await schedulers.GetScheduler(cancellationToken);
         var schedules = await db.Profiles.AsNoTracking().Where(p => p.UserId == userId)
-            .Select(p => new ProfileSchedule(p.Id, p.DeliveryTime, p.TimeZoneId, p.Days, p.LeadTime))
+            .Select(p => new ProfileSchedule(p.Id, p.DeliveryTime, p.TimeZoneId, p.Days, p.LeadTime, p.Cron))
             .ToListAsync(cancellationToken);
         foreach (var schedule in schedules)
         {
@@ -335,7 +335,7 @@ public sealed class ConfigTransfer(
             // with; saved as fetch-only, then set as it was, so an exported fresh edition comes back the same.
             var recipient = config.Recipient?.Trim() ?? string.Empty;
             var waitsForRecipient = config.SendByEmail && recipient.Length == 0;
-            var settings = new ProfileSettings(title, recipient, config.DeliveryTime ?? string.Empty, config.TimeZone ?? string.Empty, config.Region, config.Country, days, TimeSpan.FromMinutes(config.LeadMinutes), config.SendByEmail && !waitsForRecipient, config.MinArticles);
+            var settings = new ProfileSettings(title, recipient, config.DeliveryTime ?? string.Empty, config.TimeZone ?? string.Empty, config.Region, config.Country, days, TimeSpan.FromMinutes(config.LeadMinutes), config.SendByEmail && !waitsForRecipient, config.MinArticles, config.Cron ?? string.Empty);
             problems.AddRange((await editions.SaveSettingsAsync(userId, profile.Id, settings, cancellationToken)).Select(field => new ConfigProblem(title, field)));
             if (waitsForRecipient)
             {
@@ -516,7 +516,8 @@ public sealed class ConfigTransfer(
             s.MaxArticles,
             s.Kind == SectionKind.Articles ? [.. s.Sources.Select(source => source.Name).Order(StringComparer.Ordinal)] : null,
             s.ShowAnniversaries,
-            s.ShowFeaturedArticle))]);
+            s.ShowFeaturedArticle))],
+        p.Cron);
 
     private async Task<InstanceConfig> ExportInstanceAsync(CancellationToken cancellationToken)
     {

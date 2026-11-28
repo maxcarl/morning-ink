@@ -172,6 +172,28 @@ public sealed class ProfilePageTests : IDisposable
     }
 
     [Fact]
+    public async Task Cron_expression_replaces_time_and_days_until_switched_back()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var page = pages.Open<ProfilePage>("comes out every day");
+
+        page.Find("#schedule-cron").Change(true);
+        Pages.Submit(page, ("#recipient", "name_abc@kindle.com"), ("#cron", "*/15 6 * * *"));
+        Pages.Shows(page, "fires at most once an hour");
+        Pages.Submit(page, ("#cron", "0 6,18 * * 1-5"));
+
+        Pages.Shows(page, "comes out on the schedule “0 6,18 * * 1-5”");
+        Assert.Empty(page.FindAll(".weekdays"));
+        Assert.Equal("0 6,18 * * 1-5", (await ProfilesAsync())[0].Cron);
+
+        page.Find("#schedule-simple").Change(true);
+        Pages.Submit(page, ("#recipient", "name_abc@kindle.com"));
+
+        Pages.Shows(page, "comes out every day at");
+        Assert.Null((await ProfilesAsync())[0].Cron);
+    }
+
+    [Fact]
     public async Task Edition_is_deleted_only_after_confirmation_and_the_last_one_has_no_delete()
     {
         using var pages = await Pages.AsAdminAsync(_app);

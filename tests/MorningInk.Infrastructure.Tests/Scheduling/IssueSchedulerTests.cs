@@ -122,6 +122,69 @@ public sealed class IssueSchedulerTests : IDisposable
     }
 
     [Fact]
+    public async Task Crontab_schedule_fires_at_its_expression_instead_of_time_and_days()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0), cron: "30 6 * * 1-5");
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        // Saturday 7:00: nothing to catch up, the next issue is Monday 6:30.
+        var daily = Assert.IsAssignableFrom<ICronTrigger>(Assert.Single(await scheduler.GetTriggersOfJob(IssueScheduler.JobKeyFor(profileId))));
+        var next = TimeZoneInfo.ConvertTime(daily.GetFireTimeAfter(TestHost.Now)!.Value, daily.TimeZone); // ! is safe: a weekday trigger always fires again
+        Assert.Equal((DayOfWeek.Monday, 6, 30), (next.DayOfWeek, next.Hour, next.Minute));
+    }
+
+    [Fact]
+    public async Task Crontab_slot_missed_while_off_is_caught_up()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0), cron: "0 6 * * 6");
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        var catchUp = await scheduler.GetTrigger(new TriggerKey($"catch-up-{profileId}"));
+        Assert.Equal(DateTimeOffset.Parse("2026-11-21T05:00:00Z", System.Globalization.CultureInfo.InvariantCulture).ToUnixTimeMilliseconds(), catchUp?.JobDataMap.GetLong(IssueScheduler.SlotKey));
+    }
+
+    [Fact]
+    public async Task Crontab_schedule_with_lead_time_builds_before_every_slot()
+    {
+        await using var services = await StartAsync();
+        var profileId = await CreateProfileAsync(services, new TimeOnly(18, 0), leadTime: TimeSpan.FromHours(1), cron: "30 7,19 * * *");
+        var scheduler = await services.GetRequiredService<ISchedulerFactory>().GetScheduler();
+        var buildKey = new TriggerKey($"build-{profileId}");
+
+        await services.GetRequiredService<IssueScheduler>().ScheduleAllAsync(scheduler, CancellationToken.None);
+
+        // At 7:00 the build of 7:30 is past, so the first one planned is 18:30 for 19:30.
+        var build = await scheduler.GetTrigger(buildKey);
+        Assert.Equal(DateTimeOffset.Parse("2026-11-21T17:30:00Z", System.Globalization.CultureInfo.InvariantCulture), build?.StartTimeUtc);
+        Assert.Equal(DateTimeOffset.Parse("2026-11-21T18:30:00Z", System.Globalization.CultureInfo.InvariantCulture).ToUnixTimeMilliseconds(), build?.JobDataMap.GetLong(IssueScheduler.SlotKey));
+
+        // The build run plans the next build itself; the test clock stands still, so it is the same one again.
+        await scheduler.UnscheduleJob(buildKey);
+        await scheduler.Start();
+        await scheduler.TriggerJob(IssueScheduler.JobKeyFor(profileId), new JobDataMap
+        {
+            [IssueScheduler.SlotKey] = DateTimeOffset.Parse("2026-11-21T06:30:00Z", System.Globalization.CultureInfo.InvariantCulture).ToUnixTimeMilliseconds(),
+            [IssueScheduler.LeadMinutesKey] = 60L,
+            [IssueScheduler.CronKey] = build!.JobDataMap.GetString(IssueScheduler.CronKey)!, // ! is safe: asserted above; a crontab build carries its expression
+            [IssueScheduler.ZoneKey] = "Europe/Berlin",
+        });
+        var deadline = DateTime.UtcNow.AddSeconds(20);
+        while (await scheduler.GetTrigger(buildKey) is null)
+        {
+            Assert.True(DateTime.UtcNow < deadline, "Timed out waiting for the next build.");
+            await Task.Delay(100);
+        }
+
+        await scheduler.Shutdown(waitForJobsToComplete: true);
+    }
+
+    [Fact]
     public async Task Jobs_overview_lists_planned_issues_with_their_edition_and_owner()
     {
         await using var services = await StartAsync();
@@ -201,13 +264,13 @@ public sealed class IssueSchedulerTests : IDisposable
         },
         services => services.AddSingleton<ProfileLocks>().AddScoped<IssueBuilder>().AddScoped<IssueAiSteps>().AddScoped<IssueRelease>().AddScoped<IssuePublisher>());
 
-    private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime, List<DayOfWeek>? days = null, TimeSpan? leadTime = null)
+    private async Task<Guid> CreateProfileAsync(IServiceProvider services, TimeOnly deliveryTime, List<DayOfWeek>? days = null, TimeSpan? leadTime = null, string? cron = null)
     {
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MorningInkDbContext>();
         var user = new User { Name = "alex", Language = "de" };
         var source = new Source { UserId = user.Id, Name = "Test-Feed", Url = _feed.Url("/feed").ToString(), FetchFullText = false, MaxAge = TimeSpan.FromDays(3650) };
-        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "name_abc@kindle.com", DeliveryTime = deliveryTime, Days = days ?? [], LeadTime = leadTime ?? TimeSpan.Zero };
+        var profile = new Profile { UserId = user.Id, Title = "Morning Ink", Recipient = "name_abc@kindle.com", DeliveryTime = deliveryTime, Days = days ?? [], LeadTime = leadTime ?? TimeSpan.Zero, Cron = cron };
         profile.Sections.Add(new Section { Name = "Nachrichten", Position = 1, Sources = { source } });
         db.AddRange(user, source, profile);
         await db.SaveChangesAsync();
