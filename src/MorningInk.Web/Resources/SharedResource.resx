@@ -819,4 +819,6 @@
   <data name="Archive_CoverCancelled" xml:space="preserve"><value>Did not appear</value></data>
   <data name="Archive_CoverBuilding" xml:space="preserve"><value>Going to press …</value></data>
   <data name="Archive_CoverGone" xml:space="preserve"><value>No longer in the archive</value></data>
+  <data name="Archive_Newer" xml:space="preserve"><value>Newer issues</value></data>
+  <data name="Archive_Older" xml:space="preserve"><value>Older issues</value></data>
 </root>

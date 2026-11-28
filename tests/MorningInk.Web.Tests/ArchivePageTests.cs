@@ -133,7 +133,11 @@ public sealed class ArchivePageTests : IDisposable
 
         Assert.Equal($"/archive/{issueId}/cover", page.Find("img.issue-cover").GetAttribute("src"));
         Assert.Empty(page.FindAll(".cover-details")); // the actions wait until a cover is chosen
-        OpenFirstIssue(page).Find("button.cover-button").Click();
+        Assert.Equal(["Newer issues", "Older issues"], page.FindAll("[data-scroll-row]").Select(a => a.GetAttribute("aria-label")));
+        Assert.All(page.FindAll("[data-scroll-row]"), a => Assert.Equal("cover-row", a.GetAttribute("aria-controls")));
+        OpenFirstIssue(page);
+        Assert.Empty(page.FindAll(".cover-row .cover-details")); // below the row, so no cover moves
+        page.Find("button.cover-button").Click();
         Assert.Empty(page.FindAll(".cover-details")); // and the same cover closes them again
     }
 

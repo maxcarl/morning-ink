@@ -819,4 +819,6 @@
   <data name="Archive_CoverCancelled" xml:space="preserve"><value>Nicht erschienen</value></data>
   <data name="Archive_CoverBuilding" xml:space="preserve"><value>Geht in Druck …</value></data>
   <data name="Archive_CoverGone" xml:space="preserve"><value>Nicht mehr im Archiv</value></data>
+  <data name="Archive_Newer" xml:space="preserve"><value>Neuere Ausgaben</value></data>
+  <data name="Archive_Older" xml:space="preserve"><value>Ältere Ausgaben</value></data>
 </root>

@@ -51,16 +51,88 @@
 }
 
 /* The archive as a shelf of front pages: as many covers per row as fit, at least two on a phone */
-.cover-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-  /* The open issue's details span a whole row; dense lets the covers after it finish the row first, so they stay
-     where they were and the details open below that row instead of pushing the rest down a line. */
-  grid-auto-flow: dense;
-  gap: var(--space-4) var(--space-3);
+/* All covers in one row that scrolls sideways; the details open below it, so no cover ever moves */
+.cover-row {
+  display: flex;
+  gap: var(--space-3);
   margin: 0;
-  padding: 0;
+  padding: 0 0 var(--space-2);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
   list-style: none;
+}
+
+/* Holds the row and its arrows, which sit on its edges at the middle of the covers */
+.cover-shelf {
+  position: relative;
+}
+
+.cover-arrow {
+  position: absolute;
+  z-index: 1;
+  top: 6.8rem; /* half a cover: 8.5rem wide at 5:8 */
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.cover-arrow:hover {
+  border-color: var(--color-ink);
+}
+
+.cover-arrow-back {
+  left: calc(-1 * var(--space-2));
+}
+
+.cover-arrow-on {
+  right: calc(-1 * var(--space-2));
+}
+
+/* Nowhere to go in that direction, or the whole row fits */
+.cover-arrow[disabled] {
+  visibility: hidden;
+}
+
+.cover-arrow svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cover-card {
+  flex: 0 0 8.5rem;
+  scroll-snap-align: start;
+}
+
+/* Shaped like a cover, so older issues read as the row going on */
+.cover-more {
+  width: 100%;
+  aspect-ratio: 5 / 8;
+  padding: var(--space-2);
+  border: 1px dashed var(--color-border);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.cover-more:hover {
+  border-color: var(--color-ink);
 }
 
 .cover-button {
@@ -95,14 +167,16 @@
   border-color: var(--color-border);
   color: var(--color-muted);
   text-align: center;
+  container-type: inline-size;
 }
 
+/* Sized to the cover's width like the real nameplate, so "Morning Ink" stays on one line; longer names still wrap */
 .cover-missing-title {
   padding-bottom: var(--space-1);
   border-bottom: 2px solid currentColor;
   overflow-wrap: anywhere;
   font-family: var(--font-serif);
-  font-size: var(--text-lg);
+  font-size: clamp(0.75rem, 13cqi, 1.75rem);
   font-weight: 700;
   line-height: 1.1;
 }
@@ -147,9 +221,8 @@
   font-size: var(--text-sm);
 }
 
-/* The open issue spans the whole row below its cover's row */
 .cover-details {
-  grid-column: 1 / -1;
+  margin-top: var(--space-2);
   border-top: 1px solid var(--color-rule);
 }
 
