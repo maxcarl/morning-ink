@@ -50,21 +50,59 @@
   border-bottom: 1px solid var(--color-rule);
 }
 
-/* The archive shows each issue's cover beside its line, small like a stack of papers on a shelf */
-.archive-issue {
+/* The archive as a shelf of front pages: as many covers per row as fit, at least two on a phone */
+.cover-grid {
   display: grid;
-  grid-template-columns: 3rem minmax(0, 1fr);
-  gap: 0 var(--space-3);
-  align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--space-4) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cover-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .issue-cover {
   display: block;
-  width: 3rem;
+  width: 100%;
   height: auto;
   aspect-ratio: 5 / 8;
   border: 1px solid var(--color-rule);
   background: var(--color-surface);
+}
+
+.cover-button:hover .issue-cover,
+.cover-button[aria-expanded="true"] .issue-cover {
+  border-color: var(--color-ink);
+}
+
+.cover-name {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+}
+
+.cover-date {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+/* The open issue spans the whole row right after its cover */
+.cover-details {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--color-rule);
 }
 
 .issue-line {

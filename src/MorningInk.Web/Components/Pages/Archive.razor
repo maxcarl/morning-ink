@@ -29,27 +29,37 @@
     {
         <p class="muted">@(string.IsNullOrWhiteSpace(_search) ? T["Archive_Empty"] : T["Archive_NoneFound"])</p>
     }
-    <ul class="issues" aria-live="polite">
+    @* A shelf of front pages, newest first; a cover opens its issue's line with the actions just below it. *@
+    <ul class="cover-grid" aria-live="polite">
         @foreach (var item in page.Issues)
         {
             var issue = item.Issue;
             var name = $"{T["Dash_IssueTitle", issue.Number]} · {Clock.DateAndTime(T, IssueTexts.Local(issue.ScheduledFor, item.Profile))}";
+            var selected = _selectedId == issue.Id;
             var open = _openId == issue.Id;
             var inIssue = issue.Entries.Where(e => !e.Duplicate).ToList();
             var logOpen = _logId == issue.Id;
             var leftOutOpen = _leftOutId == issue.Id;
-            @* The same columns as on the overview, with the actions at the end of the line. *@
-            <li class="issue archive-issue" @key="issue.Id">
-                @* Decorative: the line beside it names the issue. The small cover is made from the file, so none without one. *@
-                @if (item.FileAvailable)
-                {
-                    <img class="issue-cover" src="/archive/@issue.Id/cover" alt="" loading="lazy" width="250" height="400" />
-                }
-                else
-                {
-                    <span class="issue-cover" aria-hidden="true"></span>
-                }
-                <div class="archive-body">
+            <li class="cover-card" @key="issue.Id">
+                <button type="button" class="cover-button" aria-expanded="@(selected ? "true" : "false")" aria-controls="issue-@issue.Id" @onclick="() => _selectedId = selected ? null : issue.Id">
+                    @* Decorative: the words below name the issue. The small cover is made from the file, so none without one. *@
+                    @if (item.FileAvailable)
+                    {
+                        <img class="issue-cover" src="/archive/@issue.Id/cover" alt="" loading="lazy" width="250" height="400" />
+                    }
+                    else
+                    {
+                        <span class="issue-cover" aria-hidden="true"></span>
+                    }
+                    <span class="cover-name">@(several ? $"{item.Profile.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
+                    <span class="cover-date">@IssueTexts.Local(issue.ScheduledFor, item.Profile).ToString("d", System.Globalization.CultureInfo.CurrentCulture)</span>
+                    <span class="badge @IssueTexts.StatusClass(issue.Status)">@IssueTexts.Status(T, issue, item.Profile)</span>
+                </button>
+            </li>
+            @if (selected)
+            {
+                @* The same columns as on the overview, with the actions at the end of the line. *@
+                <li id="issue-@issue.Id" class="issue cover-details" @key="(issue.Id, true)">
                     <div class="issue-line archive-line">
                         <span class="issue-name">@(several ? $"{item.Profile.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
                         <span class="issue-date">@Clock.DateAndTime(T, IssueTexts.Local(issue.ScheduledFor, item.Profile))</span>
@@ -141,8 +151,8 @@
                             }
                         </ul>
                     }
-                </div>
-            </li>
+                </li>
+            }
         }
     </ul>
     @if (page.HasMore)
@@ -157,6 +167,7 @@
     private ArchivePage? _page;
     private string _search = string.Empty;
     private int _take = PageSize;
+    private Guid? _selectedId;
     private Guid? _openId;
     private Guid? _logId;
     private Guid? _leftOutId;

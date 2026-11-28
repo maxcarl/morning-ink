@@ -31,7 +31,7 @@ public sealed class ArchivePageTests : IDisposable
     {
         using var pages = await Pages.AsAdminAsync(_app);
         await AddIssueAsync("Raumfahrt: Start geglückt");
-        var page = pages.Open<Archive>("No. 1");
+        var page = OpenFirstIssue(pages.Open<Archive>("No. 1"));
 
         Pages.Button(page, "Send again").Click();
 
@@ -58,7 +58,7 @@ public sealed class ArchivePageTests : IDisposable
     {
         using var pages = await Pages.AsAdminAsync(_app);
         var issueId = await AddIssueAsync("Raumfahrt: Start geglückt");
-        var page = pages.Open<Archive>("No. 1");
+        var page = OpenFirstIssue(pages.Open<Archive>("No. 1"));
 
         Pages.Button(page, "Keep").Click();
 
@@ -76,7 +76,7 @@ public sealed class ArchivePageTests : IDisposable
             issue.AddLog(DateTimeOffset.UtcNow, "Fetched", "tagesschau", 12);
             issue.AddLog(DateTimeOffset.UtcNow, "DeliveryFailed", "The mail server smtp.example.com could not be reached.", "Unreachable", "smtp.example.com");
         });
-        var page = pages.Open<Archive>("No. 1");
+        var page = OpenFirstIssue(pages.Open<Archive>("No. 1"));
 
         Pages.Button(page, "Log").Click();
 
@@ -94,7 +94,7 @@ public sealed class ArchivePageTests : IDisposable
             issue.LeaveOut(new LeftOutArticle { Section = "Nachrichten", SourceName = "Beispiel", SourceId = sourceId, Title = "Liveticker zur Wahl", Url = "https://example.com/live", Reason = "Excluded", Detail = "Liveticker" });
             issue.LeaveOut(new LeftOutArticle { Section = "Sport", SourceName = "Beispiel", SourceId = sourceId, Title = "Tor in der Nachspielzeit", Url = "https://example.com/tor", Reason = "Interest", Detail = "Fußball" });
         });
-        var page = pages.Open<Archive>("No. 1");
+        var page = OpenFirstIssue(pages.Open<Archive>("No. 1"));
 
         Pages.Button(page, "Left out (2)").Click();
 
@@ -132,6 +132,9 @@ public sealed class ArchivePageTests : IDisposable
         var page = pages.Open<Archive>("No. 1");
 
         Assert.Equal($"/archive/{issueId}/cover", page.Find("img.issue-cover").GetAttribute("src"));
+        Assert.Empty(page.FindAll(".cover-details")); // the actions wait until a cover is chosen
+        OpenFirstIssue(page).Find("button.cover-button").Click();
+        Assert.Empty(page.FindAll(".cover-details")); // and the same cover closes them again
     }
 
     [Fact]
@@ -153,6 +156,14 @@ public sealed class ArchivePageTests : IDisposable
         Assert.Equal("image/jpeg", own.Content.Headers.ContentType?.MediaType);
         Assert.Equal(HttpStatusCode.NotFound, foreign.StatusCode);
         Assert.StartsWith("/login", TestApp.RedirectTarget(anonymous), StringComparison.Ordinal);
+    }
+
+    // The actions of an issue sit in its details, which its cover opens.
+    private static IRenderedComponent<Archive> OpenFirstIssue(IRenderedComponent<Archive> page)
+    {
+        page.Find("button.cover-button").Click();
+        page.WaitForAssertion(() => Assert.NotEmpty(page.FindAll(".cover-details")));
+        return page;
     }
 
     public void Dispose()
