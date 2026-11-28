@@ -815,4 +815,8 @@
   <data name="Profile_CronHint" xml:space="preserve"><value>Fünf Felder wie in crontab: Minute, Stunde, Tag, Monat, Wochentag. „0 6 * * 1-5“ ist werktags um 6:00, „0 6,18 * * *“ morgens und abends. Höchstens eine Ausgabe pro Stunde.</value></data>
   <data name="Profile_Error_Cron" xml:space="preserve"><value>Gib einen Cron-Ausdruck mit fünf Feldern ein, der höchstens einmal pro Stunde auslöst, etwa 0 6 * * 1-5.</value></data>
   <data name="ConfigProblem_Cron" xml:space="preserve"><value>ungültiger Cron-Ausdruck</value></data>
+  <data name="Archive_CoverEmpty" xml:space="preserve"><value>Heute nichts Neues</value></data>
+  <data name="Archive_CoverCancelled" xml:space="preserve"><value>Nicht erschienen</value></data>
+  <data name="Archive_CoverBuilding" xml:space="preserve"><value>Geht in Druck …</value></data>
+  <data name="Archive_CoverGone" xml:space="preserve"><value>Nicht mehr im Archiv</value></data>
 </root>

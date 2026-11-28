@@ -138,6 +138,23 @@ public sealed class ArchivePageTests : IDisposable
     }
 
     [Fact]
+    public async Task Issue_without_a_file_shows_a_front_page_saying_why()
+    {
+        using var pages = await Pages.AsAdminAsync(_app);
+        var issueId = await AddIssueAsync("Raumfahrt: Start geglückt", i => i.Status = IssueStatus.Cancelled);
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            File.Delete(scope.ServiceProvider.GetRequiredService<IIssueFiles>().PathFor($"{issueId}.epub"));
+        }
+
+        var page = pages.Open<Archive>("No. 1");
+
+        Assert.Empty(page.FindAll("img.issue-cover"));
+        Assert.Equal("Morning Ink", page.Find(".cover-missing-title").TextContent);
+        Assert.Equal("Did not appear", page.Find(".cover-missing-note").TextContent);
+    }
+
+    [Fact]
     public async Task Cover_is_served_only_to_its_owner()
     {
         var admin = await _app.SignedInAdminAsync();

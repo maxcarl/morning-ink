@@ -49,7 +49,20 @@
                     }
                     else
                     {
-                        <span class="issue-cover" aria-hidden="true"></span>
+                        @* No file, so no cover: a pale front page with the edition's nameplate and why nothing appeared. *@
+                        <span class="issue-cover cover-missing" aria-hidden="true">
+                            <span class="cover-missing-title">@item.Profile.Title</span>
+                            <span class="cover-missing-body">
+                                <svg class="cover-missing-icon" viewBox="0 0 48 48" focusable="false">
+                                    @* A stack of papers: two sheets behind, the front one with a nameplate and lines of text. *@
+                                    <rect x="14" y="4" width="28" height="34" rx="1" />
+                                    <rect x="10" y="8" width="28" height="34" rx="1" />
+                                    <rect x="6" y="12" width="28" height="34" rx="1" />
+                                    <path d="M10 18h20M10 24h9M10 28h9M10 32h9M10 36h9M23 24h7M23 28h7M23 32h7" />
+                                </svg>
+                                <span class="cover-missing-note">@MissingCoverNote(issue.Status)</span>
+                            </span>
+                        </span>
                     }
                     <span class="cover-name">@(several ? $"{item.Profile.Title} · " : null)@T["Dash_IssueTitle", issue.Number]</span>
                     <span class="cover-date">@IssueTexts.Local(issue.ScheduledFor, item.Profile).ToString("d", System.Globalization.CultureInfo.CurrentCulture)</span>
@@ -220,6 +233,15 @@
         _notice = await UseAsync<Newsroom, bool>(newsroom => newsroom.CancelAsync(UserId, profileId, Closed)) ? T["Dash_CancelRequested"] : T["Dash_NothingToCancel"];
         await ReloadAsync();
     }
+
+    // In a newspaper's words rather than the status badge's, which stands right below.
+    private string MissingCoverNote(IssueStatus status) => status switch
+    {
+        IssueStatus.Empty => T["Archive_CoverEmpty"],
+        IssueStatus.Cancelled => T["Archive_CoverCancelled"],
+        IssueStatus.Building => T["Archive_CoverBuilding"],
+        _ => T["Archive_CoverGone"],
+    };
 
     // The reasons in the words of the source preview; an unknown one (from a newer version) says nothing rather than a code.
     private string LeftOutReason(LeftOutArticle article)

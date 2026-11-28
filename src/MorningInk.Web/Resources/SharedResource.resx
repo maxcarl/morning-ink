@@ -815,4 +815,8 @@
   <data name="Profile_CronHint" xml:space="preserve"><value>Five fields as in crontab: minute, hour, day, month, weekday. “0 6 * * 1-5” is 6:00 on weekdays, “0 6,18 * * *” morning and evening. At most one issue an hour.</value></data>
   <data name="Profile_Error_Cron" xml:space="preserve"><value>Please enter a cron expression with five fields that fires at most once an hour, like 0 6 * * 1-5.</value></data>
   <data name="ConfigProblem_Cron" xml:space="preserve"><value>invalid cron expression</value></data>
+  <data name="Archive_CoverEmpty" xml:space="preserve"><value>Nothing new today</value></data>
+  <data name="Archive_CoverCancelled" xml:space="preserve"><value>Did not appear</value></data>
+  <data name="Archive_CoverBuilding" xml:space="preserve"><value>Going to press …</value></data>
+  <data name="Archive_CoverGone" xml:space="preserve"><value>No longer in the archive</value></data>
 </root>
